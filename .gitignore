@@ -30,8 +30,9 @@ docker-compose.override.yml
 # Spec Kit machine-local state
 .specify/state/
 
-.angular
-
+# Nx / Claude Code machine-local state
+.nx/polygraph
 __screenshots__/
-
 test-output
+.claude/worktrees
+.claude/settings.local.json
