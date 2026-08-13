@@ -2,7 +2,7 @@
 # Multi-stage build for apps/frontend (Angular): compile inside the Nx
 # workspace, then serve the static output with nginx.
 
-FROM node:22-slim AS build
+FROM node:24-slim AS build
 WORKDIR /workspace
 
 COPY package.json package-lock.json nx.json tsconfig.json tsconfig.base.json ./
