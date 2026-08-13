@@ -21,10 +21,10 @@ description: "Task list template for feature implementation"
 
 ## Path Conventions
 
-- **Single project**: `src/`, `tests/` at repository root
-- **Web app**: `backend/src/`, `frontend/src/`
-- **Mobile**: `api/src/`, `ios/src/` or `android/src/`
-- Paths shown below assume single project - adjust based on plan.md structure
+- **Nx monorepo (default for this project)**: `apps/backend/src/` (NestJS), `apps/frontend/src/`
+  (Angular), `libs/<lib-name>/src/` for standalone domain/shared libraries (Principle I)
+- Paths shown below use generic placeholder examples (e.g., `src/models/`) — replace with the
+  actual `apps/*` or `libs/*` path from plan.md's Project Structure for this feature
 
 <!--
   ============================================================================

@@ -18,17 +18,21 @@
   the iteration process.
 -->
 
-**Language/Version**: [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION]
+**Language/Version**: TypeScript (Node.js LTS runtime for the backend)
 
-**Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]
+**Primary Dependencies**: NestJS (backend), Angular (frontend), Nx (monorepo tooling) — per the
+constitution's Stack Decision. Note any feature-specific additions here (e.g., a charting library,
+a market-data client) beyond this baseline.
 
-**Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]
+**Storage**: PostgreSQL, accessed via the backend only (Principle II)
 
-**Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]
+**Testing**: Jest (Nx default for both NestJS and Angular projects); contract/integration tests per
+Principle IV
 
-**Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
+**Target Platform**: Linux server (backend + PostgreSQL containers), modern evergreen browsers
+(Angular frontend)
 
-**Project Type**: [e.g., library/cli/web-service/mobile-app/compiler/desktop-app or NEEDS CLARIFICATION]
+**Project Type**: web-service + frontend, Nx monorepo (see Project Structure below)
 
 **Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps or NEEDS CLARIFICATION]
 
@@ -65,43 +69,34 @@ specs/[###-feature]/
 -->
 
 ```text
-# [REMOVE IF UNUSED] Option 1: Single project (DEFAULT)
+# DEFAULT: Nx monorepo (frontend + backend), per the constitution's Stack Decision
+apps/
+├── backend/                  # NestJS
+│   ├── src/
+│   │   ├── modules/          # feature modules (controllers, DTOs, wiring)
+│   │   └── main.ts
+│   └── src/tests/            # e2e/integration tests for this app
+└── frontend/                 # Angular
+    ├── src/
+    │   ├── app/               # components, pages, routing
+    │   └── main.ts
+    └── src/tests/
+
+libs/
+├── domain/[domain-name]/     # standalone finance/domain logic (Principle I),
+│                             # framework-independent, unit-tested in isolation
+├── api-contract/             # shared DTOs/types between backend and frontend
+└── [market-data-provider]/   # external market-data integration, isolated per
+                              # Product Scope's External Market Data rules
+
+# [REMOVE IF UNUSED] Only if this feature also needs a standalone project outside
+# the monorepo's normal app/lib shape (rare — justify in Complexity Tracking):
 src/
-├── models/
-├── services/
-├── cli/
-└── lib/
-
 tests/
-├── contract/
-├── integration/
-└── unit/
-
-# [REMOVE IF UNUSED] Option 2: Web application (when "frontend" + "backend" detected)
-backend/
-├── src/
-│   ├── models/
-│   ├── services/
-│   └── api/
-└── tests/
-
-frontend/
-├── src/
-│   ├── components/
-│   ├── pages/
-│   └── services/
-└── tests/
-
-# [REMOVE IF UNUSED] Option 3: Mobile + API (when "iOS/Android" detected)
-api/
-└── [same as backend above]
-
-ios/ or android/
-└── [platform-specific structure: feature modules, UI flows, platform tests]
 ```
 
-**Structure Decision**: [Document the selected structure and reference the real
-directories captured above]
+**Structure Decision**: [Document the selected Nx apps/libs for this feature —
+which existing libs it extends, which new libs (if any) it introduces, and why]
 
 ## Complexity Tracking
 

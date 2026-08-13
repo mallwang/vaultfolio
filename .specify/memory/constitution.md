@@ -1,28 +1,28 @@
 <!--
 Sync Impact Report
-- Version change: 2.0.1 → 2.1.0 (MINOR: new Product Scope section added)
-- Modified principles: n/a (wording-only fixes to examples in I and IV, replacing generic
-  expense/budget terminology with investment-tracking terminology to match the new Product Scope
-  — not a rule change)
-- Added sections:
-  - Product Scope (In Scope / Out of Scope / External Market Data) — defines the product as an
-    investment tracker (ETFs, shares, gold, etc.), explicitly excludes expense/budget tracking and
-    banking/brokerage account API integration, and explicitly permits read-only external
-    market-data APIs (prices, ETF composition) as reference data.
+- Version change: 2.1.0 → 2.2.0 (MINOR: Technology & Architecture Constraints materially expanded
+  to resolve the prior TODO(TECH_STACK) placeholder with a concrete stack decision)
+- Modified principles: n/a
+- Added sections: n/a
 - Removed sections: n/a
 - Modified sections:
-  - Technology & Architecture Constraints: added a bullet scoping external API integrations to
-    market-data providers only, consistent with the new Product Scope section.
+  - Technology & Architecture Constraints: replaced the TODO(TECH_STACK) placeholder with a
+    concrete stack decision — Nx monorepo; NestJS (TypeScript/Node.js) backend; Angular
+    (TypeScript) frontend; PostgreSQL database; decimal money handling via PostgreSQL NUMERIC plus
+    a fixed-point/decimal library at the application layer (no native float/double for money);
+    market-data provider left unselected but MUST remain swappable per Principle I and Product
+    Scope, decided per-feature in /speckit-plan.
 - Templates requiring updates:
-  - .specify/templates/plan-template.md ⚠ pending manual check (Constitution Check gates should
-    reference API-First Interface and Product Scope, not CLI Interface / generic expense-tracking
-    examples)
-  - .specify/templates/spec-template.md ⚠ pending manual check
-  - .specify/templates/tasks-template.md ⚠ pending manual check
+  - .specify/templates/plan-template.md ✅ updated — Technical Context now pre-fills
+    Nx/NestJS/Angular/PostgreSQL/Jest, and Project Structure defaults to the Nx apps/libs layout
+  - .specify/templates/spec-template.md ✅ no change needed (spec stays tech-agnostic)
+  - .specify/templates/tasks-template.md ✅ updated — Path Conventions now default to the Nx
+    apps/backend, apps/frontend, libs/* layout instead of generic single-project/mobile options
 - Follow-up TODOs:
-  - TODO(TECH_STACK): Specific frontend framework, backend language/framework, database engine,
-    and choice of market-data provider(s) are not yet decided. Resolve during /speckit-plan for the
-    first feature and backfill the Technology & Architecture Constraints section once chosen.
+  - TODO(MARKET_DATA_PROVIDER): Specific market-data API vendor (prices, ETF composition) not yet
+    chosen. Resolve during the /speckit-plan run for the first feature that needs live market data;
+    isolate behind a dedicated module per Principle I and the Product Scope's External Market Data
+    rules so the vendor stays swappable.
 -->
 
 # Vaultfolio Constitution
@@ -148,12 +148,26 @@ provider is unreachable, since a user's recorded holdings are the source of trut
   Scope. No other external API integrations are permitted — in particular, no banking or
   brokerage account APIs.
 
-TODO(TECH_STACK): Specific frontend framework, backend language/framework, and database engine
-have not yet been chosen. This MUST be resolved — via a constitution amendment — before or during
-the first `/speckit-plan` run, and that plan's Constitution Check MUST fail closed (block) until
-it is. Once chosen, this section must additionally record: primary language(s) and runtime
-versions, the currency/decimal handling approach (to avoid floating-point representation of
-money), and any regulatory or data-residency constraints applicable to financial data.
+### Stack Decision
+- **Repository layout**: A single Nx monorepo houses the frontend, backend, and any shared
+  libraries (e.g., shared DTOs/types, domain logic libraries required by Principle I). Nx project
+  boundaries MUST be used to enforce the frontend/backend separation mandated by Principle II —
+  the frontend project MUST NOT import backend source directly, only the published API contract.
+- **Backend**: NestJS on Node.js, written in TypeScript. Domain/finance logic (position valuation,
+  cost-basis/gain-loss, allocation/look-through aggregation) MUST live in standalone Nx libraries
+  per Principle I, independent of NestJS controllers/modules, so it is testable without the HTTP
+  layer.
+- **Frontend**: Angular, written in TypeScript, in the same Nx monorepo.
+- **Database**: PostgreSQL, run as its own container per the constraint above.
+- **Money/decimal handling**: Monetary and quantity values MUST be stored using PostgreSQL's
+  `NUMERIC`/`DECIMAL` type — never `FLOAT`/`DOUBLE PRECISION`. At the application layer, monetary
+  values MUST be represented with an exact decimal type/library (not native JavaScript/TypeScript
+  `number`) end-to-end through backend calculations and API responses, consistent with Principle
+  III's ban on approximate assertions for monetary values.
+- **Market-data provider**: Not yet selected — see `TODO(MARKET_DATA_PROVIDER)` in the Sync Impact
+  Report above. Whichever provider is chosen MUST be isolated behind a dedicated Nx library/module
+  per Principle I and the Product Scope's External Market Data rules, so it can be swapped without
+  touching domain logic.
 
 ## Development Workflow & Quality Gates
 
@@ -180,4 +194,4 @@ alignment with the Core Principles; unresolved violations MUST be justified in t
 Complexity Tracking section or the plan MUST be revised to comply. Reviewers MUST treat this
 constitution as authoritative over informal team conventions.
 
-**Version**: 2.1.0 | **Ratified**: 2026-08-13 | **Last Amended**: 2026-08-13
+**Version**: 2.2.0 | **Ratified**: 2026-08-13 | **Last Amended**: 2026-08-13
