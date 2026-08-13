@@ -1,0 +1,23 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compileOnSave": false,
+  "files": [],
+  "references": [
+    {
+      "path": "./apps/backend"
+    },
+    {
+      "path": "./libs/api-contract"
+    },
+    {
+      "path": "./libs/market-data"
+    },
+    {
+      "path": "./apps/frontend"
+    },
+    {
+      "path": "./libs/domain/example"
+    }
+  ],
+  "compilerOptions": {}
+}

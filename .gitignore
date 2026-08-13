@@ -1,3 +1,12 @@
+# Nx / Node / Angular / NestJS build artifacts
+node_modules/
+dist/
+tmp/
+out-tsc/
+.nx/cache/
+.nx/workspace-data/
+.angular/
+
 # OS
 .DS_Store
 Thumbs.db
@@ -20,3 +29,9 @@ docker-compose.override.yml
 
 # Spec Kit machine-local state
 .specify/state/
+
+.angular
+
+__screenshots__/
+
+test-output

@@ -1,0 +1,17 @@
+.health-status {
+  font-family: sans-serif;
+  padding: 2rem;
+}
+
+.ok {
+  color: seagreen;
+}
+
+.degraded {
+  color: crimson;
+}
+
+.timestamp {
+  color: gray;
+  font-size: 0.875rem;
+}
