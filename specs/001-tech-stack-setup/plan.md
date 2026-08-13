@@ -1,108 +1,137 @@
-# Implementation Plan: [FEATURE]
+# Implementation Plan: Tech Stack & Tooling Setup
 
-**Branch**: `[###-feature-name]` | **Date**: [DATE] | **Spec**: [link]
+**Branch**: `001-tech-stack-setup` | **Date**: 2026-08-13 | **Spec**: [spec.md](./spec.md)
 
-**Input**: Feature specification from `/specs/[###-feature-name]/spec.md`
-
-**Note**: This template is filled in by the `/speckit-plan` command; its definition describes the execution workflow.
+**Input**: Feature specification from `/specs/001-tech-stack-setup/spec.md`
 
 ## Summary
 
-[Extract from feature spec: primary requirement + technical approach from research]
+Scaffold the Vaultfolio repository per the constitution's Stack Decision: a
+single Nx monorepo with a NestJS backend, an Angular frontend, a PostgreSQL
+database, and a Docker Compose file that runs all three end-to-end with one
+command. The scaffold includes one standalone domain library and one shared
+DTO/contract library to establish the Library-First and API-First boundaries
+that every future feature will build on, plus a minimal end-to-end
+health-check slice (backend `/health` endpoint, frontend page that calls it)
+to prove the tiers are wired together correctly. No real business capability
+(holdings, imports, valuation) is implemented in this feature.
 
 ## Technical Context
 
-<!--
-  ACTION REQUIRED: Replace the content in this section with the technical details
-  for the project. The structure here is presented in advisory capacity to guide
-  the iteration process.
--->
+**Language/Version**: TypeScript, Node.js LTS (backend runtime); Nx-managed
+workspace tooling
 
-**Language/Version**: TypeScript (Node.js LTS runtime for the backend)
+**Primary Dependencies**: NestJS (backend), Angular (frontend), Nx (monorepo
+tooling/build system) — per the constitution's Stack Decision. No
+feature-specific dependencies beyond this baseline; the market-data provider
+integration is explicitly out of scope for this feature (left as an empty,
+reserved `libs/market-data/` slot, per Assumptions in spec.md).
 
-**Primary Dependencies**: NestJS (backend), Angular (frontend), Nx (monorepo tooling) — per the
-constitution's Stack Decision. Note any feature-specific additions here (e.g., a charting library,
-a market-data client) beyond this baseline.
+**Storage**: PostgreSQL 16 (containerized), accessed only through the backend
+(Principle II — the frontend never talks to the database directly)
 
-**Storage**: PostgreSQL, accessed via the backend only (Principle II)
+**Testing**: Jest (Nx default generator for both NestJS and Angular
+projects); one contract/integration test proving the backend health endpoint
+is reachable end-to-end (Principle IV)
 
-**Testing**: Jest (Nx default for both NestJS and Angular projects); contract/integration tests per
-Principle IV
+**Target Platform**: Linux containers (backend + PostgreSQL) orchestrated via
+Docker Compose for local dev and as the deployment artifact; modern
+evergreen browsers for the Angular frontend
 
-**Target Platform**: Linux server (backend + PostgreSQL containers), modern evergreen browsers
-(Angular frontend)
+**Project Type**: Web application — Nx monorepo containing an `apps/backend`
+(NestJS), `apps/frontend` (Angular), and `libs/*` shared/domain libraries
 
-**Project Type**: web-service + frontend, Nx monorepo (see Project Structure below)
+**Performance Goals**: Not applicable to this feature — no business logic
+with throughput requirements is introduced. The only observable behavior is
+container startup and a health-check round trip, bounded by SC-001 (stack
+reachable within 15 minutes of a clean checkout, dominated by one-time image
+pulls/builds rather than steady-state throughput).
 
-**Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps or NEEDS CLARIFICATION]
+**Constraints**: Full stack MUST start via a single orchestration command
+(constitution, Technology & Architecture Constraints); database MUST run as
+an independent container/service so data survives backend/frontend restarts
+(SC-003); no native floating-point type may be used for money/quantity
+values anywhere in the scaffold, including placeholder code (FR-008).
 
-**Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]
-
-**Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
+**Scale/Scope**: Scaffold only — 1 backend app, 1 frontend app, 1 domain
+library, 1 shared contract library, 1 Docker Compose file, no real domain
+entities beyond a placeholder used to prove the exact-decimal rule (FR-008).
 
 ## Constitution Check
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+| Principle / Constraint | Status | Notes |
+|---|---|---|
+| I. Library-First | PASS | `libs/domain/example/` scaffolded as a standalone, independently testable library from the start (FR-007); no business logic lives directly in `apps/backend` controllers. |
+| II. API-First Interface | PASS | Backend exposes `GET /health` as a documented, versioned-ready REST endpoint; frontend only calls it over HTTP, never imports backend source (FR-001, enforced via Nx project boundary lint rule). |
+| III. Test-First (NON-NEGOTIABLE) | PASS | Scaffold tasks will generate the health-check test before the endpoint per TDD; the example domain library's placeholder decimal function ships with an exact-value test asserting no floating-point drift, written first. |
+| IV. Integration Testing | PASS | One integration test exercises the real HTTP round trip (frontend → backend `/health`) against a real serialized JSON response, not an in-memory stub (FR-002, FR-003, FR-006). |
+| V. Observability, Versioning & Simplicity | PASS | Backend configured with structured (JSON) logging from the start (FR-010); scaffold intentionally minimal — no extra services, no premature abstractions beyond what Nx/NestJS/Angular require (YAGNI). |
+| Product Scope — Out of Scope | PASS | No banking/brokerage API integration added; no budget/expense tracking. |
+| Product Scope — External Market Data | PASS (deferred) | `libs/market-data/` left as an empty reserved slot only — no provider selected or wired, consistent with the constitution's open `TODO(MARKET_DATA_PROVIDER)`. |
+| Technology & Architecture Constraints | PASS | Three-tier layout (frontend/backend/database), all three containerized, single `docker-compose.yml`, database as its own service, no unauthorized external API calls. |
+| Stack Decision | PASS | Nx monorepo; NestJS backend; Angular frontend; PostgreSQL via `NUMERIC`; decimal library (e.g., `decimal.js` or equivalent) used at the application layer for the placeholder monetary value. |
+
+No violations — Complexity Tracking is not needed.
 
 ## Project Structure
 
 ### Documentation (this feature)
 
 ```text
-specs/[###-feature]/
+specs/001-tech-stack-setup/
 ├── plan.md              # This file (/speckit-plan command output)
 ├── research.md          # Phase 0 output (/speckit-plan command)
-├── data-model.md        # Phase 1 output (/speckit-plan command)
-├── quickstart.md        # Phase 1 output (/speckit-plan command)
-├── contracts/           # Phase 1 output (/speckit-plan command)
-└── tasks.md             # Phase 2 output (/speckit-tasks command - NOT created by /speckit-plan)
+├── data-model.md         # Phase 1 output (/speckit-plan command)
+├── quickstart.md         # Phase 1 output (/speckit-plan command)
+├── contracts/            # Phase 1 output (/speckit-plan command)
+└── tasks.md              # Phase 2 output (/speckit-tasks command - NOT created by /speckit-plan)
 ```
 
 ### Source Code (repository root)
-<!--
-  ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
-  for this feature. Delete unused options and expand the chosen structure with
-  real paths (e.g., apps/admin, packages/something). The delivered plan must
-  not include Option labels.
--->
 
 ```text
-# DEFAULT: Nx monorepo (frontend + backend), per the constitution's Stack Decision
 apps/
-├── backend/                  # NestJS
+├── backend/                       # NestJS
 │   ├── src/
-│   │   ├── modules/          # feature modules (controllers, DTOs, wiring)
-│   │   └── main.ts
-│   └── src/tests/            # e2e/integration tests for this app
-└── frontend/                 # Angular
+│   │   ├── health/                # HealthModule: GET /health controller + service
+│   │   ├── app.module.ts
+│   │   └── main.ts                # bootstraps Nest app, structured (JSON) logger
+│   └── src/tests/                 # e2e/integration test: real HTTP call to /health
+└── frontend/                      # Angular
     ├── src/
-    │   ├── app/               # components, pages, routing
+    │   ├── app/
+    │   │   └── health-status/     # minimal component that calls GET /health and renders status
     │   └── main.ts
-    └── src/tests/
+    └── src/tests/                 # component test using a mocked HTTP backend
 
 libs/
-├── domain/[domain-name]/     # standalone finance/domain logic (Principle I),
-│                             # framework-independent, unit-tested in isolation
-├── api-contract/             # shared DTOs/types between backend and frontend
-└── [market-data-provider]/   # external market-data integration, isolated per
-                              # Product Scope's External Market Data rules
+├── domain/example/                # standalone, framework-independent library (Principle I)
+│   └── src/                       # one placeholder decimal-value function + exact-value unit test
+├── api-contract/                  # shared TypeScript types (e.g., HealthResponse DTO) used by
+│                                  # both apps/backend and apps/frontend, never backend internals
+└── market-data/                   # RESERVED, empty placeholder only — no provider wired
+                                   # (TODO(MARKET_DATA_PROVIDER) remains open per constitution)
 
-# [REMOVE IF UNUSED] Only if this feature also needs a standalone project outside
-# the monorepo's normal app/lib shape (rare — justify in Complexity Tracking):
-src/
-tests/
+docker-compose.yml                 # orchestrates backend, frontend, postgres as one command
+docker/
+├── backend.Dockerfile
+└── frontend.Dockerfile
+README.md                          # updated: local startup + per-project test instructions (FR-011)
 ```
 
-**Structure Decision**: [Document the selected Nx apps/libs for this feature —
-which existing libs it extends, which new libs (if any) it introduces, and why]
+**Structure Decision**: New Nx workspace created from scratch (no existing
+apps/libs to extend, since this is the first feature). Introduces
+`apps/backend`, `apps/frontend`, `libs/domain/example`, `libs/api-contract`,
+and a reserved-but-empty `libs/market-data`. Nx project-boundary tags (e.g.,
+`scope:backend`, `scope:frontend`, `scope:shared`) enforce that
+`apps/frontend` may depend on `libs/api-contract` but not on `apps/backend`
+or any backend-only library, satisfying Principle II. `libs/domain/example`
+is a throwaway proof-of-pattern library (not real business logic); the first
+real domain feature (e.g., valuation) will replace or extend it under the
+same `libs/domain/*` convention.
 
 ## Complexity Tracking
 
-> **Fill ONLY if Constitution Check has violations that must be justified**
-
-| Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
-| [e.g., 4th project] | [current need] | [why 3 projects insufficient] |
-| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient] |
+> No Constitution Check violations — this section intentionally left empty.
