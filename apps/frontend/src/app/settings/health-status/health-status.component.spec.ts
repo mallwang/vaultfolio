@@ -34,7 +34,7 @@ describe('HealthStatusComponent', () => {
       database: 'connected',
       timestamp: '2026-08-13T12:00:00.000Z',
     };
-    httpMock.expectOne('http://localhost:3000/health').flush(response);
+    httpMock.expectOne('/api/health').flush(response);
     fixture.detectChanges();
 
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
@@ -47,7 +47,7 @@ describe('HealthStatusComponent', () => {
     fixture.detectChanges();
 
     httpMock
-      .expectOne('http://localhost:3000/health')
+      .expectOne('/api/health')
       .error(new ProgressEvent('error'), { status: 0, statusText: 'Unknown Error' });
     fixture.detectChanges();
 

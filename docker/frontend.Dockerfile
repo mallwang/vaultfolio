@@ -15,5 +15,7 @@ RUN npx nx build frontend --configuration=production
 FROM nginx:alpine AS runtime
 COPY docker/frontend.nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /workspace/dist/apps/frontend/browser /usr/share/nginx/html
+COPY docker/frontend-entrypoint.sh /docker-entrypoint.d/40-vaultfolio-env.sh
+RUN chmod +x /docker-entrypoint.d/40-vaultfolio-env.sh
 
 EXPOSE 80

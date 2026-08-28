@@ -54,7 +54,7 @@ describe('HoldingsComponent', () => {
   function flushList(holdings: HoldingResponse[]): void {
     httpMock = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
-    httpMock.expectOne('http://localhost:3000/holdings').flush(holdings);
+    httpMock.expectOne('/api/holdings').flush(holdings);
     fixture.detectChanges();
   }
 
@@ -97,7 +97,7 @@ describe('HoldingsComponent', () => {
       const component = fixture.componentInstance;
       component['deleteHolding'](etf);
 
-      const req = httpMock.expectOne('http://localhost:3000/holdings/etf-1');
+      const req = httpMock.expectOne('/api/holdings/etf-1');
       expect(req.request.method).toBe('DELETE');
       req.flush(null, { status: 204, statusText: 'No Content' });
       fixture.detectChanges();
@@ -118,14 +118,14 @@ describe('HoldingsComponent', () => {
       const component = fixture.componentInstance;
       component['deleteHolding'](etf);
 
-      const deleteReq = httpMock.expectOne('http://localhost:3000/holdings/etf-1');
+      const deleteReq = httpMock.expectOne('/api/holdings/etf-1');
       deleteReq.flush(
         { error: 'HOLDING_NOT_FOUND', message: 'gone' },
         { status: 404, statusText: 'Not Found' },
       );
 
       // The already-deleted-elsewhere path triggers a refresh.
-      const refreshReq = httpMock.expectOne('http://localhost:3000/holdings');
+      const refreshReq = httpMock.expectOne('/api/holdings');
       refreshReq.flush([]);
       fixture.detectChanges();
 

@@ -9,14 +9,14 @@ import type {
 
 /**
  * `HttpClient` wrapper for `/holdings` (contracts/holdings-api.md), used by
- * User Stories 1–4. The backend is reached at the host-mapped port from
- * docker-compose.yml, matching `health-status.component.ts`'s established
- * pattern for browser-side requests.
+ * User Stories 1–4. Calls a relative `/api/...` path, which nginx
+ * (docker/frontend.nginx.conf) proxies to the backend container — see
+ * `health-status.component.ts` for the same pattern.
  */
 @Injectable({ providedIn: 'root' })
 export class HoldingsService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = 'http://localhost:3000/holdings';
+  private readonly baseUrl = '/api/holdings';
 
   list(): Observable<HoldingResponse[]> {
     return this.http.get<HoldingResponse[]>(this.baseUrl);

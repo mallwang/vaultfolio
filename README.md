@@ -68,6 +68,51 @@ npm exec nx serve frontend
 npm exec nx serve backend
 ```
 
+## Deploying with Portainer (or any Docker Hub-based host)
+
+`docker-compose.yml` builds images locally from source, which isn't a great fit for Portainer on
+a NAS (slow, and Portainer stacks are meant to pull, not build). Use
+[`docker-compose.portainer.yml`](docker-compose.portainer.yml) instead — it pulls prebuilt images
+from Docker Hub.
+
+1. Get the two images onto Docker Hub, either:
+
+   - **Automatically**: pushing a `v*.*.*` tag runs
+     [`.github/workflows/release.yml`](.github/workflows/release.yml), which builds both
+     `docker/backend.Dockerfile` and `docker/frontend.Dockerfile` and pushes
+     `walefish/vaultfolio-backend`/`walefish/vaultfolio-frontend` as `:latest` and `:<tag>`
+     (needs the `DOCKERHUB_USERNAME`/`DOCKERHUB_TOKEN` repo secrets set).
+   - **Manually**, from a dev machine (add `--platform linux/amd64,linux/arm64` to
+     `docker buildx build` if your NAS's CPU architecture differs from your dev machine's):
+
+     ```bash
+     docker login
+     docker build -f docker/backend.Dockerfile -t <dockerhub-user>/vaultfolio-backend:latest .
+     docker build -f docker/frontend.Dockerfile -t <dockerhub-user>/vaultfolio-frontend:latest .
+     docker push <dockerhub-user>/vaultfolio-backend:latest
+     docker push <dockerhub-user>/vaultfolio-frontend:latest
+     ```
+
+2. In Portainer: **Stacks → Add stack**, paste the contents of `docker-compose.portainer.yml`
+   (or point it at this repo's git URL with that file as the compose path). It defaults to
+   `walefish`'s Docker Hub images; under **Environment variables** set `DOCKERHUB_USER` only if
+   you're pushing to a different account, and `TAG` if you're not deploying `latest`. Set
+   `PRIMENG_LICENSE_KEY` there too if you have a [PrimeUI](https://primeng.dev/configuration#license)
+   license — it's written into the running container at startup (see
+   `docker/frontend-entrypoint.sh`), not baked into the image, so it can differ per deployment
+   without a rebuild. Leave it unset to use the free community components (shows a console/UI
+   notice, not a functional limitation).
+3. Deploy the stack. The frontend is published on port 4200 (`http://<nas-ip>:4200`); the backend
+   isn't published by default since the frontend's nginx reaches it over the internal compose
+   network and proxies `/api/*` to it — this is also what keeps the frontend from needing to know
+   the NAS's hostname/IP at build time. The database persists in `/opt/vaultfolio/data` on the
+   host (bind mount) — create the directory before deploying, e.g. `mkdir -p /opt/vaultfolio/data`,
+   and back it up the same way as `./data` in local dev (`cp -r /opt/vaultfolio/data /backup/`).
+
+Re-deploying after a new push: re-run the two `docker push` commands, then in Portainer use
+**Stacks → your stack → Pull and redeploy** (or `docker compose pull && docker compose up -d`
+if managing it from the NAS's shell).
+
 ## Frontend environment configuration
 
 `apps/frontend` follows Angular's standard environment-file pattern, under
