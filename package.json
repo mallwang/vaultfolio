@@ -5,7 +5,8 @@
   "scripts": {
     "test:backend": "nx test backend",
     "test:frontend": "nx test frontend",
-    "test:domain-example": "nx test domain-example"
+    "test:domain-example": "nx test domain-example",
+    "release": "nx release"
   },
   "private": true,
   "devDependencies": {

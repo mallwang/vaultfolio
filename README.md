@@ -63,6 +63,32 @@ See [specs/001-tech-stack-setup/quickstart.md](specs/001-tech-stack-setup/quicks
 full validation walkthrough (including verifying project-boundary enforcement and database
 persistence across container restarts).
 
+## Releasing
+
+Frontend and backend are released together under a single shared version number, since the
+apps only work paired with each other — there is no independent frontend or backend version.
+This is handled by [Nx Release](https://nx.dev/docs/features/manage-releases) with
+`release.projectsRelationship: "fixed"` (see [nx.json](nx.json)): every release bumps
+`apps/frontend/package.json` and `apps/backend/package.json` to the same version, derived from
+[Conventional Commits](https://www.conventionalcommits.org) since the last release, tagged as
+`v<version>`.
+
+Releases are guided interactively via the `release` Claude Code skill
+([.claude/skills/release/SKILL.md](.claude/skills/release/SKILL.md)), which runs a dry-run
+preview (including the exact `CHANGELOG.md` entry that would be written) and asks for explicit
+confirmation before doing anything. Once confirmed, a single command handles the rest:
+
+```bash
+npm run release   # equivalent to: npx nx release --skip-publish
+```
+
+This commits the version bump, prepends the new entry to `CHANGELOG.md`, tags the commit
+(`v<version>`), pushes to `origin`, and creates the matching GitHub Release — automatically, in
+one step. Neither app is published to a package registry (`--skip-publish`); they're deployed as
+Docker containers instead. See the skill file for the full step-by-step workflow and the gates
+that guard it (must be on `main`, working tree must be clean, dry-run must be reviewed before
+anything is pushed).
+
 ## Development process
 
 This project uses [Spec Kit](.specify/) to drive development:
@@ -75,4 +101,4 @@ This project uses [Spec Kit](.specify/) to drive development:
 
 ## License
 
-TBD
+[MIT](LICENSE.md)

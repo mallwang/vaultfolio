@@ -74,5 +74,26 @@
       "unitTestRunner": "vitest-angular"
     }
   },
-  "nxCloudId": "6a916ceebacd32f884c9a4a2"
+  "nxCloudId": "6a916ceebacd32f884c9a4a2",
+  "release": {
+    "projects": ["frontend", "backend"],
+    "projectsRelationship": "fixed",
+    "releaseTag": {
+      "pattern": "v{version}"
+    },
+    "version": {
+      "conventionalCommits": true
+    },
+    "changelog": {
+      "workspaceChangelog": {
+        "createRelease": "github"
+      },
+      "projectChangelogs": false
+    },
+    "git": {
+      "commit": true,
+      "commitMessage": "chore(release): v{version}",
+      "tag": true
+    }
+  }
 }
