@@ -1,0 +1,29 @@
+<p-table [value]="holdings" [tableStyle]="{ 'min-width': '40rem' }">
+  <ng-template #header>
+    <tr>
+      <th>Ticker</th>
+      <th>Name</th>
+      <th>Quantity</th>
+      <th>Value</th>
+    </tr>
+  </ng-template>
+  <ng-template #body let-holding>
+    <tr>
+      <td>{{ holding.ticker }}</td>
+      <td>{{ holding.name }}</td>
+      <td>{{ holding.quantity }}</td>
+      <td>{{ holding.value }}</td>
+    </tr>
+  </ng-template>
+  <ng-template #emptymessage>
+    <tr>
+      <td colspan="4">
+        <div class="empty-state">
+          <i class="pi pi-briefcase empty-state__icon" aria-hidden="true"></i>
+          <h2>No holdings yet</h2>
+          <p>Import a portfolio or add a position to see it listed here.</p>
+        </div>
+      </td>
+    </tr>
+  </ng-template>
+</p-table>

@@ -28,10 +28,10 @@ All paths are under `apps/frontend/` (existing Nx Angular app) — see plan.md's
 
 **Purpose**: Install PrimeNG and wire up global theming/routing infrastructure
 
-- [ ] T001 Add `primeng@22.1.0`, `@primeuix/themes`, and `primeicons` as dependencies of `apps/frontend` in `package.json` (repo root), then run `npm install` (research.md §1)
-- [ ] T002 Import PrimeIcons CSS in `apps/frontend/src/styles.css` (research.md §3)
-- [ ] T003 Configure `providePrimeNG({ theme: { preset: Aura } })` in `apps/frontend/src/app/app.config.ts`, importing `Aura` from `@primeuix/themes/aura` (research.md §2, data-model.md "Theme")
-- [ ] T004 Add `provideRouter(routes)` to `apps/frontend/src/app/app.config.ts`, importing an (initially empty) `routes` array from a new `apps/frontend/src/app/app.routes.ts` (research.md §5)
+- [x] T001 Add `primeng@22.1.0`, `@primeuix/themes`, and `primeicons` as dependencies of `apps/frontend` in `package.json` (repo root), then run `npm install` (research.md §1)
+- [x] T002 Import PrimeIcons CSS in `apps/frontend/src/styles.css` (research.md §3)
+- [x] T003 Configure `providePrimeNG({ theme: { preset: Aura } })` in `apps/frontend/src/app/app.config.ts`, importing `Aura` from `@primeuix/themes/aura` (research.md §2, data-model.md "Theme")
+- [x] T004 Add `provideRouter(routes)` to `apps/frontend/src/app/app.config.ts`, importing an (initially empty) `routes` array from a new `apps/frontend/src/app/app.routes.ts` (research.md §5)
 
 **Checkpoint**: `npm exec nx serve frontend` builds with PrimeNG theme + router providers wired, no visible change yet (app.html still renders health-status directly).
 
@@ -43,13 +43,13 @@ All paths are under `apps/frontend/` (existing Nx Angular app) — see plan.md's
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T005 Create `apps/frontend/src/app/core/layout/application-areas.ts` exporting the `APPLICATION_AREAS` list (id/label/path/icon per contracts/application-areas.md's route table: dashboard `pi-home`, holdings `pi-briefcase`, imports `pi-upload`, settings `pi-cog`) and the `ApplicationArea` type (data-model.md)
-- [ ] T006 [P] Create `apps/frontend/src/app/core/layout/not-found/not-found.component.ts` (+ `.html`, `.css`) — centered icon + message + "Back to Dashboard" `routerLink`, standalone component (design.md "Not found", FR-006)
-- [ ] T007 [P] Create `apps/frontend/src/app/core/layout/app-header/app-header.component.ts` (+ `.html`, `.css`) — "Vaultfolio" eyebrow/crumb, active area title, user-identity placeholder on the right (design.md "Header")
-- [ ] T008 Create `apps/frontend/src/app/core/layout/app-sidebar/app-sidebar.component.ts` (+ `.html`, `.css`) — reads `APPLICATION_AREAS` (T005), renders desktop sidebar nav list with `routerLink`/`routerLinkActive="aria-current"` styling, and a mobile horizontally-scrollable top-bar variant of the same items, toggled via CSS media query (design.md "Sidebar navigation", research.md §4, §7, FR-009)
-- [ ] T009 Create `apps/frontend/src/app/core/layout/app-shell/app-shell.component.ts` (+ `.html`, `.css`) — composes `app-sidebar` + `app-header` + `<router-outlet>` in the two-region layout from design.md's ASCII diagram (FR-003, FR-004)
-- [ ] T010 Update `apps/frontend/src/app/app.ts` and `apps/frontend/src/app/app.html` to render `<app-shell>` as the root template instead of `<app-health-status>` directly
-- [ ] T011 Populate `apps/frontend/src/app/app.routes.ts` with the route table: `''` redirects to `/dashboard`, one route per `APPLICATION_AREAS` entry (dashboard/holdings/imports/settings, lazy-loaded standalone components — created in Phase 3–5), and a trailing `**` wildcard route to `NotFoundComponent` (T006) (research.md §5, contracts/application-areas.md)
+- [x] T005 Create `apps/frontend/src/app/core/layout/application-areas.ts` exporting the `APPLICATION_AREAS` list (id/label/path/icon per contracts/application-areas.md's route table: dashboard `pi-home`, holdings `pi-briefcase`, imports `pi-upload`, settings `pi-cog`) and the `ApplicationArea` type (data-model.md)
+- [x] T006 [P] Create `apps/frontend/src/app/core/layout/not-found/not-found.component.ts` (+ `.html`, `.css`) — centered icon + message + "Back to Dashboard" `routerLink`, standalone component (design.md "Not found", FR-006)
+- [x] T007 [P] Create `apps/frontend/src/app/core/layout/app-header/app-header.component.ts` (+ `.html`, `.css`) — "Vaultfolio" eyebrow/crumb, active area title, user-identity placeholder on the right (design.md "Header")
+- [x] T008 Create `apps/frontend/src/app/core/layout/app-sidebar/app-sidebar.component.ts` (+ `.html`, `.css`) — reads `APPLICATION_AREAS` (T005), renders desktop sidebar nav list with `routerLink`/`routerLinkActive="aria-current"` styling, and a mobile horizontally-scrollable top-bar variant of the same items, toggled via CSS media query (design.md "Sidebar navigation", research.md §4, §7, FR-009)
+- [x] T009 Create `apps/frontend/src/app/core/layout/app-shell/app-shell.component.ts` (+ `.html`, `.css`) — composes `app-sidebar` + `app-header` + `<router-outlet>` in the two-region layout from design.md's ASCII diagram (FR-003, FR-004)
+- [x] T010 Update `apps/frontend/src/app/app.ts` and `apps/frontend/src/app/app.html` to render `<app-shell>` as the root template instead of `<app-health-status>` directly
+- [x] T011 Populate `apps/frontend/src/app/app.routes.ts` with the route table: `''` redirects to `/dashboard`, one route per `APPLICATION_AREAS` entry (dashboard/holdings/imports/settings, lazy-loaded standalone components — created in Phase 3–5), and a trailing `**` wildcard route to `NotFoundComponent` (T006) (research.md §5, contracts/application-areas.md)
 
 **Checkpoint**: Foundation ready — shell renders with sidebar/header/not-found wired to routing; individual area components (created next) can now be dropped in independently.
 
@@ -63,10 +63,10 @@ All paths are under `apps/frontend/` (existing Nx Angular app) — see plan.md's
 
 ### Implementation for User Story 1
 
-- [ ] T012 [US1] Move `apps/frontend/src/app/health-status/` (component, template, styles, spec) to `apps/frontend/src/app/settings/health-status/`, updating the moved spec's import paths (FR-007, plan.md Project Structure)
-- [ ] T013 [US1] Create `apps/frontend/src/app/settings/settings.component.ts` (+ `.html`, `.css`) — standalone component with two stacked sections: "System health" embedding `<app-health-status>` (T012) and a "Preferences" placeholder marked "Coming soon" (design.md "Settings")
-- [ ] T014 [US1] Replace any bespoke/native styling in `HealthStatusComponent`'s template (`apps/frontend/src/app/settings/health-status/health-status.component.html`) with PrimeNG components (e.g. `Card`/`Tag`/`Message` for per-check status) so it matches Aura's visual language, preserving its existing healthy/unhealthy-per-check output (FR-001, FR-007, SC-002, SC-005)
-- [ ] T015 [US1] Verify no unstyled native `<button>`/`<select>`/etc. controls remain in `app-shell`, `app-header`, `app-sidebar`, `not-found`, and `settings` templates (SC-002) — swap any found for PrimeNG equivalents
+- [x] T012 [US1] Move `apps/frontend/src/app/health-status/` (component, template, styles, spec) to `apps/frontend/src/app/settings/health-status/`, updating the moved spec's import paths (FR-007, plan.md Project Structure)
+- [x] T013 [US1] Create `apps/frontend/src/app/settings/settings.component.ts` (+ `.html`, `.css`) — standalone component with two stacked sections: "System health" embedding `<app-health-status>` (T012) and a "Preferences" placeholder marked "Coming soon" (design.md "Settings")
+- [x] T014 [US1] Replace any bespoke/native styling in `HealthStatusComponent`'s template (`apps/frontend/src/app/settings/health-status/health-status.component.html`) with PrimeNG components (e.g. `Card`/`Tag`/`Message` for per-check status) so it matches Aura's visual language, preserving its existing healthy/unhealthy-per-check output (FR-001, FR-007, SC-002, SC-005)
+- [x] T015 [US1] Verify no unstyled native `<button>`/`<select>`/etc. controls remain in `app-shell`, `app-header`, `app-sidebar`, `not-found`, and `settings` templates (SC-002) — swap any found for PrimeNG equivalents
 
 **Checkpoint**: User Story 1 is independently testable — load `/settings`, confirm PrimeNG/Aura styling throughout and unchanged health-status behavior.
 
@@ -80,12 +80,12 @@ All paths are under `apps/frontend/` (existing Nx Angular app) — see plan.md's
 
 ### Implementation for User Story 2
 
-- [ ] T016 [P] [US2] Create `apps/frontend/src/app/dashboard/dashboard.component.ts` (+ `.html`, `.css`) — three placeholder stat-card shells (Total value / Today's change / Allocation, "— pending —") plus an empty-state panel, built from PrimeNG `Card`/`Tag` (design.md "Dashboard", FR-005)
-- [ ] T017 [P] [US2] Create `apps/frontend/src/app/holdings/holdings.component.ts` (+ `.html`, `.css`) — PrimeNG `Table` shell with columns Ticker/Name/Quantity/Value and an empty-state row (design.md "Holdings", FR-005)
-- [ ] T018 [P] [US2] Create `apps/frontend/src/app/imports/imports.component.ts` (+ `.html`, `.css`) — dropzone-style empty state using PrimeNG components (design.md "Imports", FR-005)
-- [ ] T019 [US2] Wire `dashboard`, `holdings`, `imports`, `settings` (T013) components into `apps/frontend/src/app/app.routes.ts`'s route entries created in T011 (depends on T011, T016–T018, T013)
-- [ ] T020 [US2] Confirm `app-sidebar` (T008) renders `aria-current="page"` on the active entry for each of the four routes and that the mobile top-bar variant keeps all four areas reachable at ~375px width (FR-009, quickstart.md scenario 2)
-- [ ] T021 [US2] Manually verify quickstart.md scenario 3 (not-found handling): navigating to a nonexistent path renders `NotFoundComponent` inside the shell with a working "Back to Dashboard" link (FR-006)
+- [x] T016 [P] [US2] Create `apps/frontend/src/app/dashboard/dashboard.component.ts` (+ `.html`, `.css`) — three placeholder stat-card shells (Total value / Today's change / Allocation, "— pending —") plus an empty-state panel, built from PrimeNG `Card`/`Tag` (design.md "Dashboard", FR-005)
+- [x] T017 [P] [US2] Create `apps/frontend/src/app/holdings/holdings.component.ts` (+ `.html`, `.css`) — PrimeNG `Table` shell with columns Ticker/Name/Quantity/Value and an empty-state row (design.md "Holdings", FR-005)
+- [x] T018 [P] [US2] Create `apps/frontend/src/app/imports/imports.component.ts` (+ `.html`, `.css`) — dropzone-style empty state using PrimeNG components (design.md "Imports", FR-005)
+- [x] T019 [US2] Wire `dashboard`, `holdings`, `imports`, `settings` (T013) components into `apps/frontend/src/app/app.routes.ts`'s route entries created in T011 (depends on T011, T016–T018, T013)
+- [x] T020 [US2] Confirm `app-sidebar` (T008) renders `aria-current="page"` on the active entry for each of the four routes and that the mobile top-bar variant keeps all four areas reachable at ~375px width (FR-009, quickstart.md scenario 2)
+- [x] T021 [US2] Manually verify quickstart.md scenario 3 (not-found handling): navigating to a nonexistent path renders `NotFoundComponent` inside the shell with a working "Back to Dashboard" link (FR-006)
 
 **Checkpoint**: User Stories 1 AND 2 both work independently — full navigation shell functional across all four areas plus not-found, at desktop and mobile widths.
 
@@ -99,8 +99,8 @@ All paths are under `apps/frontend/` (existing Nx Angular app) — see plan.md's
 
 ### Implementation for User Story 3
 
-- [ ] T022 [US3] Create `apps/frontend/README.md` documenting: where shared layout/navigation code lives (`core/layout/`), where theming is configured (`app.config.ts`), the folder-per-area convention under `apps/frontend/src/app/`, and a step-by-step "add a new Application Area" walkthrough matching `contracts/application-areas.md`'s 4 steps (FR-008)
-- [ ] T023 [US3] Dry-run `contracts/application-areas.md`'s "Adding a new area" steps end-to-end (e.g. a throwaway `example` area) to confirm the documented steps are sufficient and accurate before finalizing T022; remove the throwaway area afterward (SC-003 validation)
+- [x] T022 [US3] Create `apps/frontend/README.md` documenting: where shared layout/navigation code lives (`core/layout/`), where theming is configured (`app.config.ts`), the folder-per-area convention under `apps/frontend/src/app/`, and a step-by-step "add a new Application Area" walkthrough matching `contracts/application-areas.md`'s 4 steps (FR-008)
+- [x] T023 [US3] Dry-run `contracts/application-areas.md`'s "Adding a new area" steps end-to-end (e.g. a throwaway `example` area) to confirm the documented steps are sufficient and accurate before finalizing T022; remove the throwaway area afterward (SC-003 validation)
 
 **Checkpoint**: All user stories independently functional; structure is documented and validated as followable.
 
@@ -110,9 +110,9 @@ All paths are under `apps/frontend/` (existing Nx Angular app) — see plan.md's
 
 **Purpose**: Final validation across all stories
 
-- [ ] T024 [P] Run `npm exec nx lint frontend` and fix any violations introduced by this feature
-- [ ] T025 [P] Run `npm exec nx test frontend` and fix any failures, including the moved `health-status.component.spec.ts` (T012)
-- [ ] T026 Run through quickstart.md's full validation scenarios 1–6 end-to-end (`npm exec nx serve frontend`) and confirm each passes
+- [x] T024 [P] Run `npm exec nx lint frontend` and fix any violations introduced by this feature
+- [x] T025 [P] Run `npm exec nx test frontend` and fix any failures, including the moved `health-status.component.spec.ts` (T012)
+- [x] T026 Run through quickstart.md's full validation scenarios 1–6 end-to-end (`npm exec nx serve frontend`) and confirm each passes
 
 ---
 

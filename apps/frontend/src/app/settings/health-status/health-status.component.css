@@ -1,0 +1,11 @@
+.health-status__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.health-status__timestamp {
+  color: var(--p-text-muted-color);
+  font-size: 0.875rem;
+  margin: 0.75rem 0 0;
+}

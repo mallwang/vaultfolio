@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
-import { HealthStatusComponent } from './health-status/health-status.component';
+import { AppShellComponent } from './core/layout/app-shell/app-shell.component';
 
 @Component({
-  imports: [HealthStatusComponent],
+  imports: [AppShellComponent],
   selector: 'app-root',
   templateUrl: './app.html',
   styleUrl: './app.css',
