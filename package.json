@@ -11,7 +11,7 @@
     "lint:fix": "nx run-many -t lint --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "prepare": "husky"
+    "prepare": "husky && node tools/ensure-frontend-env.mjs"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx,cjs,mjs}": [
