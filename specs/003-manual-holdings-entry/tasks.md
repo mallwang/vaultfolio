@@ -95,7 +95,7 @@ written and confirmed failing before their implementation task.
       `holdings_upsert_lookup_idx` index) to `apps/backend/src/database/database.service.ts`,
       extending its existing `CREATE TABLE IF NOT EXISTS` migration pattern
 - [x] T013 [P] Scaffold the NestJS `holdings` feature module: `apps/backend/src/holdings/
-  holdings.module.ts`, register it in `apps/backend/src/app/app.module.ts` alongside
+holdings.module.ts`, register it in `apps/backend/src/app/app.module.ts` alongside
       `DatabaseModule`/`HealthModule`
 - [x] T014 Implement `apps/backend/src/holdings/holdings.mapper.ts` (DB row ↔ domain `Holding` ↔
       `HoldingResponse`/`CreateHoldingRequest` DTO mapping, decimal string ↔ `Decimal` conversion)
@@ -155,7 +155,7 @@ for this story).
       wrapper for `POST /holdings` (and `GET`, reused by US2) against the shared
       `libs/api-contract` DTOs
 - [x] T023 [US1] Create the add/edit form scaffold `apps/frontend/src/app/holdings/holding-form/
-  holding-form.component.ts/html/css`: Angular Reactive Form, `p-select` for asset type (add
+holding-form.component.ts/html/css`: Angular Reactive Form, `p-select` for asset type (add
       mode only), universal `p-inputtext` Management field, `p-inputnumber`/`p-datepicker` controls
       for the per-type fields per research.md #5 and asset-type.ts's field metadata (depends on
       T005, T022)
@@ -169,10 +169,10 @@ for this story).
       `holdings.service.ts`'s create call, surfacing server-side `400` `fieldErrors` on failure
       (FR-009, FR-010, SC-002) (depends on T024)
 - [x] T026 [US1] Wire an "Add holding" action in `apps/frontend/src/app/holdings/
-  holdings.component.ts/html` that opens `holding-form` in a `p-dialog` (add mode) and appends
+holdings.component.ts/html` that opens `holding-form` in a `p-dialog` (add mode) and appends
       the created/updated holding to the in-memory list on success (depends on T023, T025)
 - [x] T027 [P] [US1] Write `apps/frontend/src/app/holdings/holding-form/
-  holding-form.component.spec.ts` covering: per-type field visibility, field reset on type
+holding-form.component.spec.ts` covering: per-type field visibility, field reset on type
       switch, client-side validation blocking submit, and successful submit calling the service
       (depends on T026)
 
@@ -202,7 +202,7 @@ spec.md's Independent Test for this story).
 - [x] T029 [US2] Wire `GET /holdings` end-to-end (controller → service → repository, already
       scaffolded in Phase 2) until T028 passes
 - [x] T030 [US2] Implement the holdings list in `apps/frontend/src/app/holdings/
-  holdings.component.ts/html/css` using `p-table`: fetch via `holdings.service.ts` on init,
+holdings.component.ts/html/css` using `p-table`: fetch via `holdings.service.ts` on init,
       display asset type, identifying label (name/ISIN or "Gold"/"Bitcoin"), quantity/weight,
       Management, price (or "—" indicator), purchase date (or "—"), with client-side paging/sorting
       per plan.md's Constraints (FR-012, Edge Cases: usable with dozens of lots)
@@ -210,7 +210,7 @@ spec.md's Independent Test for this story).
       loading/error states) shown when the fetched list is empty, inviting the user to add their
       first holding (FR-013, depends on T030)
 - [x] T032 [P] [US2] Create `apps/frontend/src/app/holdings/holdings-distribution/
-  holdings-distribution.component.ts/html/css` computing each holding's share of total value
+holdings-distribution.component.ts/html/css` computing each holding's share of total value
       (quantity × purchasePrice for Share/Bitcoin/ETF, currentValue for Gold; holdings with no
       computable value excluded from the percentage base, not zero) and rendering it via `p-chart`
       per research.md #6 (FR-012a)

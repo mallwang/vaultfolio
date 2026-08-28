@@ -41,6 +41,23 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+    services:
+      # Matches docker-compose.yml's postgres service and DatabaseService's
+      # defaults, so the backend e2e specs (holdings.e2e-spec.ts,
+      # health.e2e-spec.ts) can migrate and query a real database.
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: vaultfolio
+          POSTGRES_PASSWORD: vaultfolio
+          POSTGRES_DB: vaultfolio
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U vaultfolio -d vaultfolio"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v5
         with:
