@@ -1,29 +1,97 @@
-<p-table [value]="holdings" [tableStyle]="{ 'min-width': '40rem' }">
-  <ng-template #header>
-    <tr>
-      <th>Ticker</th>
-      <th>Name</th>
-      <th>Quantity</th>
-      <th>Value</th>
-    </tr>
-  </ng-template>
-  <ng-template #body let-holding>
-    <tr>
-      <td>{{ holding.ticker }}</td>
-      <td>{{ holding.name }}</td>
-      <td>{{ holding.quantity }}</td>
-      <td>{{ holding.value }}</td>
-    </tr>
-  </ng-template>
-  <ng-template #emptymessage>
-    <tr>
-      <td colspan="4">
-        <div class="empty-state">
-          <i class="pi pi-briefcase empty-state__icon" aria-hidden="true"></i>
-          <h2>No holdings yet</h2>
-          <p>Import a portfolio or add a position to see it listed here.</p>
-        </div>
-      </td>
-    </tr>
-  </ng-template>
-</p-table>
+<p-toast />
+<p-confirmdialog />
+
+<section class="distribution-panel">
+  <h2>Distribution by value</h2>
+  <app-holdings-distribution [holdings]="holdings()" />
+</section>
+
+<section class="holdings-panel">
+  <div class="holdings-panel__header">
+    <h2>{{ holdings().length }} holding{{ holdings().length === 1 ? '' : 's' }}</h2>
+    <button pButton type="button" (click)="openAddDialog()">
+      <i class="pi pi-plus" aria-hidden="true"></i> Add holding
+    </button>
+  </div>
+
+  @if (loadError()) {
+    <p class="error-state">{{ loadError() }}</p>
+  } @else {
+    <p-table [value]="holdings()" [loading]="loading()" [tableStyle]="{ 'min-width': '50rem' }">
+      <ng-template #header>
+        <tr>
+          <th scope="col">Type</th>
+          <th scope="col">Asset</th>
+          <th scope="col">Management</th>
+          <th scope="col">Quantity / weight</th>
+          <th scope="col">Price / value</th>
+          <th scope="col">Purchase date</th>
+          <th scope="col"></th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-holding>
+        <tr>
+          <td>{{ labelFor(holding.assetType) }}</td>
+          <td>{{ holding.name ?? (holding.assetType === 'GOLD' ? 'Gold' : 'Bitcoin') }}</td>
+          <td>{{ holding.management }}</td>
+          <td>{{ holding.quantity ?? holding.weightGrams ?? '—' }}</td>
+          <td>{{ holding.purchasePrice ?? holding.currentValue ?? '—' }}</td>
+          <td>{{ holding.purchaseDate ?? '—' }}</td>
+          <td class="row-actions">
+            <button
+              pButton
+              type="button"
+              iconOnly
+              severity="secondary"
+              [text]="true"
+              aria-label="Edit holding"
+              (click)="openEditDialog(holding)"
+            >
+              <i class="pi pi-pencil" aria-hidden="true"></i>
+            </button>
+            <button
+              pButton
+              type="button"
+              iconOnly
+              severity="danger"
+              [text]="true"
+              aria-label="Delete holding"
+              (click)="confirmDelete(holding, $event)"
+            >
+              <i class="pi pi-trash" aria-hidden="true"></i>
+            </button>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="7">
+            <div class="empty-state">
+              <i class="pi pi-briefcase empty-state__icon" aria-hidden="true"></i>
+              <h2>No holdings yet</h2>
+              <p>Add your first holding to see it listed here.</p>
+              <button pButton type="button" (click)="openAddDialog()">
+                Add your first holding
+              </button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  }
+</section>
+
+<p-dialog
+  [(visible)]="dialogVisible"
+  [header]="editingHolding() ? 'Edit holding' : 'Add holding'"
+  [modal]="true"
+  [dismissableMask]="false"
+>
+  @if (dialogVisible()) {
+    <app-holding-form
+      [holding]="editingHolding()"
+      (saved)="onSaved($event)"
+      (cancelled)="onCancelled()"
+    />
+  }
+</p-dialog>

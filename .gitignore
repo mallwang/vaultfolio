@@ -25,9 +25,6 @@ apps/frontend/src/environments/environment.local.ts
 # Logs
 *.log
 
-# Docker
-docker-compose.override.yml
-
 # Spec Kit machine-local state
 .specify/state/
 

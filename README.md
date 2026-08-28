@@ -42,22 +42,25 @@ delete all stored data).
 
 ### Hot-reload dev mode
 
-The command above builds production images (no live-reload). For a dev loop where editing source
-under `apps/frontend`/`apps/backend` on the host rebuilds and reloads automatically inside the
-containers, create a `docker-compose.override.yml` (gitignored — personal, not committed) using
-`docker/backend.dev.Dockerfile` and `docker/frontend.dev.Dockerfile`: it bind-mounts the workspace
-into each container and runs `nx serve` instead of the production build. Then `docker compose up`
-picks it up automatically (Compose auto-loads `docker-compose.override.yml`; omit it, or run
-`docker compose -f docker-compose.yml up`, to go back to the plain production build).
-
-Alternatively, skip Docker for the tiers you're actively changing and run them natively — Nx's
-`serve` targets already hot-reload — while Postgres (and any tier you're not touching) stays in
-Docker:
+The command above builds production images (no live-reload). For day-to-day development, run
+Postgres in Docker and the app natively — Nx's `serve` targets already rebuild and reload on save:
 
 ```bash
-docker compose up postgres backend   # or just `postgres` if you're also editing the backend
-npm exec nx serve frontend           # http://localhost:4200, rebuilds + reloads on save
-npm exec nx serve backend            # http://localhost:3000, rebuilds + restarts on save
+npm run dev
+```
+
+This starts Postgres (`docker compose up -d postgres`) and then `backend`/`frontend` via
+`nx run-many -t serve -p backend frontend`:
+
+- Frontend: <http://localhost:4200>, rebuilds + reloads on save
+- Backend: <http://localhost:3000>, rebuilds + restarts on save
+
+Equivalent to running each piece by hand:
+
+```bash
+docker compose up -d postgres
+npm exec nx serve frontend
+npm exec nx serve backend
 ```
 
 ## Frontend environment configuration

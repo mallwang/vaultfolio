@@ -10,7 +10,7 @@ COPY package.json package-lock.json nx.json tsconfig.json tsconfig.base.json ./
 COPY apps ./apps
 COPY libs ./libs
 
-RUN npm ci
+RUN npm ci --ignore-scripts
 RUN npx nx build backend --configuration=production
 RUN npx nx run backend:prune
 
@@ -19,7 +19,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 COPY --from=build /workspace/apps/backend/dist/ ./
-RUN npm ci --omit=dev
+RUN npm ci --omit=dev --ignore-scripts
 
 EXPOSE 3000
 CMD ["node", "main.js"]
