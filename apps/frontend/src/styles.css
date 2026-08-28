@@ -1,1 +1,14 @@
 /* You can add global styles to this file, and also import other style files */
+@import 'primeicons/primeicons.css';
+
+/* PrimeNG has no built-in font — components inherit it from the app.
+   Inter matches the font primeng.dev itself uses. */
+body {
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+}

@@ -1,0 +1,27 @@
+.dropzone {
+  border: 1.5px dashed var(--p-content-border-color);
+  border-radius: 12px;
+  padding: 2.25rem 1.5rem;
+  text-align: center;
+  background: var(--p-content-background);
+  color: var(--p-text-muted-color);
+}
+
+.dropzone i {
+  font-size: 1.9rem;
+  margin: 0 auto 0.75rem;
+  color: var(--p-primary-color);
+  display: block;
+}
+
+.dropzone strong {
+  color: var(--p-text-color);
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.92rem;
+}
+
+.dropzone p {
+  margin: 0;
+  font-size: 0.82rem;
+}

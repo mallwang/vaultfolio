@@ -1,0 +1,49 @@
+:host {
+  display: block;
+}
+
+.card-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.85rem;
+  margin-bottom: 1.25rem;
+}
+
+@media (max-width: 768px) {
+  .card-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.stat-card__value {
+  font-family: monospace;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--p-text-muted-color);
+}
+
+.empty-state {
+  text-align: center;
+  color: var(--p-text-muted-color);
+  padding: 1rem 0;
+}
+
+.empty-state__icon {
+  font-size: 2.2rem;
+  margin: 0 auto 0.85rem;
+  color: var(--p-text-muted-color);
+  display: block;
+}
+
+.empty-state h2 {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+  color: var(--p-text-color);
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: 0.85rem;
+  max-width: 40ch;
+  margin-inline: auto;
+}

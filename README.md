@@ -40,6 +40,63 @@ docker compose up --build
 Stop the stack with `docker compose down` (add `-v` to also drop the `postgres-data` volume, i.e.
 delete all stored data).
 
+### Hot-reload dev mode
+
+The command above builds production images (no live-reload). For a dev loop where editing source
+under `apps/frontend`/`apps/backend` on the host rebuilds and reloads automatically inside the
+containers, create a `docker-compose.override.yml` (gitignored — personal, not committed) using
+`docker/backend.dev.Dockerfile` and `docker/frontend.dev.Dockerfile`: it bind-mounts the workspace
+into each container and runs `nx serve` instead of the production build. Then `docker compose up`
+picks it up automatically (Compose auto-loads `docker-compose.override.yml`; omit it, or run
+`docker compose -f docker-compose.yml up`, to go back to the plain production build).
+
+Alternatively, skip Docker for the tiers you're actively changing and run them natively — Nx's
+`serve` targets already hot-reload — while Postgres (and any tier you're not touching) stays in
+Docker:
+
+```bash
+docker compose up postgres backend   # or just `postgres` if you're also editing the backend
+npm exec nx serve frontend           # http://localhost:4200, rebuilds + reloads on save
+npm exec nx serve backend            # http://localhost:3000, rebuilds + restarts on save
+```
+
+## Frontend environment configuration
+
+`apps/frontend` follows Angular's standard environment-file pattern, under
+`apps/frontend/src/environments/`:
+
+- `environment.ts` — committed. Safe defaults only, no secrets (currently just
+  `primengLicenseKey: ''`).
+- `environment.local.example.ts` — committed template documenting what a local override needs.
+- `environment.local.ts` — **gitignored**, never committed. Each developer creates their own
+  locally and fills in real values.
+
+During `nx serve frontend` (and `nx build frontend --configuration=development`), the
+`development` build configuration in [apps/frontend/project.json](apps/frontend/project.json)
+uses Angular's `fileReplacements` to swap `environment.ts` out for `environment.local.ts` at
+build time. [app.config.ts](apps/frontend/src/app/app.config.ts) always imports from
+`./environments/environment` and gets whichever file was active for that build — no
+environment-detection code needed.
+
+Why this exists: `providePrimeNG` requires a PrimeUI license key as of PrimeNG v22, even for the
+free community tier (see the PrimeNG section below). That key must stay out of git, but — being a
+client-side app — it still ends up embedded in the shipped JS bundle regardless; the
+environment-file split protects it from source control and `git log`, not from anyone inspecting
+the deployed bundle.
+
+Setup for a new developer:
+
+```bash
+cp apps/frontend/src/environments/environment.local.example.ts \
+   apps/frontend/src/environments/environment.local.ts
+# then edit environment.local.ts and paste your PrimeUI license key
+```
+
+Production builds (the default `production` configuration) currently fall back to the empty-key
+`environment.ts` unchanged — there's no `fileReplacements` wired up for it yet since the repo has
+no deploy pipeline yet. A real deployment will need to generate its own environment file (or
+inject the key some other way) as part of its build/CI step.
+
 ## Running each project's tests independently
 
 Each tier is independently buildable and testable — no other tier needs to be running:
@@ -98,6 +155,52 @@ This project uses [Spec Kit](.specify/) to drive development:
 3. `/speckit-plan` — plan its implementation
 4. `/speckit-tasks` — break the plan into tasks
 5. `/speckit-implement` — implement the tasks
+
+## Agentic development: PrimeNG
+
+The frontend's UI library is [PrimeNG](https://primeng.dev) — it provides the navigation,
+header/toolbar, tables, forms, and chart components the app needs. The component library itself
+is MIT-licensed, but as of PrimeNG v22 `providePrimeNG` also requires a PrimeUI license key (free
+for the community tier) — see [Frontend environment configuration](#frontend-environment-configuration)
+above for how that key is kept out of git. This section covers the AI-agent tooling set up around
+PrimeNG so implementation follows current PrimeNG APIs instead of stale training data.
+
+To keep Claude Code accurate on PrimeNG usage (APIs move fast across versions), each developer
+installs the official PrimeNG Claude Code plugin locally — it bundles seven skills plus a
+read-only MCP server that reads live PrimeNG documentation. This is a **per-developer, user-scope
+setup**, not checked into the repo — everyone working on the frontend with Claude Code should run
+it once on their machine:
+
+```bash
+npx @primeui/cli plugin install --tool claude --library primeng
+```
+
+This registers the `primefaces/primeui-plugins` marketplace and installs the `primeng@primeui`
+plugin for your Claude Code user profile. Restart Claude Code afterwards, then run `/mcp` to
+confirm the `primeng` MCP server is connected.
+
+What it gives Claude Code:
+
+- **Skills** (auto-invoked based on the task): `primeng-setup-installation`,
+  `primeng-component-implementation`, `primeng-theming-customization`,
+  `primeng-accessibility-icons`, `primeng-migration`, `primeng-audit-troubleshooting`, and
+  `primeng-router` (routes to the right one of the above)
+- **MCP server** (`@primeng/mcp`, launched on demand via `npx`) exposing read-only tools:
+  `list`, `search`, `get_component`, `get_guide`, `get_example`, `get_setup`,
+  `validate_usage`, `version`
+
+Installing the plugin does not touch the repo or add dependencies — it only equips your local
+Claude Code with up-to-date PrimeNG knowledge. Once you ask Claude Code to add or work with a
+PrimeNG component, it uses these skills/MCP tools instead of relying on memorized APIs.
+
+Docs:
+
+- [primeng.dev](https://primeng.dev) — component docs, demos, theming
+- [primeng.dev/plugin](https://primeng.dev/plugin) — the Claude Code / Copilot / Cursor plugin
+- [primeng.dev/mcp](https://primeng.dev/mcp) — MCP server reference (tools, manual setup for
+  other IDEs)
+- [primeng.dev/llms](https://primeng.dev/llms) — `llms.txt` / `llms-full.txt` machine-readable
+  doc index (consumed automatically by the MCP server/skills; no manual setup needed)
 
 ## License
 

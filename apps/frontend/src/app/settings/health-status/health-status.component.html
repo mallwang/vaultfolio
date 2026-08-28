@@ -1,0 +1,21 @@
+<p-card header="System health">
+  @if (health(); as result) {
+    <div class="health-status__row">
+      <p-tag
+        [severity]="result.status === 'ok' ? 'success' : 'danger'"
+        [value]="'Backend: ' + result.status"
+      />
+      <p-tag
+        [severity]="result.status === 'ok' ? 'success' : 'danger'"
+        [value]="'Database: ' + result.database"
+      />
+    </div>
+    <p class="health-status__timestamp">Checked at {{ result.timestamp }}</p>
+  } @else if (error()) {
+    <p-message severity="error" icon="pi pi-exclamation-triangle">{{ error() }}</p-message>
+  } @else {
+    <p-message severity="secondary" icon="pi pi-spinner pi-spin"
+      >Checking backend health…</p-message
+    >
+  }
+</p-card>

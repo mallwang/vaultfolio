@@ -1,0 +1,27 @@
+:host {
+  display: grid;
+  grid-template-columns: 232px 1fr;
+  min-height: 100vh;
+}
+
+.app-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.app-content {
+  padding: 1.5rem;
+  flex: 1;
+}
+
+@media (max-width: 768px) {
+  :host {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+
+  .app-content {
+    padding: 1.1rem;
+  }
+}

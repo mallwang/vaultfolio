@@ -1,0 +1,19 @@
+<nav class="app-sidebar" aria-label="Primary">
+  <div class="app-brand">
+    <span class="app-brand__mark" aria-hidden="true"></span>
+    <span class="app-brand__name">Vaultfolio</span>
+  </div>
+  <div class="app-nav">
+    @for (area of areas; track area.id) {
+      <a
+        class="app-nav__item"
+        [routerLink]="['/', area.path]"
+        routerLinkActive="app-nav__item--active"
+        ariaCurrentWhenActive="page"
+      >
+        <i [class]="area.icon" aria-hidden="true"></i>
+        <span>{{ area.label }}</span>
+      </a>
+    }
+  </div>
+</nav>

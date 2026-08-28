@@ -1,0 +1,30 @@
+:host {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--p-content-border-color);
+}
+
+.app-header__crumb {
+  font-size: 0.75rem;
+  color: var(--p-text-muted-color);
+  margin: 0 0 0.15rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.app-header__title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.app-header__meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--p-text-muted-color);
+}
