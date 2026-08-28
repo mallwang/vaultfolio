@@ -99,6 +99,51 @@ This project uses [Spec Kit](.specify/) to drive development:
 4. `/speckit-tasks` — break the plan into tasks
 5. `/speckit-implement` — implement the tasks
 
+## Agentic development: PrimeNG
+
+The frontend's UI library is [PrimeNG](https://primeng.dev) — it provides the navigation,
+header/toolbar, tables, forms, and chart components the app needs, under MIT license.
+(PrimeNG itself is not scaffolded into `apps/frontend` yet; this section covers the AI-agent
+tooling set up around it so implementation follows current PrimeNG APIs instead of stale
+training data.)
+
+To keep Claude Code accurate on PrimeNG usage (APIs move fast across versions), each developer
+installs the official PrimeNG Claude Code plugin locally — it bundles seven skills plus a
+read-only MCP server that reads live PrimeNG documentation. This is a **per-developer, user-scope
+setup**, not checked into the repo — everyone working on the frontend with Claude Code should run
+it once on their machine:
+
+```bash
+npx @primeui/cli plugin install --tool claude --library primeng
+```
+
+This registers the `primefaces/primeui-plugins` marketplace and installs the `primeng@primeui`
+plugin for your Claude Code user profile. Restart Claude Code afterwards, then run `/mcp` to
+confirm the `primeng` MCP server is connected.
+
+What it gives Claude Code:
+
+- **Skills** (auto-invoked based on the task): `primeng-setup-installation`,
+  `primeng-component-implementation`, `primeng-theming-customization`,
+  `primeng-accessibility-icons`, `primeng-migration`, `primeng-audit-troubleshooting`, and
+  `primeng-router` (routes to the right one of the above)
+- **MCP server** (`@primeng/mcp`, launched on demand via `npx`) exposing read-only tools:
+  `list`, `search`, `get_component`, `get_guide`, `get_example`, `get_setup`,
+  `validate_usage`, `version`
+
+Installing the plugin does not touch the repo or add dependencies — it only equips your local
+Claude Code with up-to-date PrimeNG knowledge. Once you ask Claude Code to add or work with a
+PrimeNG component, it uses these skills/MCP tools instead of relying on memorized APIs.
+
+Docs:
+
+- [primeng.dev](https://primeng.dev) — component docs, demos, theming
+- [primeng.dev/plugin](https://primeng.dev/plugin) — the Claude Code / Copilot / Cursor plugin
+- [primeng.dev/mcp](https://primeng.dev/mcp) — MCP server reference (tools, manual setup for
+  other IDEs)
+- [primeng.dev/llms](https://primeng.dev/llms) — `llms.txt` / `llms-full.txt` machine-readable
+  doc index (consumed automatically by the MCP server/skills; no manual setup needed)
+
 ## License
 
 [MIT](LICENSE.md)
