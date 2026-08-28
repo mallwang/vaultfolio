@@ -1,9 +1,12 @@
 {
   "name": "domain-example",
   "version": "0.0.1",
+  "license": "MIT",
   "private": true,
   "nx": {
-    "tags": ["scope:domain"]
+    "tags": [
+      "scope:domain"
+    ]
   },
   "type": "module",
   "main": "./src/index.ts",
@@ -16,7 +19,5 @@
     },
     "./package.json": "./package.json"
   },
-  "dependencies": {
-    "decimal.js": "^10.6.0"
-  }
+  "dependencies": {}
 }

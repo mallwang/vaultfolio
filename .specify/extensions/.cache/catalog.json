@@ -11,11 +11,7 @@
       "author": "spec-kit-core",
       "repository": "https://github.com/github/spec-kit",
       "bundled": true,
-      "tags": [
-        "agent",
-        "context",
-        "core"
-      ]
+      "tags": ["agent", "context", "core"]
     },
     "assess": {
       "name": "Idea Assessment Pipeline",
@@ -25,13 +21,7 @@
       "author": "spec-kit-core",
       "repository": "https://github.com/github/spec-kit",
       "bundled": true,
-      "tags": [
-        "assessment",
-        "discovery",
-        "triage",
-        "product",
-        "workflow"
-      ]
+      "tags": ["assessment", "discovery", "triage", "product", "workflow"]
     },
     "bug": {
       "name": "Bug Triage Workflow",
@@ -41,12 +31,7 @@
       "author": "spec-kit-core",
       "repository": "https://github.com/github/spec-kit",
       "bundled": true,
-      "tags": [
-        "bug",
-        "triage",
-        "workflow",
-        "qa"
-      ]
+      "tags": ["bug", "triage", "workflow", "qa"]
     },
     "git": {
       "name": "Git Branching Workflow",
@@ -56,12 +41,7 @@
       "author": "spec-kit-core",
       "repository": "https://github.com/github/spec-kit",
       "bundled": true,
-      "tags": [
-        "git",
-        "branching",
-        "workflow",
-        "core"
-      ]
+      "tags": ["git", "branching", "workflow", "core"]
     }
   }
 }

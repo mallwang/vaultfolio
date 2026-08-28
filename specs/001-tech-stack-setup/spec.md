@@ -8,7 +8,7 @@
 
 **Input**: User description: "I would like to setup the tech stack and tools like described in the constitution."
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 <!--
   This feature is foundational/infrastructural rather than end-user-facing: the
@@ -128,7 +128,7 @@ other tier running.
   requiring manual database setup steps beyond what the single orchestration
   command performs.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -183,7 +183,7 @@ other tier running.
   (outside the frontend/backend applications) that future business logic
   (e.g., valuation, allocation) will be implemented in.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

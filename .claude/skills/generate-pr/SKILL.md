@@ -28,6 +28,7 @@ Use the full diff to understand what specifically changed in each file.
 Format: `<type>(<scope>): <short imperative summary>`
 
 **Type** — pick one:
+
 - `feat` — new user-visible behaviour
 - `fix` — bug fix
 - `refactor` — no behaviour change
@@ -38,7 +39,7 @@ Format: `<type>(<scope>): <short imperative summary>`
 
 **Scope** — the tightest meaningful grouping, e.g. an Nx project/library name (`backend`, `frontend`, `domain-valuation`, `shared-types`) or a cross-cutting concern (`db`, `auth`). Omit if the change is truly repo-wide.
 
-**Summary** — imperative mood, ≤60 chars, no period. Describes the *what* a developer cares about, not an implementation detail.
+**Summary** — imperative mood, ≤60 chars, no period. Describes the _what_ a developer cares about, not an implementation detail.
 
 Example: `feat(domain-valuation): add look-through allocation aggregation for ETF holdings`
 
@@ -58,20 +59,24 @@ Follow this structure exactly:
 ## What changed
 
 **<Nx project or layer name>** (`<apps|libs path if applicable>`)
+
 - `<file or symbol>`: <one-line description of the change>
 - …
 
 **<Next project or layer>**
+
 - …
 ```
 
 **Rules for Summary bullets:**
+
 - 2–4 bullets maximum
 - Each bullet covers one coherent user-facing or architectural change
 - Mention concrete artefacts (field names, enum values, endpoints) when they fit in one line
 - Write in present tense ("Adds X", "Normalises Y", "Migrates Z automatically")
 
 **Rules for What changed sections:**
+
 - Group by Nx project or architectural layer (e.g. **Backend** `apps/backend`, **Frontend**
   `apps/frontend`, a specific library under `libs/` such as **Domain — Valuation**
   `libs/domain-valuation`, **Shared** `libs/shared-*`, **Specs**, **CI**, …)

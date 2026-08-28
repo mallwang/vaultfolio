@@ -59,19 +59,19 @@ entities beyond a placeholder used to prove the exact-decimal rule (FR-008).
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-| Principle / Constraint | Status | Notes |
-|---|---|---|
-| I. Library-First | PASS | `libs/domain/example/` scaffolded as a standalone, independently testable library from the start (FR-007); no business logic lives directly in `apps/backend` controllers. |
-| II. API-First Interface | PASS | Backend exposes `GET /health` as a documented, versioned-ready REST endpoint; frontend only calls it over HTTP, never imports backend source (FR-001, enforced via Nx project boundary lint rule). |
-| III. Test-First (NON-NEGOTIABLE) | PASS | Scaffold tasks will generate the health-check test before the endpoint per TDD; the example domain library's placeholder decimal function ships with an exact-value test asserting no floating-point drift, written first. |
-| IV. Integration Testing | PASS | One integration test exercises the real HTTP round trip (frontend → backend `/health`) against a real serialized JSON response, not an in-memory stub (FR-002, FR-003, FR-006). |
-| V. Observability, Versioning & Simplicity | PASS | Backend configured with structured (JSON) logging from the start (FR-010); scaffold intentionally minimal — no extra services, no premature abstractions beyond what Nx/NestJS/Angular require (YAGNI). |
-| Product Scope — Out of Scope | PASS | No banking/brokerage API integration added; no budget/expense tracking. |
-| Product Scope — External Market Data | PASS (deferred) | `libs/market-data/` left as an empty reserved slot only — no provider selected or wired, consistent with the constitution's open `TODO(MARKET_DATA_PROVIDER)`. |
-| Technology & Architecture Constraints | PASS | Three-tier layout (frontend/backend/database), all three containerized, single `docker-compose.yml`, database as its own service, no unauthorized external API calls. |
-| Stack Decision | PASS | Nx monorepo; NestJS backend; Angular frontend; PostgreSQL via `NUMERIC`; decimal library (e.g., `decimal.js` or equivalent) used at the application layer for the placeholder monetary value. |
+| Principle / Constraint                    | Status          | Notes                                                                                                                                                                                                                      |
+| ----------------------------------------- | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| I. Library-First                          | PASS            | `libs/domain/example/` scaffolded as a standalone, independently testable library from the start (FR-007); no business logic lives directly in `apps/backend` controllers.                                                 |
+| II. API-First Interface                   | PASS            | Backend exposes `GET /health` as a documented, versioned-ready REST endpoint; frontend only calls it over HTTP, never imports backend source (FR-001, enforced via Nx project boundary lint rule).                         |
+| III. Test-First (NON-NEGOTIABLE)          | PASS            | Scaffold tasks will generate the health-check test before the endpoint per TDD; the example domain library's placeholder decimal function ships with an exact-value test asserting no floating-point drift, written first. |
+| IV. Integration Testing                   | PASS            | One integration test exercises the real HTTP round trip (frontend → backend `/health`) against a real serialized JSON response, not an in-memory stub (FR-002, FR-003, FR-006).                                            |
+| V. Observability, Versioning & Simplicity | PASS            | Backend configured with structured (JSON) logging from the start (FR-010); scaffold intentionally minimal — no extra services, no premature abstractions beyond what Nx/NestJS/Angular require (YAGNI).                    |
+| Product Scope — Out of Scope              | PASS            | No banking/brokerage API integration added; no budget/expense tracking.                                                                                                                                                    |
+| Product Scope — External Market Data      | PASS (deferred) | `libs/market-data/` left as an empty reserved slot only — no provider selected or wired, consistent with the constitution's open `TODO(MARKET_DATA_PROVIDER)`.                                                             |
+| Technology & Architecture Constraints     | PASS            | Three-tier layout (frontend/backend/database), all three containerized, single `docker-compose.yml`, database as its own service, no unauthorized external API calls.                                                      |
+| Stack Decision                            | PASS            | Nx monorepo; NestJS backend; Angular frontend; PostgreSQL via `NUMERIC`; decimal library (e.g., `decimal.js` or equivalent) used at the application layer for the placeholder monetary value.                              |
 
 No violations — Complexity Tracking is not needed.
 

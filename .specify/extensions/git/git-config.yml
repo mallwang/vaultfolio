@@ -8,14 +8,14 @@ branch_numbering: sequential
 # Supported tokens: {author}, {app}, {number}, {slug}
 # {slug} must not appear before {number}; final path segment must start with {number}-.
 # Example for monorepos: "{author}/{app}/{number}-{slug}"
-branch_template: ""
+branch_template: ''
 
 # Optional shorthand namespace. Leave empty to use branch_template/default behavior.
 # Example: "features/{app}" expands to "features/{app}/{number}-{slug}"
-branch_prefix: ""
+branch_prefix: ''
 
 # Commit message used by `git commit` during repository initialization
-init_commit_message: "docs(spec-kit): initial commit"
+init_commit_message: 'docs(spec-kit): initial commit'
 
 # Commit message style used by auto-commit hooks (speckit.git.commit):
 # "fixed"        - default; use the configured/static messages below.
@@ -31,49 +31,49 @@ auto_commit:
   default: true
   before_clarify:
     enabled: true
-    message: "chore(spec-kit): save progress before clarification"
+    message: 'chore(spec-kit): save progress before clarification'
   before_plan:
     enabled: true
-    message: "chore(spec-kit): save progress before planning"
+    message: 'chore(spec-kit): save progress before planning'
   before_tasks:
     enabled: true
-    message: "chore(spec-kit): save progress before task generation"
+    message: 'chore(spec-kit): save progress before task generation'
   before_implement:
     enabled: true
-    message: "chore(spec-kit): save progress before implementation"
+    message: 'chore(spec-kit): save progress before implementation'
   before_checklist:
     enabled: true
-    message: "chore(spec-kit): save progress before checklist"
+    message: 'chore(spec-kit): save progress before checklist'
   before_analyze:
     enabled: true
-    message: "chore(spec-kit): save progress before analysis"
+    message: 'chore(spec-kit): save progress before analysis'
   before_taskstoissues:
     enabled: true
-    message: "chore(spec-kit): save progress before issue sync"
+    message: 'chore(spec-kit): save progress before issue sync'
   after_constitution:
     enabled: true
-    message: "docs(spec-kit): add project constitution"
+    message: 'docs(spec-kit): add project constitution'
   after_specify:
     enabled: true
-    message: "docs(spec-kit): add specification"
+    message: 'docs(spec-kit): add specification'
   after_clarify:
     enabled: true
-    message: "docs(spec-kit): clarify specification"
+    message: 'docs(spec-kit): clarify specification'
   after_plan:
     enabled: true
-    message: "docs(spec-kit): add implementation plan"
+    message: 'docs(spec-kit): add implementation plan'
   after_tasks:
     enabled: true
-    message: "docs(spec-kit): add tasks"
+    message: 'docs(spec-kit): add tasks'
   after_implement:
     enabled: true
-    message: "chore(spec-kit): implementation progress"
+    message: 'chore(spec-kit): implementation progress'
   after_checklist:
     enabled: true
-    message: "docs(spec-kit): add checklist"
+    message: 'docs(spec-kit): add checklist'
   after_analyze:
     enabled: true
-    message: "docs(spec-kit): add analysis report"
+    message: 'docs(spec-kit): add analysis report'
   after_taskstoissues:
     enabled: true
-    message: "chore(spec-kit): sync tasks to issues"
+    message: 'chore(spec-kit): sync tasks to issues'

@@ -94,11 +94,11 @@ not a permanent test fixture.
 
 ## Success criteria mapping
 
-| Quickstart step | spec.md criterion |
-|---|---|
-| 1 | SC-001 (stack runs in one command) |
-| 2 | FR-002, User Story 1 Scenario 2 |
-| 3 | SC-003 (no data loss on DB-only restart) |
-| 4 | SC-002 (100% of tests pass in isolation), FR-006 |
-| 5 | SC-004 (new library added in a single session) |
-| 6 | FR-001 (enforced project boundaries) |
+| Quickstart step | spec.md criterion                                |
+| --------------- | ------------------------------------------------ |
+| 1               | SC-001 (stack runs in one command)               |
+| 2               | FR-002, User Story 1 Scenario 2                  |
+| 3               | SC-003 (no data loss on DB-only restart)         |
+| 4               | SC-002 (100% of tests pass in isolation), FR-006 |
+| 5               | SC-004 (new library added in a single session)   |
+| 6               | FR-001 (enforced project boundaries)             |
