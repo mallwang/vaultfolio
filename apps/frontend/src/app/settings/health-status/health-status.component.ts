@@ -10,9 +10,11 @@ import { TagModule } from 'primeng/tag';
  * frontend/backend/database tiers are wired together end-to-end (FR-002,
  * FR-003, User Story 1 Acceptance Scenario 2).
  *
- * The backend is reached at the host-mapped port from docker-compose.yml
- * (http://localhost:3000), since this is a browser-side request, not a
- * container-to-container one.
+ * Calls a relative `/api/health` path, which nginx
+ * (docker/frontend.nginx.conf) proxies to the backend container. This is a
+ * browser-side request, not a container-to-container one, so it must go
+ * through the same origin the page was served from rather than a hostname
+ * only the container network knows.
  */
 @Component({
   selector: 'app-health-status',
@@ -27,7 +29,7 @@ export class HealthStatusComponent {
   protected readonly error = signal<string | null>(null);
 
   constructor() {
-    this.http.get<HealthStatus>('http://localhost:3000/health').subscribe({
+    this.http.get<HealthStatus>('/api/health').subscribe({
       next: (result) => this.health.set(result),
       error: () => this.error.set('Unable to reach the backend health check.'),
     });

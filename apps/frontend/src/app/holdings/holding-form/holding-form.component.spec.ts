@@ -98,7 +98,7 @@ describe('HoldingFormComponent', () => {
     component.saved.subscribe((holding) => (emitted = holding));
     component['submit']();
 
-    const req = httpMock.expectOne('http://localhost:3000/holdings');
+    const req = httpMock.expectOne('/api/holdings');
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toMatchObject({ assetType: 'BITCOIN', management: 'Private' });
 
@@ -180,7 +180,7 @@ describe('HoldingFormComponent', () => {
 
       component['submit']();
 
-      const req = httpMock.expectOne('http://localhost:3000/holdings/existing-id');
+      const req = httpMock.expectOne('/api/holdings/existing-id');
       expect(req.request.method).toBe('PUT');
       req.flush({ ...existing, quantity: '0.75' });
     });

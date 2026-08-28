@@ -1,16 +1,12 @@
 services:
   backend:
-    build:
-      context: .
-      dockerfile: docker/backend.Dockerfile
+    image: ${DOCKERHUB_USER:-walefish}/vaultfolio-backend:${TAG:-latest}
     restart: unless-stopped
     environment:
       PORT: 3000
       DATABASE_PATH: /data/vaultfolio.db
-    ports:
-      - '3000:3000'
     volumes:
-      - ./data:/data
+      - /opt/vaultfolio/data:/data
     healthcheck:
       test:
         [
@@ -22,11 +18,14 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+    # No published port: the frontend's nginx reaches this container over
+    # the compose network at http://backend:3000. Uncomment to also allow
+    # direct API access (e.g. for debugging) from the NAS's LAN:
+    # ports:
+    #   - '3000:3000'
 
   frontend:
-    build:
-      context: .
-      dockerfile: docker/frontend.Dockerfile
+    image: ${DOCKERHUB_USER:-walefish}/vaultfolio-frontend:${TAG:-latest}
     restart: unless-stopped
     environment:
       PRIMENG_LICENSE_KEY: ${PRIMENG_LICENSE_KEY:-}

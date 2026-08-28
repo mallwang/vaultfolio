@@ -13,7 +13,12 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     providePrimeNG({
       theme: { preset: Aura },
-      license: environment.primengLicenseKey,
+      // Prefer the runtime value written by docker/frontend-entrypoint.sh
+      // (from PRIMENG_LICENSE_KEY) over the build-time environment.ts value,
+      // so a deployed image can be licensed via a container env var without
+      // rebuilding. Falls back to environment.ts for `nx serve`/tests, where
+      // env.js (see index.html) isn't present.
+      license: window.__env?.primengLicenseKey || environment.primengLicenseKey,
     }),
   ],
 };
