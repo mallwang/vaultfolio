@@ -1,0 +1,59 @@
+<!--
+  Snapshot from 002-primeng-app-structure's approved mockup (specs/002-primeng-app-structure/mockup.html).
+  This is the pattern for representing Vaultfolio's real app chrome inside a review canvas — the
+  sidebar nav (collapsing to a compact top bar on mobile) + header established by that feature.
+  This is a snapshot, not a source of truth: re-derive markup/classes/tokens from the current
+  apps/frontend/src/app/app.html and apps/frontend/src/styles.css (or the PrimeNG layout
+  component in use by then) before reusing — the real implementation may have moved on.
+-->
+<div class="app-shell">
+  <nav class="app-sidebar" aria-label="Primary">
+    <div class="app-brand">
+      <span class="app-brand__mark" aria-hidden="true"></span>
+      <span class="app-brand__name">Vaultfolio</span>
+    </div>
+    <div class="app-nav" id="app-nav">
+      <button type="button" class="app-nav__item" data-target="dashboard" aria-current="page">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <rect x="3" y="3" width="7" height="9" rx="1.5" />
+          <rect x="14" y="3" width="7" height="5" rx="1.5" />
+          <rect x="14" y="12" width="7" height="9" rx="1.5" />
+          <rect x="3" y="16" width="7" height="5" rx="1.5" />
+        </svg>
+        <span>Dashboard</span>
+      </button>
+      <!-- …one .app-nav__item per top-level application area, each with an inline SVG icon
+           (no icon font dependency) and data-target matching the canvas's data-screen value. -->
+    </div>
+  </nav>
+
+  <div class="app-main">
+    <div class="app-header">
+      <div>
+        <p class="app-header__crumb">Vaultfolio</p>
+        <h1 class="app-header__title">Dashboard</h1>
+      </div>
+      <div class="app-header__meta">
+        <span>markus.allwang</span>
+        <span class="avatar">MA</span>
+      </div>
+    </div>
+
+    <div class="app-content">
+      <!-- {{FEATURE_MARKUP}} for the specific feature under review goes here. -->
+    </div>
+  </div>
+</div>
+
+<!--
+  Key CSS classes this pattern depends on (copy the full rules from
+  specs/002-primeng-app-structure/mockup.html, not just the selectors below):
+  .app-shell            — grid: 232px sidebar + 1fr content; collapses to stacked rows on mobile
+  .app-sidebar           — becomes a horizontal, scrollable top bar on mobile
+                            (.stage-frame[data-viewport='mobile'] .app-sidebar)
+  .app-brand / .app-brand__mark / .app-brand__name
+  .app-nav / .app-nav__item[aria-current='page'] — active-area highlight with a left accent bar
+                            on desktop, centered icon+label chip on mobile
+  .app-header / .app-header__crumb / .app-header__title / .app-header__meta / .avatar
+  .app-content            — the swappable per-screen content region
+-->

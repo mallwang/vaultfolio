@@ -8,6 +8,8 @@
 
 **Input**: User description: "I would like to setup PrimeNG as primary frontend UI library and create a general application structure for this project."
 
+**Design**: [design.md](./design.md) — approved UX review mockup of the navigation shell and top-level application areas
+
 ## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Consistent Look and Feel Across the App (Priority: P1)
