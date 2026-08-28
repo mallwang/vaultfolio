@@ -4,6 +4,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "nx run-many -t serve -p backend frontend",
+    "build": "nx run-many -t build -p backend frontend",
     "test:backend": "nx test backend",
     "test:frontend": "nx test frontend",
     "test:domain-example": "nx test domain-example",
