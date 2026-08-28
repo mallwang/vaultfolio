@@ -81,12 +81,12 @@ export function holdingToResponse(holding: Holding): HoldingResponse {
 
 /** POST /holdings body -> domain validation's raw submission shape. */
 export function createRequestToSubmission(body: CreateHoldingRequest) {
-  return requestToSubmission(body.assetType, body);
+  return requestToSubmission(body.assetType, body as unknown as Record<string, unknown>);
 }
 
 /** PUT /holdings/:id body (plus the holding's existing, immutable assetType) -> raw submission shape. */
 export function updateRequestToSubmission(assetType: AssetType, body: UpdateHoldingRequest) {
-  return requestToSubmission(assetType, body);
+  return requestToSubmission(assetType, body as unknown as Record<string, unknown>);
 }
 
 function requestToSubmission(

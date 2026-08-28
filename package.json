@@ -11,6 +11,7 @@
     "release": "nx release",
     "lint": "nx run-many -t lint",
     "lint:fix": "nx run-many -t lint --fix",
+    "typecheck": "nx run-many -t typecheck",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "prepare": "husky && node tools/ensure-frontend-env.mjs"

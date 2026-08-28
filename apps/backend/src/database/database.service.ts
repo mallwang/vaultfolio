@@ -129,7 +129,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
    * match each `$N`'s position in the rewritten text, so callers' query
    * strings never need per-callsite edits.
    */
-  async query<T extends Record<string, unknown> = Record<string, unknown>>(
+  async query<T = Record<string, unknown>>(
     text: string,
     params: readonly unknown[] = [],
   ): Promise<T[]> {
