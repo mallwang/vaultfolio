@@ -9,25 +9,28 @@ the UI, with CSV/JSON import as a convenience for bulk entry.
 
 ## Status
 
-The tech stack scaffold is in place (Nx monorepo, NestJS backend, Angular frontend, PostgreSQL,
-Docker Compose orchestration) per the project [constitution](.specify/memory/constitution.md). No
-real business capability (holdings, imports, valuation) exists yet — only a minimal end-to-end
-health-check slice proving the tiers are wired together.
+The tech stack scaffold is in place (Nx monorepo, NestJS backend, Angular frontend, SQLite,
+Docker Compose orchestration) per the project [constitution](.specify/memory/constitution.md).
+Holdings tracking (manual entry, CRUD) exists; broader capabilities (imports, valuation) are still
+to come.
 
 ## Tech stack
 
 - **Monorepo**: [Nx](https://nx.dev), TypeScript throughout
-- **Backend**: [NestJS](https://nestjs.com) (`apps/backend`) — exposes `GET /health`
+- **Backend**: [NestJS](https://nestjs.com) (`apps/backend`) — exposes `GET /health` and the
+  `/holdings` API
 - **Frontend**: [Angular](https://angular.dev) (`apps/frontend`) — renders the health-check page
-- **Database**: PostgreSQL 16 (`postgres` service), accessed only through the backend
+  and the holdings UI
+- **Database**: SQLite, embedded directly in the backend process as a single file (no separate
+  database container/service), bind-mounted from the host's `./data` directory
 - **Shared libraries**: `libs/api-contract` (types shared between backend/frontend),
-  `libs/domain/example` (a throwaway library demonstrating the Library-First pattern),
+  `libs/domain/holdings` (holdings validation/merge logic, Library-First),
   `libs/market-data` (reserved, empty — see `TODO(MARKET_DATA_PROVIDER)`)
 
 ## Running the full stack locally
 
 Prerequisites: Docker + Docker Compose (or an equivalent OCI-compatible container runtime). No
-local Node.js or PostgreSQL installation is required — everything runs inside containers.
+local Node.js or database installation is required — everything runs inside containers.
 
 ```bash
 docker compose up --build
@@ -35,22 +38,25 @@ docker compose up --build
 
 - Frontend: <http://localhost:4200>
 - Backend health check: <http://localhost:3000/health>
-- PostgreSQL: `localhost:5432` (user/password/db: `vaultfolio`)
+- Database: a single SQLite file under `./data` on the host (`./data/vaultfolio.db`, plus its
+  `-wal`/`-shm` WAL-mode siblings while the stack is running) — inspect or back it up directly,
+  e.g. `cp -r ./data /backup/`.
 
-Stop the stack with `docker compose down` (add `-v` to also drop the `postgres-data` volume, i.e.
-delete all stored data).
+Stop the stack with `docker compose down` — `./data` is a host bind mount, not a Docker-managed
+volume, so it survives `down` (with or without `-v`) automatically; delete the directory yourself
+if you want to wipe all stored data.
 
 ### Hot-reload dev mode
 
-The command above builds production images (no live-reload). For day-to-day development, run
-Postgres in Docker and the app natively — Nx's `serve` targets already rebuild and reload on save:
+The command above builds production images (no live-reload). For day-to-day development, run the
+app natively — Nx's `serve` targets already rebuild and reload on save, and SQLite needs no
+separate service to pre-start:
 
 ```bash
 npm run dev
 ```
 
-This starts Postgres (`docker compose up -d postgres`) and then `backend`/`frontend` via
-`nx run-many -t serve -p backend frontend`:
+This runs `backend`/`frontend` via `nx run-many -t serve -p backend frontend`:
 
 - Frontend: <http://localhost:4200>, rebuilds + reloads on save
 - Backend: <http://localhost:3000>, rebuilds + restarts on save
@@ -58,7 +64,6 @@ This starts Postgres (`docker compose up -d postgres`) and then `backend`/`front
 Equivalent to running each piece by hand:
 
 ```bash
-docker compose up -d postgres
 npm exec nx serve frontend
 npm exec nx serve backend
 ```

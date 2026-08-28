@@ -1,6 +1,6 @@
 import { Component, Input, OnChanges, computed, signal } from '@angular/core';
 import Decimal from 'decimal.js';
-import type { HoldingResponse } from 'api-contract';
+import type { HoldingResponse } from '@vaultfolio/api-contract';
 import { ChartModule } from 'primeng/chart';
 import { ASSET_TYPE_LABELS } from '../asset-type-fields';
 

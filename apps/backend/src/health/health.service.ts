@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { HealthStatus } from 'api-contract';
+import type { HealthStatus } from '@vaultfolio/api-contract';
 import { DatabaseService } from '../database/database.service';
 
 @Injectable()

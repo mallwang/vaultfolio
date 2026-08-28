@@ -22,6 +22,12 @@ Thumbs.db
 !.env.example
 apps/frontend/src/environments/environment.local.ts
 
+# SQLite data (developer's local database — specs/004-sqlite-migration)
+/data/
+*.db
+*.db-wal
+*.db-shm
+
 # Logs
 *.log
 

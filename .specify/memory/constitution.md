@@ -1,23 +1,27 @@
 <!--
 Sync Impact Report
-- Version change: 2.1.0 → 2.2.0 (MINOR: Technology & Architecture Constraints materially expanded
-  to resolve the prior TODO(TECH_STACK) placeholder with a concrete stack decision)
+- Version change: 2.2.0 → 2.3.0 (MINOR: Technology & Architecture Constraints' database stack
+  decision changed from PostgreSQL to SQLite — a materially expanded/replaced concrete decision,
+  not a principle removal/redefinition)
 - Modified principles: n/a
 - Added sections: n/a
 - Removed sections: n/a
 - Modified sections:
-  - Technology & Architecture Constraints: replaced the TODO(TECH_STACK) placeholder with a
-    concrete stack decision — Nx monorepo; NestJS (TypeScript/Node.js) backend; Angular
-    (TypeScript) frontend; PostgreSQL database; decimal money handling via PostgreSQL NUMERIC plus
-    a fixed-point/decimal library at the application layer (no native float/double for money);
-    market-data provider left unselected but MUST remain swappable per Principle I and Product
-    Scope, decided per-feature in /speckit-plan.
+  - Technology & Architecture Constraints: replaced the "database MUST run as its own
+    container/service, not embedded in the backend process" bullet with language describing
+    SQLite as an embedded, file-based database bind-mounted from the host, per
+    specs/004-sqlite-migration (FR-011, User Story 3).
+  - Stack Decision: replaced "Database: PostgreSQL, run as its own container per the constraint
+    above" with SQLite as an embedded, single-file, host-bind-mounted database.
+  - Stack Decision (Money/decimal handling): replaced the PostgreSQL `NUMERIC`/`DECIMAL` column
+    reference with SQLite's `TEXT`-column canonical-decimal-string storage (never `REAL`/`FLOAT`);
+    the application-layer exact-decimal requirement is unchanged.
 - Templates requiring updates:
-  - .specify/templates/plan-template.md ✅ updated — Technical Context now pre-fills
-    Nx/NestJS/Angular/PostgreSQL/Jest, and Project Structure defaults to the Nx apps/libs layout
+  - .specify/templates/plan-template.md ⚠ pending — Technical Context still references PostgreSQL
+    by name in its pre-filled example; not updated as part of this amendment (out of scope for
+    004-sqlite-migration's governance task), follow up separately.
   - .specify/templates/spec-template.md ✅ no change needed (spec stays tech-agnostic)
-  - .specify/templates/tasks-template.md ✅ updated — Path Conventions now default to the Nx
-    apps/backend, apps/frontend, libs/* layout instead of generic single-project/mobile options
+  - .specify/templates/tasks-template.md ✅ no change needed (path conventions are database-agnostic)
 - Follow-up TODOs:
   - TODO(MARKET_DATA_PROVIDER): Specific market-data API vendor (prices, ETF composition) not yet
     chosen. Resolve during the /speckit-plan run for the first feature that needs live market data;
@@ -149,9 +153,10 @@ provider is unreachable, since a user's recorded holdings are the source of trut
 - The full stack (frontend, backend, database) MUST be packaged as Docker containers and MUST be
   runnable end-to-end via a single orchestration file (e.g., `docker-compose.yml`) for local
   development, with the same images used for hosting/deployment.
-- The database MUST run as its own container/service, not embedded in the backend process, so
-  data persists independently of application container restarts and can be backed up/restored on
-  its own.
+- The database MUST be a single embedded file, bind-mounted into the backend container from a
+  host-side directory (not a Docker-managed named volume), so data persists independently of
+  application container restarts/recreation and can be backed up/restored with a plain filesystem
+  copy of that directory — no separate database container/service is required or permitted.
 - The backend MAY integrate with external market-data providers (e.g., stock/ETF price APIs,
   ETF holdings/composition APIs) strictly for the read-only reference data described in Product
   Scope. No other external API integrations are permitted — in particular, no banking or
@@ -168,12 +173,15 @@ provider is unreachable, since a user's recorded holdings are the source of trut
   per Principle I, independent of NestJS controllers/modules, so it is testable without the HTTP
   layer.
 - **Frontend**: Angular, written in TypeScript, in the same Nx monorepo.
-- **Database**: PostgreSQL, run as its own container per the constraint above.
-- **Money/decimal handling**: Monetary and quantity values MUST be stored using PostgreSQL's
-  `NUMERIC`/`DECIMAL` type — never `FLOAT`/`DOUBLE PRECISION`. At the application layer, monetary
-  values MUST be represented with an exact decimal type/library (not native JavaScript/TypeScript
-  `number`) end-to-end through backend calculations and API responses, consistent with Principle
-  III's ban on approximate assertions for monetary values.
+- **Database**: SQLite, embedded directly in the backend process as a single file at
+  `DATABASE_PATH` (default `./data/vaultfolio.db`), bind-mounted from the host per the constraint
+  above — not run as a separate container/service.
+- **Money/decimal handling**: Monetary and quantity values MUST be stored as SQLite `TEXT` columns
+  holding the canonical decimal string produced by the application-layer decimal library — never
+  SQLite's `REAL` storage class (IEEE-754 float, unsafe for exact decimals) and never native
+  JavaScript/TypeScript `number`. At the application layer, monetary values MUST be represented
+  with an exact decimal type/library end-to-end through backend calculations and API responses,
+  consistent with Principle III's ban on approximate assertions for monetary values.
 - **Market-data provider**: Not yet selected — see `TODO(MARKET_DATA_PROVIDER)` in the Sync Impact
   Report above. Whichever provider is chosen MUST be isolated behind a dedicated Nx library/module
   per Principle I and the Product Scope's External Market Data rules, so it can be swapped without
@@ -204,4 +212,4 @@ alignment with the Core Principles; unresolved violations MUST be justified in t
 Complexity Tracking section or the plan MUST be revised to comply. Reviewers MUST treat this
 constitution as authoritative over informal team conventions.
 
-**Version**: 2.2.0 | **Ratified**: 2026-08-13 | **Last Amended**: 2026-08-13
+**Version**: 2.3.0 | **Ratified**: 2026-08-13 | **Last Amended**: 2026-08-28

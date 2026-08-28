@@ -6,12 +6,12 @@ import type { AssetType } from './asset-type.js';
  * table): one holding row — either a purchase lot (Share/Bitcoin: one row per
  * submission) or a current position (ETF/Gold: one row per
  * `(identifier, management)` pair, replaced in place on repeat submission).
- * Framework-independent (Principle I) — no NestJS/Angular/Postgres-row
+ * Framework-independent (Principle I) — no NestJS/Angular/SQLite-row
  * concerns here. All monetary/quantity fields are `Decimal`, never a native
  * `number` (constitution's Money/decimal handling clause).
  */
 export interface HoldingProps {
-  /** Generated at creation (`gen_random_uuid()`), never client-supplied. */
+  /** Generated at creation (`randomUUID()`), never client-supplied. */
   readonly id: string;
   /** Immutable after creation (FR-008). */
   readonly assetType: AssetType;

@@ -1,7 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import type { HoldingResponse } from 'api-contract';
+import type { HoldingResponse } from '@vaultfolio/api-contract';
 import { HoldingsComponent } from './holdings.component';
 
 const etf: HoldingResponse = {

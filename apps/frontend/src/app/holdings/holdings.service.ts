@@ -1,7 +1,11 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import type { Observable } from 'rxjs';
-import type { CreateHoldingRequest, HoldingResponse, UpdateHoldingRequest } from 'api-contract';
+import type {
+  CreateHoldingRequest,
+  HoldingResponse,
+  UpdateHoldingRequest,
+} from '@vaultfolio/api-contract';
 
 /**
  * `HttpClient` wrapper for `/holdings` (contracts/holdings-api.md), used by

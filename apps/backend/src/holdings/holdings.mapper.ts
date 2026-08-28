@@ -1,9 +1,13 @@
 import Decimal from 'decimal.js';
-import { Holding } from 'domain-holdings';
-import type { AssetType, ValidatedHolding } from 'domain-holdings';
-import type { CreateHoldingRequest, HoldingResponse, UpdateHoldingRequest } from 'api-contract';
+import { Holding } from '@vaultfolio/domain-holdings';
+import type { AssetType, ValidatedHolding } from '@vaultfolio/domain-holdings';
+import type {
+  CreateHoldingRequest,
+  HoldingResponse,
+  UpdateHoldingRequest,
+} from '@vaultfolio/api-contract';
 
-/** Raw `pg` row shape for the `holdings` table (snake_case columns). */
+/** Raw `better-sqlite3` row shape for the `holdings` table (snake_case columns). */
 export interface HoldingRow {
   id: string;
   asset_type: AssetType;
@@ -15,8 +19,8 @@ export interface HoldingRow {
   name: string | null;
   weight_grams: string | null;
   current_value: string | null;
-  created_at: Date;
-  updated_at: Date;
+  created_at: Date | string;
+  updated_at: Date | string;
 }
 
 function toDecimalOrNull(value: string | null): Decimal | null {
@@ -27,6 +31,11 @@ function toDateOnly(value: Date | string | null): Date | null {
   if (value == null) {
     return null;
   }
+  return value instanceof Date ? value : new Date(value);
+}
+
+/** SQLite's `TEXT` timestamp columns come back as ISO-8601 strings, not `Date` (research.md #4). */
+function toDate(value: Date | string): Date {
   return value instanceof Date ? value : new Date(value);
 }
 
@@ -43,8 +52,8 @@ export function rowToHolding(row: HoldingRow): Holding {
     name: row.name,
     weightGrams: toDecimalOrNull(row.weight_grams),
     currentValue: toDecimalOrNull(row.current_value),
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
+    createdAt: toDate(row.created_at),
+    updatedAt: toDate(row.updated_at),
   });
 }
 

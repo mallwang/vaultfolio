@@ -1,20 +1,24 @@
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
 import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
-import type { CreateHoldingRequest } from 'api-contract';
+import type { CreateHoldingRequest } from '@vaultfolio/api-contract';
 import { AppModule } from '../app/app.module';
 import { DatabaseService } from '../database/database.service';
 
 /**
  * Integration test for `/holdings` (contracts/holdings-api.md). Issues real
  * HTTP requests against a running Nest app instance via `supertest` — not an
- * in-memory call — with a real Postgres connection, per Principle IV.
- * Requires the local dev stack's database to be reachable (see
- * quickstart.md's Prerequisites).
+ * in-memory call — against a per-test-run temp-file SQLite database, per
+ * Principle IV and research.md #8 (isolated from both other test runs and any
+ * developer's real `./data` directory).
  */
 describe('/holdings', () => {
   let app: INestApplication;
   let database: DatabaseService;
+  let tempDir: string;
 
   const validEtf: CreateHoldingRequest = {
     assetType: 'ETF',
@@ -48,6 +52,9 @@ describe('/holdings', () => {
   };
 
   beforeAll(async () => {
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'vaultfolio-holdings-e2e-'));
+    process.env.DATABASE_PATH = path.join(tempDir, 'test.db');
+
     const moduleRef: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
@@ -59,6 +66,8 @@ describe('/holdings', () => {
 
   afterAll(async () => {
     await app.close();
+    delete process.env.DATABASE_PATH;
+    fs.rmSync(tempDir, { recursive: true, force: true });
   });
 
   beforeEach(async () => {
