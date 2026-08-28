@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import type { AssetType, HoldingResponse } from 'api-contract';
+import type { AssetType, HoldingResponse } from '@vaultfolio/api-contract';
 import { ButtonModule } from 'primeng/button';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';

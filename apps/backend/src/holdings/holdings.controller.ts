@@ -6,10 +6,10 @@ import type {
   HoldingResponse,
   HoldingValidationErrorResponse,
   UpdateHoldingRequest,
-} from 'api-contract';
+} from '@vaultfolio/api-contract';
 import { HoldingsService } from './holdings.service';
 import { holdingToResponse } from './holdings.mapper';
-import type { FieldError } from 'domain-holdings';
+import type { FieldError } from '@vaultfolio/domain-holdings';
 
 function validationErrorBody(fieldErrors: FieldError[]): HoldingValidationErrorResponse {
   return {

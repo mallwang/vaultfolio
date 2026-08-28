@@ -1,5 +1,5 @@
 {
-  "name": "domain-holdings",
+  "name": "@vaultfolio/domain-holdings",
   "version": "0.0.1",
   "license": "MIT",
   "private": true,

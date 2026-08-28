@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
-import type { AssetType, Holding, ValidatedHolding } from 'domain-holdings';
+import type { AssetType, Holding, ValidatedHolding } from '@vaultfolio/domain-holdings';
 import { DatabaseService } from '../database/database.service';
 import { rowToHolding, validatedHoldingToRow } from './holdings.mapper';
 import type { HoldingRow } from './holdings.mapper';

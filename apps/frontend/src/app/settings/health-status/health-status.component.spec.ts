@@ -1,7 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import type { HealthStatus } from 'api-contract';
+import type { HealthStatus } from '@vaultfolio/api-contract';
 import { HealthStatusComponent } from './health-status.component';
 
 /**

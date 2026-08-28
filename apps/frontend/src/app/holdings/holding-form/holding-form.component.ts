@@ -21,7 +21,7 @@ import type {
   CreateHoldingRequest,
   HoldingResponse,
   UpdateHoldingRequest,
-} from 'api-contract';
+} from '@vaultfolio/api-contract';
 import { ButtonModule } from 'primeng/button';
 import { DatePickerModule } from 'primeng/datepicker';
 import { InputNumberModule } from 'primeng/inputnumber';

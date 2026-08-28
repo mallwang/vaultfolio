@@ -7,7 +7,7 @@
     "build": "nx run-many -t build -p backend frontend",
     "test:backend": "nx test backend",
     "test:frontend": "nx test frontend",
-    "test:domain-example": "nx test domain-example",
+    "test:domain-example": "nx test @vaultfolio/domain-example",
     "release": "nx release",
     "lint": "nx run-many -t lint",
     "lint:fix": "nx run-many -t lint --fix",

@@ -1,7 +1,11 @@
 import Decimal from 'decimal.js';
-import { Holding } from 'domain-holdings';
-import type { AssetType, ValidatedHolding } from 'domain-holdings';
-import type { CreateHoldingRequest, HoldingResponse, UpdateHoldingRequest } from 'api-contract';
+import { Holding } from '@vaultfolio/domain-holdings';
+import type { AssetType, ValidatedHolding } from '@vaultfolio/domain-holdings';
+import type {
+  CreateHoldingRequest,
+  HoldingResponse,
+  UpdateHoldingRequest,
+} from '@vaultfolio/api-contract';
 
 /** Raw `better-sqlite3` row shape for the `holdings` table (snake_case columns). */
 export interface HoldingRow {

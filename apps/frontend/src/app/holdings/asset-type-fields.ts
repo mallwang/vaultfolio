@@ -1,4 +1,4 @@
-import type { AssetType } from 'api-contract';
+import type { AssetType } from '@vaultfolio/api-contract';
 
 /**
  * Per-type field visibility for the add/edit form and list display, mirroring

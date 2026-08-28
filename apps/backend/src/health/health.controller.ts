@@ -1,6 +1,6 @@
 import { Controller, Get, HttpStatus, Res } from '@nestjs/common';
 import type { Response } from 'express';
-import type { HealthStatus } from 'api-contract';
+import type { HealthStatus } from '@vaultfolio/api-contract';
 import { HealthService } from './health.service';
 
 @Controller('health')

@@ -4,7 +4,7 @@ import * as path from 'node:path';
 import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
-import type { CreateHoldingRequest } from 'api-contract';
+import type { CreateHoldingRequest } from '@vaultfolio/api-contract';
 import { AppModule } from '../app/app.module';
 import { DatabaseService } from '../database/database.service';
 

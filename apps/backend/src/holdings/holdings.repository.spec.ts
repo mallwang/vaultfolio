@@ -2,7 +2,7 @@ import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import Decimal from 'decimal.js';
-import type { ValidatedHolding } from 'domain-holdings';
+import type { ValidatedHolding } from '@vaultfolio/domain-holdings';
 import { DatabaseService } from '../database/database.service';
 import { HoldingsRepository } from './holdings.repository';
 
