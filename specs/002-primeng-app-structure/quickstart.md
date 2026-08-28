@@ -9,12 +9,12 @@ Validates the feature end-to-end against the spec's Acceptance Scenarios and Suc
 - Dependencies installed at the repo root: `npm install` (adds `primeng`, `@primeuix/themes`,
   `primeicons` to `apps/frontend` per [research.md](./research.md)).
 - Backend running (for the relocated health-status check under Settings):
-  `docker compose up` or `pnpm nx serve backend`, per the existing project README.
+  `docker compose up` or `npm exec nx serve backend`, per the existing project README.
 
 ## Run the app
 
 ```bash
-pnpm nx serve frontend
+npm exec nx serve frontend
 ```
 
 Open the printed local URL (default `http://localhost:4200`).
@@ -55,8 +55,8 @@ Open the printed local URL (default `http://localhost:4200`).
 ## Automated checks
 
 ```bash
-pnpm nx lint frontend
-pnpm nx test frontend
+npm exec nx lint frontend
+npm exec nx test frontend
 ```
 
 No new contract/integration tests are required beyond the frontend's existing unit-test
