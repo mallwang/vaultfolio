@@ -14,6 +14,9 @@
   },
   "files": [],
   "include": [],
+  "nx": {
+    "addTypecheckTarget": false
+  },
   "references": [
     {
       "path": "./tsconfig.app.json"
