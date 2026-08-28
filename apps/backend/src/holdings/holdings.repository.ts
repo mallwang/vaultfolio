@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
 import type { AssetType, Holding, ValidatedHolding } from 'domain-holdings';
 import { DatabaseService } from '../database/database.service';
@@ -5,8 +6,8 @@ import { rowToHolding, validatedHoldingToRow } from './holdings.mapper';
 import type { HoldingRow } from './holdings.mapper';
 
 /**
- * Raw `pg` queries for the `holdings` table — no ORM (Principle V, matching
- * `DatabaseService`'s established pattern). Owns the ETF/Gold
+ * Raw `better-sqlite3` queries for the `holdings` table — no ORM (Principle
+ * V, matching `DatabaseService`'s established pattern). Owns the ETF/Gold
  * upsert-lookup query (`holdings_upsert_lookup_idx`) as well as plain
  * insert/update/delete, per research.md #4.
  */
@@ -53,13 +54,15 @@ export class HoldingsRepository {
 
   async insert(value: ValidatedHolding): Promise<Holding> {
     const row = validatedHoldingToRow(value);
+    const id = randomUUID();
     const rows = await this.database.query<HoldingRow>(
       `INSERT INTO holdings
-         (asset_type, management, quantity, purchase_price, purchase_date, isin, name,
+         (id, asset_type, management, quantity, purchase_price, purchase_date, isin, name,
           weight_grams, current_value)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
        RETURNING *`,
       [
+        id,
         row.asset_type,
         row.management,
         row.quantity,
@@ -80,7 +83,8 @@ export class HoldingsRepository {
     const rows = await this.database.query<HoldingRow>(
       `UPDATE holdings
        SET management = $2, quantity = $3, purchase_price = $4, purchase_date = $5,
-           isin = $6, name = $7, weight_grams = $8, current_value = $9, updated_at = now()
+           isin = $6, name = $7, weight_grams = $8, current_value = $9,
+           updated_at = STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')
        WHERE id = $1
        RETURNING *`,
       [

@@ -29,9 +29,9 @@ This is an Nx monorepo. This feature touches only `apps/backend/src/database/`,
 **Purpose**: Get the new driver dependency in place and the old one removed, ahead of any code
 changes.
 
-- [ ] T001 Add `better-sqlite3` and `@types/better-sqlite3` to `package.json` dependencies; remove
+- [x] T001 Add `better-sqlite3` and `@types/better-sqlite3` to `package.json` dependencies; remove
       `pg` and `@types/pg`; run `npm install` to update `package-lock.json` (research.md #1)
-- [ ] T002 [P] Verify `better-sqlite3`'s native binding builds cleanly under `docker/backend.Dockerfile`'s
+- [x] T002 [P] Verify `better-sqlite3`'s native binding builds cleanly under `docker/backend.Dockerfile`'s
       `node:24-slim` base image (rebuild the backend image locally); adjust the Dockerfile with
       any missing native-build toolchain packages (e.g. `python3`, `make`, `g++`) only if the
       build fails
@@ -48,42 +48,42 @@ this is the core of the migration and every user story depends on it.
 
 **⚠️ CRITICAL**: No user story below is independently testable until this phase is complete.
 
-- [ ] T003 In `apps/backend/src/database/database.service.ts`, replace the `pg` `Pool` with a
+- [x] T003 In `apps/backend/src/database/database.service.ts`, replace the `pg` `Pool` with a
       `better-sqlite3` `Database` handle: read `DATABASE_PATH` (default `./data/vaultfolio.db`),
       `fs.mkdirSync(path.dirname(DATABASE_PATH), { recursive: true })` before opening, then set
       `PRAGMA journal_mode = WAL` and `PRAGMA busy_timeout = 5000` on the opened handle
       (research.md #6, #7)
-- [ ] T004 In `apps/backend/src/database/database.service.ts`, wrap directory creation + database
+- [x] T004 In `apps/backend/src/database/database.service.ts`, wrap directory creation + database
       open + PRAGMA setup in `try`/`catch`; on failure, `Logger.error` loudly and leave the
       service in a "not ready" state (an internal flag) so `ping()` returns `false` instead of
       throwing, without crashing the process (research.md #7, edge case, FR-008)
-- [ ] T005 In `apps/backend/src/database/database.service.ts`, rewrite `migrate()`'s
+- [x] T005 In `apps/backend/src/database/database.service.ts`, rewrite `migrate()`'s
       `CREATE TABLE example_value` and `CREATE TABLE holdings` DDL to the SQLite column types in
       data-model.md's translation table (`TEXT PRIMARY KEY` ids, `TEXT` decimal/timestamp columns,
       `CAST(column AS REAL) > 0` CHECK constraints, `STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')`
       defaults), preserving the `holdings_fields_match_asset_type` CHECK and the
       `holdings_upsert_lookup_idx` index verbatim (data-model.md)
-- [ ] T006 In `apps/backend/src/database/database.service.ts`, rewrite `ping()` to run a
+- [x] T006 In `apps/backend/src/database/database.service.ts`, rewrite `ping()` to run a
       synchronous `SELECT 1` against the `better-sqlite3` handle inside a `try`/`catch`, returning
       `false` (and `Logger.warn`) on any error or when the service is in the "not ready" state from
       T004
-- [ ] T007 In `apps/backend/src/database/database.service.ts`, rewrite the generic `query<T>()`
+- [x] T007 In `apps/backend/src/database/database.service.ts`, rewrite the generic `query<T>()`
       method to run synchronously against `better-sqlite3` (`db.prepare(sql).all(params)` for
       `SELECT`/`RETURNING`, `.run(params)` otherwise) while keeping its existing async signature
       (`Promise<T[]>`) so callers (`HoldingsRepository`, tests) need no call-site changes; translate
       the existing `$1, $2, ...` positional placeholders used by callers into `better-sqlite3`'s
       numbered `?1, ?2, ...` form inside this method (single translation point, so
       `HoldingsRepository`'s query strings do not need per-callsite edits)
-- [ ] T008 In `apps/backend/src/database/database.service.ts`, implement `onModuleDestroy` to close
+- [x] T008 In `apps/backend/src/database/database.service.ts`, implement `onModuleDestroy` to close
       the `better-sqlite3` handle (`db.close()`) instead of `pool.end()`
-- [ ] T009 [US-independent] In `apps/backend/src/holdings/holdings.repository.ts`, generate the row
+- [x] T009 [US-independent] In `apps/backend/src/holdings/holdings.repository.ts`, generate the row
       `id` in the application layer with `crypto.randomUUID()` and pass it as a bound parameter on
       `insert()` (add `id` to the column list and `VALUES`), since SQLite has no
       `gen_random_uuid()` column default (research.md #2)
-- [ ] T010 [US-independent] In `apps/backend/src/holdings/holdings.repository.ts`, replace the
+- [x] T010 [US-independent] In `apps/backend/src/holdings/holdings.repository.ts`, replace the
       `updated_at = now()` expression in `updateById()`'s `UPDATE` statement with
       `updated_at = STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')` (research.md #4)
-- [ ] T011 [P] Write exact-decimal round-trip unit tests (Principle III obligation, plan.md
+- [x] T011 [P] Write exact-decimal round-trip unit tests (Principle III obligation, plan.md
       Constitution Check) for `quantity`, `purchase_price`, `weight_grams`, and `current_value`
       through the new `TEXT`-column storage — insert a value with 8 decimal places via
       `HoldingsRepository.insert`, read it back, and assert byte-for-byte string equality — in
@@ -107,23 +107,23 @@ by a file under `./data`.
 
 ### Implementation for User Story 1
 
-- [ ] T012 [US1] In `docker-compose.yml`, remove the `postgres` service block entirely (image,
+- [x] T012 [US1] In `docker-compose.yml`, remove the `postgres` service block entirely (image,
       environment, volumes, ports, healthcheck) and the top-level `postgres-data` named volume
       (contracts/deployment-contract.md)
-- [ ] T013 [US1] In `docker-compose.yml`, on the `backend` service: remove `depends_on: postgres`
+- [x] T013 [US1] In `docker-compose.yml`, on the `backend` service: remove `depends_on: postgres`
       and the `DATABASE_HOST`/`DATABASE_PORT`/`DATABASE_USER`/`DATABASE_PASSWORD`/`DATABASE_NAME`
       environment variables; add `DATABASE_PATH: /data/vaultfolio.db` and a bind-mount volume entry
       `./data:/data` (contracts/deployment-contract.md)
-- [ ] T014 [US1] Update `package.json`'s `dev` script to drop `docker compose up -d postgres` (no
+- [x] T014 [US1] Update `package.json`'s `dev` script to drop `docker compose up -d postgres` (no
       database container to pre-start); confirm `nx run-many -t serve -p backend frontend` alone is
       sufficient for local dev now that SQLite needs no separate service
-- [ ] T015 [P] [US1] Write a new integration test exercising the stop/remove/recreate persistence
+- [x] T015 [P] [US1] Write a new integration test exercising the stop/remove/recreate persistence
       scenario (SC-002, quickstart.md #2, Principle IV obligation): start the Nest app against a
       `DATABASE_PATH` file in a temp directory, insert a holding, close/destroy the app module
       (simulating container teardown) while keeping the temp file, boot a fresh app instance
       against the same `DATABASE_PATH`, and assert the holding is still returned by
       `GET /holdings` — in `apps/backend/src/tests/holdings-persistence.e2e-spec.ts` (new file)
-- [ ] T016 [US1] Run quickstart.md steps 1–3 manually (`docker compose up --build` from a fresh
+- [x] T016 [US1] Run quickstart.md steps 1–3 manually (`docker compose up --build` from a fresh
       `./data`, confirm no `postgres` service in `docker compose ps`, create a holding, `down`/`up`,
       confirm it persists, inspect `./data` for `vaultfolio.db`/`-wal`/`-shm`) and fix any issues
       found
@@ -143,23 +143,23 @@ new database; manually exercise create/list/edit/delete for ETF/Share/Gold/Bitco
 
 ### Implementation for User Story 2
 
-- [ ] T017 [US2] In `apps/backend/src/tests/holdings.e2e-spec.ts`, point `DATABASE_PATH` at a
+- [x] T017 [US2] In `apps/backend/src/tests/holdings.e2e-spec.ts`, point `DATABASE_PATH` at a
       per-test-run temp file (created under the OS temp dir in `beforeAll`, removed in `afterAll`)
       instead of relying on the shared dev Postgres connection, per research.md #8; keep every
       existing assertion's intent unchanged (FR-010)
-- [ ] T018 [US2] In `apps/backend/src/tests/health.e2e-spec.ts`, verify the existing
+- [x] T018 [US2] In `apps/backend/src/tests/health.e2e-spec.ts`, verify the existing
       `DatabaseService` mocking (`overrideProvider(DatabaseService).useValue(...)`) still exercises
       `HealthService.check()` correctly against the new `ping()` signature/behavior from T006; fix
       any type/behavior drift
-- [ ] T019 [US2] Run `npm exec nx run backend:test` and `npm exec nx run backend:e2e` (or the
+- [x] T019 [US2] Run `npm exec nx run backend:test` and `npm exec nx run backend:e2e` (or the
       project's actual e2e target per `nx show project backend`); fix any failures until all
       existing health + holdings unit/e2e suites pass unmodified in intent (FR-010, SC-004,
       quickstart.md #4)
-- [ ] T020 [P] [US2] Manually exercise quickstart.md #5 through the running app or `curl`: create,
+- [x] T020 [P] [US2] Manually exercise quickstart.md #5 through the running app or `curl`: create,
       list, edit, and delete one holding of each type (ETF, Share, Gold, Bitcoin), confirming every
       decimal field (quantity, purchase price, weight, current value) round-trips exactly as
       entered (FR-005, SC-005)
-- [ ] T021 [US2] Manually exercise quickstart.md #6: create an ETF holding, submit a second
+- [x] T021 [US2] Manually exercise quickstart.md #6: create an ETF holding, submit a second
       `POST /holdings` for the same `(management, isin)` pair, and confirm the existing row is
       updated in place (same `id`), not duplicated (FR-007)
 
@@ -178,17 +178,17 @@ remaining reference presents PostgreSQL as the current/ratified choice.
 
 ### Implementation for User Story 3
 
-- [ ] T022 [US3] Run the project's `/speckit-constitution` governance process to amend
+- [x] T022 [US3] Run the project's `/speckit-constitution` governance process to amend
       `.specify/memory/constitution.md`: replace the "database MUST run as its own
       container/service, not embedded in the backend process" bullet and the "Database: PostgreSQL"
       Stack Decision line with SQLite-as-embedded-file-based-bind-mounted-database language, and
       record the change in the constitution's amendment/Sync Impact Report history (FR-011,
       plan.md's "Known, intentional gate violation" section)
-- [ ] T023 [US3] Update `README.md`'s tech stack and running-locally/deployment sections to
+- [x] T023 [US3] Update `README.md`'s tech stack and running-locally/deployment sections to
       describe SQLite (not PostgreSQL) as the database, the `docker-compose` stack with no separate
       database container, and the `./data` directory as where persisted data lives (FR-011,
       SC-006)
-- [ ] T024 [US3] Run quickstart.md #7 (`grep -ri postgres README.md .specify/memory/constitution.md`)
+- [x] T024 [US3] Run quickstart.md #7 (`grep -ri postgres README.md .specify/memory/constitution.md`)
       and confirm no remaining reference presents PostgreSQL as the current/ratified choice (historical
       Sync Impact Report changelog mentions are acceptable)
 
@@ -201,15 +201,15 @@ shipped database choice.
 
 **Purpose**: Final cleanup once all user stories are verified.
 
-- [ ] T025 [P] Remove any now-unused `pg`-specific types/imports left behind in
+- [x] T025 [P] Remove any now-unused `pg`-specific types/imports left behind in
       `apps/backend/src/database/database.service.ts` or `apps/backend/src/holdings/holdings.repository.ts`
       (e.g. stray `import { Pool } from 'pg'`)
-- [ ] T026 [P] Update any developer-facing setup docs/comments referencing Postgres env vars
+- [x] T026 [P] Update any developer-facing setup docs/comments referencing Postgres env vars
       (`DATABASE_HOST`/`PORT`/`USER`/`PASSWORD`/`NAME`) outside of `README.md` (already covered by
       T023) to instead reference `DATABASE_PATH`
-- [ ] T027 Add `./data/` (and `*.db`, `*.db-wal`, `*.db-shm`) to `.gitignore` so a developer's local
+- [x] T027 Add `./data/` (and `*.db`, `*.db-wal`, `*.db-shm`) to `.gitignore` so a developer's local
       SQLite file is never accidentally committed
-- [ ] T028 Run the full quickstart.md validation end-to-end (all 7 steps in order) as a final gate
+- [x] T028 Run the full quickstart.md validation end-to-end (all 7 steps in order) as a final gate
       before calling this feature complete
 
 ---
