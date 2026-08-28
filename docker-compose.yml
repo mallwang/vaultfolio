@@ -28,6 +28,7 @@ services:
       DATABASE_USER: vaultfolio
       DATABASE_PASSWORD: vaultfolio
       DATABASE_NAME: vaultfolio
+      CORS_ORIGIN: http://localhost:4200
     ports:
       - '3000:3000'
     depends_on:
