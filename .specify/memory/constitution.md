@@ -30,6 +30,7 @@ Sync Impact Report
 ## Core Principles
 
 ### I. Library-First
+
 Every feature starts as a standalone library or module with a well-defined boundary, before any
 UI or transport layer is wired to it. Libraries MUST be self-contained, independently testable,
 and documented with a clear purpose; a library that exists only to hold shared code with no
@@ -43,6 +44,7 @@ library boundaries makes it possible to test money-handling code exhaustively, i
 without needing to stand up an entire application stack.
 
 ### II. API-First Interface
+
 The backend exposes every capability the frontend needs through a documented, versioned API
 (e.g., REST or GraphQL); the frontend MUST treat that API as the only path to data and business
 logic — no bypassing it via direct database access or shared in-process calls. The API contract
@@ -60,6 +62,7 @@ backend independently deployable and testable, and prevents financial logic from
 UI layer or being duplicated across it.
 
 ### III. Test-First (NON-NEGOTIABLE)
+
 Test-Driven Development is mandatory for all code that touches financial data or calculations:
 tests are written first, reviewed and approved, confirmed to fail, and only then is
 implementation written. The Red-Green-Refactor cycle MUST be followed strictly. Any change to
@@ -72,6 +75,7 @@ decisions. Test-first development is the cheapest point at which to catch them, 
 assertions prevent floating-point or rounding errors from hiding inside loose tolerances.
 
 ### IV. Integration Testing
+
 Integration tests are required, beyond unit tests, for: every new library's public contract;
 any change to an existing contract; communication between services or modules (e.g., import
 pipeline → valuation → storage, or market-data fetch → price cache → portfolio overview); and any
@@ -85,6 +89,7 @@ the boundaries between stages, not inside a single function — unit tests alone
 them.
 
 ### V. Observability, Versioning & Simplicity
+
 Text-based I/O and structured logging are required throughout so behavior is debuggable from
 logs alone, without a debugger attached. All financial calculations and imports MUST log
 sufficient context (inputs, source, timestamp) to reconstruct how a stored value was derived.
@@ -101,6 +106,7 @@ Simplicity keeps that audit trail short and keeps the system easy to reason abou
 ## Product Scope
 
 ### In Scope
+
 - Tracking investment holdings: ETFs, individual shares/stocks, gold and other precious metals,
   and similar investment vehicles.
 - Manual entry and management of holdings and transactions (buys, sells, quantities, cost basis)
@@ -112,6 +118,7 @@ Simplicity keeps that audit trail short and keeps the system easy to reason abou
   inside two different ETFs) can be identified.
 
 ### Out of Scope
+
 - Day-to-day expense or budget tracking (income, spending categories, bills, recurring payments).
   This is explicitly not a goal of the product and MUST NOT be added as a feature.
 - Any integration with personal banking or brokerage account APIs to read the user's account or
@@ -120,8 +127,10 @@ Simplicity keeps that audit trail short and keeps the system easy to reason abou
   account.
 
 ### External Market Data (Permitted)
+
 Unlike personal account data, reference/market data MAY be sourced from external APIs, because it
 is public, non-personal information required to keep the portfolio overview accurate:
+
 - Current prices for stocks, ETFs, gold, and other tracked instruments.
 - ETF composition — the underlying constituent shares and their percentage weights — needed to
   compute look-through exposure across the whole portfolio.
@@ -149,6 +158,7 @@ provider is unreachable, since a user's recorded holdings are the source of trut
   brokerage account APIs.
 
 ### Stack Decision
+
 - **Repository layout**: A single Nx monorepo houses the frontend, backend, and any shared
   libraries (e.g., shared DTOs/types, domain logic libraries required by Principle I). Nx project
   boundaries MUST be used to enforce the frontend/backend separation mandated by Principle II —

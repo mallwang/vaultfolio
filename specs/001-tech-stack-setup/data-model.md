@@ -13,11 +13,11 @@ Represents the backend's self-reported health, returned by `GET /health` and
 rendered by the frontend's health-status component. Not stored in the
 database — it is computed at request time.
 
-| Field | Type | Notes |
-|---|---|---|
-| `status` | `"ok"` \| `"degraded"` | `"ok"` when the database connection check succeeds; `"degraded"` otherwise (Edge Case: database container fails to start). |
-| `database` | `"connected"` \| `"unreachable"` | Result of a lightweight DB ping performed by the backend. |
-| `timestamp` | ISO 8601 string | Time the health check was evaluated; supports Principle V's observability requirement (reconstructable from logs). |
+| Field       | Type                             | Notes                                                                                                                      |
+| ----------- | -------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `status`    | `"ok"` \| `"degraded"`           | `"ok"` when the database connection check succeeds; `"degraded"` otherwise (Edge Case: database container fails to start). |
+| `database`  | `"connected"` \| `"unreachable"` | Result of a lightweight DB ping performed by the backend.                                                                  |
+| `timestamp` | ISO 8601 string                  | Time the health check was evaluated; supports Principle V's observability requirement (reconstructable from logs).         |
 
 Defined once in `libs/api-contract/src/health.ts` and imported by both
 `apps/backend` (to shape its response) and `apps/frontend` (to type the HTTP
@@ -32,8 +32,8 @@ clause) before any real monetary entity is introduced. It is exercised only
 by the domain library's own unit tests; it is not exposed via the API and not
 persisted to PostgreSQL by this feature.
 
-| Field | Type | Notes |
-|---|---|---|
+| Field    | Type                                                                 | Notes                                                                                                                                                                                                                                                        |
+| -------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `amount` | Exact decimal type (e.g., `Decimal` from the chosen decimal library) | MUST NOT be a native `number`. Unit test asserts exact equality (e.g., `0.1 + 0.2` must equal exactly `0.3` when using the decimal type, unlike native floating-point arithmetic), directly demonstrating Principle III's exact-value assertion requirement. |
 
 **Validation rules**: `amount` must be constructible from a decimal-string

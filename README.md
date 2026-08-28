@@ -3,7 +3,7 @@
 A personal investment tracking web application — frontend, backend, and database, packaged and
 hosted as Docker containers.
 
-Vaultfolio tracks *what you've invested* (ETFs, shares, gold, and other holdings), not day-to-day
+Vaultfolio tracks _what you've invested_ (ETFs, shares, gold, and other holdings), not day-to-day
 spending. It does not connect to any bank or brokerage APIs — all data is entered manually through
 the UI, with CSV/JSON import as a convenience for bulk entry.
 

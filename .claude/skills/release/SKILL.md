@@ -17,21 +17,25 @@ answer the confirmation prompt.
 ### Step 1 — Branch check
 
 Run:
+
 ```bash
 git branch --show-current
 ```
 
 If the output is not `main`, abort immediately with:
+
 > "Must be on main branch to release. Currently on: `<branch>`."
 
 ### Step 2 — Clean working tree check
 
 Run:
+
 ```bash
 git status --porcelain
 ```
 
 If the output is not empty, abort with:
+
 > "Working tree has uncommitted changes — commit or stash before releasing."
 
 List the dirty files from the output so the developer knows what to address.
@@ -39,6 +43,7 @@ List the dirty files from the output so the developer knows what to address.
 ### Step 3 — Determine if this is the first release
 
 Run:
+
 ```bash
 git tag -l "v*"
 ```
@@ -50,12 +55,15 @@ determine a previous version/tag to diff from and will fail.
 ### Step 4 — Dry-run preview
 
 Run:
+
 ```bash
 npx nx release --dry-run
 ```
+
 (append `--first-release` per Step 3 if applicable)
 
 Display the **full output** to the developer. It shows, in order:
+
 - the resolved version bump for both `frontend` and `backend` (they must match — that's the
   point of the fixed release group)
 - the manifest diffs for `apps/frontend/package.json` and `apps/backend/package.json`
@@ -64,16 +72,20 @@ Display the **full output** to the developer. It shows, in order:
 - the GitHub Release that would be created at `https://github.com/<org>/<repo>/releases/tag/v<version>`
 
 Every one of those sections is labelled `[dry-run]` and the command ends with the line:
+
 ```
 NOTE: The "dryRun" flag means no changes were made.
 ```
+
 If that closing line is missing, the dry run did not behave as a preview — stop immediately and
 tell the developer:
+
 > "The dry-run did not report itself as a no-op. Do not proceed — inspect `git log`, `git tag`,
 > and the GitHub releases page for unexpected changes before doing anything else."
 
 If the output indicates there are no conventional commits since the last tag to release (e.g. no
 version bump section is produced), abort with:
+
 > "Nothing to release — no conventional commits found since the last tag."
 
 **Changelog review.** In addition to showing the full output, re-print just the `CHANGELOG.md`
@@ -81,6 +93,7 @@ section on its own (everything between `CREATE CHANGELOG.md [dry-run]` / `UPDATE
 [dry-run]` and the next blank-line-delimited block) as its own clearly labelled block, e.g.:
 
 > **Proposed CHANGELOG.md entry for v`<version>`:**
+>
 > ```markdown
 > <the changelog block, with the leading `+` diff markers stripped>
 > ```
@@ -91,6 +104,7 @@ Release body — the developer should read it here, not just skim the wider dry-
 ### Step 5 — Confirmation gate
 
 Ask the developer:
+
 > "Proceed with release v`<version>`? This will commit the version bump, write the CHANGELOG.md
 > entry shown above, tag it, **push to origin**, and **create the GitHub Release with that same
 > text automatically**. (yes/no)"
@@ -101,9 +115,11 @@ Ask the developer:
 ### Step 6 — Run release
 
 Run:
+
 ```bash
 npx nx release --skip-publish
 ```
+
 (append `--first-release` per Step 3 if applicable)
 
 `--skip-publish` is passed because neither app is published to a registry (both apps are
@@ -125,6 +141,7 @@ After the release command completes:
    suffix; report that URL back to the developer.
 
 If any check fails, report the discrepancy clearly and stop:
+
 > "Release verification failed: `<specific issue>`. Please investigate — the tag/push/GitHub
 > Release may be in a partial state."
 
