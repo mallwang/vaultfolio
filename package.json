@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
+    "dev": "docker compose up -d postgres && nx run-many -t serve -p backend frontend",
     "test:backend": "nx test backend",
     "test:frontend": "nx test frontend",
     "test:domain-example": "nx test domain-example",

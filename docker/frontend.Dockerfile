@@ -9,7 +9,7 @@ COPY package.json package-lock.json nx.json tsconfig.json tsconfig.base.json ./
 COPY apps ./apps
 COPY libs ./libs
 
-RUN npm ci
+RUN npm ci --ignore-scripts
 RUN npx nx build frontend --configuration=production
 
 FROM nginx:alpine AS runtime
