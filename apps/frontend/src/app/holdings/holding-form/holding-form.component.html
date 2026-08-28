@@ -1,0 +1,131 @@
+<form [formGroup]="form" (ngSubmit)="submit()" class="holding-form">
+  <div class="field">
+    <label for="assetType">Asset type</label>
+    <p-select
+      id="assetType"
+      formControlName="assetType"
+      [options]="assetTypeOptions"
+      optionLabel="label"
+      optionValue="value"
+      [disabled]="isEditMode"
+    />
+  </div>
+
+  <div class="field">
+    <label for="management">Management</label>
+    <input id="management" type="text" pInputText formControlName="management" />
+    @if (form.controls.management.invalid && form.controls.management.touched) {
+      <p-message severity="error">Management is required.</p-message>
+    }
+  </div>
+
+  @if (fieldSet().isin) {
+    <div class="field">
+      <label for="isin">ISIN</label>
+      <input id="isin" type="text" pInputText formControlName="isin" />
+      @if (form.controls.isin.invalid && form.controls.isin.touched) {
+        @if (form.controls.isin.errors?.['isin']) {
+          <p-message severity="error">Enter a well-formed 12-character ISIN.</p-message>
+        } @else {
+          <p-message severity="error">ISIN is required.</p-message>
+        }
+      }
+    </div>
+  }
+
+  @if (fieldSet().name) {
+    <div class="field">
+      <label for="name">Name</label>
+      <input id="name" type="text" pInputText formControlName="name" />
+      @if (form.controls.name.invalid && form.controls.name.touched) {
+        <p-message severity="error">Name is required.</p-message>
+      }
+    </div>
+  }
+
+  @if (fieldSet().quantity) {
+    <div class="field">
+      <label for="quantity">Quantity</label>
+      <p-inputnumber
+        id="quantity"
+        formControlName="quantity"
+        mode="decimal"
+        [maxFractionDigits]="8"
+      />
+      @if (form.controls.quantity.invalid && form.controls.quantity.touched) {
+        <p-message severity="error">Quantity must be a positive number.</p-message>
+      }
+    </div>
+  }
+
+  @if (fieldSet().purchasePrice) {
+    <div class="field">
+      <label for="purchasePrice">
+        {{ form.controls.assetType.value === 'ETF' ? 'Average purchase price' : 'Purchase price' }}
+      </label>
+      <p-inputnumber
+        id="purchasePrice"
+        formControlName="purchasePrice"
+        mode="decimal"
+        [maxFractionDigits]="8"
+      />
+      @if (form.controls.purchasePrice.invalid && form.controls.purchasePrice.touched) {
+        <p-message severity="error">Purchase price must be a positive number.</p-message>
+      }
+    </div>
+  }
+
+  @if (fieldSet().weightGrams) {
+    <div class="field">
+      <label for="weightGrams">Weight (grams)</label>
+      <p-inputnumber
+        id="weightGrams"
+        formControlName="weightGrams"
+        mode="decimal"
+        [maxFractionDigits]="8"
+      />
+      @if (form.controls.weightGrams.invalid && form.controls.weightGrams.touched) {
+        <p-message severity="error">Weight must be a positive number.</p-message>
+      }
+    </div>
+  }
+
+  @if (fieldSet().currentValue) {
+    <div class="field">
+      <label for="currentValue">Current value (optional)</label>
+      <p-inputnumber
+        id="currentValue"
+        formControlName="currentValue"
+        mode="decimal"
+        [maxFractionDigits]="8"
+      />
+      @if (form.controls.currentValue.invalid && form.controls.currentValue.touched) {
+        <p-message severity="error">Current value must be a positive number.</p-message>
+      }
+    </div>
+  }
+
+  @if (fieldSet().purchaseDate === 'optional') {
+    <div class="field">
+      <label for="purchaseDate">Purchase date (optional)</label>
+      <p-datepicker
+        id="purchaseDate"
+        formControlName="purchaseDate"
+        dateFormat="yy-mm-dd"
+        [showIcon]="true"
+      />
+      @if (form.controls.purchaseDate.invalid && form.controls.purchaseDate.touched) {
+        <p-message severity="error">Purchase date must not be in the future.</p-message>
+      }
+    </div>
+  }
+
+  @if (submitError(); as message) {
+    <p-message severity="error">{{ message }}</p-message>
+  }
+
+  <div class="form-actions">
+    <button pButton type="button" severity="secondary" (click)="cancel()">Cancel</button>
+    <button pButton type="submit" [loading]="submitting()">Save</button>
+  </div>
+</form>

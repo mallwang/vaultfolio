@@ -1,23 +1,35 @@
+.distribution-panel,
+.holdings-panel {
+  margin-bottom: 1.5rem;
+}
+
+.holdings-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.row-actions {
+  display: flex;
+  gap: 0.25rem;
+  justify-content: flex-end;
+}
+
+.error-state {
+  color: var(--p-red-500);
+}
+
 .empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 2rem 1rem;
   text-align: center;
-  color: var(--p-text-muted-color);
-  padding: 1.75rem 0;
 }
 
 .empty-state__icon {
-  font-size: 2.2rem;
-  margin: 0 auto 0.85rem;
+  font-size: 2rem;
   color: var(--p-text-muted-color);
-  display: block;
-}
-
-.empty-state h2 {
-  margin: 0 0 0.35rem;
-  font-size: 1rem;
-  color: var(--p-text-color);
-}
-
-.empty-state p {
-  margin: 0;
-  font-size: 0.85rem;
 }

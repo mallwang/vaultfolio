@@ -1,0 +1,12 @@
+.distribution {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: 24rem;
+}
+
+.distribution__note,
+.distribution__empty {
+  color: var(--p-text-muted-color);
+  font-size: 0.875rem;
+}

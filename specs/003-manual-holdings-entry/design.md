@@ -121,7 +121,14 @@ standing in 1:1 for the real `pi-*` classes used in `apps/frontend`.
 
 ## Revision history
 
-- **Revision 2** (this revision, 2026-08-28): Re-reviewed after the spec's Clarifications session
+- **Revision 3** (T047, 2026-08-28): Reconciled against the finished implementation
+  (`apps/frontend/src/app/holdings/`) rather than re-running `/speckit-ux-review` — the per-type
+  field sets built in Phase 3/5 match Revision 2 exactly (ETF: ISIN/name/quantity/average price, no
+  date; Share: same plus optional date; Gold: weight in grams + optional current value only; Bitcoin:
+  quantity/price + optional date; a universal Management field on every type; the distribution panel
+  groups by asset type and excludes valueless holdings; edit locks the asset type and shows only its
+  own fields). No layout or requirement changes were needed.
+- **Revision 2**: Re-reviewed after the spec's Clarifications session
   added the universal Management field, changed ETF/Gold from always-new-lots to
   upsert-by-identifier-and-Management, collapsed Gold to weight-in-grams + optional current value
   (dropping unit/purity), removed ETF's purchase date field entirely, and added the FR-012a
