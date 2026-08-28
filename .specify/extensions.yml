@@ -31,6 +31,16 @@ hooks:
       description: Auto-commit before spec clarification
       condition: null
   before_plan:
+    # Second nudge in case a UI-related spec skipped the after_specify offer above (e.g. clarify
+    # ran in between, or the offer was declined earlier). See after_specify entry for rationale.
+    - extension: ux-review
+      command: speckit.ux-review
+      enabled: true
+      optional: true
+      priority: 5
+      prompt: Run a UX mockup review before planning?
+      description: Catches UI-related specs that skipped the mockup review after /speckit-specify
+      condition: null
     - extension: git
       command: speckit.git.commit
       enabled: true
@@ -101,6 +111,20 @@ hooks:
       priority: 10
       prompt: Commit specification changes?
       description: Auto-commit after specification
+      condition: null
+    # Project-local skill, not an installed spec-kit extension (no .specify/extensions/ux-review/
+    # package — see .claude/skills/speckit-ux-review/). Registered here purely so
+    # /speckit-specify's existing hook-discovery step surfaces it consistently, the same way it
+    # already surfaces git. Always optional: whether a spec is UI-related is a judgment call the
+    # hook-listing step doesn't make (conditions aren't evaluated), so this always offers rather
+    # than always running.
+    - extension: ux-review
+      command: speckit.ux-review
+      enabled: true
+      optional: true
+      priority: 20
+      prompt: Review the layout with a mockup before planning?
+      description: Generate a reviewable static mockup for UI-related requirements
       condition: null
   after_clarify:
     - extension: git
