@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Vaultfolio Holdings — layout review (003-manual-holdings-entry)</title>
+    <title>Vaultfolio Holdings — layout review (003-manual-holdings-entry, rev. 2)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -35,6 +35,8 @@
         --p-gold-soft: #fdf3d9;
         --p-bitcoin: #f7931a;
         --p-bitcoin-soft: #fef1e2;
+        --p-share: #2563eb;
+        --p-share-soft: #dbeafe;
         --p-page-background: #f6f7f9;
         --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
@@ -97,8 +99,15 @@
         margin: 0;
         color: var(--review-muted);
         font-size: 0.9rem;
-        max-width: 72ch;
+        max-width: 74ch;
         line-height: 1.5;
+      }
+      .review-header p + p {
+        margin-top: 0.5rem;
+      }
+      .review-header .changed {
+        color: var(--review-accent);
+        font-weight: 700;
       }
 
       .review-controls {
@@ -410,6 +419,142 @@
         padding: 1.1rem;
       }
 
+      /* ============ Distribution panel (FR-012a) ============ */
+
+      .distribution-panel {
+        display: flex;
+        gap: 1.75rem;
+        align-items: center;
+        background: var(--p-content-background);
+        border: 1px solid var(--p-content-border-color);
+        border-radius: 12px;
+        padding: 1.1rem 1.35rem;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+      }
+      .stage-frame[data-viewport='mobile'] .distribution-panel {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .distribution-panel__heading {
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+        flex: 1 1 100%;
+        margin-bottom: -0.35rem;
+      }
+      .distribution-panel__heading h3 {
+        margin: 0;
+        font-size: 0.86rem;
+        font-weight: 700;
+      }
+      .distribution-panel__heading p {
+        margin: 0;
+        font-size: 0.78rem;
+        color: var(--p-text-muted-color);
+      }
+
+      .donut {
+        --donut-gradient: conic-gradient(
+          var(--p-primary-color) 0% 5.6%,
+          var(--p-share) 5.6% 6.8%,
+          var(--p-gold) 6.8% 13.2%,
+          var(--p-bitcoin) 13.2% 100%
+        );
+        width: 128px;
+        height: 128px;
+        border-radius: 50%;
+        background: var(--donut-gradient);
+        flex: 0 0 auto;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .donut::after {
+        content: '';
+        position: absolute;
+        inset: 20px;
+        border-radius: 50%;
+        background: var(--p-content-background);
+      }
+      .donut__center {
+        position: relative;
+        z-index: 1;
+        text-align: center;
+        line-height: 1.15;
+      }
+      .donut__center .value {
+        display: block;
+        font-family: var(--font-mono);
+        font-weight: 700;
+        font-size: 0.82rem;
+      }
+      .donut__center .label {
+        display: block;
+        font-size: 0.62rem;
+        color: var(--p-text-muted-color);
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+      }
+
+      .distribution-legend {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(150px, 1fr));
+        gap: 0.5rem 1.5rem;
+        flex: 1 1 320px;
+      }
+      .stage-frame[data-viewport='mobile'] .distribution-legend {
+        grid-template-columns: 1fr;
+      }
+      .distribution-legend li {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.82rem;
+      }
+      .legend-swatch {
+        width: 0.7rem;
+        height: 0.7rem;
+        border-radius: 3px;
+        flex: 0 0 auto;
+      }
+      .legend-swatch--etf {
+        background: var(--p-primary-color);
+      }
+      .legend-swatch--share {
+        background: var(--p-share);
+      }
+      .legend-swatch--gold {
+        background: var(--p-gold);
+      }
+      .legend-swatch--bitcoin {
+        background: var(--p-bitcoin);
+      }
+      .distribution-legend .pct {
+        margin-left: auto;
+        font-family: var(--font-mono);
+        font-variant-numeric: tabular-nums;
+        font-weight: 700;
+      }
+      .distribution-legend .muted-name {
+        color: var(--p-text-muted-color);
+      }
+      .distribution-excluded {
+        flex: 1 1 100%;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.76rem;
+        color: var(--p-text-muted-color);
+        border-top: 1px dashed var(--p-content-border-color);
+        padding-top: 0.6rem;
+        margin-top: 0.2rem;
+      }
+
       /* ============ Holdings list ============ */
 
       .holdings-toolbar {
@@ -471,7 +616,7 @@
       }
       table.holdings-table {
         width: 100%;
-        min-width: 620px;
+        min-width: 760px;
         border-collapse: collapse;
       }
       table.holdings-table th {
@@ -501,8 +646,13 @@
         font-family: var(--font-mono);
         font-variant-numeric: tabular-nums;
       }
-      td.num.no-date {
+      td.num.no-date,
+      td.num.no-value {
         color: var(--p-text-muted-color);
+      }
+      td.management {
+        font-size: 0.82rem;
+        color: var(--p-text-color);
       }
       td.identifier .name {
         font-weight: 600;
@@ -527,10 +677,13 @@
         font-size: 0.74rem;
         font-weight: 700;
       }
-      .type-pill--etf,
-      .type-pill--share {
+      .type-pill--etf {
         background: var(--p-highlight-background);
         color: var(--p-primary-600);
+      }
+      .type-pill--share {
+        background: var(--p-share-soft);
+        color: var(--p-share);
       }
       .type-pill--gold {
         background: var(--p-gold-soft);
@@ -567,7 +720,7 @@
 
       .lot-note {
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         gap: 0.5rem;
         margin-top: 0.85rem;
         padding: 0.6rem 0.85rem;
@@ -575,9 +728,14 @@
         background: var(--p-highlight-background);
         color: var(--p-primary-600);
         font-size: 0.8rem;
+        line-height: 1.45;
       }
       .lot-note .icon {
         font-size: 0.95rem;
+        margin-top: 0.15rem;
+      }
+      .lot-note strong {
+        font-weight: 700;
       }
 
       .empty-state {
@@ -757,6 +915,14 @@
         flex-direction: row;
         justify-content: center;
         cursor: default;
+      }
+
+      .management-field {
+        padding-bottom: 0.15rem;
+        border-bottom: 1px dashed var(--p-content-border-color);
+      }
+      .management-field .hint {
+        margin-top: 0.35rem;
       }
 
       [data-fieldset] {
@@ -943,14 +1109,22 @@
     </svg>
 
     <header class="review-header">
-      <p class="review-eyebrow">Non-functional review mockup</p>
+      <p class="review-eyebrow">Non-functional review mockup · revision 2</p>
       <h1>Vaultfolio Holdings — layout review (003-manual-holdings-entry)</h1>
       <p>
-        Static states standing in for the manual holdings entry flow defined in spec.md's User
-        Stories 1–4 and FR-001–FR-014. Try the asset-type selector inside "Add holding" — it
-        actually swaps the field set live, the same way the real form would (FR-006). Toggle
-        viewport to check the dialog and table on narrow widths. Real PrimeNG components, routing,
-        and persistence are not present here — this only demonstrates layout, hierarchy, and states.
+        Updated for the 2026-08-28 clarifications session: every holding now requires a
+        <span class="changed">Management</span> source; ETF and Gold submissions
+        <span class="changed">update an existing row in place</span> instead of always adding a lot;
+        Gold is now weight-in-grams only (no unit/purity) plus an
+        <span class="changed">optional current value</span>; ETF has
+        <span class="changed">no purchase date field at all</span>; and the list gets a new
+        <span class="changed">value-distribution panel</span>.
+      </p>
+      <p>
+        Try the asset-type selector inside "Add holding" — it swaps the field set live, the same way
+        the real form would. Toggle viewport to check the dialogs and table on narrow widths. Real
+        PrimeNG components (incl. <code>p-chart</code>), routing, and persistence are not present
+        here — this only demonstrates layout, hierarchy, and states.
       </p>
     </header>
 
@@ -1022,11 +1196,56 @@
               </div>
 
               <div class="app-content">
-                <!-- Populated list (User Story 2, FR-010) -->
+                <!-- Populated list (User Story 2, FR-012) -->
                 <section data-show="list">
+                  <!-- Distribution-by-value panel (FR-012a) -->
+                  <div class="distribution-panel">
+                    <div class="distribution-panel__heading">
+                      <h3>Distribution by value</h3>
+                      <p>
+                        Share of total portfolio value, grouped by asset type. Holdings with no
+                        known value are excluded from the percentages below.
+                      </p>
+                    </div>
+                    <div class="donut" role="img" aria-label="Portfolio value distribution chart">
+                      <div class="donut__center">
+                        <span class="value">€38,665</span>
+                        <span class="label">total</span>
+                      </div>
+                    </div>
+                    <ul class="distribution-legend">
+                      <li>
+                        <span class="legend-swatch legend-swatch--etf" aria-hidden="true"></span>
+                        <span>ETF</span><span class="pct">5.6%</span>
+                      </li>
+                      <li>
+                        <span class="legend-swatch legend-swatch--share" aria-hidden="true"></span>
+                        <span>Share</span><span class="pct">1.3%</span>
+                      </li>
+                      <li>
+                        <span class="legend-swatch legend-swatch--gold" aria-hidden="true"></span>
+                        <span>Gold</span><span class="pct">6.3%</span>
+                      </li>
+                      <li>
+                        <span
+                          class="legend-swatch legend-swatch--bitcoin"
+                          aria-hidden="true"
+                        ></span>
+                        <span>Bitcoin</span><span class="pct">86.8%</span>
+                      </li>
+                    </ul>
+                    <p class="distribution-excluded">
+                      <svg class="icon" aria-hidden="true">
+                        <use href="#icon-info-circle"></use>
+                      </svg>
+                      1 Gold holding (Bank Safe, 15.5 g) has no current value entered and is
+                      excluded from these percentages — not counted as zero (FR-012a).
+                    </p>
+                  </div>
+
                   <div class="holdings-toolbar">
                     <div>
-                      <h2>6 holdings</h2>
+                      <h2>7 holdings</h2>
                       <p>All amounts shown in EUR, your base currency.</p>
                     </div>
                     <button type="button" class="btn btn--primary" data-open-add>
@@ -1041,8 +1260,9 @@
                         <tr>
                           <th>Type</th>
                           <th>Asset</th>
-                          <th>Quantity</th>
-                          <th>Purchase price</th>
+                          <th>Management</th>
+                          <th>Quantity / weight</th>
+                          <th>Price / value</th>
                           <th>Purchase date</th>
                           <th></th>
                         </tr>
@@ -1060,9 +1280,12 @@
                             <div class="name">Vanguard FTSE All-World</div>
                             <div class="sub">IE00BK5BQT80</div>
                           </td>
-                          <td class="num">12.500</td>
-                          <td class="num">€98.40</td>
-                          <td class="num">2025-03-14</td>
+                          <td class="management">Roboadvisor</td>
+                          <td class="num">17.500</td>
+                          <td class="num">€99.20 avg</td>
+                          <td class="num no-date" title="ETF holdings don't track a purchase date">
+                            —
+                          </td>
                           <td class="actions">
                             <button class="icon-btn" title="Edit">
                               <svg class="icon" aria-hidden="true">
@@ -1092,9 +1315,12 @@
                             <div class="name">Vanguard FTSE All-World</div>
                             <div class="sub">IE00BK5BQT80</div>
                           </td>
-                          <td class="num">5.000</td>
-                          <td class="num">€101.20</td>
-                          <td class="num">2025-11-02</td>
+                          <td class="management">Private</td>
+                          <td class="num">4.000</td>
+                          <td class="num">€102.10 avg</td>
+                          <td class="num no-date" title="ETF holdings don't track a purchase date">
+                            —
+                          </td>
                           <td class="actions">
                             <button class="icon-btn" title="Edit">
                               <svg class="icon" aria-hidden="true">
@@ -1124,6 +1350,7 @@
                             <div class="name">Apple Inc.</div>
                             <div class="sub">US0378331005</div>
                           </td>
+                          <td class="management">Private</td>
                           <td class="num">3.000</td>
                           <td class="num">€165.00</td>
                           <td class="num">2024-08-01</td>
@@ -1153,12 +1380,55 @@
                             >
                           </td>
                           <td class="identifier">
-                            <div class="name">1 oz bar</div>
-                            <div class="sub">999.9 fine</div>
+                            <div class="name">Gold</div>
+                            <div class="sub">&nbsp;</div>
                           </td>
-                          <td class="num">3.000</td>
-                          <td class="num">€1,780.00</td>
-                          <td class="num">2025-01-10</td>
+                          <td class="management">Private</td>
+                          <td class="num">31.1 g</td>
+                          <td class="num">€2,450.00</td>
+                          <td class="num no-date" title="Gold holdings don't track a purchase date">
+                            —
+                          </td>
+                          <td class="actions">
+                            <button class="icon-btn" title="Edit">
+                              <svg class="icon" aria-hidden="true">
+                                <use href="#icon-pencil"></use>
+                              </svg>
+                            </button>
+                            <button
+                              class="icon-btn icon-btn--danger"
+                              title="Delete"
+                              data-open-delete
+                            >
+                              <svg class="icon" aria-hidden="true">
+                                <use href="#icon-trash"></use>
+                              </svg>
+                            </button>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                            <span class="type-pill type-pill--gold"
+                              ><svg class="icon" aria-hidden="true">
+                                <use href="#icon-circle-fill"></use></svg
+                              >Gold</span
+                            >
+                          </td>
+                          <td class="identifier">
+                            <div class="name">Gold</div>
+                            <div class="sub">&nbsp;</div>
+                          </td>
+                          <td class="management">Bank Safe</td>
+                          <td class="num">15.5 g</td>
+                          <td
+                            class="num no-value"
+                            title="No current value entered — excluded from distribution"
+                          >
+                            —
+                          </td>
+                          <td class="num no-date" title="Gold holdings don't track a purchase date">
+                            —
+                          </td>
                           <td class="actions">
                             <button class="icon-btn" title="Edit">
                               <svg class="icon" aria-hidden="true">
@@ -1188,6 +1458,7 @@
                             <div class="name">Bitcoin</div>
                             <div class="sub">&nbsp;</div>
                           </td>
+                          <td class="management">Private</td>
                           <td class="num">0.750</td>
                           <td class="num">€38,200.00</td>
                           <td class="num">2025-06-20</td>
@@ -1220,6 +1491,7 @@
                             <div class="name">Bitcoin</div>
                             <div class="sub">&nbsp;</div>
                           </td>
+                          <td class="management">Private</td>
                           <td class="num">0.120</td>
                           <td class="num">€41,050.00</td>
                           <td class="num no-date" title="No purchase date recorded">—</td>
@@ -1245,12 +1517,19 @@
                   </div>
                   <div class="lot-note">
                     <svg class="icon" aria-hidden="true"><use href="#icon-info-circle"></use></svg>
-                    The two Vanguard FTSE All-World rows are separate purchase lots, not merged —
-                    same for the two Bitcoin rows (User Story 2, Acceptance Scenario 2).
+                    <span>
+                      <strong>ETF and Gold</strong> show one row per asset + Management combination
+                      — the two Vanguard FTSE All-World rows above are separate because they're
+                      under different Management sources (Roboadvisor vs. Private); adding that same
+                      ISIN under Roboadvisor again would update its row in place instead of adding a
+                      third. Same rule for the two Gold rows.
+                      <strong>Share and Bitcoin</strong> always add a new, independent lot — the two
+                      Bitcoin rows above are both under "Private" and still never merge.
+                    </span>
                   </div>
                 </section>
 
-                <!-- Empty state (User Story 2, Acceptance Scenario 3) -->
+                <!-- Empty state (User Story 2, Acceptance Scenario 5) -->
                 <section data-show="list-empty">
                   <div class="holdings-toolbar">
                     <div>
@@ -1275,7 +1554,7 @@
             </div>
           </div>
 
-          <!-- Add-holding dialog (User Story 1, FR-001–FR-006) -->
+          <!-- Add-holding dialog (User Story 1, FR-001–FR-011a) -->
           <div class="dialog-overlay" data-show="add add-invalid">
             <div class="dialog">
               <div class="dialog__header">
@@ -1317,7 +1596,7 @@
                   </div>
                 </div>
 
-                <!-- Static "invalid" state: Gold selected, submitted with errors (FR-007, FR-008) -->
+                <!-- Static "invalid" state: Bitcoin selected, submitted with errors (FR-009) -->
                 <div class="field-group" data-show="add-invalid">
                   <label>Asset type</label>
                   <div class="type-select">
@@ -1329,11 +1608,11 @@
                       <svg class="icon" aria-hidden="true"><use href="#icon-building"></use></svg
                       >Share
                     </button>
-                    <button type="button" class="type-option" aria-pressed="true">
+                    <button type="button" class="type-option" aria-pressed="false">
                       <svg class="icon" aria-hidden="true"><use href="#icon-circle-fill"></use></svg
                       >Gold
                     </button>
-                    <button type="button" class="type-option" aria-pressed="false">
+                    <button type="button" class="type-option" aria-pressed="true">
                       <svg class="icon" aria-hidden="true"><use href="#icon-bitcoin"></use></svg
                       >Bitcoin
                     </button>
@@ -1347,7 +1626,37 @@
                   <span>3 fields need attention before this holding can be saved.</span>
                 </div>
 
-                <!-- Interactive fieldsets for the "add" state -->
+                <!-- Management — universal field, required for every asset type (FR-002) -->
+                <div class="field-group management-field" data-show="add">
+                  <label for="mgmt">Management</label>
+                  <input
+                    id="mgmt"
+                    type="text"
+                    placeholder="e.g. Private, Roboadvisor, a bank name"
+                    value="Roboadvisor"
+                  />
+                  <p class="hint">
+                    Who holds or manages this asset. Free text — typed once, reused.
+                  </p>
+                </div>
+                <div class="field-group management-field" data-show="add-invalid">
+                  <label for="mgmt-x">Management</label>
+                  <input
+                    id="mgmt-x"
+                    type="text"
+                    placeholder="e.g. Private, Roboadvisor, a bank name"
+                    value=""
+                    class="field-error"
+                  />
+                  <p class="error-msg">
+                    <svg class="icon" aria-hidden="true"><use href="#icon-times-circle"></use></svg
+                    >Management is required
+                  </p>
+                </div>
+
+                <!-- Interactive fieldsets for the "add" state — each type's complete field set,
+                     incl. its own quantity/price/date so no shared block is ever shown for a
+                     type that doesn't have it (e.g. Gold never sees a quantity/price/date row). -->
                 <div data-fieldset="etf" class="is-active" data-show="add">
                   <div class="field-group">
                     <label for="isin">ISIN</label>
@@ -1357,6 +1666,20 @@
                     <label for="name">Name</label>
                     <input id="name" type="text" value="Vanguard FTSE All-World" />
                   </div>
+                  <div class="field-row">
+                    <div class="field-group">
+                      <label for="qty-etf">Quantity</label>
+                      <input id="qty-etf" type="number" value="17.5" />
+                    </div>
+                    <div class="field-group">
+                      <label for="price-etf">Average purchase price (€)</label>
+                      <input id="price-etf" type="number" value="99.20" />
+                    </div>
+                  </div>
+                  <p class="hint" style="margin: -0.5rem 0 0">
+                    No purchase date for ETF — adding this ISIN again under the same Management
+                    replaces the quantity/average price above instead of adding a new row.
+                  </p>
                 </div>
                 <div data-fieldset="share" data-show="add">
                   <div class="field-group">
@@ -1367,58 +1690,77 @@
                     <label for="name-s">Name</label>
                     <input id="name-s" type="text" placeholder="e.g. Apple Inc." />
                   </div>
-                </div>
-                <div data-fieldset="gold" data-show="add">
                   <div class="field-row">
                     <div class="field-group">
-                      <label for="weight">Weight</label>
-                      <input id="weight" type="number" placeholder="e.g. 1" />
+                      <label for="qty-s">Quantity</label>
+                      <input id="qty-s" type="number" placeholder="e.g. 10" />
                     </div>
                     <div class="field-group">
-                      <label for="unit">Unit</label>
-                      <select id="unit">
-                        <option>oz (troy)</option>
-                        <option>g</option>
-                      </select>
+                      <label for="price-s">Purchase price (€)</label>
+                      <input id="price-s" type="number" placeholder="e.g. 150.00" />
                     </div>
                   </div>
                   <div class="field-group">
-                    <label for="purity">Purity</label>
-                    <input id="purity" type="text" placeholder="e.g. 999.9" />
+                    <label for="date-s"
+                      >Purchase date <span class="optional-tag">Optional</span></label
+                    >
+                    <input id="date-s" type="date" />
                     <p class="hint">
-                      Per-item weight and purity; quantity below is how many you hold.
+                      Leave blank if you just want to record what you currently hold.
                     </p>
                   </div>
                 </div>
+                <div data-fieldset="gold" data-show="add">
+                  <div class="field-group">
+                    <label for="weight">Weight (grams)</label>
+                    <input id="weight" type="number" placeholder="e.g. 31.1" />
+                    <p class="hint">
+                      Grams only — convert other units (e.g. troy ounces) before entering.
+                    </p>
+                  </div>
+                  <div class="field-group">
+                    <label for="current-value"
+                      >Current value (€) <span class="optional-tag">Optional</span></label
+                    >
+                    <input id="current-value" type="number" placeholder="e.g. 2450.00" />
+                    <p class="hint">
+                      Used only for the distribution chart below — not a purchase price, since Gold
+                      has none. Leave blank if unknown; the holding still saves.
+                    </p>
+                  </div>
+                  <p class="hint" style="margin: -0.5rem 0 0">
+                    No ISIN, name, purchase price, or purchase date for Gold. Adding Gold again
+                    under the same Management replaces the weight/value above instead of adding a
+                    new row.
+                  </p>
+                </div>
                 <div data-fieldset="bitcoin" data-show="add">
-                  <p class="hint" style="margin: -0.3rem 0 0">
-                    No additional identifiers needed for Bitcoin.
-                  </p>
-                </div>
-
-                <div class="field-row" data-show="add">
-                  <div class="field-group">
-                    <label for="qty">Quantity</label>
-                    <input id="qty" type="number" value="12.5" />
+                  <div class="field-row">
+                    <div class="field-group">
+                      <label for="qty-btc">Quantity</label>
+                      <input id="qty-btc" type="number" placeholder="e.g. 0.25" />
+                    </div>
+                    <div class="field-group">
+                      <label for="price-btc">Purchase price (€)</label>
+                      <input id="price-btc" type="number" placeholder="e.g. 42000.00" />
+                    </div>
                   </div>
                   <div class="field-group">
-                    <label for="price">Purchase price (€)</label>
-                    <input id="price" type="number" value="98.40" />
+                    <label for="date-btc"
+                      >Purchase date <span class="optional-tag">Optional</span></label
+                    >
+                    <input id="date-btc" type="date" />
+                    <p class="hint">
+                      No ISIN, name, or weight needed. Every submission is a new, independent lot.
+                    </p>
                   </div>
                 </div>
-                <div class="field-group" data-show="add">
-                  <label for="date">Purchase date <span class="optional-tag">Optional</span></label>
-                  <input id="date" type="date" value="2025-03-14" />
-                  <p class="hint">
-                    Leave blank if you just want to record what you currently hold.
-                  </p>
-                </div>
 
-                <!-- Static invalid fields -->
+                <!-- Static invalid fields — Bitcoin: negative quantity, future date, missing Management (above) -->
                 <div class="field-row" data-show="add-invalid">
                   <div class="field-group">
                     <label for="qty-x">Quantity</label>
-                    <input id="qty-x" type="number" value="-2" class="field-error" />
+                    <input id="qty-x" type="number" value="-0.2" class="field-error" />
                     <p class="error-msg">
                       <svg class="icon" aria-hidden="true">
                         <use href="#icon-times-circle"></use></svg
@@ -1427,28 +1769,8 @@
                   </div>
                   <div class="field-group">
                     <label for="price-x">Purchase price (€)</label>
-                    <input id="price-x" type="number" value="1780.00" />
+                    <input id="price-x" type="number" value="41050.00" />
                   </div>
-                </div>
-                <div class="field-row" data-show="add-invalid">
-                  <div class="field-group">
-                    <label for="weight-x">Weight</label>
-                    <input id="weight-x" type="number" value="1" />
-                  </div>
-                  <div class="field-group">
-                    <label for="unit-x">Unit</label>
-                    <select id="unit-x">
-                      <option>oz (troy)</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="field-group" data-show="add-invalid">
-                  <label for="purity-x">Purity</label>
-                  <input id="purity-x" type="text" value="" class="field-error" />
-                  <p class="error-msg">
-                    <svg class="icon" aria-hidden="true"><use href="#icon-times-circle"></use></svg
-                    >Purity is required for Gold holdings
-                  </p>
                 </div>
                 <div class="field-group" data-show="add-invalid">
                   <label for="date-x"
@@ -1468,10 +1790,10 @@
             </div>
           </div>
 
-          <!-- Edit-holding dialog, scoped to a Bitcoin lot (User Story 3, FR-012) — the type is
+          <!-- Edit-holding dialog, scoped to a Bitcoin lot (User Story 3, FR-014) — the type is
                fixed on edit (it's part of the holding's identity), so no type selector is shown,
-               and only Bitcoin's fields (quantity, price, optional date) appear: no ISIN/name and
-               no weight/purity, unlike the "Add holding" dialog for other types. -->
+               and only Bitcoin's fields (Management, quantity, price, optional date) appear: no
+               ISIN/name and no weight/current-value, unlike editing an ETF/Gold holding. -->
           <div class="dialog-overlay" data-show="edit-bitcoin">
             <div class="dialog">
               <div class="dialog__header">
@@ -1492,6 +1814,11 @@
                   <p class="hint">Asset type can't be changed after a holding is created.</p>
                 </div>
 
+                <div class="field-group management-field">
+                  <label for="mgmt-eb">Management</label>
+                  <input id="mgmt-eb" type="text" value="Private" />
+                </div>
+
                 <div class="field-row">
                   <div class="field-group">
                     <label for="qty-eb">Quantity</label>
@@ -1508,8 +1835,8 @@
                   >
                   <input id="date-eb" type="date" value="" />
                   <p class="hint">
-                    Left blank when this lot was added — no weight/purity fields appear either,
-                    since those only apply to Gold.
+                    Left blank when this lot was added — no weight/current-value fields appear
+                    either, since those only apply to Gold.
                   </p>
                 </div>
               </div>
@@ -1528,9 +1855,7 @@
                   <use href="#icon-trash"></use>
                 </svg>
                 <h2>Delete this holding?</h2>
-                <p>
-                  Vanguard FTSE All-World · 12.500 units purchased 2025-03-14. This can't be undone.
-                </p>
+                <p>Vanguard FTSE All-World · Roboadvisor · 17.500 units. This can't be undone.</p>
               </div>
               <div class="dialog__footer" style="justify-content: center">
                 <button type="button" class="btn btn--text" data-close-dialog>Cancel</button>
@@ -1548,13 +1873,14 @@
         current CSS-variable usage (<code>--p-primary-color</code>,
         <code>--p-content-border-color</code>, etc.) as of this feature; real components
         (<code>p-select</code>, <code>p-dialog</code>, <code>p-inputnumber</code>,
-        <code>p-datepicker</code>, <code>p-confirmdialog</code>) will replace this static markup.
+        <code>p-datepicker</code>, <code>p-confirmdialog</code>, <code>p-chart</code>) will replace
+        this static markup.
       </p>
       <h3>Out of scope for this mockup</h3>
       <ul>
         <li>
           Editing ETF/Share/Gold holdings — same pattern as "Edit — Bitcoin" (locked asset type,
-          only that type's fields) but not separately mocked for every type.
+          only that type's fields, incl. Management) but not separately mocked for every type.
         </li>
         <li>
           Loading states, network errors, and the "already deleted elsewhere" edge case — resilience
@@ -1565,8 +1891,9 @@
           for the real implementation.
         </li>
         <li>
-          Real form validation logic, persistence, and routing — every state here is static or
-          client-side-only (the type selector).
+          Real form validation logic, persistence, routing, and the real Chart.js-backed
+          <code>p-chart</code> rendering (the donut here is a static CSS conic-gradient stand-in) —
+          every state here is static or client-side-only (the type selector).
         </li>
       </ul>
     </footer>
@@ -1622,7 +1949,7 @@
         );
       }
 
-      // Interactive asset-type selector inside the "Add holding" dialog (FR-006).
+      // Interactive asset-type selector inside the "Add holding" dialog (FR-008).
       const typeSelect = document.getElementById('type-select');
       typeSelect.addEventListener('click', (e) => {
         const btn = e.target.closest('.type-option');
