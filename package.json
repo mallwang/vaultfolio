@@ -1,7 +1,7 @@
 {
   "name": "vaultfolio",
   "version": "0.0.0",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "scripts": {
     "test:backend": "nx test backend",
     "test:frontend": "nx test frontend",

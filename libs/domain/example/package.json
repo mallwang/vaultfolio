@@ -1,6 +1,7 @@
 {
   "name": "domain-example",
   "version": "0.0.1",
+  "license": "MIT",
   "private": true,
   "nx": {
     "tags": ["scope:domain"]
@@ -16,7 +17,5 @@
     },
     "./package.json": "./package.json"
   },
-  "dependencies": {
-    "decimal.js": "^10.6.0"
-  }
+  "dependencies": {}
 }

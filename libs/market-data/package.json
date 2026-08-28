@@ -1,6 +1,7 @@
 {
   "name": "market-data",
   "version": "0.0.1",
+  "license": "MIT",
   "private": true,
   "nx": {
     "tags": ["scope:domain"]
