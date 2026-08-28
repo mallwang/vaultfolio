@@ -194,7 +194,7 @@ describe('/holdings', () => {
   });
 
   describe('POST /holdings — validation failures (FR-009, FR-010, SC-002)', () => {
-    const expectFieldError = async (body: unknown, field: string) => {
+    const expectFieldError = async (body: Record<string, unknown>, field: string) => {
       const response = await request(app.getHttpServer()).post('/holdings').send(body);
 
       expect(response.status).toBe(400);
