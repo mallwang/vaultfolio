@@ -18,7 +18,9 @@
     {
       "plugin": "@nx/js/typescript",
       "options": {
-        "typecheck": { "targetName": "typecheck" },
+        "typecheck": {
+          "targetName": "typecheck"
+        },
         "build": {
           "targetName": "build",
           "configName": "tsconfig.lib.json",
@@ -38,9 +40,24 @@
         "serveStaticTargetName": "serve-static"
       }
     },
-    { "plugin": "@nx/playwright/plugin", "options": { "targetName": "e2e" } },
-    { "plugin": "@nx/eslint/plugin", "options": { "targetName": "lint" } },
-    { "plugin": "@nx/jest/plugin", "options": { "targetName": "test" } }
+    {
+      "plugin": "@nx/playwright/plugin",
+      "options": {
+        "targetName": "e2e"
+      }
+    },
+    {
+      "plugin": "@nx/eslint/plugin",
+      "options": {
+        "targetName": "lint"
+      }
+    },
+    {
+      "plugin": "@nx/jest/plugin",
+      "options": {
+        "targetName": "test"
+      }
+    }
   ],
   "analytics": false,
   "targetDefaults": {
@@ -64,7 +81,9 @@
       "cache": true,
       "inputs": ["default", "^production"]
     },
-    "test": { "dependsOn": ["^build"] }
+    "test": {
+      "dependsOn": ["^build"]
+    }
   },
   "generators": {
     "@nx/angular:application": {
