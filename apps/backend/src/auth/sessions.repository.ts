@@ -84,4 +84,16 @@ export class SessionsRepository {
   async deleteAllForUser(userId: string): Promise<void> {
     await this.database.query('DELETE FROM sessions WHERE user_id = $1', [userId]);
   }
+
+  /**
+   * Invalidates every _other_ session for this user, sparing `exceptSessionId`
+   * (008-profile-password-account, research.md #5) — used by password change,
+   * which has a live session to keep the caller signed in with.
+   */
+  async deleteAllForUserExcept(userId: string, exceptSessionId: string): Promise<void> {
+    await this.database.query('DELETE FROM sessions WHERE user_id = $1 AND id != $2', [
+      userId,
+      exceptSessionId,
+    ]);
+  }
 }

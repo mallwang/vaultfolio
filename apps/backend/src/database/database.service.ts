@@ -32,6 +32,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
 
       this.migrate();
       await this.migrateAuth();
+      this.migrateProfile();
       this.ready = true;
     } catch (error) {
       // A startup failure (unwritable ./data, migration failure, ...) should
@@ -236,6 +237,44 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
         signup_request_id TEXT NULL REFERENCES signup_requests(id)
       )
     `);
+  }
+
+  /**
+   * 008-profile-password-account: `users.pending_email` (data-model.md's
+   * "Change to Entity: User Account") and the new `account_action_tokens`
+   * table (data-model.md's "Entity: Account Action Token"), following the
+   * same `PRAGMA table_info` idempotent-migration pattern as
+   * `migrateAccountsAndInvitations`/`migrateSignups`.
+   */
+  private migrateProfile(): void {
+    const db = this.requireDb();
+
+    const hasPendingEmail = db
+      .prepare("SELECT 1 FROM pragma_table_info('users') WHERE name = 'pending_email'")
+      .get();
+    if (!hasPendingEmail) {
+      db.exec('ALTER TABLE users ADD COLUMN pending_email TEXT NULL');
+    }
+
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS account_action_tokens (
+        id          TEXT PRIMARY KEY,
+        user_id     TEXT NOT NULL REFERENCES users(id),
+        purpose     TEXT NOT NULL CHECK (purpose IN ('EMAIL_CHANGE','PASSWORD_RESET')),
+        new_email   TEXT NULL,
+        token       TEXT NOT NULL UNIQUE,
+        status      TEXT NOT NULL CHECK (status IN ('PENDING','USED','EXPIRED','SUPERSEDED')) DEFAULT 'PENDING',
+        created_at  TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')),
+        expires_at  TEXT NOT NULL,
+        used_at     TEXT NULL
+      )
+    `);
+    db.exec(
+      'CREATE UNIQUE INDEX IF NOT EXISTS account_action_tokens_token_idx ON account_action_tokens (token)',
+    );
+    db.exec(
+      'CREATE INDEX IF NOT EXISTS account_action_tokens_user_purpose_idx ON account_action_tokens (user_id, purpose)',
+    );
   }
 
   /**

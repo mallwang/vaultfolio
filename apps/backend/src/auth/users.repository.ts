@@ -16,6 +16,7 @@ export interface User {
   lockedUntil: string | null;
   archivedAt: string | null;
   retentionExpiresAt: string | null;
+  pendingEmail: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -31,6 +32,7 @@ interface UserRow {
   locked_until: string | null;
   archived_at: string | null;
   retention_expires_at: string | null;
+  pending_email: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -47,6 +49,7 @@ function rowToUser(row: UserRow): User {
     lockedUntil: row.locked_until,
     archivedAt: row.archived_at,
     retentionExpiresAt: row.retention_expires_at,
+    pendingEmail: row.pending_email,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -217,6 +220,66 @@ export class UsersRepository {
    * reason about). Statements run sequentially against the single embedded
    * SQLite connection (no concurrent interleaving, research.md #4).
    */
+  /** Updates the caller's own display name (008, FR-001). */
+  async updateDisplayName(id: string, displayName: string): Promise<User | null> {
+    const rows = await this.database.query<UserRow>(
+      `UPDATE users
+       SET display_name = $2, updated_at = STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')
+       WHERE id = $1
+       RETURNING *`,
+      [id, displayName],
+    );
+    return rows[0] ? rowToUser(rows[0]) : null;
+  }
+
+  /** Applies a confirmed email change (008, FR-002): sets the new email and clears `pending_email`. */
+  async updateEmail(id: string, email: string): Promise<User | null> {
+    const rows = await this.database.query<UserRow>(
+      `UPDATE users
+       SET email = $2, pending_email = NULL, updated_at = STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')
+       WHERE id = $1
+       RETURNING *`,
+      [id, email],
+    );
+    return rows[0] ? rowToUser(rows[0]) : null;
+  }
+
+  /** Records an outstanding email-change request's target address (008, FR-002). */
+  async setPendingEmail(id: string, pendingEmail: string): Promise<User | null> {
+    const rows = await this.database.query<UserRow>(
+      `UPDATE users
+       SET pending_email = $2, updated_at = STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')
+       WHERE id = $1
+       RETURNING *`,
+      [id, pendingEmail],
+    );
+    return rows[0] ? rowToUser(rows[0]) : null;
+  }
+
+  /** Clears an outstanding email-change request (008 — confirm, cancel, or supersede). */
+  async clearPendingEmail(id: string): Promise<User | null> {
+    const rows = await this.database.query<UserRow>(
+      `UPDATE users
+       SET pending_email = NULL, updated_at = STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')
+       WHERE id = $1
+       RETURNING *`,
+      [id],
+    );
+    return rows[0] ? rowToUser(rows[0]) : null;
+  }
+
+  /** Updates the account's password hash (008 — password change or reset). */
+  async updatePasswordHash(id: string, passwordHash: string): Promise<User | null> {
+    const rows = await this.database.query<UserRow>(
+      `UPDATE users
+       SET password_hash = $2, updated_at = STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')
+       WHERE id = $1
+       RETURNING *`,
+      [id, passwordHash],
+    );
+    return rows[0] ? rowToUser(rows[0]) : null;
+  }
+
   async deleteById(id: string): Promise<void> {
     // invitations.invited_by is deliberately NOT cascaded here — an admin's
     // sent invitations remain as an audit trail after the admin's own

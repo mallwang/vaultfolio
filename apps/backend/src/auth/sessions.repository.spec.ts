@@ -85,4 +85,16 @@ describe('SessionsRepository', () => {
     const rows = await database.query('SELECT * FROM sessions WHERE user_id = $1', [userId]);
     expect(rows).toHaveLength(0);
   });
+
+  it('008: deleteAllForUserExcept removes every other session but spares the excluded one', async () => {
+    const kept = await repository.create(userId, futureIso(60_000));
+    const other1 = await repository.create(userId, futureIso(60_000));
+    const other2 = await repository.create(userId, futureIso(60_000));
+
+    await repository.deleteAllForUserExcept(userId, kept.id);
+
+    expect(await repository.findById(kept.id)).not.toBeNull();
+    expect(await repository.findById(other1.id)).toBeNull();
+    expect(await repository.findById(other2.id)).toBeNull();
+  });
 });

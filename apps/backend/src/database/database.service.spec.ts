@@ -157,4 +157,71 @@ describe('DatabaseService — auth/isolation migration', () => {
 
     await second.onModuleDestroy();
   });
+
+  it('008: adds users.pending_email and the account_action_tokens table, idempotently', async () => {
+    const first = new DatabaseService();
+    await first.onModuleInit();
+    await first.onModuleDestroy();
+
+    const second = new DatabaseService();
+    await second.onModuleInit();
+
+    const userColumns = await second.query<{ name: string }>(
+      "SELECT name FROM pragma_table_info('users')",
+    );
+    expect(userColumns.map((c) => c.name)).toContain('pending_email');
+
+    const tables = await second.query<{ name: string }>(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name = 'account_action_tokens'",
+    );
+    expect(tables).toHaveLength(1);
+
+    const indexes = await second.query<{ name: string }>(
+      "SELECT name FROM sqlite_master WHERE type='index' AND tbl_name = 'account_action_tokens'",
+    );
+    expect(indexes.map((i) => i.name)).toEqual(
+      expect.arrayContaining([
+        'account_action_tokens_token_idx',
+        'account_action_tokens_user_purpose_idx',
+      ]),
+    );
+
+    await second.onModuleDestroy();
+  });
+
+  it('008: account_action_tokens enforces purpose/status CHECK constraints and the user_id FK', async () => {
+    const database = new DatabaseService();
+    await database.onModuleInit();
+
+    const [user] = await database.query<{ id: string }>('SELECT id FROM users');
+
+    await expect(
+      database.query(
+        `INSERT INTO account_action_tokens (id, user_id, purpose, token, expires_at)
+         VALUES ($1, $2, 'BOGUS', $3, $4)`,
+        ['t1', user.id, 'tok1', new Date().toISOString()],
+      ),
+    ).rejects.toThrow();
+
+    await expect(
+      database.query(
+        `INSERT INTO account_action_tokens (id, user_id, purpose, token, status, expires_at)
+         VALUES ($1, $2, 'EMAIL_CHANGE', $3, 'BOGUS', $4)`,
+        ['t2', user.id, 'tok2', new Date().toISOString()],
+      ),
+    ).rejects.toThrow();
+
+    await database.query(
+      `INSERT INTO account_action_tokens (id, user_id, purpose, token, expires_at)
+       VALUES ($1, $2, 'PASSWORD_RESET', $3, $4)`,
+      ['t3', user.id, 'tok3', new Date().toISOString()],
+    );
+    const rows = await database.query<{ id: string }>(
+      'SELECT id FROM account_action_tokens WHERE id = $1',
+      ['t3'],
+    );
+    expect(rows).toHaveLength(1);
+
+    await database.onModuleDestroy();
+  });
 });

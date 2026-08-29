@@ -204,4 +204,59 @@ describe('UsersRepository', () => {
     const holdings = await database.query('SELECT * FROM holdings WHERE owner_id = $1', [user.id]);
     expect(holdings.length).toBe(0);
   });
+
+  it('008: updateDisplayName updates the display name only', async () => {
+    const user = await repository.create({
+      email: 'display-name-update@example.com',
+      displayName: 'Before',
+      passwordHash: 'hash-11',
+      role: 'MEMBER',
+    });
+
+    const updated = await repository.updateDisplayName(user.id, 'After');
+    expect(updated?.displayName).toBe('After');
+    expect(updated?.email).toBe(user.email);
+  });
+
+  it('008: setPendingEmail/clearPendingEmail manage the outstanding email-change target', async () => {
+    const user = await repository.create({
+      email: 'pending-email@example.com',
+      displayName: 'Pending Email',
+      passwordHash: 'hash-12',
+      role: 'MEMBER',
+    });
+
+    const withPending = await repository.setPendingEmail(user.id, 'new-pending@example.com');
+    expect(withPending?.pendingEmail).toBe('new-pending@example.com');
+
+    const cleared = await repository.clearPendingEmail(user.id);
+    expect(cleared?.pendingEmail).toBeNull();
+  });
+
+  it('008: updateEmail sets the new email and clears any pending_email', async () => {
+    const user = await repository.create({
+      email: 'confirm-email@example.com',
+      displayName: 'Confirm Email',
+      passwordHash: 'hash-13',
+      role: 'MEMBER',
+    });
+    await repository.setPendingEmail(user.id, 'confirmed@example.com');
+
+    const updated = await repository.updateEmail(user.id, 'confirmed@example.com');
+    expect(updated?.email).toBe('confirmed@example.com');
+    expect(updated?.pendingEmail).toBeNull();
+  });
+
+  it('008: updatePasswordHash updates only the password hash', async () => {
+    const user = await repository.create({
+      email: 'password-update@example.com',
+      displayName: 'Password Update',
+      passwordHash: 'hash-14',
+      role: 'MEMBER',
+    });
+
+    const updated = await repository.updatePasswordHash(user.id, 'new-hash');
+    expect(updated?.passwordHash).toBe('new-hash');
+    expect(updated?.email).toBe(user.email);
+  });
 });

@@ -1,0 +1,249 @@
+<p-toast />
+
+@if (!loading() && profile()) {
+  <div class="profile-grid">
+    <!-- ===== Display name & email (User Story 1 — FR-001–FR-004) ===== -->
+    <p-card>
+      <h2>Identity</h2>
+      <div class="field">
+        <label for="display-name">Display name</label>
+        <input
+          pInputText
+          id="display-name"
+          name="displayName"
+          [ngModel]="displayName()"
+          (ngModelChange)="displayName.set($event)"
+        />
+        <p class="field-hint">
+          1–100 characters. Updates everywhere your name appears — no reload.
+        </p>
+      </div>
+      <div class="field-row-actions">
+        <button
+          pButton
+          type="button"
+          [loading]="savingName()"
+          [disabled]="!displayName().trim() || savingName()"
+          (click)="saveDisplayName()"
+        >
+          Save name
+        </button>
+      </div>
+
+      <hr class="divider" />
+
+      @if (profile()?.pendingEmail) {
+        <p-message severity="info" styleClass="email-pending-banner">
+          <strong>Verification pending for {{ profile()?.pendingEmail }}.</strong>
+          Your current address stays active and usable for sign-in until you confirm the new one.
+          <button type="button" class="banner-cancel" (click)="cancelEmailChange()">
+            Cancel request
+          </button>
+        </p-message>
+      }
+
+      <div class="field">
+        <label for="current-email">Current email address</label>
+        <input pInputText id="current-email" type="email" [value]="profile()?.email" disabled />
+      </div>
+      <div class="field">
+        <label for="new-email">Change email to</label>
+        <input
+          pInputText
+          id="new-email"
+          type="email"
+          placeholder="new-address@example.com"
+          [ngModel]="newEmail()"
+          (ngModelChange)="newEmail.set($event)"
+        />
+        <p class="field-hint">
+          We'll email a verification link, valid 24 hours. Your current address keeps working until
+          you click it. A new request replaces any pending one.
+        </p>
+      </div>
+      @if (emailErrorMessage()) {
+        <p-message severity="error">{{ emailErrorMessage() }}</p-message>
+      }
+      <div class="field-row-actions">
+        <button
+          pButton
+          type="button"
+          severity="secondary"
+          [loading]="requestingEmailChange()"
+          [disabled]="!newEmail().trim() || requestingEmailChange()"
+          (click)="requestEmailChange()"
+        >
+          <i class="pi pi-envelope" aria-hidden="true"></i>
+          Send verification link
+        </button>
+      </div>
+    </p-card>
+
+    <!-- ===== Change password (User Story 2 — FR-005, FR-007) ===== -->
+    <p-card>
+      <h2>Change password</h2>
+      <p class="card-lede">
+        Requires your current password. Your other active sessions are signed out once it's changed
+        — this one stays signed in.
+      </p>
+
+      <div class="field">
+        <label for="current-password">Current password</label>
+        <input
+          pInputText
+          id="current-password"
+          type="password"
+          autocomplete="current-password"
+          [class.field-error]="currentPasswordError()"
+          [ngModel]="currentPassword()"
+          (ngModelChange)="currentPassword.set($event)"
+        />
+      </div>
+      <div class="field">
+        <label for="new-password">New password</label>
+        <input
+          pInputText
+          id="new-password"
+          type="password"
+          placeholder="8–200 characters"
+          autocomplete="new-password"
+          [ngModel]="newPassword()"
+          (ngModelChange)="newPassword.set($event)"
+        />
+        <p class="field-hint">8–200 characters — same policy as sign-up.</p>
+      </div>
+      <div class="field">
+        <label for="new-password-confirm">Confirm new password</label>
+        <input
+          pInputText
+          id="new-password-confirm"
+          type="password"
+          autocomplete="new-password"
+          [ngModel]="confirmNewPassword()"
+          (ngModelChange)="confirmNewPassword.set($event)"
+        />
+      </div>
+      @if (passwordErrorMessage()) {
+        <p-message severity="error">{{ passwordErrorMessage() }}</p-message>
+      }
+      <div class="field-row-actions">
+        <button
+          pButton
+          type="button"
+          [loading]="changingPassword()"
+          [disabled]="!currentPassword() || !newPassword() || changingPassword()"
+          (click)="changePassword()"
+        >
+          <i class="pi pi-key" aria-hidden="true"></i>
+          Change password
+        </button>
+      </div>
+    </p-card>
+
+    <!-- ===== Danger Zone (User Story 3 — FR-008–FR-010) ===== -->
+    <div class="danger-zone">
+      <h2><i class="pi pi-exclamation-triangle" aria-hidden="true"></i> Danger Zone</h2>
+      <p>Permanently delete your account and everything you own. This can't be undone.</p>
+      <div class="danger-actions">
+        <button pButton type="button" severity="secondary">
+          <i class="pi pi-download" aria-hidden="true"></i>
+          Export my data (optional)
+        </button>
+        <button pButton type="button" severity="danger" (click)="openDangerZone()">
+          <i class="pi pi-trash" aria-hidden="true"></i>
+          Delete account
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ===== Danger Zone — step 1: advise export, not required ===== -->
+<p-dialog
+  header="Delete your account?"
+  [modal]="true"
+  [visible]="dangerStep() === 'advisory'"
+  [style]="{ width: '28rem' }"
+  (visibleChange)="closeDangerZone()"
+>
+  <p>
+    Every holding and setting you own is removed for good. You can export your data first if you'd
+    like a copy — it's not required to continue.
+  </p>
+  <ng-template #footer>
+    <button pButton type="button" severity="secondary" [text]="true">
+      <i class="pi pi-download" aria-hidden="true"></i> Export data first
+    </button>
+    <button pButton type="button" severity="danger" (click)="proceedToConfirm()">Continue</button>
+  </ng-template>
+</p-dialog>
+
+<!-- ===== Danger Zone — step 2: explicit final confirmation ===== -->
+<p-dialog
+  header="Confirm account deletion"
+  [modal]="true"
+  [visible]="dangerStep() === 'confirm'"
+  [style]="{ width: '28rem' }"
+  (visibleChange)="closeDangerZone()"
+>
+  <p>
+    Last step — this can't be undone. You'll be signed out immediately and all your data will be
+    gone.
+  </p>
+  <div class="field">
+    <label for="delete-confirm-text">Type DELETE to confirm</label>
+    <input
+      pInputText
+      id="delete-confirm-text"
+      placeholder="DELETE"
+      [ngModel]="deleteConfirmText()"
+      (ngModelChange)="deleteConfirmText.set($event)"
+    />
+  </div>
+  @if (deleteErrorMessage()) {
+    <p-message severity="error">{{ deleteErrorMessage() }}</p-message>
+  }
+  <ng-template #footer>
+    <button pButton type="button" severity="secondary" [text]="true" (click)="closeDangerZone()">
+      Cancel
+    </button>
+    <button
+      pButton
+      type="button"
+      severity="danger"
+      [loading]="deleting()"
+      [disabled]="deleteConfirmText() !== 'DELETE' || deleting()"
+      (click)="confirmDeleteAccount()"
+    >
+      <i class="pi pi-trash" aria-hidden="true"></i>
+      Permanently delete account
+    </button>
+  </ng-template>
+</p-dialog>
+
+<!-- ===== Danger Zone — blocked: sole active administrator ===== -->
+<p-dialog
+  header="Confirm account deletion"
+  [modal]="true"
+  [visible]="dangerStep() === 'blocked'"
+  [style]="{ width: '28rem' }"
+  (visibleChange)="closeDangerZone()"
+>
+  <p>
+    Last step — this can't be undone. You'll be signed out immediately and all your data will be
+    gone.
+  </p>
+  <p-message severity="warn" styleClass="last-admin-banner">
+    <strong>You're the sole administrator.</strong> Promote another member to admin before you can
+    delete your own account — this uses the same last-admin rule as the Accounts tab.
+  </p-message>
+  <ng-template #footer>
+    <button pButton type="button" severity="secondary" [text]="true" (click)="closeDangerZone()">
+      Cancel
+    </button>
+    <button pButton type="button" severity="danger" [disabled]="true">
+      <i class="pi pi-trash" aria-hidden="true"></i>
+      Permanently delete account
+    </button>
+  </ng-template>
+</p-dialog>

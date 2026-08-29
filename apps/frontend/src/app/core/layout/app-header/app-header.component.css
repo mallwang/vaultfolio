@@ -28,3 +28,13 @@
   font-size: 0.8rem;
   color: var(--p-text-muted-color);
 }
+
+/* design.md — small pill next to the display name, reusable verbatim (mockup.html). */
+.role-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--p-primary-600);
+  background: var(--p-highlight-background);
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+}
