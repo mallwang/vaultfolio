@@ -7,6 +7,7 @@ import { MessageModule } from 'primeng/message';
 import { CardModule } from 'primeng/card';
 import type { AuthErrorResponse } from '@vaultfolio/api-contract';
 import { AuthService } from '../auth.service';
+import { CurrentUserStore } from '../current-user.store';
 
 /**
  * Sign-in page (contracts/auth-api.md): email/password form; shows the
@@ -23,6 +24,7 @@ import { AuthService } from '../auth.service';
 })
 export class SignInComponent {
   private readonly authService = inject(AuthService);
+  private readonly currentUser = inject(CurrentUserStore);
   private readonly router = inject(Router);
 
   email = '';
@@ -38,7 +40,8 @@ export class SignInComponent {
     this.errorMessage.set(null);
 
     this.authService.signIn({ email: this.email, password: this.password }).subscribe({
-      next: () => {
+      next: (user) => {
+        this.currentUser.set(user);
         this.router.navigateByUrl('/dashboard');
       },
       error: (error: unknown) => {
