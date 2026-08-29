@@ -46,6 +46,23 @@ Stop the stack with `docker compose down` — `./data` is a host bind mount, not
 volume, so it survives `down` (with or without `-v`) automatically; delete the directory yourself
 if you want to wipe all stored data.
 
+### Authentication
+
+Every route requires a signed-in session except `/health` (005-auth-sessions-isolation). On first
+startup against an empty database, the backend seeds a single Administrator account from these
+env vars — set them before the first `docker compose up`:
+
+| Variable                             | Required | Default | Purpose                                                                                  |
+| ------------------------------------ | -------- | ------- | ---------------------------------------------------------------------------------------- |
+| `BOOTSTRAP_ADMIN_EMAIL`              | Yes\*    | —       | Sign-in email for the seeded Administrator account (created only if `users` is empty)    |
+| `BOOTSTRAP_ADMIN_PASSWORD`           | Yes\*    | —       | Password for that account (8–200 chars); hashed with Argon2id, never stored in plaintext |
+| `SESSION_INACTIVITY_TIMEOUT_MINUTES` | No       | `30`    | A session idle longer than this is rejected on next use                                  |
+| `SESSION_ABSOLUTE_LIFETIME_HOURS`    | No       | `12`    | Hard cap on a session's lifetime regardless of activity                                  |
+
+\*Only required the first time the backend starts against an empty database — if unset at that
+point, the backend logs a startup error and no account exists to sign in with. Already-seeded
+databases ignore these on subsequent boots.
+
 ### Hot-reload dev mode
 
 The command above builds production images (no live-reload). For day-to-day development, run the

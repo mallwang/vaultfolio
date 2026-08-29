@@ -17,13 +17,20 @@ describe('HoldingsRepository — exact-decimal round-trip (SQLite TEXT storage)'
   let database: DatabaseService;
   let repository: HoldingsRepository;
   let tempDir: string;
+  const ownerId = 'test-owner-id';
 
   beforeAll(async () => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'vaultfolio-holdings-repo-'));
     process.env.DATABASE_PATH = path.join(tempDir, 'test.db');
+    process.env.BOOTSTRAP_ADMIN_EMAIL = 'admin@example.com';
+    process.env.BOOTSTRAP_ADMIN_PASSWORD = 'a-valid-8-char-password';
 
     database = new DatabaseService();
     await database.onModuleInit();
+    await database.query(
+      `INSERT INTO users (id, email, display_name, password_hash, role) VALUES ($1, 'owner@example.com', 'Owner', 'x', 'MEMBER')`,
+      [ownerId],
+    );
     repository = new HoldingsRepository(database);
   });
 
@@ -31,6 +38,8 @@ describe('HoldingsRepository — exact-decimal round-trip (SQLite TEXT storage)'
     await database.onModuleDestroy();
     fs.rmSync(tempDir, { recursive: true, force: true });
     delete process.env.DATABASE_PATH;
+    delete process.env.BOOTSTRAP_ADMIN_EMAIL;
+    delete process.env.BOOTSTRAP_ADMIN_PASSWORD;
   });
 
   const baseHolding: Omit<
@@ -60,11 +69,11 @@ describe('HoldingsRepository — exact-decimal round-trip (SQLite TEXT storage)'
       currentValue: new Decimal(currentValue),
     };
 
-    const inserted = await repository.insert(value);
+    const inserted = await repository.insert(value, ownerId);
     expect(inserted.weightGrams?.toString()).toBe(weightGrams);
     expect(inserted.currentValue?.toString()).toBe(currentValue);
 
-    const reloaded = await repository.findById(inserted.id);
+    const reloaded = await repository.findById(inserted.id, ownerId);
     expect(reloaded?.weightGrams?.toString()).toBe(weightGrams);
     expect(reloaded?.currentValue?.toString()).toBe(currentValue);
   });
@@ -85,11 +94,11 @@ describe('HoldingsRepository — exact-decimal round-trip (SQLite TEXT storage)'
       currentValue: null,
     };
 
-    const inserted = await repository.insert(value);
+    const inserted = await repository.insert(value, ownerId);
     expect(inserted.quantity?.toString()).toBe(quantity);
     expect(inserted.purchasePrice?.toString()).toBe(purchasePrice);
 
-    const reloaded = await repository.findById(inserted.id);
+    const reloaded = await repository.findById(inserted.id, ownerId);
     expect(reloaded?.quantity?.toString()).toBe(quantity);
     expect(reloaded?.purchasePrice?.toString()).toBe(purchasePrice);
   });
