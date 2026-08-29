@@ -6,10 +6,11 @@ import { AppShellComponent } from './core/layout/app-shell/app-shell.component';
 
 /**
  * Root component: renders `AppShellComponent` (sidebar+header+router-outlet)
- * for every route except `/invite/*` (006, User Story 2) and `/signup*`
- * (007, User Story 1), which are invitee/visitor-facing and signed-out —
- * design.md explicitly requires those pages to render with no app shell, so
- * they get a bare `router-outlet` instead.
+ * for every route except `/invite/*` (006, User Story 2), `/signup*` (007,
+ * User Story 1), and `/account/*` (008, User Stories 1–2 — email-change
+ * verification, forgot/reset password), which are visitor-facing and
+ * signed-out — design.md explicitly requires those pages to render with no
+ * app shell, so they get a bare `router-outlet` instead.
  * `/sign-in` still renders inside the shell — that's a pre-existing gap
  * (005), not something this feature changes.
  */
@@ -32,6 +33,9 @@ export class App {
   );
 
   protected readonly shellless = computed(
-    () => this.url().startsWith('/invite/') || this.url().startsWith('/signup'),
+    () =>
+      this.url().startsWith('/invite/') ||
+      this.url().startsWith('/signup') ||
+      this.url().startsWith('/account/'),
   );
 }

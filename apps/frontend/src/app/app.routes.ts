@@ -13,6 +13,9 @@ import { authGuard } from './auth/auth.guard';
  * shell at all (design.md "Accept-invite page"/"Invite-expired page"); see
  * `App`'s route-based shell toggle in app.ts. `/invite/expired` is declared
  * before the `:token` route so the literal segment wins the match.
+ * `/account/*` (008, User Stories 1–2) are the equivalent public,
+ * shell-less routes for email-change verification and forgot/reset
+ * password.
  */
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
@@ -28,6 +31,30 @@ export const routes: Routes = [
   {
     path: 'invite/:token',
     loadComponent: () => import('./invite/accept/accept.component').then((m) => m.AcceptComponent),
+  },
+  {
+    path: 'account/link-invalid',
+    loadComponent: () =>
+      import('./account/link-invalid/link-invalid.component').then((m) => m.LinkInvalidComponent),
+  },
+  {
+    path: 'account/verify-email/:token',
+    loadComponent: () =>
+      import('./account/verify-email/verify-email.component').then((m) => m.VerifyEmailComponent),
+  },
+  {
+    path: 'account/forgot-password',
+    loadComponent: () =>
+      import('./account/forgot-password/forgot-password.component').then(
+        (m) => m.ForgotPasswordComponent,
+      ),
+  },
+  {
+    path: 'account/reset-password/:token',
+    loadComponent: () =>
+      import('./account/reset-password/reset-password.component').then(
+        (m) => m.ResetPasswordComponent,
+      ),
   },
   {
     path: 'signup',

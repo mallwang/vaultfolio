@@ -205,6 +205,7 @@ export class SignupsController {
             createdAt: string;
             verifiedAt: string | null;
             resolvedAt: string | null;
+            accountDeletedAt: string | null;
           };
         }
       | { kind: 'not_found' }
@@ -219,6 +220,7 @@ export class SignupsController {
             createdAt: string;
             verifiedAt: string | null;
             resolvedAt: string | null;
+            accountDeletedAt: string | null;
           };
         },
     res: Response,
@@ -247,6 +249,7 @@ export class SignupsController {
       createdAt: result.request.createdAt,
       verifiedAt: result.request.verifiedAt,
       resolvedAt: result.request.resolvedAt,
+      accountDeletedAt: result.request.accountDeletedAt,
     };
   }
 }

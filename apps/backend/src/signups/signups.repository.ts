@@ -15,6 +15,7 @@ export interface SignupRequest {
   verifiedAt: string | null;
   resolvedAt: string | null;
   resolvedBy: string | null;
+  accountDeletedAt: string | null;
 }
 
 export interface EmailBlacklistEntry {
@@ -35,6 +36,7 @@ interface SignupRequestRow {
   verified_at: string | null;
   resolved_at: string | null;
   resolved_by: string | null;
+  account_deleted_at: string | null;
 }
 
 interface EmailBlacklistRow {
@@ -56,6 +58,7 @@ function rowToSignupRequest(row: SignupRequestRow): SignupRequest {
     verifiedAt: row.verified_at,
     resolvedAt: row.resolved_at,
     resolvedBy: row.resolved_by,
+    accountDeletedAt: row.account_deleted_at,
   };
 }
 

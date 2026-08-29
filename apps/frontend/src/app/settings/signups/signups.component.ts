@@ -7,6 +7,7 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
+import { AccountsService } from '../accounts/accounts.service';
 import { RejectDialogComponent } from './reject-dialog/reject-dialog.component';
 import { SignupsAdminService } from './signups.service';
 
@@ -51,6 +52,7 @@ const STATUS_LABEL: Record<SignupStatus, string> = {
 })
 export class SignupsComponent implements OnInit {
   private readonly signupsAdminService = inject(SignupsAdminService);
+  private readonly accountsService = inject(AccountsService);
   private readonly confirmationService = inject(ConfirmationService);
   private readonly messageService = inject(MessageService);
 
@@ -105,6 +107,9 @@ export class SignupsComponent implements OnInit {
     this.signupsAdminService.approve(signup.id).subscribe({
       next: () => {
         this.refresh();
+        // Approving creates a new account — tell the (already-instantiated)
+        // Accounts tab to refetch so it shows up without a page reload.
+        this.accountsService.notifyChanged();
         this.messageService.add({ severity: 'success', summary: 'Sign-up approved' });
       },
       error: () => {

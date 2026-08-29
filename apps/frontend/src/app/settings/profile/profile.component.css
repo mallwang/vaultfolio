@@ -1,0 +1,98 @@
+.profile-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  max-width: 620px;
+}
+
+h2 {
+  margin: 0 0 0.75rem;
+  font-size: 0.95rem;
+}
+
+.card-lede {
+  margin: 0 0 1.1rem;
+  font-size: 0.8rem;
+  color: var(--p-text-muted-color);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 1rem;
+}
+.field:last-child {
+  margin-bottom: 0;
+}
+
+.field-hint {
+  margin: 0.15rem 0 0;
+  font-size: 0.75rem;
+  color: var(--p-text-muted-color);
+}
+
+.field-error {
+  border-color: var(--p-danger-color) !important;
+}
+
+.field-row-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.9rem;
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid var(--p-content-border-color);
+  margin: 1.2rem 0;
+}
+
+::ng-deep .email-pending-banner,
+::ng-deep .last-admin-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.banner-cancel {
+  margin-left: auto;
+  flex: 0 0 auto;
+  background: none;
+  border: none;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+  color: inherit;
+}
+
+/* design.md — the app's first "Danger Zone" pattern, reusable verbatim (mockup.html). */
+.danger-zone {
+  border: 1px solid #fecaca;
+  background: var(--p-danger-background);
+  border-radius: 12px;
+  padding: 1.25rem 1.35rem;
+}
+.danger-zone h2 {
+  margin: 0 0 0.2rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #991b1b;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.danger-zone > p {
+  margin: 0 0 1.1rem;
+  font-size: 0.82rem;
+  color: #991b1b;
+  max-width: 52ch;
+}
+.danger-zone .danger-actions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}

@@ -1,0 +1,33 @@
+<div class="invite-page">
+  @if (state() === 'ready') {
+    <p-card styleClass="invite-card">
+      @if (confirmedEmail()) {
+        <div class="invite-expired-icon">
+          <i class="pi pi-check-circle" aria-hidden="true"></i>
+        </div>
+        <h1>Email confirmed</h1>
+        <p class="lede">
+          Your account email is now {{ confirmedEmail() }}. You can sign in with it.
+        </p>
+        <p-button
+          label="Go to sign in"
+          icon="pi pi-lock"
+          severity="secondary"
+          routerLink="/sign-in"
+        />
+      } @else {
+        <h1>Confirm your new email</h1>
+        <p class="lede">
+          Confirm <strong>{{ newEmail() }}</strong> as your new Vaultfolio email address.
+        </p>
+        <p-button
+          label="Confirm email change"
+          icon="pi pi-check-circle"
+          [loading]="confirming()"
+          [disabled]="confirming()"
+          (onClick)="confirm()"
+        />
+      }
+    </p-card>
+  }
+</div>

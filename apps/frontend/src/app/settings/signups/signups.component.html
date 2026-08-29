@@ -31,6 +31,11 @@
               [value]="statusLabel(signup.status)"
               [rounded]="true"
             />
+            @if (signup.accountDeletedAt) {
+              <div class="status-followup">
+                Account deleted {{ signup.accountDeletedAt | date: 'mediumDate' }}
+              </div>
+            }
           </td>
           <td class="row-actions">
             @if (signup.status === 'VERIFIED') {

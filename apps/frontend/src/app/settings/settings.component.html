@@ -1,11 +1,15 @@
-<p-tabs value="accounts">
+<p-tabs value="profile">
   <p-tablist>
+    <p-tab value="profile">Profile</p-tab>
     <p-tab value="accounts">Accounts</p-tab>
     <p-tab value="invitations">Invitations</p-tab>
     <p-tab value="signups">Sign-ups</p-tab>
     <p-tab value="general">General</p-tab>
   </p-tablist>
   <p-tabpanels>
+    <p-tabpanel value="profile">
+      <app-profile />
+    </p-tabpanel>
     <p-tabpanel value="accounts">
       <app-accounts />
     </p-tabpanel>

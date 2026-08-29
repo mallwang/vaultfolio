@@ -42,6 +42,11 @@ export class AppHeaderComponent {
 
   protected readonly user = this.currentUser.current;
 
+  /** FR-004 (008): reflects role next to the display name/avatar — `SessionUser.role` already exists. */
+  protected readonly roleLabel = computed(() =>
+    this.user()?.role === 'ADMIN' ? 'Admin' : 'Member',
+  );
+
   protected readonly userInitials = computed(() => {
     const name = this.user()?.displayName ?? '';
     return (
