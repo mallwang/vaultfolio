@@ -7,6 +7,7 @@ import { UsersRepository } from '../auth/users.repository';
 import { SessionsRepository } from '../auth/sessions.repository';
 import { toSessionUser } from '../auth/auth.service';
 import type { Session } from '../auth/sessions.repository';
+import { EmailAvailabilityService } from '../shared/email-availability.service';
 import { InvitationsRepository } from './invitations.repository';
 import type { Invitation, InvitationRole } from './invitations.repository';
 import { EmailService } from './email.service';
@@ -29,11 +30,6 @@ function toSummary(invitation: Invitation): InvitationSummary {
     expiresAt: invitation.expiresAt,
   };
 }
-
-export type CheckEmailAvailableResult =
-  | { kind: 'available' }
-  | { kind: 'has_account' }
-  | { kind: 'has_pending_invitation'; invitation: Invitation };
 
 export type CreateInvitationResult =
   | { kind: 'success'; invitation: Invitation }
@@ -74,36 +70,23 @@ export class InvitationsService {
     private readonly users: UsersRepository,
     private readonly sessions: SessionsRepository,
     private readonly emailService: EmailService,
+    private readonly emailAvailability: EmailAvailabilityService,
   ) {}
-
-  /**
-   * Three-way check used before creating/resending an invitation (T056):
-   * an existing active/archived account always wins over a pending
-   * invitation for the same email.
-   */
-  async checkEmailAvailable(email: string): Promise<CheckEmailAvailableResult> {
-    const existingUser = await this.users.findByEmail(email);
-    if (existingUser) {
-      return { kind: 'has_account' };
-    }
-    const pending = await this.invitations.findPendingByEmail(email);
-    if (pending) {
-      return { kind: 'has_pending_invitation', invitation: pending };
-    }
-    return { kind: 'available' };
-  }
 
   async create(
     email: string,
     role: InvitationRole,
     invitedBy: string,
   ): Promise<CreateInvitationResult> {
-    const availability = await this.checkEmailAvailable(email);
+    const availability = await this.emailAvailability.check(email);
     if (availability.kind === 'has_account') {
       return { kind: 'account_exists' };
     }
     if (availability.kind === 'has_pending_invitation') {
-      await this.invitations.supersede(availability.invitation.id);
+      const pending = await this.invitations.findPendingByEmail(email);
+      if (pending) {
+        await this.invitations.supersede(pending.id);
+      }
     }
 
     const token = generateInvitationToken();

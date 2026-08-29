@@ -1,0 +1,79 @@
+<div class="invite-page">
+  <p-card styleClass="invite-card">
+    @if (submitted()) {
+      <div class="invite-expired-icon">
+        <i class="pi pi-envelope" aria-hidden="true"></i>
+      </div>
+      <h1>Check your email</h1>
+      <p class="lede">
+        We've sent a verification link to {{ email() }}. Open it to confirm your address — an
+        administrator will review your request afterward.
+      </p>
+      <p-button
+        label="Go to sign in"
+        icon="pi pi-lock"
+        severity="secondary"
+        routerLink="/sign-in"
+      />
+    } @else {
+      <h1>Create your account</h1>
+      <p class="lede">Sign up for Vaultfolio. An administrator reviews every new request.</p>
+
+      <form (ngSubmit)="submit()" class="invite-form">
+        <div class="field">
+          <label for="signup-email">Email</label>
+          <input
+            pInputText
+            id="signup-email"
+            name="email"
+            type="email"
+            autocomplete="email"
+            [(ngModel)]="email"
+            required
+          />
+        </div>
+
+        <div class="field">
+          <label for="signup-password">Password</label>
+          <input
+            pInputText
+            id="signup-password"
+            name="password"
+            type="password"
+            placeholder="8–200 characters"
+            autocomplete="new-password"
+            [(ngModel)]="password"
+            required
+          />
+        </div>
+
+        <div class="field">
+          <label for="signup-password-confirm">Confirm password</label>
+          <input
+            pInputText
+            id="signup-password-confirm"
+            name="confirmPassword"
+            type="password"
+            autocomplete="new-password"
+            [(ngModel)]="confirmPassword"
+            required
+          />
+        </div>
+
+        @if (errorMessage()) {
+          <p-message severity="error">{{ errorMessage() }}</p-message>
+        }
+
+        <p-button
+          type="submit"
+          label="Sign up"
+          icon="pi pi-user-plus"
+          [loading]="submitting()"
+          [disabled]="submitting()"
+        />
+
+        <p class="field-hint">Already have an account? <a routerLink="/sign-in">Sign in</a></p>
+      </form>
+    }
+  </p-card>
+</div>

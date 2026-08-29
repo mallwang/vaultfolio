@@ -125,6 +125,15 @@ export class UsersRepository {
     return rows.map(rowToUser);
   }
 
+  /** All `ACTIVE` accounts with the given role — e.g. the admin-notification recipient list (007). */
+  async findAllByRole(role: UserRole): Promise<User[]> {
+    const rows = await this.database.query<UserRow>(
+      `SELECT * FROM users WHERE role = $1 AND status = 'ACTIVE' ORDER BY created_at ASC`,
+      [role],
+    );
+    return rows.map(rowToUser);
+  }
+
   /** `ARCHIVED` accounts whose retention window has passed — the retention-sweep service's candidate set (006, FR-005). */
   async findArchivedPastRetention(): Promise<User[]> {
     const rows = await this.database.query<UserRow>(

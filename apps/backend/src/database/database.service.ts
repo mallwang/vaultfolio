@@ -158,6 +158,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     db.exec('CREATE INDEX IF NOT EXISTS holdings_owner_id_idx ON holdings (owner_id)');
 
     this.migrateAccountsAndInvitations(db);
+    this.migrateSignups(db);
   }
 
   /**
@@ -198,6 +199,43 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     db.exec(
       'CREATE INDEX IF NOT EXISTS invitations_email_idx ON invitations (email COLLATE NOCASE)',
     );
+  }
+
+  /**
+   * 007-self-service-signup: the `signup_requests` and `email_blacklist`
+   * tables (data-model.md, research.md #3) — same `PRAGMA table_info`
+   * idempotent-migration pattern as `migrateAccountsAndInvitations`.
+   */
+  private migrateSignups(db: Database.Database): void {
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS signup_requests (
+        id            TEXT PRIMARY KEY,
+        email         TEXT NOT NULL,
+        password_hash TEXT NOT NULL,
+        token         TEXT NOT NULL,
+        status        TEXT NOT NULL CHECK (status IN ('PENDING','VERIFIED','APPROVED','REJECTED')) DEFAULT 'PENDING',
+        created_at    TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')),
+        expires_at    TEXT NOT NULL,
+        verified_at   TEXT NULL,
+        resolved_at   TEXT NULL,
+        resolved_by   TEXT NULL REFERENCES users(id)
+      )
+    `);
+    db.exec(
+      'CREATE UNIQUE INDEX IF NOT EXISTS signup_requests_token_idx ON signup_requests (token)',
+    );
+    db.exec(
+      'CREATE INDEX IF NOT EXISTS signup_requests_email_idx ON signup_requests (email COLLATE NOCASE)',
+    );
+
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS email_blacklist (
+        email             TEXT PRIMARY KEY COLLATE NOCASE,
+        reason            TEXT NULL,
+        created_at        TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')),
+        signup_request_id TEXT NULL REFERENCES signup_requests(id)
+      )
+    `);
   }
 
   /**

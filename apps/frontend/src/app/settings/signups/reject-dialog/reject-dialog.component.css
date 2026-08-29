@@ -1,0 +1,16 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 1rem;
+}
+
+.reject-dialog__lede {
+  color: var(--p-text-muted-color);
+  margin: 0;
+}
+
+::ng-deep .reject-dialog__error {
+  display: block;
+  margin-bottom: 1rem;
+}

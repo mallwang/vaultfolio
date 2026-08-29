@@ -1,0 +1,35 @@
+<p-dialog
+  header="Reject this sign-up?"
+  [modal]="true"
+  [visible]="visible"
+  [style]="{ width: '28rem' }"
+  (visibleChange)="close()"
+>
+  @if (errorMessage()) {
+    <p-message severity="error" styleClass="reject-dialog__error">{{ errorMessage() }}</p-message>
+  }
+
+  <p class="reject-dialog__lede">
+    {{ signupEmail }} won't be notified why — only that their request wasn't approved.
+  </p>
+
+  <div class="field">
+    <label for="reject-reason">Reason (internal only, optional)</label>
+    <input
+      pInputText
+      id="reject-reason"
+      [ngModel]="reason()"
+      (ngModelChange)="reason.set($event)"
+      autocomplete="off"
+    />
+  </div>
+
+  <ng-template #footer>
+    <button pButton type="button" severity="secondary" [text]="true" (click)="close()">
+      Keep it
+    </button>
+    <button pButton type="button" severity="danger" [loading]="submitting()" (click)="submit()">
+      <i class="pi pi-times" aria-hidden="true"></i> Reject sign-up
+    </button>
+  </ng-template>
+</p-dialog>
