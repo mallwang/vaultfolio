@@ -89,7 +89,7 @@ depends on. **No user story work can begin until this phase is complete.**
       from `BOOTSTRAP_ADMIN_EMAIL`/`BOOTSTRAP_ADMIN_PASSWORD` env vars, argon2-hashing the password,
       role `ADMIN`, if `users` table is empty; logs a clear startup error and skips auth-route
       readiness if unset with no existing users) → `UPDATE holdings SET owner_id = ? WHERE owner_id
-  IS NULL` → `CREATE INDEX IF NOT EXISTS holdings_owner_id_idx ON holdings (owner_id)`, all in
+IS NULL` → `CREATE INDEX IF NOT EXISTS holdings_owner_id_idx ON holdings (owner_id)`, all in
       `apps/backend/src/database/database.service.ts` (depends on T011, T012)
 - [x] T014 [P] Write integration test that boots `DatabaseService` against a fresh temp-file SQLite
       DB and asserts: `users`/`sessions` tables exist, bootstrap admin created from env vars,
@@ -169,7 +169,7 @@ immediately invalidates the old cookie.
 ### Implementation for User Story 1
 
 - [x] T030 [US1] Implement `AuthService` in `apps/backend/src/auth/auth.service.ts`: `signIn(email,
-  password)` (lockout check → `libs/domain/auth` lockout-policy → argon2 verify → on success
+password)` (lockout check → `libs/domain/auth` lockout-policy → argon2 verify → on success
       reset failed_attempts + create session; on failure increment failed_attempts + maybe set
       locked_until, per research.md #3), `signOut(sessionId)`, using `UsersRepository`/
       `SessionsRepository` (depends on T017, T018, T008)
