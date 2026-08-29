@@ -1,0 +1,66 @@
+<div class="invite-page">
+  @if (!loading()) {
+    <p-card styleClass="invite-card">
+      <h1>You've been invited</h1>
+      <p class="lede">
+        You've been invited to join a Vaultfolio household as {{ roleLabel() }}. Choose a password
+        to activate your account.
+      </p>
+
+      <div class="invited-email">{{ email() }}</div>
+
+      <form (ngSubmit)="submit()" class="invite-form">
+        <div class="field">
+          <label for="display-name">Your name</label>
+          <input
+            pInputText
+            id="display-name"
+            name="displayName"
+            [(ngModel)]="displayName"
+            required
+          />
+        </div>
+
+        <div class="field">
+          <label for="accept-password">Password</label>
+          <input
+            pInputText
+            id="accept-password"
+            name="password"
+            type="password"
+            placeholder="8–200 characters"
+            autocomplete="new-password"
+            [(ngModel)]="password"
+            required
+          />
+          <p class="field-hint">Same password rules as everywhere else in Vaultfolio.</p>
+        </div>
+
+        <div class="field">
+          <label for="accept-password-confirm">Confirm password</label>
+          <input
+            pInputText
+            id="accept-password-confirm"
+            name="confirmPassword"
+            type="password"
+            autocomplete="new-password"
+            [(ngModel)]="confirmPassword"
+            required
+          />
+        </div>
+
+        @if (errorMessage()) {
+          <p-message severity="error">{{ errorMessage() }}</p-message>
+        }
+
+        <p-button
+          type="submit"
+          label="Activate account"
+          icon="pi pi-check-circle"
+          [loading]="submitting()"
+          [disabled]="submitting()"
+        />
+      </form>
+    </p-card>
+  }
+</div>

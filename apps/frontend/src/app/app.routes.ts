@@ -8,12 +8,26 @@ import { authGuard } from './auth/auth.guard';
  * trailing wildcard renders NotFoundComponent inside the persistent shell
  * (FR-004, FR-006). `/sign-in` is the one public route
  * (005-auth-sessions-isolation); every other route carries `authGuard`.
+ * `/invite/expired` and `/invite/:token` (006, User Story 2) are also
+ * public — no session exists yet — and additionally render with no app
+ * shell at all (design.md "Accept-invite page"/"Invite-expired page"); see
+ * `App`'s route-based shell toggle in app.ts. `/invite/expired` is declared
+ * before the `:token` route so the literal segment wins the match.
  */
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
   {
     path: 'sign-in',
     loadComponent: () => import('./auth/sign-in/sign-in.component').then((m) => m.SignInComponent),
+  },
+  {
+    path: 'invite/expired',
+    loadComponent: () =>
+      import('./invite/expired/expired.component').then((m) => m.ExpiredComponent),
+  },
+  {
+    path: 'invite/:token',
+    loadComponent: () => import('./invite/accept/accept.component').then((m) => m.AcceptComponent),
   },
   {
     path: 'dashboard',

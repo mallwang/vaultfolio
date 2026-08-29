@@ -1,0 +1,54 @@
+<p-dialog
+  header="Invite a member"
+  [modal]="true"
+  [visible]="visible"
+  [style]="{ width: '28rem' }"
+  (visibleChange)="close()"
+>
+  @if (errorMessage()) {
+    <p-message severity="error" styleClass="invite-dialog__error">{{ errorMessage() }}</p-message>
+  }
+
+  <div class="field">
+    <label for="invite-email">Email</label>
+    <input
+      pInputText
+      id="invite-email"
+      type="email"
+      [ngModel]="email()"
+      (ngModelChange)="email.set($event)"
+      autocomplete="off"
+    />
+  </div>
+
+  <div class="field">
+    <label for="invite-role">Role</label>
+    <p-select
+      id="invite-role"
+      [options]="roleOptions"
+      optionLabel="label"
+      optionValue="value"
+      [ngModel]="role()"
+      (ngModelChange)="role.set($event)"
+    />
+  </div>
+
+  <p class="invite-dialog__hint">
+    The invitee sets their own password when they open the link — you never see or set it.
+  </p>
+
+  <ng-template #footer>
+    <button pButton type="button" severity="secondary" [text]="true" (click)="close()">
+      Cancel
+    </button>
+    <button
+      pButton
+      type="button"
+      [loading]="submitting()"
+      [disabled]="!email().trim()"
+      (click)="submit()"
+    >
+      <i class="pi pi-send" aria-hidden="true"></i> Send invitation
+    </button>
+  </ng-template>
+</p-dialog>

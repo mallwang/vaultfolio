@@ -23,6 +23,9 @@
     },
     {
       "path": "./libs/domain/auth"
+    },
+    {
+      "path": "./libs/domain/invitations"
     }
   ],
   "compilerOptions": {}

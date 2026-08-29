@@ -115,4 +115,30 @@ describe('DatabaseService — auth/isolation migration', () => {
 
     await second.onModuleDestroy();
   });
+
+  it('006: adds users.archived_at/retention_expires_at and the invitations table, idempotently', async () => {
+    const first = new DatabaseService();
+    await first.onModuleInit();
+    await first.onModuleDestroy();
+
+    // Second run against the same on-disk DB must not error re-adding the
+    // already-present columns/table (data-model.md's pragma-guarded ALTER,
+    // matching spec 005's pattern for holdings.owner_id).
+    const second = new DatabaseService();
+    await second.onModuleInit();
+
+    const userColumns = await second.query<{ name: string }>(
+      "SELECT name FROM pragma_table_info('users')",
+    );
+    const columnNames = userColumns.map((c) => c.name);
+    expect(columnNames).toContain('archived_at');
+    expect(columnNames).toContain('retention_expires_at');
+
+    const tables = await second.query<{ name: string }>(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name = 'invitations'",
+    );
+    expect(tables).toHaveLength(1);
+
+    await second.onModuleDestroy();
+  });
 });

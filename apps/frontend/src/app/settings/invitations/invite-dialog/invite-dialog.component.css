@@ -1,0 +1,21 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+}
+
+.field label {
+  font-weight: 600;
+}
+
+.invite-dialog__hint {
+  color: var(--p-text-muted-color);
+  font-size: 0.875rem;
+  margin: 0 0 0.5rem;
+}
+
+::ng-deep .invite-dialog__error {
+  display: block;
+  margin-bottom: 1rem;
+}

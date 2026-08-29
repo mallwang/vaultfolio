@@ -14,6 +14,8 @@ export interface User {
   status: UserStatus;
   failedAttempts: number;
   lockedUntil: string | null;
+  archivedAt: string | null;
+  retentionExpiresAt: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -27,6 +29,8 @@ interface UserRow {
   status: UserStatus;
   failed_attempts: number;
   locked_until: string | null;
+  archived_at: string | null;
+  retention_expires_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -41,6 +45,8 @@ function rowToUser(row: UserRow): User {
     status: row.status,
     failedAttempts: row.failed_attempts,
     lockedUntil: row.locked_until,
+    archivedAt: row.archived_at,
+    retentionExpiresAt: row.retention_expires_at,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -111,5 +117,104 @@ export class UsersRepository {
        WHERE id = $1`,
       [id, lockedUntil],
     );
+  }
+
+  /** Every account, active and archived (006, FR-001) — the admin accounts list. */
+  async findAll(): Promise<User[]> {
+    const rows = await this.database.query<UserRow>('SELECT * FROM users ORDER BY created_at ASC');
+    return rows.map(rowToUser);
+  }
+
+  /** `ARCHIVED` accounts whose retention window has passed — the retention-sweep service's candidate set (006, FR-005). */
+  async findArchivedPastRetention(): Promise<User[]> {
+    const rows = await this.database.query<UserRow>(
+      `SELECT * FROM users
+       WHERE status = 'ARCHIVED' AND retention_expires_at IS NOT NULL
+         AND retention_expires_at <= STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')`,
+    );
+    return rows.map(rowToUser);
+  }
+
+  /**
+   * Number of currently-`ACTIVE` `ADMIN` accounts, optionally excluding one
+   * id — used by the last-admin invariant (`canRemoveLastAdmin`,
+   * research.md #3). `excludingUserId` lets a caller ask "how many other
+   * active admins are there besides this one".
+   */
+  async countActiveAdmins(excludingUserId?: string): Promise<number> {
+    const rows = await this.database.query<{ count: number }>(
+      `SELECT COUNT(*) as count FROM users
+       WHERE status = 'ACTIVE' AND role = 'ADMIN' AND ($1 IS NULL OR id <> $1)`,
+      [excludingUserId ?? null],
+    );
+    return Number(rows[0]?.count ?? 0);
+  }
+
+  async updateRole(id: string, role: UserRole): Promise<User | null> {
+    const rows = await this.database.query<UserRow>(
+      `UPDATE users
+       SET role = $2, updated_at = STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')
+       WHERE id = $1
+       RETURNING *`,
+      [id, role],
+    );
+    return rows[0] ? rowToUser(rows[0]) : null;
+  }
+
+  /**
+   * Archives an account (006, FR-003): sets `status = 'ARCHIVED'`,
+   * `archived_at = now`, `retention_expires_at`. Guarded to only affect a
+   * currently-`ACTIVE` row (race guard, research.md #4) — returns `null`
+   * (zero rows affected) if the account was already archived.
+   */
+  async archive(id: string, retentionExpiresAt: string): Promise<User | null> {
+    const rows = await this.database.query<UserRow>(
+      `UPDATE users
+       SET status = 'ARCHIVED',
+           archived_at = STRFTIME('%Y-%m-%dT%H:%M:%fZ','now'),
+           retention_expires_at = $2,
+           updated_at = STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')
+       WHERE id = $1 AND status = 'ACTIVE'
+       RETURNING *`,
+      [id, retentionExpiresAt],
+    );
+    return rows[0] ? rowToUser(rows[0]) : null;
+  }
+
+  /**
+   * Reactivates an archived account (006, FR-003): clears `archived_at`/
+   * `retention_expires_at`, sets `status = 'ACTIVE'`. Guarded to only affect
+   * a currently-`ARCHIVED` row (race guard, research.md #4) — returns `null`
+   * if the account was already active (or never existed).
+   */
+  async reactivate(id: string): Promise<User | null> {
+    const rows = await this.database.query<UserRow>(
+      `UPDATE users
+       SET status = 'ACTIVE', archived_at = NULL, retention_expires_at = NULL,
+           updated_at = STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')
+       WHERE id = $1 AND status = 'ARCHIVED'
+       RETURNING *`,
+      [id],
+    );
+    return rows[0] ? rowToUser(rows[0]) : null;
+  }
+
+  /**
+   * Permanently deletes an account and cascades its owned data (006,
+   * self-delete path / retention sweep) — mirrors `SessionsRepository`'s
+   * `deleteAllForUser` primitive by deleting sessions and owned holdings
+   * before the `users` row itself, since this schema has no `ON DELETE
+   * CASCADE` (Principle V/YAGNI: explicit deletes, no FK cascade config to
+   * reason about). Statements run sequentially against the single embedded
+   * SQLite connection (no concurrent interleaving, research.md #4).
+   */
+  async deleteById(id: string): Promise<void> {
+    // invitations.invited_by is deliberately NOT cascaded here — an admin's
+    // sent invitations remain as an audit trail after the admin's own
+    // account is gone (data-model.md's "Relationships": "no CASCADE,
+    // explicit deletion only, Principle V").
+    await this.database.query('DELETE FROM sessions WHERE user_id = $1', [id]);
+    await this.database.query('DELETE FROM holdings WHERE owner_id = $1', [id]);
+    await this.database.query('DELETE FROM users WHERE id = $1', [id]);
   }
 }

@@ -1,0 +1,28 @@
+.invite-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 1.5rem;
+}
+
+::ng-deep .invite-card {
+  width: 100%;
+  max-width: 26rem;
+  text-align: center;
+}
+
+.invite-expired-icon {
+  font-size: 2rem;
+  color: var(--p-text-muted-color);
+  margin-bottom: 0.75rem;
+}
+
+h1 {
+  margin: 0 0 0.5rem;
+}
+
+.lede {
+  color: var(--p-text-muted-color);
+  margin: 0 0 1.25rem;
+}

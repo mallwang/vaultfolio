@@ -87,4 +87,121 @@ describe('UsersRepository', () => {
     const found = await repository.findById(user.id);
     expect(found?.lockedUntil).toBe(lockedUntil);
   });
+
+  it('findAll lists every account, including archived ones', async () => {
+    const before = await repository.findAll();
+    const user = await repository.create({
+      email: 'findall@example.com',
+      displayName: 'Find All',
+      passwordHash: 'hash-4',
+      role: 'MEMBER',
+    });
+    await repository.archive(user.id, new Date(Date.now() + 1000).toISOString());
+
+    const all = await repository.findAll();
+    expect(all.length).toBe(before.length + 1);
+    const found = all.find((u) => u.id === user.id);
+    expect(found?.status).toBe('ARCHIVED');
+  });
+
+  it('countActiveAdmins counts only ACTIVE ADMIN rows, and can exclude one id', async () => {
+    const admin1 = await repository.create({
+      email: 'admin1@example.com',
+      displayName: 'Admin One',
+      passwordHash: 'hash-5',
+      role: 'ADMIN',
+    });
+    const admin2 = await repository.create({
+      email: 'admin2@example.com',
+      displayName: 'Admin Two',
+      passwordHash: 'hash-6',
+      role: 'ADMIN',
+    });
+
+    const countBefore = await repository.countActiveAdmins();
+    expect(countBefore).toBeGreaterThanOrEqual(2);
+
+    const excluding = await repository.countActiveAdmins(admin1.id);
+    expect(excluding).toBe(countBefore - 1);
+
+    await repository.archive(admin2.id, new Date(Date.now() + 1000).toISOString());
+    const afterArchive = await repository.countActiveAdmins();
+    expect(afterArchive).toBe(countBefore - 1);
+  });
+
+  it('updateRole changes role and returns the updated row', async () => {
+    const user = await repository.create({
+      email: 'role-change@example.com',
+      displayName: 'Role Change',
+      passwordHash: 'hash-7',
+      role: 'MEMBER',
+    });
+
+    const updated = await repository.updateRole(user.id, 'ADMIN');
+    expect(updated?.role).toBe('ADMIN');
+    expect((await repository.findById(user.id))?.role).toBe('ADMIN');
+  });
+
+  it('archive is a no-op (zero rows affected) when already archived (race guard)', async () => {
+    const user = await repository.create({
+      email: 'race-archive@example.com',
+      displayName: 'Race Archive',
+      passwordHash: 'hash-8',
+      role: 'MEMBER',
+    });
+    const retentionExpiresAt = new Date(Date.now() + 1000).toISOString();
+
+    const first = await repository.archive(user.id, retentionExpiresAt);
+    expect(first?.status).toBe('ARCHIVED');
+    expect(first?.archivedAt).not.toBeNull();
+    expect(first?.retentionExpiresAt).toBe(retentionExpiresAt);
+
+    const second = await repository.archive(user.id, retentionExpiresAt);
+    expect(second).toBeNull();
+  });
+
+  it('reactivate clears archival columns and is a no-op when already active (race guard)', async () => {
+    const user = await repository.create({
+      email: 'race-reactivate@example.com',
+      displayName: 'Race Reactivate',
+      passwordHash: 'hash-9',
+      role: 'MEMBER',
+    });
+    await repository.archive(user.id, new Date(Date.now() + 1000).toISOString());
+
+    const reactivated = await repository.reactivate(user.id);
+    expect(reactivated?.status).toBe('ACTIVE');
+    expect(reactivated?.archivedAt).toBeNull();
+    expect(reactivated?.retentionExpiresAt).toBeNull();
+
+    const second = await repository.reactivate(user.id);
+    expect(second).toBeNull();
+  });
+
+  it('deleteById removes the user and cascades owned sessions and holdings', async () => {
+    const user = await repository.create({
+      email: 'delete-me@example.com',
+      displayName: 'Delete Me',
+      passwordHash: 'hash-10',
+      role: 'MEMBER',
+    });
+    await database.query('INSERT INTO sessions (id, user_id, expires_at) VALUES ($1, $2, $3)', [
+      'sess-delete-cascade',
+      user.id,
+      new Date(Date.now() + 60_000).toISOString(),
+    ]);
+    await database.query(
+      `INSERT INTO holdings (id, asset_type, management, weight_grams, owner_id)
+       VALUES ($1, 'GOLD', 'Self-managed', '10', $2)`,
+      ['holding-delete-cascade', user.id],
+    );
+
+    await repository.deleteById(user.id);
+
+    expect(await repository.findById(user.id)).toBeNull();
+    const sessions = await database.query('SELECT * FROM sessions WHERE user_id = $1', [user.id]);
+    expect(sessions.length).toBe(0);
+    const holdings = await database.query('SELECT * FROM holdings WHERE owner_id = $1', [user.id]);
+    expect(holdings.length).toBe(0);
+  });
 });
