@@ -38,11 +38,11 @@ with no admin action taken, per its own Independent Test).
 **Purpose**: Shared DTOs and schema that both the extracted availability service and the new
 `signups/` module depend on.
 
-- [ ] T001 [P] Add `SignupSummary`, `CreateSignupRequest`, `SignupSubmitted`, `RejectSignupRequest`,
+- [x] T001 [P] Add `SignupSummary`, `CreateSignupRequest`, `SignupSubmitted`, `RejectSignupRequest`,
       `SignupsErrorResponse` types to new `libs/api-contract/src/lib/signups.ts`, per
       contracts/signups-api.md's Shared DTOs section, and export it from
       `libs/api-contract/src/index.ts`
-- [ ] T002 Add `PUBLIC_SIGNUP_ENABLED` (default `true`) and `SIGNUP_EXPIRY_HOURS` (or `_DAYS`,
+- [x] T002 Add `PUBLIC_SIGNUP_ENABLED` (default `true`) and `SIGNUP_EXPIRY_HOURS` (or `_DAYS`,
       mirroring `INVITATION_EXPIRY_DAYS`) entries to `.env.example`, documented alongside the
       existing `SMTP_*`/`APP_BASE_URL`/`INVITATION_EXPIRY_DAYS` vars (research.md #5)
 
@@ -58,7 +58,7 @@ write the same tables through the same availability check.
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T003 Add `migrateSignups()` to `apps/backend/src/database/database.service.ts`, creating the
+- [x] T003 Add `migrateSignups()` to `apps/backend/src/database/database.service.ts`, creating the
       `signup_requests` table (id, email, password_hash, token, status CHECK
       PENDING/VERIFIED/APPROVED/REJECTED, created_at, expires_at, verified_at, resolved_at,
       resolved_by FK → users.id) and the `email_blacklist` table (email PK COLLATE NOCASE, reason,
@@ -66,44 +66,44 @@ write the same tables through the same availability check.
       `signup_requests_token_idx` (UNIQUE) and `signup_requests_email_idx` (COLLATE NOCASE)
       indexes, per research.md #3 and data-model.md; call it from the same idempotent
       `PRAGMA table_info` pattern as `migrateAccountsAndInvitations`
-- [ ] T004 [P] Integration test for `migrateSignups()` against a real temp-file SQLite (table/index
+- [x] T004 [P] Integration test for `migrateSignups()` against a real temp-file SQLite (table/index
       existence, CHECK constraint, FK) in `apps/backend/src/database/database.service.spec.ts`
       (extend existing file), mirroring `retention-sweep.service.spec.ts`'s real-DB approach
-- [ ] T005 Add `findAllByRole(role)` to `apps/backend/src/auth/users.repository.ts` (needed by
+- [x] T005 Add `findAllByRole(role)` to `apps/backend/src/auth/users.repository.ts` (needed by
       admin-notification email recipient lookup, research.md #2)
-- [ ] T006 Create `apps/backend/src/shared/email-availability.service.ts`: extract
+- [x] T006 Create `apps/backend/src/shared/email-availability.service.ts`: extract
       `InvitationsService.checkEmailAvailable()`'s logic into `EmailAvailabilityService.check(email)`,
       extending the result union with `has_pending_signup` (query `signup_requests` where
       `status IN ('PENDING','VERIFIED')`) and `blacklisted` (query `email_blacklist`), per
       research.md #1's discriminated-union shape; queries `users`, `invitations`, `signup_requests`,
       `email_blacklist` in the order given in data-model.md's "Combined availability lookup"
-- [ ] T007 [P] Unit test for `EmailAvailabilityService.check()` covering all five outcomes
+- [x] T007 [P] Unit test for `EmailAvailabilityService.check()` covering all five outcomes
       (`available`, `has_account`, `has_pending_invitation`, `has_pending_signup`, `blacklisted`)
       in `apps/backend/src/shared/email-availability.service.spec.ts`
-- [ ] T008 Modify `apps/backend/src/invitations/invitations.service.ts`: remove the private
+- [x] T008 Modify `apps/backend/src/invitations/invitations.service.ts`: remove the private
       `checkEmailAvailable` logic, inject `EmailAvailabilityService`, and adapt `create()`/`resend()`
       call sites to the new result union (map `has_pending_signup`/`blacklisted` the same way
       `has_account` was previously handled, since invitations only care about "is this address
       already spoken for" — no new admin-facing distinction requested for 007)
-- [ ] T009 Update `apps/backend/src/invitations/invitations.service.spec.ts` and
+- [x] T009 Update `apps/backend/src/invitations/invitations.service.spec.ts` and
       `apps/backend/src/invitations/invitations.module.ts` for the `EmailAvailabilityService`
       dependency (provide/mock it); confirm `invitations.controller.spec.ts` still passes unchanged
-- [ ] T010 Create `apps/backend/src/signups/signups.repository.ts`: `create()`, `findById()`,
+- [x] T010 Create `apps/backend/src/signups/signups.repository.ts`: `create()`, `findById()`,
       `findByToken()`, `findAll()`, race-guarded `markVerified()` (`UPDATE ... WHERE status =
-    'PENDING' AND expires_at > now`), `markApproved()`/`markRejected()`
+  'PENDING' AND expires_at > now`), `markApproved()`/`markRejected()`
       (`UPDATE ... WHERE status = 'VERIFIED'`, affected-row-count check → `already_resolved` on 0
       rows, per data-model.md's state-transition guard), `deleteById()`, plus
       `EmailBlacklistRepository`-equivalent methods (`create`, `deleteByEmail`) on the same file or
       a sibling `email-blacklist.repository.ts` — mirror `invitations.repository.ts`'s
       `UPDATE ... RETURNING *` pattern exactly
-- [ ] T011 [P] Integration tests for `SignupsRepository`/blacklist repository against a real
+- [x] T011 [P] Integration tests for `SignupsRepository`/blacklist repository against a real
       temp-file SQLite (create, token lookup, guarded status transitions racing to 0-affected-rows,
       delete-cascades-blacklist) in `apps/backend/src/signups/signups.repository.spec.ts`
-- [ ] T012 [P] Create `apps/backend/src/signups/email.service.ts` with `sendVerification(to, token)`,
+- [x] T012 [P] Create `apps/backend/src/signups/email.service.ts` with `sendVerification(to, token)`,
       `sendAdminNotification(adminEmails, email)`, `sendWelcome(to)`, `sendRejection(to)` (never
       includes the reason, FR-009), following the exact lazy-transport-construction pattern of
       `invitations/email.service.ts`
-- [ ] T013 Create `apps/backend/src/signups/signups.module.ts` wiring
+- [x] T013 Create `apps/backend/src/signups/signups.module.ts` wiring
       `SignupsController`/`SignupsService`/`SignupsRepository`/`email.service.ts`/
       `SignupExpirySweepService`, importing `AuthModule` for `UsersRepository`/`SessionsRepository`
       reuse (mirrors `invitations.module.ts`); register it in `apps/backend/src/app.module.ts`
@@ -124,7 +124,7 @@ confirm the request reaches `VERIFIED` status with no admin action taken (per sp
 
 ### Implementation for User Story 1
 
-- [ ] T014 [US1] Create `apps/backend/src/signups/signups.service.ts` `submit(email, password)`:
+- [x] T014 [US1] Create `apps/backend/src/signups/signups.service.ts` `submit(email, password)`:
       validates password via `validatePassword` (`@vaultfolio/domain-auth`), calls
       `EmailAvailabilityService.check()` and rejects non-`available` results uniformly
       (`email_unavailable`, FR-002/SC-004), hashes the password (argon2, matching
@@ -132,44 +132,44 @@ confirm the request reaches `VERIFIED` status with no admin action taken (per sp
       (`SIGNUP_EXPIRY_HOURS`/`_DAYS` env var, default per research.md/Assumptions), creates the
       `PENDING` row, sends the verification email, and returns `email_delivery_failed` on send
       failure without rolling back the row (mirrors `InvitationsService.create()`)
-- [ ] T015 [US1] Add `lookupByToken(token)` to `SignupsService`: lazy-expires a `PENDING` row past
+- [x] T015 [US1] Add `lookupByToken(token)` to `SignupsService`: lazy-expires a `PENDING` row past
       `expires_at` (deletes it, frees the address, no residual blacklist — Edge Cases) and
       collapses not-found/wrong-status/expired into one `invalid_token` result, mirroring
       `InvitationsService.lookupByToken()`
-- [ ] T016 [US1] Add `verify(token)` to `SignupsService`: re-checks validity atomically via the
+- [x] T016 [US1] Add `verify(token)` to `SignupsService`: re-checks validity atomically via the
       guarded `markVerified()` UPDATE (closing the page-load/submit race per contracts), fetches
       admin emails via `UsersRepository.findAllByRole('ADMIN')`, sends the admin-notification email,
       and returns `email_delivery_failed` (verification itself still committed) on send failure
-- [ ] T017 [US1] Add `SignupsController` `@Public() POST /signups` (T014), `@Public() GET
-    /signups/token/:token` (T015), `@Public() POST /signups/token/:token/verify` (T016) in
+- [x] T017 [US1] Add `SignupsController` `@Public() POST /signups` (T014), `@Public() GET
+  /signups/token/:token` (T015), `@Public() POST /signups/token/:token/verify` (T016) in
       `apps/backend/src/signups/signups.controller.ts`, mapping results to the exact status
       codes/bodies in contracts/signups-api.md (201/400/409/403/502 for submit; 200/410 for lookup;
       200/410/502 for verify); short-circuit every visitor-facing route to `403 signup_disabled`
       when `PUBLIC_SIGNUP_ENABLED=false`, per contracts.md's module-inert note
-- [ ] T018 [P] [US1] Unit tests for `SignupsService.submit/lookupByToken/verify` (all outcomes,
+- [x] T018 [P] [US1] Unit tests for `SignupsService.submit/lookupByToken/verify` (all outcomes,
       including the lazy-expiry-on-lookup path) in `apps/backend/src/signups/signups.service.spec.ts`
-- [ ] T019 [P] [US1] Controller tests for the three public routes (incl. `signup_disabled` toggle
+- [x] T019 [P] [US1] Controller tests for the three public routes (incl. `signup_disabled` toggle
       behavior) in `apps/backend/src/signups/signups.controller.spec.ts`
-- [ ] T020 [US1] Create `apps/backend/src/signups/signup-expiry-sweep.service.ts`
+- [x] T020 [US1] Create `apps/backend/src/signups/signup-expiry-sweep.service.ts`
       (`OnModuleInit`, hourly `setInterval(...).unref()`) deleting `PENDING` rows past
       `expires_at`, mirroring `retention-sweep.service.ts` exactly (research.md #4); register in
       `signups.module.ts` (T013)
-- [ ] T021 [P] [US1] Unit/integration test for `SignupExpirySweepService.sweep()` against a real
+- [x] T021 [P] [US1] Unit/integration test for `SignupExpirySweepService.sweep()` against a real
       temp-file SQLite in `apps/backend/src/signups/signup-expiry-sweep.service.spec.ts`
-- [ ] T022 [P] [US1] Add `SignupsService` to `apps/frontend/src/app/signup/signup.service.ts`
+- [x] T022 [P] [US1] Add `SignupsService` to `apps/frontend/src/app/signup/signup.service.ts`
       wrapping `POST /api/signups`, `GET /api/signups/token/:token`,
       `POST /api/signups/token/:token/verify` (HttpClient, typed with the `libs/api-contract`
       DTOs from T001)
-- [ ] T023 [US1] Create public sign-up form page in `apps/frontend/src/app/signup/signup.component.ts`
+- [x] T023 [US1] Create public sign-up form page in `apps/frontend/src/app/signup/signup.component.ts`
       (+ `.html`/`.css`): email+password fields, password-policy validation reusing the existing
       pattern from the invite-accept page, submit → success/`email_unavailable`/`signup_disabled`/
       `email_delivery_failed` states
-- [ ] T024 [US1] Create verify-link landing page in
+- [x] T024 [US1] Create verify-link landing page in
       `apps/frontend/src/app/signup/verify/verify.component.ts` (+ `.html`/`.css`): on load, calls
       `GET /api/signups/token/:token`; on confirm/auto, calls the verify POST; renders
       success/"link no longer valid" (410) states — no app shell, mirroring
       `invite/accept`/`invite/expired`'s shell-less rendering
-- [ ] T025 [US1] Register `signup` (public form) and `signup/verify/:token` routes in
+- [x] T025 [US1] Register `signup` (public form) and `signup/verify/:token` routes in
       `apps/frontend/src/app/app.routes.ts`, no `authGuard`, and add both to the route-based
       shell-toggle list in `app.ts` alongside `invite/*` (per the routes-file doc comment)
 
@@ -189,42 +189,42 @@ confirm resubmission is blocked until the admin deletes the rejected entry (per 
 
 ### Implementation for User Story 2
 
-- [ ] T026 [US2] Add `list()` to `SignupsService` returning all `signup_requests` rows mapped to
+- [x] T026 [US2] Add `list()` to `SignupsService` returning all `signup_requests` rows mapped to
       `SignupSummary` (all statuses, audit history — mirrors `InvitationsService.list()`)
-- [ ] T027 [US2] Add `approve(id, adminId)` to `SignupsService`: `not_found` if missing,
+- [x] T027 [US2] Add `approve(id, adminId)` to `SignupsService`: `not_found` if missing,
       `not_verified` if not `VERIFIED` (FR-012), guarded `markApproved()` → `already_resolved` on
       0 affected rows (FR-008, concurrent-admin edge case), creates an `ACTIVE`/`MEMBER` `users` row
       via `UsersRepository.create()` (mirroring `InvitationsService.accept()`'s account creation,
       minus session issuance — admin is not the new user), sends the welcome email, returns
       `email_delivery_failed` on send failure (account still created)
-- [ ] T028 [US2] Add `reject(id, adminId, reason?)` to `SignupsService`: same
+- [x] T028 [US2] Add `reject(id, adminId, reason?)` to `SignupsService`: same
       not_found/not_verified/already_resolved guards as `approve`, guarded `markRejected()`,
       creates the `email_blacklist` row (email, reason, `signup_request_id`) in the same
       transaction as the status transition, sends the rejection email with no reason text (FR-009),
       returns `email_delivery_failed` on send failure (rejection+blacklist still committed)
-- [ ] T029 [US2] Add `delete(id)` to `SignupsService`: `not_found` if missing; if the row's status
+- [x] T029 [US2] Add `delete(id)` to `SignupsService`: `not_found` if missing; if the row's status
       is `REJECTED`, delete its `email_blacklist` row (freeing the address, FR-011) then the
       `signup_requests` row; otherwise just delete the row (nothing to clear, per data-model.md's
       Lifecycle section)
-- [ ] T030 [US2] Add `@Roles('ADMIN')` routes to `SignupsController`: `GET /signups` (T026),
+- [x] T030 [US2] Add `@Roles('ADMIN')` routes to `SignupsController`: `GET /signups` (T026),
       `POST /signups/:id/approve` (T027), `POST /signups/:id/reject` (T028),
       `DELETE /signups/:id` (T029) — status codes/bodies exactly per contracts/signups-api.md
       (200/404/400/409/502 for approve/reject; 200/404 for delete); these remain available
       regardless of `PUBLIC_SIGNUP_ENABLED` (quickstart.md's Toggle check)
-- [ ] T031 [P] [US2] Unit tests for `SignupsService.list/approve/reject/delete` (all outcomes incl.
+- [x] T031 [P] [US2] Unit tests for `SignupsService.list/approve/reject/delete` (all outcomes incl.
       the concurrent-resolution race and delete-clears-blacklist-only-when-rejected cases) in
       `apps/backend/src/signups/signups.service.spec.ts` (extend T018's file)
-- [ ] T032 [P] [US2] Controller tests for the four admin routes in
+- [x] T032 [P] [US2] Controller tests for the four admin routes in
       `apps/backend/src/signups/signups.controller.spec.ts` (extend T019's file)
-- [ ] T033 [P] [US2] Add `SignupsAdminService` methods to
+- [x] T033 [P] [US2] Add `SignupsAdminService` methods to
       `apps/frontend/src/app/settings/signups/signups.service.ts` wrapping the four admin
       endpoints (mirrors `settings/invitations/invitations.service.ts`)
-- [ ] T034 [US2] Create admin sign-up queue table in
+- [x] T034 [US2] Create admin sign-up queue table in
       `apps/frontend/src/app/settings/signups/signups.component.ts` (+ `.html`/`.css`): lists
       email/status/submission date (FR-005), approve/reject (with optional-reason prompt)/delete
       row actions gated by status (only `VERIFIED` rows show approve/reject, per FR-012), mirroring
       `settings/invitations/invitations.component.ts`'s table+action-row shape
-- [ ] T035 [US2] Register `app-signups` as a new `p-tab`/`p-tabpanel` ("Sign-ups") in
+- [x] T035 [US2] Register `app-signups` as a new `p-tab`/`p-tabpanel` ("Sign-ups") in
       `apps/frontend/src/app/settings/settings.component.ts`/`.html`, alongside the existing
       "Invitations" tab
 
@@ -237,14 +237,14 @@ end-to-end, matching quickstart.md Story 2.
 
 **Purpose**: Validation and doc alignment across both stories.
 
-- [ ] T036 [P] Run quickstart.md's full walkthrough (Story 1, Story 2, expiry path, concurrency
+- [x] T036 [P] Run quickstart.md's full walkthrough (Story 1, Story 2, expiry path, concurrency
       check, toggle check) against a local dev stack with a test SMTP catcher; fix any deviation
       found
-- [ ] T037 [P] Update `apps/backend/src/app.module.ts` doc comment / root `README.md` (if either
+- [x] T037 [P] Update `apps/backend/src/app.module.ts` doc comment / root `README.md` (if either
       enumerates feature modules) to list `signups/`, matching how `invitations/`/`accounts/` are
       already documented
-- [ ] T038 Run `npm exec nx affected -t lint test build` (or `npm exec nx run-many -t lint test
-    build` for backend/frontend/api-contract) and fix any failures across all touched projects
+- [x] T038 Run `npm exec nx affected -t lint test build` (or `npm exec nx run-many -t lint test
+  build` for backend/frontend/api-contract) and fix any failures across all touched projects
 
 ---
 

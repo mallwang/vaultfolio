@@ -141,4 +141,20 @@ describe('DatabaseService — auth/isolation migration', () => {
 
     await second.onModuleDestroy();
   });
+
+  it('007: adds the signup_requests and email_blacklist tables, idempotently', async () => {
+    const first = new DatabaseService();
+    await first.onModuleInit();
+    await first.onModuleDestroy();
+
+    const second = new DatabaseService();
+    await second.onModuleInit();
+
+    const tables = await second.query<{ name: string }>(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('signup_requests','email_blacklist')",
+    );
+    expect(tables.map((t) => t.name).sort()).toEqual(['email_blacklist', 'signup_requests']);
+
+    await second.onModuleDestroy();
+  });
 });

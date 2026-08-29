@@ -1,0 +1,55 @@
+<div class="invite-page">
+  @switch (state()) {
+    @case ('ready') {
+      <p-card styleClass="invite-card">
+        <h1>Confirm your email</h1>
+        <p class="lede">Confirm {{ email() }} to finish your Vaultfolio sign-up request.</p>
+        <p-button
+          label="Verify email"
+          icon="pi pi-check-circle"
+          [loading]="verifying()"
+          [disabled]="verifying()"
+          (onClick)="confirm()"
+        />
+      </p-card>
+    }
+    @case ('verified') {
+      <p-card styleClass="invite-card">
+        <div class="invite-expired-icon">
+          <i class="pi pi-check-circle" aria-hidden="true"></i>
+        </div>
+        <h1>Email verified</h1>
+        <p class="lede">
+          Thanks — an administrator has been notified and will review your request soon. You'll be
+          able to sign in once it's approved.
+        </p>
+        <p-button
+          label="Go to sign in"
+          icon="pi pi-lock"
+          severity="secondary"
+          routerLink="/sign-in"
+        />
+      </p-card>
+    }
+    @case ('invalid') {
+      <p-card styleClass="invite-card is-expired">
+        <div class="invite-expired-icon">
+          <i class="pi pi-clock" aria-hidden="true"></i>
+        </div>
+        <h1>This verification link isn't valid</h1>
+        <p class="lede">
+          It's already been used or has expired. Ask to sign up again if you still want an account.
+        </p>
+        <p-button
+          label="Sign up again"
+          icon="pi pi-user-plus"
+          severity="secondary"
+          routerLink="/signup"
+        />
+      </p-card>
+    }
+    @default {
+      <!-- loading: render nothing, mirroring invite/accept's loading gate -->
+    }
+  }
+</div>

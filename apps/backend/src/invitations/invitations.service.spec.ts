@@ -2,13 +2,14 @@ import type { Invitation } from './invitations.repository';
 import { InvitationsService } from './invitations.service';
 
 /**
- * T056: isolated unit tests (mocked repositories) for
- * `InvitationsService.checkEmailAvailable`'s three-way discriminated result.
- * The full create/resend/cancel flows are covered end-to-end by
- * `invitations.controller.spec.ts`; this file isolates just the
- * available/has_account/has_pending_invitation branching.
+ * Isolated unit tests (mocked repositories/EmailAvailabilityService) for
+ * `InvitationsService.create()`'s account_exists/supersede-then-create
+ * branching. The full create/resend/cancel flows are covered end-to-end by
+ * `invitations.controller.spec.ts`; the availability-check logic itself is
+ * covered by `../shared/email-availability.service.spec.ts` (007 extracted
+ * it out of this service).
  */
-describe('InvitationsService — checkEmailAvailable', () => {
+describe('InvitationsService — create', () => {
   function makeInvitation(overrides: Partial<Invitation> = {}): Invitation {
     return {
       id: 'inv1',
@@ -24,52 +25,61 @@ describe('InvitationsService — checkEmailAvailable', () => {
     };
   }
 
-  function service(options: { existingUser?: unknown; pendingInvitation?: Invitation | null }) {
-    const users = { findByEmail: jest.fn().mockResolvedValue(options.existingUser ?? null) };
+  function service(options: {
+    availability?: { kind: 'available' | 'has_account' | 'has_pending_invitation' };
+    pendingInvitation?: Invitation | null;
+  }) {
     const invitations = {
       findPendingByEmail: jest.fn().mockResolvedValue(options.pendingInvitation ?? null),
+      supersede: jest.fn(),
+      create: jest.fn().mockResolvedValue(makeInvitation()),
     };
+    const users = {};
     const sessions = {};
     const emailService = { sendInvitation: jest.fn() };
-    return new InvitationsService(
-      invitations as never,
-      users as never,
-      sessions as never,
-      emailService as never,
-    );
+    const emailAvailability = {
+      check: jest.fn().mockResolvedValue(options.availability ?? { kind: 'available' }),
+    };
+    return {
+      svc: new InvitationsService(
+        invitations as never,
+        users as never,
+        sessions as never,
+        emailService as never,
+        emailAvailability as never,
+      ),
+      invitations,
+    };
   }
 
-  it('reports available when no account or pending invitation exists for the email', async () => {
-    const svc = service({});
+  it('creates the invitation when the email is available', async () => {
+    const { svc, invitations } = service({ availability: { kind: 'available' } });
 
-    const result = await svc.checkEmailAvailable('new@example.com');
+    const result = await svc.create('new@example.com', 'MEMBER', 'admin1');
 
-    expect(result).toEqual({ kind: 'available' });
+    expect(result.kind).toBe('success');
+    expect(invitations.supersede).not.toHaveBeenCalled();
   });
 
-  it('reports has_account when a user already exists for the email', async () => {
-    const svc = service({ existingUser: { id: 'u1', email: 'existing@example.com' } });
+  it('reports account_exists without creating anything when a user already exists', async () => {
+    const { svc, invitations } = service({ availability: { kind: 'has_account' } });
 
-    const result = await svc.checkEmailAvailable('existing@example.com');
+    const result = await svc.create('existing@example.com', 'MEMBER', 'admin1');
 
-    expect(result).toEqual({ kind: 'has_account' });
+    expect(result).toEqual({ kind: 'account_exists' });
+    expect(invitations.create).not.toHaveBeenCalled();
   });
 
-  it('reports has_pending_invitation when a pending invitation already exists', async () => {
-    const pending = makeInvitation({ email: 'pending@example.com' });
-    const svc = service({ pendingInvitation: pending });
+  it('supersedes the existing pending invitation before creating a new one', async () => {
+    const pending = makeInvitation({ id: 'old-inv', email: 'pending@example.com' });
+    const { svc, invitations } = service({
+      availability: { kind: 'has_pending_invitation' },
+      pendingInvitation: pending,
+    });
 
-    const result = await svc.checkEmailAvailable('pending@example.com');
+    const result = await svc.create('pending@example.com', 'MEMBER', 'admin1');
 
-    expect(result).toEqual({ kind: 'has_pending_invitation', invitation: pending });
-  });
-
-  it('prefers has_account over has_pending_invitation when both are somehow true', async () => {
-    const pending = makeInvitation({ email: 'both@example.com' });
-    const svc = service({ existingUser: { id: 'u1' }, pendingInvitation: pending });
-
-    const result = await svc.checkEmailAvailable('both@example.com');
-
-    expect(result).toEqual({ kind: 'has_account' });
+    expect(invitations.supersede).toHaveBeenCalledWith('old-inv');
+    expect(result.kind).toBe('success');
   });
 });

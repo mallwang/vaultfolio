@@ -1,0 +1,91 @@
+<p-toast />
+<p-confirmdialog />
+
+<section class="signups-panel">
+  <div class="signups-panel__header">
+    <div>
+      <h2>Sign-ups</h2>
+      <p>Public self-service sign-up requests awaiting verification and review.</p>
+    </div>
+  </div>
+
+  @if (loadError()) {
+    <p class="error-state">{{ loadError() }}</p>
+  } @else {
+    <p-table [value]="signups()" [loading]="loading()" [tableStyle]="{ 'min-width': '50rem' }">
+      <ng-template #header>
+        <tr>
+          <th scope="col">Email</th>
+          <th scope="col">Submitted</th>
+          <th scope="col">Status</th>
+          <th scope="col"></th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-signup>
+        <tr>
+          <td>{{ signup.email }}</td>
+          <td>{{ signup.createdAt | date: 'mediumDate' }}</td>
+          <td>
+            <p-tag
+              [severity]="statusSeverity(signup.status)"
+              [value]="statusLabel(signup.status)"
+              [rounded]="true"
+            />
+          </td>
+          <td class="row-actions">
+            @if (signup.status === 'VERIFIED') {
+              <button
+                pButton
+                type="button"
+                iconOnly
+                severity="success"
+                [text]="true"
+                aria-label="Approve sign-up"
+                (click)="confirmApprove(signup, $event)"
+              >
+                <i class="pi pi-check-circle" aria-hidden="true"></i>
+              </button>
+              <button
+                pButton
+                type="button"
+                iconOnly
+                severity="danger"
+                [text]="true"
+                aria-label="Reject sign-up"
+                (click)="openRejectDialog(signup)"
+              >
+                <i class="pi pi-times" aria-hidden="true"></i>
+              </button>
+            }
+            <button
+              pButton
+              type="button"
+              iconOnly
+              severity="secondary"
+              [text]="true"
+              aria-label="Delete sign-up"
+              (click)="confirmDelete(signup, $event)"
+            >
+              <i class="pi pi-trash" aria-hidden="true"></i>
+            </button>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="4">
+            <div class="empty-state">No sign-up requests yet.</div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  }
+</section>
+
+<app-reject-dialog
+  [visible]="rejectDialogVisible()"
+  [signupId]="rejectTarget()?.id ?? null"
+  [signupEmail]="rejectTarget()?.email ?? ''"
+  (visibleChange)="rejectDialogVisible.set($event)"
+  (rejected)="onRejected()"
+/>
