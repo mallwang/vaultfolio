@@ -275,6 +275,22 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     db.exec(
       'CREATE INDEX IF NOT EXISTS account_action_tokens_user_purpose_idx ON account_action_tokens (user_id, purpose)',
     );
+
+    // `signup_requests.account_deleted_at` (008): the account an APPROVED
+    // sign-up request produced can later be deleted (self-delete or
+    // retention sweep) independently of this row — `status` stays the
+    // one-way audit trail of the *request*, and this column records that
+    // follow-up fact separately so the admin sign-ups list can show both
+    // ("Approved" + "Account deleted") instead of a stale "Approved" with no
+    // indication the account is gone.
+    const hasAccountDeletedAt = db
+      .prepare(
+        "SELECT 1 FROM pragma_table_info('signup_requests') WHERE name = 'account_deleted_at'",
+      )
+      .get();
+    if (!hasAccountDeletedAt) {
+      db.exec('ALTER TABLE signup_requests ADD COLUMN account_deleted_at TEXT NULL');
+    }
   }
 
   /**

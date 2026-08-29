@@ -15,6 +15,7 @@ describe('SignupsService', () => {
       verifiedAt: null,
       resolvedAt: null,
       resolvedBy: null,
+      accountDeletedAt: null,
       ...overrides,
     };
   }

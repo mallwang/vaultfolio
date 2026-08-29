@@ -29,6 +29,7 @@ function toSummary(request: SignupRequest): SignupSummary {
     createdAt: request.createdAt,
     verifiedAt: request.verifiedAt,
     resolvedAt: request.resolvedAt,
+    accountDeletedAt: request.accountDeletedAt,
   };
 }
 

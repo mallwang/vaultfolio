@@ -11,6 +11,8 @@ export interface SignupSummary {
   createdAt: string;
   verifiedAt: string | null;
   resolvedAt: string | null;
+  /** Set once the account this (`APPROVED`) request produced is later deleted — `status` itself stays untouched as the request's own audit trail (008). */
+  accountDeletedAt: string | null;
 }
 
 export interface CreateSignupRequest {

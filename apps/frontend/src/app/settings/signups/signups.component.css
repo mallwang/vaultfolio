@@ -20,6 +20,12 @@
   color: var(--p-red-500);
 }
 
+.status-followup {
+  margin-top: 0.25rem;
+  font-size: 0.8rem;
+  color: var(--p-text-muted-color);
+}
+
 .empty-state {
   padding: 2rem 1rem;
   text-align: center;

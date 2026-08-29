@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import type { AccountSummary } from '@vaultfolio/api-contract';
 import { ButtonModule } from 'primeng/button';
@@ -30,6 +31,11 @@ const ROLE_OPTIONS: RoleOption[] = [
  * (design.md "Last-admin-blocked banner"). Every mutation re-fetches the
  * list from the server rather than reconciling local state by hand (YAGNI,
  * Principle V) — table-select controls stay correct even if a request fails.
+ *
+ * Also refetches on `AccountsService.changed$` — e.g. `SignupsComponent`
+ * approving a sign-up creates an account this component's own `ngOnInit`
+ * fetch already ran without, so nothing else would tell it to refresh short
+ * of a page reload.
  */
 @Component({
   selector: 'app-accounts',
@@ -51,6 +57,7 @@ export class AccountsComponent implements OnInit {
   private readonly accountsService = inject(AccountsService);
   private readonly confirmationService = inject(ConfirmationService);
   private readonly messageService = inject(MessageService);
+  private readonly destroyRef = inject(DestroyRef);
 
   protected readonly accounts = signal<AccountSummary[]>([]);
   protected readonly loading = signal(true);
@@ -61,6 +68,9 @@ export class AccountsComponent implements OnInit {
 
   ngOnInit(): void {
     this.refresh();
+    this.accountsService.changed$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.refresh());
   }
 
   private refresh(): void {

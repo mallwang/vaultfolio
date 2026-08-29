@@ -285,8 +285,32 @@ export class UsersRepository {
     // sent invitations remain as an audit trail after the admin's own
     // account is gone (data-model.md's "Relationships": "no CASCADE,
     // explicit deletion only, Principle V").
+    const user = await this.findById(id);
     await this.database.query('DELETE FROM sessions WHERE user_id = $1', [id]);
     await this.database.query('DELETE FROM holdings WHERE owner_id = $1', [id]);
+    // account_action_tokens (password reset / email change tokens) are
+    // short-lived and hold no audit value once the account is gone.
+    await this.database.query('DELETE FROM account_action_tokens WHERE user_id = $1', [id]);
+    // signup_requests are kept as an audit trail; only the actor reference
+    // to the deleted account is cleared, same treatment as invitations.
+    await this.database.query(
+      'UPDATE signup_requests SET resolved_by = NULL WHERE resolved_by = $1',
+      [id],
+    );
+    // 008: the sign-up request that produced this account (matched by
+    // email — there's no FK, so this is a best-effort link) keeps its
+    // `APPROVED` status as the request's own audit trail, but is stamped
+    // with `account_deleted_at` so the admin sign-ups list can show the
+    // account was later removed instead of a stale "Approved" with no
+    // further indication.
+    if (user) {
+      await this.database.query(
+        `UPDATE signup_requests
+         SET account_deleted_at = STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')
+         WHERE email = $1 COLLATE NOCASE AND status = 'APPROVED' AND account_deleted_at IS NULL`,
+        [user.email],
+      );
+    }
     await this.database.query('DELETE FROM users WHERE id = $1', [id]);
   }
 }
