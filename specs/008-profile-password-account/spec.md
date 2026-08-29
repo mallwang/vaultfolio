@@ -6,6 +6,8 @@
 
 **Status**: Draft
 
+**Design**: [design.md](./design.md) — approved UI mockup and layout rationale
+
 **Input**: User description: "Household Access Control — self-service account settings: display name, email change, password change, forgot password, and account deletion. Fourth of a 4-part split of a consolidated user-management specification (specs 005–008); depends on spec 005 (auth, sessions) and reuses the last-admin invariant from spec 006."
 
 ## User Scenarios & Testing _(mandatory)_
