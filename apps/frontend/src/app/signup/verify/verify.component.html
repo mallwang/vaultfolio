@@ -1,18 +1,5 @@
 <div class="invite-page">
   @switch (state()) {
-    @case ('ready') {
-      <p-card styleClass="invite-card">
-        <h1>Confirm your email</h1>
-        <p class="lede">Confirm {{ email() }} to finish your Vaultfolio sign-up request.</p>
-        <p-button
-          label="Verify email"
-          icon="pi pi-check-circle"
-          [loading]="verifying()"
-          [disabled]="verifying()"
-          (onClick)="confirm()"
-        />
-      </p-card>
-    }
     @case ('verified') {
       <p-card styleClass="invite-card">
         <div class="invite-expired-icon">
