@@ -3,6 +3,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import cookieParser from 'cookie-parser';
 import request from 'supertest';
 import type { CreateHoldingRequest } from '@vaultfolio/api-contract';
 import { AppModule } from '../app/app.module';
@@ -14,11 +15,19 @@ import { DatabaseService } from '../database/database.service';
  * in-memory call — against a per-test-run temp-file SQLite database, per
  * Principle IV and research.md #8 (isolated from both other test runs and any
  * developer's real `./data` directory).
+ *
+ * 005-auth-sessions-isolation: every route is authenticated by default, so
+ * each request carries the bootstrap admin's session cookie, obtained once
+ * in `beforeAll` (FR-001).
  */
 describe('/holdings', () => {
   let app: INestApplication;
   let database: DatabaseService;
   let tempDir: string;
+  let cookie: string;
+
+  const ADMIN_EMAIL = 'admin@example.com';
+  const ADMIN_PASSWORD = 'a-valid-8-char-password';
 
   const validEtf: CreateHoldingRequest = {
     assetType: 'ETF',
@@ -54,32 +63,48 @@ describe('/holdings', () => {
   beforeAll(async () => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'vaultfolio-holdings-e2e-'));
     process.env.DATABASE_PATH = path.join(tempDir, 'test.db');
+    process.env.BOOTSTRAP_ADMIN_EMAIL = ADMIN_EMAIL;
+    process.env.BOOTSTRAP_ADMIN_PASSWORD = ADMIN_PASSWORD;
 
     const moduleRef: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
 
     app = moduleRef.createNestApplication();
+    app.use(cookieParser());
     await app.init();
     database = moduleRef.get(DatabaseService);
+
+    const signIn = await request(app.getHttpServer())
+      .post('/auth/sign-in')
+      .send({ email: ADMIN_EMAIL, password: ADMIN_PASSWORD });
+    const setCookie = signIn.headers['set-cookie'] as unknown as string[];
+    cookie = setCookie[0].split(';')[0];
   });
 
   afterAll(async () => {
     await app.close();
     delete process.env.DATABASE_PATH;
+    delete process.env.BOOTSTRAP_ADMIN_EMAIL;
+    delete process.env.BOOTSTRAP_ADMIN_PASSWORD;
     fs.rmSync(tempDir, { recursive: true, force: true });
   });
 
   beforeEach(async () => {
-    // Isolate each test from previously inserted rows (no auth/tenancy in
-    // this feature, per spec.md Assumptions — the whole table is this
-    // "user"'s dataset).
+    // Isolate each test from previously inserted rows — this feature's
+    // "one user's dataset" is now the bootstrap admin's, scoped by owner_id.
     await database.query('DELETE FROM holdings');
   });
 
+  const agent = () => request(app.getHttpServer());
+  const get = (url: string) => agent().get(url).set('Cookie', cookie);
+  const post = (url: string) => agent().post(url).set('Cookie', cookie);
+  const put = (url: string) => agent().put(url).set('Cookie', cookie);
+  const del = (url: string) => agent().delete(url).set('Cookie', cookie);
+
   describe('GET /holdings', () => {
     it('returns 200 with an empty array against a clean database (FR-013)', async () => {
-      const response = await request(app.getHttpServer()).get('/holdings');
+      const response = await get('/holdings');
 
       expect(response.status).toBe(200);
       expect(response.body).toEqual([]);
@@ -87,10 +112,10 @@ describe('/holdings', () => {
 
     it('returns all created holdings with the exact field shape (FR-012, FR-013)', async () => {
       for (const body of [validEtf, validShare, validGold, validBitcoin]) {
-        await request(app.getHttpServer()).post('/holdings').send(body);
+        await post('/holdings').send(body);
       }
 
-      const response = await request(app.getHttpServer()).get('/holdings');
+      const response = await get('/holdings');
 
       expect(response.status).toBe(200);
       expect(response.body).toHaveLength(4);
@@ -102,6 +127,8 @@ describe('/holdings', () => {
         expect(typeof holding.id).toBe('string');
         expect(typeof holding.createdAt).toBe('string');
         expect(typeof holding.updatedAt).toBe('string');
+        expect(holding.owner_id).toBeUndefined();
+        expect(holding.ownerId).toBeUndefined();
       }
     });
   });
@@ -109,7 +136,7 @@ describe('/holdings', () => {
   describe('POST /holdings — success + upsert-vs-new-lot (FR-001, FR-011, FR-011a)', () => {
     it('creates a new row for each of the four asset types, asserting 201 and the response shape', async () => {
       for (const body of [validEtf, validShare, validGold, validBitcoin]) {
-        const response = await request(app.getHttpServer()).post('/holdings').send(body);
+        const response = await post('/holdings').send(body);
 
         expect(response.status).toBe(201);
         expect(response.body).toMatchObject({
@@ -121,59 +148,55 @@ describe('/holdings', () => {
     });
 
     it('replaces the existing row in place on a second matching ETF submission (200, same id, no duplicate)', async () => {
-      const first = await request(app.getHttpServer()).post('/holdings').send(validEtf);
+      const first = await post('/holdings').send(validEtf);
       expect(first.status).toBe(201);
       const originalId = first.body.id;
 
-      const second = await request(app.getHttpServer())
-        .post('/holdings')
-        .send({ ...validEtf, quantity: '20', purchasePrice: '90.00' });
+      const second = await post('/holdings').send({
+        ...validEtf,
+        quantity: '20',
+        purchasePrice: '90.00',
+      });
 
       expect(second.status).toBe(200);
       expect(second.body.id).toBe(originalId);
       expect(second.body.quantity).toBe('20');
       expect(second.body.purchasePrice).toBe('90');
 
-      const list = await request(app.getHttpServer()).get('/holdings');
+      const list = await get('/holdings');
       expect(list.body).toHaveLength(1);
     });
 
     it('replaces the existing row in place on a second matching Gold submission (200, same id, no duplicate)', async () => {
-      const first = await request(app.getHttpServer()).post('/holdings').send(validGold);
+      const first = await post('/holdings').send(validGold);
       expect(first.status).toBe(201);
       const originalId = first.body.id;
 
-      const second = await request(app.getHttpServer())
-        .post('/holdings')
-        .send({ ...validGold, weightGrams: '50' });
+      const second = await post('/holdings').send({ ...validGold, weightGrams: '50' });
 
       expect(second.status).toBe(200);
       expect(second.body.id).toBe(originalId);
       expect(second.body.weightGrams).toBe('50');
 
-      const list = await request(app.getHttpServer()).get('/holdings');
+      const list = await get('/holdings');
       expect(list.body).toHaveLength(1);
     });
 
     it('creates a second, distinct row for a repeat Share submission (201, distinct id, no merge)', async () => {
-      const first = await request(app.getHttpServer()).post('/holdings').send(validShare);
-      const second = await request(app.getHttpServer())
-        .post('/holdings')
-        .send({ ...validShare, quantity: '5' });
+      const first = await post('/holdings').send(validShare);
+      const second = await post('/holdings').send({ ...validShare, quantity: '5' });
 
       expect(first.status).toBe(201);
       expect(second.status).toBe(201);
       expect(second.body.id).not.toBe(first.body.id);
 
-      const list = await request(app.getHttpServer()).get('/holdings');
+      const list = await get('/holdings');
       expect(list.body).toHaveLength(2);
     });
 
     it('creates a second, distinct row for a repeat Bitcoin submission (201, distinct id, no merge)', async () => {
-      const first = await request(app.getHttpServer()).post('/holdings').send(validBitcoin);
-      const second = await request(app.getHttpServer())
-        .post('/holdings')
-        .send({ ...validBitcoin, quantity: '0.5' });
+      const first = await post('/holdings').send(validBitcoin);
+      const second = await post('/holdings').send({ ...validBitcoin, quantity: '0.5' });
 
       expect(first.status).toBe(201);
       expect(second.status).toBe(201);
@@ -181,21 +204,19 @@ describe('/holdings', () => {
     });
 
     it('creates a separate row for the same ETF isin under a different Management value (FR-011a)', async () => {
-      await request(app.getHttpServer()).post('/holdings').send(validEtf);
-      const second = await request(app.getHttpServer())
-        .post('/holdings')
-        .send({ ...validEtf, management: 'Private' });
+      await post('/holdings').send(validEtf);
+      const second = await post('/holdings').send({ ...validEtf, management: 'Private' });
 
       expect(second.status).toBe(201);
 
-      const list = await request(app.getHttpServer()).get('/holdings');
+      const list = await get('/holdings');
       expect(list.body).toHaveLength(2);
     });
   });
 
   describe('POST /holdings — validation failures (FR-009, FR-010, SC-002)', () => {
     const expectFieldError = async (body: Record<string, unknown>, field: string) => {
-      const response = await request(app.getHttpServer()).post('/holdings').send(body);
+      const response = await post('/holdings').send(body);
 
       expect(response.status).toBe(400);
       expect(response.body.error).toBe('VALIDATION_FAILED');
@@ -238,9 +259,12 @@ describe('/holdings', () => {
       expectFieldError({ ...validGold, isin: 'US0378331005' }, 'isin'));
 
     it('reports every failing field at once, not just the first', async () => {
-      const response = await request(app.getHttpServer())
-        .post('/holdings')
-        .send({ assetType: 'SHARE', management: '', isin: 'INVALID', quantity: '-1' });
+      const response = await post('/holdings').send({
+        assetType: 'SHARE',
+        management: '',
+        isin: 'INVALID',
+        quantity: '-1',
+      });
 
       expect(response.status).toBe(400);
       const fields = (response.body.fieldErrors as { field: string }[]).map((e) => e.field);
@@ -250,24 +274,22 @@ describe('/holdings', () => {
 
   describe('PUT /holdings/:id (FR-014)', () => {
     it('edits a field and round-trips it on GET, leaving other holdings untouched', async () => {
-      const created = await request(app.getHttpServer()).post('/holdings').send(validShare);
-      const other = await request(app.getHttpServer()).post('/holdings').send(validBitcoin);
+      const created = await post('/holdings').send(validShare);
+      const other = await post('/holdings').send(validBitcoin);
 
-      const updated = await request(app.getHttpServer())
-        .put(`/holdings/${created.body.id}`)
-        .send({
-          management: validShare.management,
-          isin: (validShare as { isin: string }).isin,
-          name: (validShare as { name: string }).name,
-          quantity: '99',
-          purchasePrice: (validShare as { purchasePrice: string }).purchasePrice,
-        });
+      const updated = await put(`/holdings/${created.body.id}`).send({
+        management: validShare.management,
+        isin: (validShare as { isin: string }).isin,
+        name: (validShare as { name: string }).name,
+        quantity: '99',
+        purchasePrice: (validShare as { purchasePrice: string }).purchasePrice,
+      });
 
       expect(updated.status).toBe(200);
       expect(updated.body.quantity).toBe('99');
       expect(updated.body.id).toBe(created.body.id);
 
-      const list = await request(app.getHttpServer()).get('/holdings');
+      const list = await get('/holdings');
       const persisted = (list.body as { id: string; quantity: string }[]).find(
         (h) => h.id === created.body.id,
       );
@@ -277,26 +299,26 @@ describe('/holdings', () => {
     });
 
     it('returns the same 400 fieldErrors shape as POST on invalid input', async () => {
-      const created = await request(app.getHttpServer()).post('/holdings').send(validShare);
+      const created = await post('/holdings').send(validShare);
 
-      const response = await request(app.getHttpServer())
-        .put(`/holdings/${created.body.id}`)
-        .send({
-          management: validShare.management,
-          isin: (validShare as { isin: string }).isin,
-          name: (validShare as { name: string }).name,
-          quantity: '-1',
-          purchasePrice: (validShare as { purchasePrice: string }).purchasePrice,
-        });
+      const response = await put(`/holdings/${created.body.id}`).send({
+        management: validShare.management,
+        isin: (validShare as { isin: string }).isin,
+        name: (validShare as { name: string }).name,
+        quantity: '-1',
+        purchasePrice: (validShare as { purchasePrice: string }).purchasePrice,
+      });
 
       expect(response.status).toBe(400);
       expect(response.body.error).toBe('VALIDATION_FAILED');
     });
 
     it('returns 404 HOLDING_NOT_FOUND for a non-existent id', async () => {
-      const response = await request(app.getHttpServer())
-        .put('/holdings/00000000-0000-0000-0000-000000000000')
-        .send({ management: 'Private', quantity: '1', purchasePrice: '1' });
+      const response = await put('/holdings/00000000-0000-0000-0000-000000000000').send({
+        management: 'Private',
+        quantity: '1',
+        purchasePrice: '1',
+      });
 
       expect(response.status).toBe(404);
       expect(response.body.error).toBe('HOLDING_NOT_FOUND');
@@ -305,17 +327,15 @@ describe('/holdings', () => {
 
   describe('DELETE /holdings/:id (FR-016)', () => {
     it('deletes a holding, asserting 204 then absence from a subsequent GET, and 404 on repeat delete', async () => {
-      const created = await request(app.getHttpServer()).post('/holdings').send(validBitcoin);
+      const created = await post('/holdings').send(validBitcoin);
 
-      const deleted = await request(app.getHttpServer()).delete(`/holdings/${created.body.id}`);
+      const deleted = await del(`/holdings/${created.body.id}`);
       expect(deleted.status).toBe(204);
 
-      const list = await request(app.getHttpServer()).get('/holdings');
+      const list = await get('/holdings');
       expect((list.body as { id: string }[]).some((h) => h.id === created.body.id)).toBe(false);
 
-      const secondDelete = await request(app.getHttpServer()).delete(
-        `/holdings/${created.body.id}`,
-      );
+      const secondDelete = await del(`/holdings/${created.body.id}`);
       expect(secondDelete.status).toBe(404);
       expect(secondDelete.body.error).toBe('HOLDING_NOT_FOUND');
     });

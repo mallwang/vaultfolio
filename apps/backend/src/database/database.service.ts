@@ -1,7 +1,9 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { randomUUID } from 'node:crypto';
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import Database from 'better-sqlite3';
+import * as argon2 from 'argon2';
 
 /**
  * Thin wrapper around a `better-sqlite3` database handle. Deliberately not an
@@ -29,6 +31,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       this.db.pragma('busy_timeout = 5000');
 
       this.migrate();
+      await this.migrateAuth();
       this.ready = true;
     } catch (error) {
       // A startup failure (unwritable ./data, migration failure, ...) should
@@ -97,6 +100,97 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       CREATE INDEX IF NOT EXISTS holdings_upsert_lookup_idx
         ON holdings (asset_type, management, isin)
     `);
+  }
+
+  /**
+   * 005-auth-sessions-isolation: `users`/`sessions` tables (data-model.md),
+   * the bootstrap-admin seed (research.md #6), and the `holdings.owner_id`
+   * migration + backfill (research.md #7). Split from `migrate()` because
+   * the bootstrap-admin hash requires `argon2` (async), unlike the rest of
+   * this file's synchronous `better-sqlite3` calls.
+   */
+  private async migrateAuth(): Promise<void> {
+    const db = this.requireDb();
+
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS users (
+        id              TEXT PRIMARY KEY,
+        email           TEXT NOT NULL,
+        display_name    TEXT NOT NULL,
+        password_hash   TEXT NOT NULL,
+        role            TEXT NOT NULL CHECK (role IN ('ADMIN', 'MEMBER')),
+        status          TEXT NOT NULL CHECK (status IN ('ACTIVE', 'ARCHIVED')) DEFAULT 'ACTIVE',
+        failed_attempts INTEGER NOT NULL DEFAULT 0,
+        locked_until    TEXT NULL,
+        created_at      TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')),
+        updated_at      TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now'))
+      )
+    `);
+    db.exec(`
+      CREATE UNIQUE INDEX IF NOT EXISTS users_email_idx ON users (email COLLATE NOCASE)
+    `);
+
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS sessions (
+        id              TEXT PRIMARY KEY,
+        user_id         TEXT NOT NULL REFERENCES users(id),
+        created_at      TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')),
+        last_active_at  TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')),
+        expires_at      TEXT NOT NULL
+      )
+    `);
+    db.exec(`CREATE INDEX IF NOT EXISTS sessions_user_id_idx ON sessions (user_id)`);
+
+    const hasOwnerId = db
+      .prepare("SELECT 1 FROM pragma_table_info('holdings') WHERE name = 'owner_id'")
+      .get();
+
+    if (!hasOwnerId) {
+      db.exec('ALTER TABLE holdings ADD COLUMN owner_id TEXT NULL');
+      const bootstrapAdminId = await this.ensureBootstrapAdmin();
+      db.prepare('UPDATE holdings SET owner_id = ? WHERE owner_id IS NULL').run(bootstrapAdminId);
+    } else {
+      // Table already migrated on a previous boot — still ensure the
+      // bootstrap admin exists (idempotent no-op if `users` is non-empty).
+      await this.ensureBootstrapAdmin();
+    }
+
+    db.exec('CREATE INDEX IF NOT EXISTS holdings_owner_id_idx ON holdings (owner_id)');
+  }
+
+  /**
+   * Creates a single Administrator account from `BOOTSTRAP_ADMIN_EMAIL`/
+   * `BOOTSTRAP_ADMIN_PASSWORD` if — and only if — the `users` table is
+   * currently empty (research.md #6). Returns the (possibly pre-existing)
+   * admin's id. Logs a clear startup error and skips seeding if the env vars
+   * are unset with no existing users, rather than crashing the process.
+   */
+  private async ensureBootstrapAdmin(): Promise<string | null> {
+    const db = this.requireDb();
+    const existing = db.prepare('SELECT id FROM users LIMIT 1').get() as { id: string } | undefined;
+    if (existing) {
+      return existing.id;
+    }
+
+    const email = process.env.BOOTSTRAP_ADMIN_EMAIL;
+    const password = process.env.BOOTSTRAP_ADMIN_PASSWORD;
+    if (!email || !password) {
+      this.logger.error(
+        'BOOTSTRAP_ADMIN_EMAIL/BOOTSTRAP_ADMIN_PASSWORD are unset and no users exist — ' +
+          'auth routes will reject every sign-in until an admin account is created.',
+      );
+      return null;
+    }
+
+    const id = randomUUID();
+    const passwordHash = await argon2.hash(password);
+    db.prepare(
+      `INSERT INTO users (id, email, display_name, password_hash, role)
+       VALUES (?, ?, 'Administrator', ?, 'ADMIN')`,
+    ).run(id, email, passwordHash);
+
+    this.logger.log(`Bootstrap admin account created (${email}).`);
+    return id;
   }
 
   /** Lightweight liveness check used by GET /health (contracts/health-api.md). */

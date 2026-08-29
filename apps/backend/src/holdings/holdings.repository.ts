@@ -10,56 +10,69 @@ import type { HoldingRow } from './holdings.mapper';
  * V, matching `DatabaseService`'s established pattern). Owns the ETF/Gold
  * upsert-lookup query (`holdings_upsert_lookup_idx`) as well as plain
  * insert/update/delete, per research.md #4.
+ *
+ * Every method takes an `ownerId` and scopes its query with
+ * `AND owner_id = $N` (005-auth-sessions-isolation, data-model.md's "Query
+ * scoping" note) — enforced here, in the query itself, so a missing filter
+ * fails closed (zero rows) rather than a forgotten check leaking another
+ * user's row. A row that exists but belongs to another owner is
+ * indistinguishable from a row that doesn't exist at all (no 403 vs 404
+ * signal — FR-010/contracts/auth-api.md).
  */
 @Injectable()
 export class HoldingsRepository {
   constructor(private readonly database: DatabaseService) {}
 
-  async findAll(): Promise<Holding[]> {
+  async findAll(ownerId: string): Promise<Holding[]> {
     const rows = await this.database.query<HoldingRow>(
-      'SELECT * FROM holdings ORDER BY created_at ASC',
+      'SELECT * FROM holdings WHERE owner_id = $1 ORDER BY created_at ASC',
+      [ownerId],
     );
     return rows.map(rowToHolding);
   }
 
-  async findById(id: string): Promise<Holding | null> {
-    const rows = await this.database.query<HoldingRow>('SELECT * FROM holdings WHERE id = $1', [
-      id,
-    ]);
+  async findById(id: string, ownerId: string): Promise<Holding | null> {
+    const rows = await this.database.query<HoldingRow>(
+      'SELECT * FROM holdings WHERE id = $1 AND owner_id = $2',
+      [id, ownerId],
+    );
     return rows[0] ? rowToHolding(rows[0]) : null;
   }
 
   /**
    * The ETF/Gold "same asset" lookup (FR-011a): ETF matches on
    * `(asset_type, isin, management)`; Gold matches on `(asset_type,
-   * management)` alone — pass `isin: null` for Gold.
+   * management)` alone — pass `isin: null` for Gold. Scoped to `ownerId` so
+   * one user's holding can never be silently "matched" and overwritten by
+   * another user's submission.
    */
   async findUpsertMatch(
     assetType: AssetType,
     management: string,
     isin: string | null,
+    ownerId: string,
   ): Promise<Holding | null> {
     const rows =
       isin === null
         ? await this.database.query<HoldingRow>(
-            'SELECT * FROM holdings WHERE asset_type = $1 AND management = $2 AND isin IS NULL',
-            [assetType, management],
+            'SELECT * FROM holdings WHERE asset_type = $1 AND management = $2 AND isin IS NULL AND owner_id = $3',
+            [assetType, management, ownerId],
           )
         : await this.database.query<HoldingRow>(
-            'SELECT * FROM holdings WHERE asset_type = $1 AND management = $2 AND isin = $3',
-            [assetType, management, isin],
+            'SELECT * FROM holdings WHERE asset_type = $1 AND management = $2 AND isin = $3 AND owner_id = $4',
+            [assetType, management, isin, ownerId],
           );
     return rows[0] ? rowToHolding(rows[0]) : null;
   }
 
-  async insert(value: ValidatedHolding): Promise<Holding> {
+  async insert(value: ValidatedHolding, ownerId: string): Promise<Holding> {
     const row = validatedHoldingToRow(value);
     const id = randomUUID();
     const rows = await this.database.query<HoldingRow>(
       `INSERT INTO holdings
          (id, asset_type, management, quantity, purchase_price, purchase_date, isin, name,
-          weight_grams, current_value)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+          weight_grams, current_value, owner_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
        RETURNING *`,
       [
         id,
@@ -72,20 +85,21 @@ export class HoldingsRepository {
         row.name,
         row.weight_grams,
         row.current_value,
+        ownerId,
       ],
     );
     return rowToHolding(rows[0]);
   }
 
   /** Replaces an existing row's fields in place (both an ETF/Gold upsert and a user-initiated edit). */
-  async updateById(id: string, value: ValidatedHolding): Promise<Holding | null> {
+  async updateById(id: string, value: ValidatedHolding, ownerId: string): Promise<Holding | null> {
     const row = validatedHoldingToRow(value);
     const rows = await this.database.query<HoldingRow>(
       `UPDATE holdings
        SET management = $2, quantity = $3, purchase_price = $4, purchase_date = $5,
            isin = $6, name = $7, weight_grams = $8, current_value = $9,
            updated_at = STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')
-       WHERE id = $1
+       WHERE id = $1 AND owner_id = $10
        RETURNING *`,
       [
         id,
@@ -97,14 +111,18 @@ export class HoldingsRepository {
         row.name,
         row.weight_grams,
         row.current_value,
+        ownerId,
       ],
     );
     return rows[0] ? rowToHolding(rows[0]) : null;
   }
 
   /** Hard delete — no soft-delete/undo (spec.md Assumptions). Returns whether a row was deleted. */
-  async deleteById(id: string): Promise<boolean> {
-    const rows = await this.database.query('DELETE FROM holdings WHERE id = $1 RETURNING id', [id]);
+  async deleteById(id: string, ownerId: string): Promise<boolean> {
+    const rows = await this.database.query(
+      'DELETE FROM holdings WHERE id = $1 AND owner_id = $2 RETURNING id',
+      [id, ownerId],
+    );
     return rows.length > 0;
   }
 }

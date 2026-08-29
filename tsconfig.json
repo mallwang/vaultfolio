@@ -20,6 +20,9 @@
     },
     {
       "path": "./libs/domain/holdings"
+    },
+    {
+      "path": "./libs/domain/auth"
     }
   ],
   "compilerOptions": {}

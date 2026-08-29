@@ -16,6 +16,9 @@
       "path": "../../libs/domain/holdings/tsconfig.lib.json"
     },
     {
+      "path": "../../libs/domain/auth/tsconfig.lib.json"
+    },
+    {
       "path": "../../libs/api-contract/tsconfig.lib.json"
     }
   ]

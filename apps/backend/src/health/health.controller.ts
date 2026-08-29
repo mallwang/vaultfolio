@@ -1,12 +1,14 @@
 import { Controller, Get, HttpStatus, Res } from '@nestjs/common';
 import type { Response } from 'express';
 import type { HealthStatus } from '@vaultfolio/api-contract';
+import { Public } from '../auth/public.decorator';
 import { HealthService } from './health.service';
 
 @Controller('health')
 export class HealthController {
   constructor(private readonly healthService: HealthService) {}
 
+  @Public()
   @Get()
   async check(@Res({ passthrough: true }) res: Response): Promise<HealthStatus> {
     const result = await this.healthService.check();

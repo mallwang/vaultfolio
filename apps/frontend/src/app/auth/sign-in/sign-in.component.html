@@ -1,0 +1,36 @@
+<div class="sign-in-page">
+  <p-card header="Sign in" styleClass="sign-in-card">
+    <form (ngSubmit)="submit()" class="sign-in-form">
+      <div class="field">
+        <label for="email">Email</label>
+        <input
+          pInputText
+          id="email"
+          name="email"
+          type="email"
+          autocomplete="username"
+          [(ngModel)]="email"
+          required
+        />
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input
+          pInputText
+          id="password"
+          name="password"
+          type="password"
+          autocomplete="current-password"
+          [(ngModel)]="password"
+          required
+        />
+      </div>
+
+      @if (errorMessage()) {
+        <p-message severity="error">{{ errorMessage() }}</p-message>
+      }
+
+      <p-button type="submit" label="Sign in" [loading]="submitting()" [disabled]="submitting()" />
+    </form>
+  </p-card>
+</div>

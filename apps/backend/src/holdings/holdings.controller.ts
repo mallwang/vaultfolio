@@ -10,6 +10,8 @@ import type {
 import { HoldingsService } from './holdings.service';
 import { holdingToResponse } from './holdings.mapper';
 import type { FieldError } from '@vaultfolio/domain-holdings';
+import { CurrentUser } from '../auth/current-user.decorator';
+import type { RequestUser } from '../auth/current-user.decorator';
 
 function validationErrorBody(fieldErrors: FieldError[]): HoldingValidationErrorResponse {
   return {
@@ -30,17 +32,18 @@ export class HoldingsController {
   constructor(private readonly holdingsService: HoldingsService) {}
 
   @Get()
-  async list(): Promise<HoldingResponse[]> {
-    const holdings = await this.holdingsService.findAll();
+  async list(@CurrentUser() user: RequestUser): Promise<HoldingResponse[]> {
+    const holdings = await this.holdingsService.findAll(user.id);
     return holdings.map(holdingToResponse);
   }
 
   @Post()
   async create(
     @Body() body: CreateHoldingRequest,
+    @CurrentUser() user: RequestUser,
     @Res({ passthrough: true }) res: Response,
   ): Promise<HoldingResponse | HoldingValidationErrorResponse> {
-    const result = await this.holdingsService.create(body);
+    const result = await this.holdingsService.create(body, user.id);
 
     if (result.kind === 'invalid') {
       res.status(HttpStatus.BAD_REQUEST);
@@ -55,9 +58,10 @@ export class HoldingsController {
   async update(
     @Param('id') id: string,
     @Body() body: UpdateHoldingRequest,
+    @CurrentUser() user: RequestUser,
     @Res({ passthrough: true }) res: Response,
   ): Promise<HoldingResponse | HoldingValidationErrorResponse | HoldingNotFoundErrorResponse> {
-    const result = await this.holdingsService.update(id, body);
+    const result = await this.holdingsService.update(id, body, user.id);
 
     if (result.kind === 'not_found') {
       res.status(HttpStatus.NOT_FOUND);
@@ -75,9 +79,10 @@ export class HoldingsController {
   @Delete(':id')
   async delete(
     @Param('id') id: string,
+    @CurrentUser() user: RequestUser,
     @Res({ passthrough: true }) res: Response,
   ): Promise<HoldingNotFoundErrorResponse | undefined> {
-    const deleted = await this.holdingsService.delete(id);
+    const deleted = await this.holdingsService.delete(id, user.id);
 
     if (!deleted) {
       res.status(HttpStatus.NOT_FOUND);

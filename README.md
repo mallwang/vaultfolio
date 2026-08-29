@@ -46,6 +46,35 @@ Stop the stack with `docker compose down` — `./data` is a host bind mount, not
 volume, so it survives `down` (with or without `-v`) automatically; delete the directory yourself
 if you want to wipe all stored data.
 
+### Authentication
+
+Every route requires a signed-in session except `/health` (005-auth-sessions-isolation). On first
+startup against an empty database, the backend seeds a single Administrator account from env
+vars — set them before the first start (`docker compose up` or `npm run dev`):
+
+```bash
+cp .env.example .env
+# then edit .env and fill in BOOTSTRAP_ADMIN_PASSWORD (and anything else you want to override)
+```
+
+| Variable                             | Required | Default | Purpose                                                                                  |
+| ------------------------------------ | -------- | ------- | ---------------------------------------------------------------------------------------- |
+| `BOOTSTRAP_ADMIN_EMAIL`              | Yes\*    | —       | Sign-in email for the seeded Administrator account (created only if `users` is empty)    |
+| `BOOTSTRAP_ADMIN_PASSWORD`           | Yes\*    | —       | Password for that account (8–200 chars); hashed with Argon2id, never stored in plaintext |
+| `SESSION_INACTIVITY_TIMEOUT_MINUTES` | No       | `30`    | A session idle longer than this is rejected on next use                                  |
+| `SESSION_ABSOLUTE_LIFETIME_HOURS`    | No       | `12`    | Hard cap on a session's lifetime regardless of activity                                  |
+
+\*Only required the first time the backend starts against an empty database — if unset at that
+point, the backend logs a startup error and no account exists to sign in with. Already-seeded
+databases ignore these on subsequent boots.
+
+`.env` is gitignored (only `.env.example` is committed) and is read by both flows from the repo
+root: Docker Compose loads it automatically to fill the `${VAR}` references in
+[docker-compose.yml](docker-compose.yml), and Nx loads it automatically into `process.env` for
+every target it runs (`nx serve`, `nx build`, etc.), so `npm run dev` picks up the same file with
+no extra wiring. Add new variables to `.env.example` (documented, empty/placeholder values) as the
+app grows.
+
 ### Hot-reload dev mode
 
 The command above builds production images (no live-reload). For day-to-day development, run the
@@ -59,7 +88,9 @@ npm run dev
 This runs `backend`/`frontend` via `nx run-many -t serve -p backend frontend`:
 
 - Frontend: <http://localhost:4200>, rebuilds + reloads on save
-- Backend: <http://localhost:3000>, rebuilds + restarts on save
+- Backend: <http://localhost:3000>, rebuilds + restarts on save, reading config from the root
+  `.env` (see [Authentication](#authentication) above — create it from `.env.example` before
+  first run)
 
 Equivalent to running each piece by hand:
 
