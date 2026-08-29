@@ -8,6 +8,8 @@
 
 **Input**: User description: "Household Access Control — admin-driven account lifecycle and email invitations. Second of a 4-part split of a consolidated user-management specification (specs 005–008); depends on spec 005 (auth, sessions, roles) being in place."
 
+**Design**: See [design.md](./design.md) for the approved UI layout/states and their requirement traceability.
+
 ## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Administrator manages the full account lifecycle (Priority: P1)
