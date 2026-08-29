@@ -90,7 +90,7 @@ write the same tables through the same availability check.
       dependency (provide/mock it); confirm `invitations.controller.spec.ts` still passes unchanged
 - [x] T010 Create `apps/backend/src/signups/signups.repository.ts`: `create()`, `findById()`,
       `findByToken()`, `findAll()`, race-guarded `markVerified()` (`UPDATE ... WHERE status =
-  'PENDING' AND expires_at > now`), `markApproved()`/`markRejected()`
+'PENDING' AND expires_at > now`), `markApproved()`/`markRejected()`
       (`UPDATE ... WHERE status = 'VERIFIED'`, affected-row-count check → `already_resolved` on 0
       rows, per data-model.md's state-transition guard), `deleteById()`, plus
       `EmailBlacklistRepository`-equivalent methods (`create`, `deleteByEmail`) on the same file or
@@ -141,7 +141,7 @@ confirm the request reaches `VERIFIED` status with no admin action taken (per sp
       admin emails via `UsersRepository.findAllByRole('ADMIN')`, sends the admin-notification email,
       and returns `email_delivery_failed` (verification itself still committed) on send failure
 - [x] T017 [US1] Add `SignupsController` `@Public() POST /signups` (T014), `@Public() GET
-  /signups/token/:token` (T015), `@Public() POST /signups/token/:token/verify` (T016) in
+/signups/token/:token` (T015), `@Public() POST /signups/token/:token/verify` (T016) in
       `apps/backend/src/signups/signups.controller.ts`, mapping results to the exact status
       codes/bodies in contracts/signups-api.md (201/400/409/403/502 for submit; 200/410 for lookup;
       200/410/502 for verify); short-circuit every visitor-facing route to `403 signup_disabled`
@@ -244,7 +244,7 @@ end-to-end, matching quickstart.md Story 2.
       enumerates feature modules) to list `signups/`, matching how `invitations/`/`accounts/` are
       already documented
 - [x] T038 Run `npm exec nx affected -t lint test build` (or `npm exec nx run-many -t lint test
-  build` for backend/frontend/api-contract) and fix any failures across all touched projects
+build` for backend/frontend/api-contract) and fix any failures across all touched projects
 
 ---
 
