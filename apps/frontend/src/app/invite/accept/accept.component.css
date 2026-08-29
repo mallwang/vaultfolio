@@ -1,0 +1,48 @@
+.invite-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 1.5rem;
+}
+
+::ng-deep .invite-card {
+  width: 100%;
+  max-width: 26rem;
+}
+
+h1 {
+  margin: 0 0 0.5rem;
+}
+
+.lede {
+  color: var(--p-text-muted-color);
+  margin: 0 0 1rem;
+}
+
+.invited-email {
+  font-weight: 600;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--p-content-border-radius);
+  background: var(--p-content-background);
+  border: 1px solid var(--p-content-border-color);
+  margin-bottom: 1.25rem;
+}
+
+.invite-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.field-hint {
+  margin: 0;
+  color: var(--p-text-muted-color);
+  font-size: 0.8rem;
+}

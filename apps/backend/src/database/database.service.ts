@@ -156,6 +156,48 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     }
 
     db.exec('CREATE INDEX IF NOT EXISTS holdings_owner_id_idx ON holdings (owner_id)');
+
+    this.migrateAccountsAndInvitations(db);
+  }
+
+  /**
+   * 006-admin-accounts-invitations: `users.archived_at`/`retention_expires_at`
+   * (data-model.md's "Change to Entity: User Account") and the new
+   * `invitations` table (data-model.md's "Entity: Invitation"), following the
+   * same `PRAGMA table_info` idempotent-migration pattern as `migrateAuth()`.
+   */
+  private migrateAccountsAndInvitations(db: Database.Database): void {
+    const hasArchivedAt = db
+      .prepare("SELECT 1 FROM pragma_table_info('users') WHERE name = 'archived_at'")
+      .get();
+    if (!hasArchivedAt) {
+      db.exec('ALTER TABLE users ADD COLUMN archived_at TEXT NULL');
+    }
+
+    const hasRetentionExpiresAt = db
+      .prepare("SELECT 1 FROM pragma_table_info('users') WHERE name = 'retention_expires_at'")
+      .get();
+    if (!hasRetentionExpiresAt) {
+      db.exec('ALTER TABLE users ADD COLUMN retention_expires_at TEXT NULL');
+    }
+
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS invitations (
+        id           TEXT PRIMARY KEY,
+        email        TEXT NOT NULL,
+        token        TEXT NOT NULL,
+        role         TEXT NOT NULL CHECK (role IN ('ADMIN', 'MEMBER')),
+        status       TEXT NOT NULL CHECK (status IN ('PENDING','ACCEPTED','EXPIRED','CANCELLED','SUPERSEDED')) DEFAULT 'PENDING',
+        invited_by   TEXT NOT NULL REFERENCES users(id),
+        created_at   TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')),
+        expires_at   TEXT NOT NULL,
+        accepted_at  TEXT NULL
+      )
+    `);
+    db.exec('CREATE UNIQUE INDEX IF NOT EXISTS invitations_token_idx ON invitations (token)');
+    db.exec(
+      'CREATE INDEX IF NOT EXISTS invitations_email_idx ON invitations (email COLLATE NOCASE)',
+    );
   }
 
   /**

@@ -1,0 +1,34 @@
+.accounts-panel {
+  margin-bottom: 1.5rem;
+}
+
+.accounts-panel__header {
+  margin-bottom: 0.75rem;
+}
+
+.role-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.row-actions {
+  display: flex;
+  gap: 0.25rem;
+  justify-content: flex-end;
+}
+
+.error-state {
+  color: var(--p-red-500);
+}
+
+.empty-state {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--p-text-muted-color);
+}
+
+::ng-deep .last-admin-banner {
+  display: block;
+  margin-bottom: 1rem;
+}

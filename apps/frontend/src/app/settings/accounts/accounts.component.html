@@ -1,0 +1,97 @@
+<p-toast />
+<p-confirmdialog />
+
+@if (lastAdminBlockedFor()) {
+  <p-message severity="warn" styleClass="last-admin-banner">
+    Can't demote, archive, or delete {{ lastAdminBlockedFor() }}. They're the only active
+    administrator — promote another account first, then try again.
+  </p-message>
+}
+
+<section class="accounts-panel">
+  <div class="accounts-panel__header">
+    <h2>Accounts</h2>
+    <p>Every account, active and archived — identity, role, and status.</p>
+  </div>
+
+  @if (loadError()) {
+    <p class="error-state">{{ loadError() }}</p>
+  } @else {
+    <p-table [value]="accounts()" [loading]="loading()" [tableStyle]="{ 'min-width': '50rem' }">
+      <ng-template #header>
+        <tr>
+          <th scope="col">Name</th>
+          <th scope="col">Email</th>
+          <th scope="col">Role</th>
+          <th scope="col">Status</th>
+          <th scope="col"></th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-account>
+        <tr>
+          <td>{{ account.displayName }}</td>
+          <td>{{ account.email }}</td>
+          <td class="role-cell">
+            <p-select
+              [options]="roleOptions"
+              optionLabel="label"
+              optionValue="value"
+              [ngModel]="account.role"
+              [disabled]="account.isLastActiveAdmin || account.status === 'ARCHIVED'"
+              (onChange)="onRoleChange(account, $event.value)"
+            />
+            @if (account.isLastActiveAdmin) {
+              <p-tag severity="info" value="Last admin" [rounded]="true" />
+            }
+          </td>
+          <td>
+            @if (account.status === 'ACTIVE') {
+              <p-tag severity="success" value="Active" [rounded]="true" />
+            } @else {
+              <p-tag
+                severity="secondary"
+                [value]="'Archived · ' + daysLeft(account) + 'd left'"
+                [rounded]="true"
+              />
+            }
+          </td>
+          <td class="row-actions">
+            @if (account.status === 'ACTIVE') {
+              <button
+                pButton
+                type="button"
+                iconOnly
+                severity="danger"
+                [text]="true"
+                [disabled]="account.isLastActiveAdmin"
+                [attr.aria-label]="archiveLabel(account)"
+                (click)="confirmArchive(account, $event)"
+              >
+                <i class="pi pi-inbox" aria-hidden="true"></i>
+              </button>
+            } @else {
+              <button
+                pButton
+                type="button"
+                iconOnly
+                severity="secondary"
+                [text]="true"
+                aria-label="Reactivate account"
+                (click)="reactivate(account)"
+              >
+                <i class="pi pi-replay" aria-hidden="true"></i>
+              </button>
+            }
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="5">
+            <div class="empty-state">No accounts yet.</div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  }
+</section>
