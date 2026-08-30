@@ -1,27 +1,41 @@
 <!--
 Sync Impact Report
-- Version change: 2.2.0 → 2.3.0 (MINOR: Technology & Architecture Constraints' database stack
-  decision changed from PostgreSQL to SQLite — a materially expanded/replaced concrete decision,
-  not a principle removal/redefinition)
-- Modified principles: n/a
+- Version change: 2.3.0 → 3.0.0 (MAJOR: Principle III redefined — mandatory Test-Driven
+  Development, the tests-first/Red-Green-Refactor ordering, is removed and replaced with a
+  normal implement-then-test approach; this is a backward-incompatible change to a
+  NON-NEGOTIABLE principle, not a clarification or additive change)
+- Modified principles:
+  - III. Test-First (NON-NEGOTIABLE) → III. Test Coverage — dropped the TDD mandate (tests
+    written first, confirmed to fail, then implementation) and the strict Red-Green-Refactor
+    cycle; the substantive requirement that financial code be thoroughly tested with exact-value
+    assertions is retained, tests are just written after (or alongside) the implementation
+    instead of before it.
 - Added sections: n/a
 - Removed sections: n/a
 - Modified sections:
-  - Technology & Architecture Constraints: replaced the "database MUST run as its own
-    container/service, not embedded in the backend process" bullet with language describing
-    SQLite as an embedded, file-based database bind-mounted from the host, per
-    specs/004-sqlite-migration (FR-011, User Story 3).
-  - Stack Decision: replaced "Database: PostgreSQL, run as its own container per the constraint
-    above" with SQLite as an embedded, single-file, host-bind-mounted database.
-  - Stack Decision (Money/decimal handling): replaced the PostgreSQL `NUMERIC`/`DECIMAL` column
-    reference with SQLite's `TEXT`-column canonical-decimal-string storage (never `REAL`/`FLOAT`);
-    the application-layer exact-decimal requirement is unchanged.
+  - Development Workflow & Quality Gates: removed the "skipping test-first for a specific change"
+    example of a principle deviation (no longer applicable now that test order isn't mandated);
+    kept the requirement that PRs weakening test coverage on money-handling code be rejected.
+- Rationale for this amendment: the team's development workflow is agentic — one LLM context
+  window typically produces both the implementation and its tests, using the precise logic
+  already established by upfront research/plan/tasks artifacts. Writing tests strictly before
+  implementation in that workflow does not provide the human-TDD benefit of tests as an
+  independent design/spec check, so the ordering mandate is dropped in favor of writing
+  implementation first and adding tests afterward.
 - Templates requiring updates:
-  - .specify/templates/plan-template.md ⚠ pending — Technical Context still references PostgreSQL
-    by name in its pre-filled example; not updated as part of this amendment (out of scope for
-    004-sqlite-migration's governance task), follow up separately.
-  - .specify/templates/spec-template.md ✅ no change needed (spec stays tech-agnostic)
-  - .specify/templates/tasks-template.md ✅ no change needed (path conventions are database-agnostic)
+  - .specify/templates/constitution-template.md ⚠ pending — Principle 3 example comment still
+    illustrates "Test-First (NON-NEGOTIABLE)" / TDD as the generic placeholder example; harmless
+    (it's inert template guidance, not a live rule) but should be refreshed to avoid steering
+    future amendments back toward TDD by default.
+  - .claude/skills/speckit-implement/SKILL.md ⚠ pending — step still instructs "Follow TDD
+    approach: Execute test tasks before their corresponding implementation tasks"; needs
+    updating to reflect implement-then-test ordering.
+  - .specify/templates/plan-template.md ✅ no change needed (no TDD-specific language)
+  - .specify/templates/tasks-template.md ✅ no change needed (already treats tests as optional,
+    not TDD-ordered)
+  - .specify/templates/spec-template.md ✅ no change needed (spec stays test-approach-agnostic)
+  - .claude/skills/speckit-tasks/SKILL.md ✅ no change needed (already generates test tasks only
+    when explicitly requested, not as a default TDD mandate)
 - Follow-up TODOs:
   - TODO(MARKET_DATA_PROVIDER): Specific market-data API vendor (prices, ETF composition) not yet
     chosen. Resolve during the /speckit-plan run for the first feature that needs live market data;
@@ -65,18 +79,26 @@ contract in the system. Making the API the single, well-defined entry point keep
 backend independently deployable and testable, and prevents financial logic from leaking into the
 UI layer or being duplicated across it.
 
-### III. Test-First (NON-NEGOTIABLE)
+### III. Test Coverage
 
-Test-Driven Development is mandatory for all code that touches financial data or calculations:
-tests are written first, reviewed and approved, confirmed to fail, and only then is
-implementation written. The Red-Green-Refactor cycle MUST be followed strictly. Any change to
-money amounts, balances, currency conversion, or date/period logic MUST include tests that assert
-exact expected values — approximate or "close enough" assertions on monetary values are not
-permitted.
+Code that touches financial data or calculations follows a normal implement-then-test approach:
+implementation is written first, then tests are added to cover it — tests are not required to be
+written before, or to fail before, the implementation exists, and no Red-Green-Refactor ordering
+is mandated. This applies to all code, including financial logic, because this project's
+development is agentic: a single LLM context window typically produces both the implementation
+and its tests from the precise logic already established by upfront research/plan/tasks
+artifacts, so a strict tests-first ordering does not provide the independent-design-check benefit
+it gives human developers. Despite the relaxed ordering, coverage itself is not optional: any
+change to money amounts, balances, currency conversion, or date/period logic MUST end up covered
+by tests that assert exact expected values before the change is considered done — approximate or
+"close enough" assertions on monetary values are not permitted.
 
 **Rationale**: Silent correctness bugs in a finance tool directly cause incorrect financial
-decisions. Test-first development is the cheapest point at which to catch them, and exact-value
-assertions prevent floating-point or rounding errors from hiding inside loose tolerances.
+decisions, so financial code must still be thoroughly tested. But in an agentic workflow the
+tests-first ordering mostly duplicates work the plan/tasks phase already did, without the benefit
+it gives human developers of using the test as an independent spec check before writing code.
+Exact-value assertions remain required regardless of ordering, to prevent floating-point or
+rounding errors from hiding inside loose tolerances.
 
 ### IV. Integration Testing
 
@@ -194,9 +216,10 @@ provider is unreachable, since a user's recorded holdings are the source of trut
   are not permitted.
 - Every pull request MUST verify compliance with the Core Principles above before merge; a PR that
   weakens test coverage on money-handling code MUST be rejected regardless of urgency.
-- Any deviation from a principle (e.g., skipping test-first for a specific change) MUST be
-  documented with an explicit justification in the PR description and, if it becomes a recurring
-  pattern, MUST trigger a constitution amendment rather than silent accumulation of exceptions.
+- Any deviation from a principle (e.g., shipping money-handling code without exact-value test
+  coverage) MUST be documented with an explicit justification in the PR description and, if it
+  becomes a recurring pattern, MUST trigger a constitution amendment rather than silent
+  accumulation of exceptions.
 
 ## Governance
 
@@ -212,4 +235,4 @@ alignment with the Core Principles; unresolved violations MUST be justified in t
 Complexity Tracking section or the plan MUST be revised to comply. Reviewers MUST treat this
 constitution as authoritative over informal team conventions.
 
-**Version**: 2.3.0 | **Ratified**: 2026-08-13 | **Last Amended**: 2026-08-28
+**Version**: 3.0.0 | **Ratified**: 2026-08-13 | **Last Amended**: 2026-08-30
