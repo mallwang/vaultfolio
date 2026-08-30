@@ -36,6 +36,7 @@ import {
   type AssetTypeFieldSet,
 } from '../asset-type-fields';
 import { HoldingsService } from '../holdings.service';
+import { TranslatePipe } from '../../core/i18n/translate.pipe';
 
 function positiveNumberValidator(): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
@@ -103,6 +104,7 @@ function toIsoDateOnly(value: Date | null): string | undefined {
     DatePickerModule,
     ButtonModule,
     MessageModule,
+    TranslatePipe,
   ],
   templateUrl: './holding-form.component.html',
   styleUrl: './holding-form.component.css',

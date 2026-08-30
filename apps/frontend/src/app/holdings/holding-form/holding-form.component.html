@@ -1,6 +1,6 @@
 <form [formGroup]="form" (ngSubmit)="submit()" class="holding-form">
   <div class="field">
-    <label for="assetType">Asset type</label>
+    <label for="assetType">{{ 'holdingForm.assetType' | translate }}</label>
     <p-select
       id="assetType"
       formControlName="assetType"
@@ -12,22 +12,22 @@
   </div>
 
   <div class="field">
-    <label for="management">Management</label>
+    <label for="management">{{ 'holdingForm.management' | translate }}</label>
     <input id="management" type="text" pInputText formControlName="management" />
     @if (form.controls.management.invalid && form.controls.management.touched) {
-      <p-message severity="error">Management is required.</p-message>
+      <p-message severity="error">{{ 'holdingForm.managementRequired' | translate }}</p-message>
     }
   </div>
 
   @if (fieldSet().isin) {
     <div class="field">
-      <label for="isin">ISIN</label>
+      <label for="isin">{{ 'holdingForm.isin' | translate }}</label>
       <input id="isin" type="text" pInputText formControlName="isin" />
       @if (form.controls.isin.invalid && form.controls.isin.touched) {
         @if (form.controls.isin.errors?.['isin']) {
-          <p-message severity="error">Enter a well-formed 12-character ISIN.</p-message>
+          <p-message severity="error">{{ 'holdingForm.isinInvalid' | translate }}</p-message>
         } @else {
-          <p-message severity="error">ISIN is required.</p-message>
+          <p-message severity="error">{{ 'holdingForm.isinRequired' | translate }}</p-message>
         }
       }
     </div>
@@ -35,17 +35,17 @@
 
   @if (fieldSet().name) {
     <div class="field">
-      <label for="name">Name</label>
+      <label for="name">{{ 'holdingForm.name' | translate }}</label>
       <input id="name" type="text" pInputText formControlName="name" />
       @if (form.controls.name.invalid && form.controls.name.touched) {
-        <p-message severity="error">Name is required.</p-message>
+        <p-message severity="error">{{ 'holdingForm.nameRequired' | translate }}</p-message>
       }
     </div>
   }
 
   @if (fieldSet().quantity) {
     <div class="field">
-      <label for="quantity">Quantity</label>
+      <label for="quantity">{{ 'holdingForm.quantity' | translate }}</label>
       <p-inputnumber
         id="quantity"
         formControlName="quantity"
@@ -53,7 +53,7 @@
         [maxFractionDigits]="8"
       />
       @if (form.controls.quantity.invalid && form.controls.quantity.touched) {
-        <p-message severity="error">Quantity must be a positive number.</p-message>
+        <p-message severity="error">{{ 'holdingForm.quantityInvalid' | translate }}</p-message>
       }
     </div>
   }
@@ -61,7 +61,12 @@
   @if (fieldSet().purchasePrice) {
     <div class="field">
       <label for="purchasePrice">
-        {{ form.controls.assetType.value === 'ETF' ? 'Average purchase price' : 'Purchase price' }}
+        {{
+          (form.controls.assetType.value === 'ETF'
+            ? 'holdingForm.averagePurchasePrice'
+            : 'holdingForm.purchasePrice'
+          ) | translate
+        }}
       </label>
       <p-inputnumber
         id="purchasePrice"
@@ -70,14 +75,14 @@
         [maxFractionDigits]="8"
       />
       @if (form.controls.purchasePrice.invalid && form.controls.purchasePrice.touched) {
-        <p-message severity="error">Purchase price must be a positive number.</p-message>
+        <p-message severity="error">{{ 'holdingForm.purchasePriceInvalid' | translate }}</p-message>
       }
     </div>
   }
 
   @if (fieldSet().weightGrams) {
     <div class="field">
-      <label for="weightGrams">Weight (grams)</label>
+      <label for="weightGrams">{{ 'holdingForm.weightGrams' | translate }}</label>
       <p-inputnumber
         id="weightGrams"
         formControlName="weightGrams"
@@ -85,14 +90,14 @@
         [maxFractionDigits]="8"
       />
       @if (form.controls.weightGrams.invalid && form.controls.weightGrams.touched) {
-        <p-message severity="error">Weight must be a positive number.</p-message>
+        <p-message severity="error">{{ 'holdingForm.weightGramsInvalid' | translate }}</p-message>
       }
     </div>
   }
 
   @if (fieldSet().currentValue) {
     <div class="field">
-      <label for="currentValue">Current value (optional)</label>
+      <label for="currentValue">{{ 'holdingForm.currentValue' | translate }}</label>
       <p-inputnumber
         id="currentValue"
         formControlName="currentValue"
@@ -100,14 +105,14 @@
         [maxFractionDigits]="8"
       />
       @if (form.controls.currentValue.invalid && form.controls.currentValue.touched) {
-        <p-message severity="error">Current value must be a positive number.</p-message>
+        <p-message severity="error">{{ 'holdingForm.currentValueInvalid' | translate }}</p-message>
       }
     </div>
   }
 
   @if (fieldSet().purchaseDate === 'optional') {
     <div class="field">
-      <label for="purchaseDate">Purchase date (optional)</label>
+      <label for="purchaseDate">{{ 'holdingForm.purchaseDate' | translate }}</label>
       <p-datepicker
         id="purchaseDate"
         formControlName="purchaseDate"
@@ -115,7 +120,7 @@
         [showIcon]="true"
       />
       @if (form.controls.purchaseDate.invalid && form.controls.purchaseDate.touched) {
-        <p-message severity="error">Purchase date must not be in the future.</p-message>
+        <p-message severity="error">{{ 'holdingForm.purchaseDateInvalid' | translate }}</p-message>
       }
     </div>
   }
@@ -125,7 +130,9 @@
   }
 
   <div class="form-actions">
-    <button pButton type="button" severity="secondary" (click)="cancel()">Cancel</button>
-    <button pButton type="submit" [loading]="submitting()">Save</button>
+    <button pButton type="button" severity="secondary" (click)="cancel()">
+      {{ 'common.cancel' | translate }}
+    </button>
+    <button pButton type="submit" [loading]="submitting()">{{ 'common.save' | translate }}</button>
   </div>
 </form>

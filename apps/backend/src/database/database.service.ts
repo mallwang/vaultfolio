@@ -4,6 +4,7 @@ import { randomUUID } from 'node:crypto';
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import Database from 'better-sqlite3';
 import * as argon2 from 'argon2';
+import { SUPPORTED_LANGUAGES } from '@vaultfolio/api-contract';
 
 /**
  * Thin wrapper around a `better-sqlite3` database handle. Deliberately not an
@@ -33,6 +34,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       this.migrate();
       await this.migrateAuth();
       this.migrateProfile();
+      this.migrateI18n();
       this.ready = true;
     } catch (error) {
       // A startup failure (unwritable ./data, migration failure, ...) should
@@ -290,6 +292,29 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       .get();
     if (!hasAccountDeletedAt) {
       db.exec('ALTER TABLE signup_requests ADD COLUMN account_deleted_at TEXT NULL');
+    }
+  }
+
+  /**
+   * 013-multilanguage-support: `users.email_language` (research.md #4) —
+   * same idempotent `PRAGMA table_info` pattern as `migrateProfile()`. The
+   * `CHECK` constraint's `IN (...)` list is generated from
+   * `SUPPORTED_LANGUAGES`' codes at migration time (SQLite's `ALTER TABLE
+   * ADD COLUMN` can't reference an app-level constant directly), keeping
+   * the DB constraint and the shared catalog from drifting apart.
+   */
+  private migrateI18n(): void {
+    const db = this.requireDb();
+
+    const hasEmailLanguage = db
+      .prepare("SELECT 1 FROM pragma_table_info('users') WHERE name = 'email_language'")
+      .get();
+    if (!hasEmailLanguage) {
+      const allowedCodes = SUPPORTED_LANGUAGES.map((language) => `'${language.code}'`).join(', ');
+      db.exec(
+        `ALTER TABLE users ADD COLUMN email_language TEXT NULL
+           CHECK (email_language IS NULL OR email_language IN (${allowedCodes}))`,
+      );
     }
   }
 

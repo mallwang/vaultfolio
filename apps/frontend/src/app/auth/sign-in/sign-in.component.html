@@ -1,8 +1,8 @@
 <div class="sign-in-page">
-  <p-card header="Sign in" styleClass="sign-in-card">
+  <p-card [header]="'signIn.title' | translate" styleClass="sign-in-card">
     <form (ngSubmit)="submit()" class="sign-in-form">
       <div class="field">
-        <label for="email">Email</label>
+        <label for="email">{{ 'signIn.email' | translate }}</label>
         <input
           pInputText
           id="email"
@@ -14,7 +14,7 @@
         />
       </div>
       <div class="field">
-        <label for="password">Password</label>
+        <label for="password">{{ 'signIn.password' | translate }}</label>
         <input
           pInputText
           id="password"
@@ -30,9 +30,17 @@
         <p-message severity="error">{{ errorMessage() }}</p-message>
       }
 
-      <p-button type="submit" label="Sign in" [loading]="submitting()" [disabled]="submitting()" />
+      <p-button
+        type="submit"
+        [label]="'signIn.submit' | translate"
+        [loading]="submitting()"
+        [disabled]="submitting()"
+      />
 
-      <p class="field-hint">Not having an account? <a routerLink="/signup">Sign up</a></p>
+      <p class="field-hint">
+        {{ 'signIn.noAccount' | translate }}
+        <a routerLink="/signup">{{ 'signIn.signUp' | translate }}</a>
+      </p>
     </form>
   </p-card>
 </div>

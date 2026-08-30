@@ -1,5 +1,5 @@
 <p-dialog
-  header="Reject this sign-up?"
+  [header]="'signups.rejectConfirmHeader' | translate"
   [modal]="true"
   [visible]="visible"
   [style]="{ width: '28rem' }"
@@ -10,11 +10,11 @@
   }
 
   <p class="reject-dialog__lede">
-    {{ signupEmail }} won't be notified why — only that their request wasn't approved.
+    {{ ('signups.rejectLede' | translate).replace('{{email}}', signupEmail) }}
   </p>
 
   <div class="field">
-    <label for="reject-reason">Reason (internal only, optional)</label>
+    <label for="reject-reason">{{ 'signups.rejectReasonLabel' | translate }}</label>
     <input
       pInputText
       id="reject-reason"
@@ -26,10 +26,10 @@
 
   <ng-template #footer>
     <button pButton type="button" severity="secondary" [text]="true" (click)="close()">
-      Keep it
+      {{ 'invitations.keepIt' | translate }}
     </button>
     <button pButton type="button" severity="danger" [loading]="submitting()" (click)="submit()">
-      <i class="pi pi-times" aria-hidden="true"></i> Reject sign-up
+      <i class="pi pi-times" aria-hidden="true"></i> {{ 'signups.rejectSignup' | translate }}
     </button>
   </ng-template>
 </p-dialog>

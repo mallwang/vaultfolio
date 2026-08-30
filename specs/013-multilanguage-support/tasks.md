@@ -27,9 +27,9 @@ Nx monorepo: `apps/backend/src/`, `apps/frontend/src/app/`, `libs/api-contract/s
 **Purpose**: Establish the shared language catalog that both display-language (US1) and
 email-language (US2) work depends on.
 
-- [ ] T001 [P] Create `SupportedLanguage`/`LanguageCode`/`SUPPORTED_LANGUAGES` (`en` default,
+- [x] T001 [P] Create `SupportedLanguage`/`LanguageCode`/`SUPPORTED_LANGUAGES` (`en` default,
       `de`) in `libs/api-contract/src/lib/i18n.ts` per contracts/profile-api-i18n.md
-- [ ] T002 [P] Export the new `i18n.ts` module from `libs/api-contract/src/index.ts` (follow the
+- [x] T002 [P] Export the new `i18n.ts` module from `libs/api-contract/src/index.ts` (follow the
       existing export pattern used for `profile.ts`)
 
 **Checkpoint**: Shared catalog available to both frontend and backend.
@@ -43,23 +43,23 @@ render translated text until this phase is done.
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T003 [US1] Create `en.ts` default-language dictionary (empty/skeleton keyed object) in
+- [x] T003 [US1] Create `en.ts` default-language dictionary (empty/skeleton keyed object) in
       `apps/frontend/src/app/core/i18n/translations/en.ts`
-- [ ] T004 [P] [US1] Create `de.ts` dictionary skeleton in
+- [x] T004 [P] [US1] Create `de.ts` dictionary skeleton in
       `apps/frontend/src/app/core/i18n/translations/de.ts`
-- [ ] T005 [US1] Implement `I18nService` in `apps/frontend/src/app/core/i18n/i18n.service.ts` —
+- [x] T005 [US1] Implement `I18nService` in `apps/frontend/src/app/core/i18n/i18n.service.ts` —
       signal-based active language, resolves `localStorage['vaultfolio-language']` (else catalog
       default) at construction, falls back to default for a stored-but-unsupported code, exposes
       a `setLanguage(code)` method that updates the signal and best-effort persists (mirrors
       `apps/frontend/src/app/core/theme/theme.service.ts`)
-- [ ] T006 [P] [US1] Unit tests for `I18nService` in
+- [x] T006 [P] [US1] Unit tests for `I18nService` in
       `apps/frontend/src/app/core/i18n/i18n.service.spec.ts` — resolution order, persistence,
       fallback-on-removed/unsupported language (mirrors `theme.service.spec.ts`)
-- [ ] T007 [US1] Implement `translate` pipe in
+- [x] T007 [US1] Implement `translate` pipe in
       `apps/frontend/src/app/core/i18n/translate.pipe.ts` — looks up a dotted key path in the
       active-language dictionary, falls back to `en.ts` on a missing key (never a raw key or
       empty string, FR-011)
-- [ ] T008 [P] [US1] Unit tests for the pipe in
+- [x] T008 [P] [US1] Unit tests for the pipe in
       `apps/frontend/src/app/core/i18n/translate.pipe.spec.ts` — key lookup, missing-key fallback
       to default dictionary, missing key in both dictionaries
 
@@ -79,16 +79,16 @@ applied; open a different browser and verify it still starts in English.
 
 ### Implementation for User Story 1
 
-- [ ] T009 [US1] Add a language switcher control (`p-select`, flag+name per design.md) to
+- [x] T009 [US1] Add a language switcher control (`p-select`, flag+name per design.md) to
       `apps/frontend/src/app/core/layout/app-header/app-header.component.html`/`.ts`, next to the
       existing theme toggle, listing `SUPPORTED_LANGUAGES` and bound to `I18nService`'s active
       language signal
-- [ ] T010 [US1] Wire the switcher's selection to `I18nService.setLanguage()` so all
+- [x] T010 [US1] Wire the switcher's selection to `I18nService.setLanguage()` so all
       `translate`-piped text on screen updates immediately (FR-003, SC-001)
-- [ ] T011 [P] [US1] Extend `app-header.component.spec.ts` with a test asserting selecting a
+- [x] T011 [P] [US1] Extend `app-header.component.spec.ts` with a test asserting selecting a
       language calls `I18nService.setLanguage` and marks the active option (mirrors existing
       theme-toggle test coverage in that spec)
-- [ ] T012 [US1] Replace hardcoded header navbar strings with `| translate` bindings reading from
+- [x] T012 [US1] Replace hardcoded header navbar strings with `| translate` bindings reading from
       the new dictionaries (scope: header/nav only — remaining screens covered in Phase 5, US3)
 
 **Checkpoint**: User Story 1 fully functional and independently testable/demoable — header
@@ -108,40 +108,40 @@ correspondence language different from the current display language, save, verif
 
 ### Tests for User Story 2 ⚠️
 
-- [ ] T013 [P] [US2] Migration test in `apps/backend/src/database/database.service.spec.ts` —
+- [x] T013 [P] [US2] Migration test in `apps/backend/src/database/database.service.spec.ts` —
       `migrateI18n()` adds `users.email_language` (nullable, `CHECK` against
       `SUPPORTED_LANGUAGES` codes) and is idempotent against an already-migrated DB
-- [ ] T014 [P] [US2] `ProfileService.updateEmailLanguage()` unit tests in
+- [x] T014 [P] [US2] `ProfileService.updateEmailLanguage()` unit tests in
       `apps/backend/src/profile/profile.service.spec.ts` — valid code, `null` (clear), invalid
       code rejected
-- [ ] T015 [P] [US2] `PATCH /api/profile/email-language` controller tests in
+- [x] T015 [P] [US2] `PATCH /api/profile/email-language` controller tests in
       `apps/backend/src/profile/profile.controller.spec.ts` — 200 on valid/`null` body, 400
       `invalid_email_language` on unsupported code, requires auth (mirrors existing
       `display-name` route coverage)
 
 ### Implementation for User Story 2
 
-- [ ] T016 [US2] Add `migrateI18n(db)` to `apps/backend/src/database/database.service.ts` —
+- [x] T016 [US2] Add `migrateI18n(db)` to `apps/backend/src/database/database.service.ts` —
       idempotent `PRAGMA table_info` check then `ALTER TABLE users ADD COLUMN email_language TEXT
-    NULL CHECK (...)` generated from `SUPPORTED_LANGUAGES` codes; call it from `onModuleInit`
+NULL CHECK (...)` generated from `SUPPORTED_LANGUAGES` codes; call it from `onModuleInit`
       alongside `migrateProfile()` (research.md #4)
-- [ ] T017 [P] [US2] Add `emailLanguage: LanguageCode | null` to `ProfileSummary` and add
+- [x] T017 [P] [US2] Add `emailLanguage: LanguageCode | null` to `ProfileSummary` and add
       `UpdateEmailLanguageRequest { emailLanguage: LanguageCode | null }` in
       `libs/api-contract/src/lib/profile.ts`
-- [ ] T018 [US2] Implement `ProfileService.updateEmailLanguage()` in
+- [x] T018 [US2] Implement `ProfileService.updateEmailLanguage()` in
       `apps/backend/src/profile/profile.service.ts` — validates against `SUPPORTED_LANGUAGES`
       (400 `invalid_email_language` otherwise), persists `email_language`, returns updated
       `ProfileSummary`, logs the mutation (`this.logger.log({ actor, event })` per plan.md)
       (depends on T016, T017)
-- [ ] T019 [US2] Add `PATCH /profile/email-language` route to
+- [x] T019 [US2] Add `PATCH /profile/email-language` route to
       `apps/backend/src/profile/profile.controller.ts` (`AuthGuard`, no `@Roles()`), and include
       `emailLanguage` in the existing `GET /api/profile` response (depends on T018)
-- [ ] T020 [US2] Add "Email correspondence language" control to
+- [x] T020 [US2] Add "Email correspondence language" control to
       `apps/frontend/src/app/settings/preferences/preferences.component.html`/`.ts` — same
       `SUPPORTED_LANGUAGES` list/labels as the header switcher (FR-012), pre-filled from
       `I18nService`'s current display language only when unset (research.md #3, client-side
       pre-fill, never auto-saved), calls `PATCH /profile/email-language` on save
-- [ ] T021 [P] [US2] Extend `preferences.component.spec.ts` (or create it, matching sibling
+- [x] T021 [P] [US2] Extend `preferences.component.spec.ts` (or create it, matching sibling
       settings component spec conventions) — save calls the new endpoint, pre-fill behavior,
       independence from display-language changes
 
@@ -161,18 +161,18 @@ remove a `de` key and confirm the UI shows the `en` text instead of breaking.
 
 ### Implementation for User Story 3
 
-- [ ] T022 [US3] Replace hardcoded strings with `| translate` bindings and add corresponding
+- [x] T022 [US3] Replace hardcoded strings with `| translate` bindings and add corresponding
       `en`/`de` dictionary entries for the sign-in/authentication screens
-- [ ] T023 [US3] Replace hardcoded strings with `| translate` bindings and add corresponding
+- [x] T023 [US3] Replace hardcoded strings with `| translate` bindings and add corresponding
       `en`/`de` dictionary entries for the dashboard screen(s)
-- [ ] T024 [US3] Replace hardcoded strings with `| translate` bindings and add corresponding
+- [x] T024 [US3] Replace hardcoded strings with `| translate` bindings and add corresponding
       `en`/`de` dictionary entries for the holdings list/form screens
-- [ ] T025 [US3] Replace hardcoded strings with `| translate` bindings and add corresponding
+- [x] T025 [US3] Replace hardcoded strings with `| translate` bindings and add corresponding
       `en`/`de` dictionary entries for Settings (Profile + Preferences, including the new
       email-language control from T020)
-- [ ] T026 [US3] Replace hardcoded strings with `| translate` bindings and add corresponding
+- [x] T026 [US3] Replace hardcoded strings with `| translate` bindings and add corresponding
       `en`/`de` dictionary entries for admin screens (role-gated nav and admin sections)
-- [ ] T027 [P] [US3] Manual pass per quickstart.md's US3 section across all primary screens in
+- [x] T027 [P] [US3] Manual pass per quickstart.md's US3 section across all primary screens in
       both languages, confirming SC-005 (<1% missing translations) and no visible raw key paths
 
 **Checkpoint**: All user stories independently functional; primary screens fully translated in
@@ -184,10 +184,14 @@ remove a `de` key and confirm the UI shows the `en` text instead of breaking.
 
 **Purpose**: Final validation across all stories.
 
-- [ ] T028 Run `npx nx affected -t lint test` (or `npx nx run-many -t lint test -p frontend
-    backend api-contract`) and fix any failures
-- [ ] T029 Execute quickstart.md's US1–US3 scenarios end-to-end manually against a running
-      `nx serve backend` + `nx serve frontend`
+- [x] T028 Run `npx nx affected -t lint test` (or `npx nx run-many -t lint test -p frontend
+backend api-contract`) and fix any failures
+- [x] T029 Execute quickstart.md's US1–US3 scenarios end-to-end manually against a running
+      `nx serve backend` + `nx serve frontend` — driven headlessly via Playwright: signed in,
+      switched the header language to Deutsch (header/nav/dashboard re-rendered instantly, no
+      reload — confirmed via screenshot), opened Settings › Preferences (pre-fill + fallback-note
+      behavior confirmed), saved the email-language setting (persisted via `GET /api/profile`,
+      fallback note cleared)
 
 ---
 

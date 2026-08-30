@@ -1,5 +1,5 @@
 <p-dialog
-  header="Invite a member"
+  [header]="'invitations.inviteAMember' | translate"
   [modal]="true"
   [visible]="visible"
   [style]="{ width: '28rem' }"
@@ -10,7 +10,7 @@
   }
 
   <div class="field">
-    <label for="invite-email">Email</label>
+    <label for="invite-email">{{ 'signIn.email' | translate }}</label>
     <input
       pInputText
       id="invite-email"
@@ -22,7 +22,7 @@
   </div>
 
   <div class="field">
-    <label for="invite-role">Role</label>
+    <label for="invite-role">{{ 'accounts.columnRole' | translate }}</label>
     <p-select
       id="invite-role"
       [options]="roleOptions"
@@ -33,13 +33,11 @@
     />
   </div>
 
-  <p class="invite-dialog__hint">
-    The invitee sets their own password when they open the link — you never see or set it.
-  </p>
+  <p class="invite-dialog__hint">{{ 'invitations.dialogHint' | translate }}</p>
 
   <ng-template #footer>
     <button pButton type="button" severity="secondary" [text]="true" (click)="close()">
-      Cancel
+      {{ 'common.cancel' | translate }}
     </button>
     <button
       pButton
@@ -48,7 +46,7 @@
       [disabled]="!email().trim()"
       (click)="submit()"
     >
-      <i class="pi pi-send" aria-hidden="true"></i> Send invitation
+      <i class="pi pi-send" aria-hidden="true"></i> {{ 'invitations.sendInvitation' | translate }}
     </button>
   </ng-template>
 </p-dialog>

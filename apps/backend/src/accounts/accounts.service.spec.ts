@@ -23,6 +23,7 @@ describe('AccountsService — isLastActiveAdmin computation', () => {
       archivedAt: null,
       retentionExpiresAt: null,
       pendingEmail: null,
+      emailLanguage: null,
       createdAt: '2026-01-01T00:00:00.000Z',
       updatedAt: '2026-01-01T00:00:00.000Z',
       ...overrides,

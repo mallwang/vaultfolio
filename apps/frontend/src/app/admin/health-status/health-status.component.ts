@@ -4,6 +4,7 @@ import type { HealthStatus } from '@vaultfolio/api-contract';
 import { CardModule } from 'primeng/card';
 import { MessageModule } from 'primeng/message';
 import { TagModule } from 'primeng/tag';
+import { TranslatePipe } from '../../core/i18n/translate.pipe';
 
 /**
  * Minimal page that calls GET /health and renders the result — proves the
@@ -18,12 +19,14 @@ import { TagModule } from 'primeng/tag';
  */
 @Component({
   selector: 'app-health-status',
-  imports: [CardModule, TagModule, MessageModule],
+  imports: [CardModule, TagModule, MessageModule, TranslatePipe],
+  providers: [TranslatePipe],
   templateUrl: './health-status.component.html',
   styleUrl: './health-status.component.css',
 })
 export class HealthStatusComponent {
   private readonly http = inject(HttpClient);
+  private readonly translate = inject(TranslatePipe);
 
   protected readonly health = signal<HealthStatus | null>(null);
   protected readonly error = signal<string | null>(null);
@@ -31,7 +34,7 @@ export class HealthStatusComponent {
   constructor() {
     this.http.get<HealthStatus>('/api/health').subscribe({
       next: (result) => this.health.set(result),
-      error: () => this.error.set('Unable to reach the backend health check.'),
+      error: () => this.error.set(this.translate.transform('healthStatus.error')),
     });
   }
 }

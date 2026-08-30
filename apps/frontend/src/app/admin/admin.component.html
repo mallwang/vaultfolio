@@ -1,9 +1,9 @@
 <p-tabs [value]="activeTab()" (valueChange)="onTabChange($event)">
   <p-tablist>
-    <p-tab value="accounts">Accounts</p-tab>
-    <p-tab value="signups">Sign-ups</p-tab>
-    <p-tab value="invitations">Invitations</p-tab>
-    <p-tab value="general">General</p-tab>
+    <p-tab value="accounts">{{ 'nav.accounts' | translate }}</p-tab>
+    <p-tab value="signups">{{ 'nav.signups' | translate }}</p-tab>
+    <p-tab value="invitations">{{ 'nav.invitations' | translate }}</p-tab>
+    <p-tab value="general">{{ 'admin.general' | translate }}</p-tab>
   </p-tablist>
   <p-tabpanels>
     <router-outlet />

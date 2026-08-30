@@ -1,13 +1,28 @@
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Component, computed, inject } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
+import { SelectModule } from 'primeng/select';
 import { TooltipModule } from 'primeng/tooltip';
+import { SUPPORTED_LANGUAGES } from '@vaultfolio/api-contract';
+import type { LanguageCode } from '@vaultfolio/api-contract';
 import { filter, map, startWith } from 'rxjs';
 import { APPLICATION_AREAS } from '../application-areas';
 import { AuthService } from '../../../auth/auth.service';
 import { CurrentUserStore } from '../../../auth/current-user.store';
 import { ThemeService } from '../../theme/theme.service';
+import { I18nService } from '../../i18n/i18n.service';
+import { TranslatePipe } from '../../i18n/translate.pipe';
+
+/** design.md's "Header language switcher" — flag emoji per language, not part of the shared catalog (display-only concern). */
+const LANGUAGE_FLAGS: Record<LanguageCode, string> = { en: '🇬🇧', de: '🇩🇪' };
+
+interface LanguageOption {
+  code: LanguageCode;
+  label: string;
+  flag: string;
+}
 
 /**
  * Shows a small "Vaultfolio" eyebrow/crumb plus the active area's title, with
@@ -16,7 +31,7 @@ import { ThemeService } from '../../theme/theme.service';
  */
 @Component({
   selector: 'app-header',
-  imports: [ButtonModule, TooltipModule],
+  imports: [ButtonModule, FormsModule, SelectModule, TooltipModule, TranslatePipe],
   templateUrl: './app-header.component.html',
   styleUrl: './app-header.component.css',
 })
@@ -29,6 +44,13 @@ export class AppHeaderComponent {
   // initial theme before any routed page content paints.
   private readonly themeService = inject(ThemeService);
   protected readonly theme = this.themeService.theme;
+  private readonly i18nService = inject(I18nService);
+  protected readonly language = this.i18nService.language;
+  protected readonly languageOptions: LanguageOption[] = SUPPORTED_LANGUAGES.map((language) => ({
+    code: language.code,
+    label: language.label,
+    flag: LANGUAGE_FLAGS[language.code] ?? '',
+  }));
 
   private readonly currentUrl = toSignal(
     this.router.events.pipe(
@@ -39,10 +61,11 @@ export class AppHeaderComponent {
     { initialValue: this.router.url },
   );
 
-  protected readonly activeAreaTitle = computed(() => {
+  /** Translation key for the active area's nav label, e.g. `nav.dashboard`; falls back to the brand key outside any known area. */
+  protected readonly activeAreaTitleKey = computed(() => {
     const url = this.currentUrl();
     const area = APPLICATION_AREAS.find((candidate) => url.startsWith(`/app/${candidate.path}`));
-    return area?.label ?? 'Vaultfolio';
+    return area ? `nav.${area.id}` : 'header.brand';
   });
 
   protected readonly isAuthenticated = computed(
@@ -60,12 +83,17 @@ export class AppHeaderComponent {
   );
 
   /** FR-004 (008): reflects role next to the display name — `SessionUser.role` already exists. */
-  protected readonly roleLabel = computed(() =>
-    this.user()?.role === 'ADMIN' ? 'Admin' : 'Member',
+  protected readonly roleLabelKey = computed(() =>
+    this.user()?.role === 'ADMIN' ? 'header.roleAdmin' : 'header.roleMember',
   );
 
   protected toggleTheme(): void {
     this.themeService.toggle();
+  }
+
+  /** FR-003/T010: switching re-renders every `translate`-piped string on screen immediately. */
+  protected setLanguage(code: LanguageCode): void {
+    this.i18nService.setLanguage(code);
   }
 
   protected signOut(): void {

@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CardModule } from 'primeng/card';
 import { TagModule } from 'primeng/tag';
+import { TranslatePipe } from '../core/i18n/translate.pipe';
 
 /**
  * Dashboard placeholder area (FR-005): three stat-card shells plus an
@@ -9,7 +10,7 @@ import { TagModule } from 'primeng/tag';
  */
 @Component({
   selector: 'app-dashboard',
-  imports: [CardModule, TagModule],
+  imports: [CardModule, TagModule, TranslatePipe],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
 })

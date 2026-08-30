@@ -10,6 +10,7 @@ import { ToastModule } from 'primeng/toast';
 import { AccountsService } from '../accounts/accounts.service';
 import { RejectDialogComponent } from './reject-dialog/reject-dialog.component';
 import { SignupsAdminService } from './signups.service';
+import { TranslatePipe } from '../../core/i18n/translate.pipe';
 
 type SignupStatus = SignupSummary['status'];
 
@@ -21,11 +22,12 @@ const STATUS_SEVERITY: Record<SignupStatus, 'success' | 'info' | 'secondary' | '
     REJECTED: 'danger',
   };
 
-const STATUS_LABEL: Record<SignupStatus, string> = {
-  PENDING: 'Awaiting verification',
-  VERIFIED: 'Awaiting review',
-  APPROVED: 'Approved',
-  REJECTED: 'Rejected',
+/** Translation key per status — resolved through the `translate` pipe (013, US3). */
+const STATUS_LABEL_KEY: Record<SignupStatus, string> = {
+  PENDING: 'signups.statusPending',
+  VERIFIED: 'signups.statusVerified',
+  APPROVED: 'signups.statusApproved',
+  REJECTED: 'signups.statusRejected',
 };
 
 /**
@@ -45,8 +47,9 @@ const STATUS_LABEL: Record<SignupStatus, string> = {
     ConfirmDialogModule,
     ToastModule,
     RejectDialogComponent,
+    TranslatePipe,
   ],
-  providers: [ConfirmationService, MessageService],
+  providers: [ConfirmationService, MessageService, TranslatePipe],
   templateUrl: './signups.component.html',
   styleUrl: './signups.component.css',
 })
@@ -55,6 +58,7 @@ export class SignupsComponent implements OnInit {
   private readonly accountsService = inject(AccountsService);
   private readonly confirmationService = inject(ConfirmationService);
   private readonly messageService = inject(MessageService);
+  private readonly translate = inject(TranslatePipe);
 
   protected readonly signups = signal<SignupSummary[]>([]);
   protected readonly loading = signal(true);
@@ -68,8 +72,8 @@ export class SignupsComponent implements OnInit {
     return STATUS_SEVERITY[status];
   }
 
-  protected statusLabel(status: SignupStatus): string {
-    return STATUS_LABEL[status];
+  protected statusLabelKey(status: SignupStatus): string {
+    return STATUS_LABEL_KEY[status];
   }
 
   ngOnInit(): void {
@@ -85,7 +89,7 @@ export class SignupsComponent implements OnInit {
         this.loading.set(false);
       },
       error: () => {
-        this.loadError.set('Unable to load sign-ups. Please try again.');
+        this.loadError.set(this.translate.transform('signups.loadError'));
         this.loading.set(false);
       },
     });
@@ -94,11 +98,19 @@ export class SignupsComponent implements OnInit {
   protected confirmApprove(signup: SignupSummary, event: Event): void {
     this.confirmationService.confirm({
       target: event.target as EventTarget,
-      header: 'Approve this sign-up?',
-      message: `${signup.email} will get an active account and be notified by email.`,
+      header: this.translate.transform('signups.approveConfirmHeader'),
+      message: this.translate
+        .transform('signups.approveConfirmMessage')
+        .replace('{{email}}', signup.email),
       icon: 'pi pi-check-circle',
-      acceptButtonProps: { severity: 'success', label: 'Approve' },
-      rejectButtonProps: { severity: 'secondary', label: 'Cancel' },
+      acceptButtonProps: {
+        severity: 'success',
+        label: this.translate.transform('signups.approve'),
+      },
+      rejectButtonProps: {
+        severity: 'secondary',
+        label: this.translate.transform('common.cancel'),
+      },
       accept: () => this.approve(signup),
     });
   }
@@ -110,11 +122,17 @@ export class SignupsComponent implements OnInit {
         // Approving creates a new account — tell the (already-instantiated)
         // Accounts tab to refetch so it shows up without a page reload.
         this.accountsService.notifyChanged();
-        this.messageService.add({ severity: 'success', summary: 'Sign-up approved' });
+        this.messageService.add({
+          severity: 'success',
+          summary: this.translate.transform('signups.approved'),
+        });
       },
       error: () => {
         this.refresh();
-        this.messageService.add({ severity: 'error', summary: 'Unable to approve this sign-up.' });
+        this.messageService.add({
+          severity: 'error',
+          summary: this.translate.transform('signups.approveError'),
+        });
       },
     });
   }
@@ -126,20 +144,29 @@ export class SignupsComponent implements OnInit {
 
   protected onRejected(): void {
     this.refresh();
-    this.messageService.add({ severity: 'success', summary: 'Sign-up rejected' });
+    this.messageService.add({
+      severity: 'success',
+      summary: this.translate.transform('signups.rejected'),
+    });
   }
 
   protected confirmDelete(signup: SignupSummary, event: Event): void {
     this.confirmationService.confirm({
       target: event.target as EventTarget,
-      header: 'Delete this sign-up entry?',
-      message:
-        signup.status === 'REJECTED'
-          ? `This also clears ${signup.email} from the blocked list, freeing it for a new sign-up.`
-          : `${signup.email} will need to sign up again if they still want an account.`,
+      header: this.translate.transform('signups.deleteConfirmHeader'),
+      message: this.translate
+        .transform(
+          signup.status === 'REJECTED'
+            ? 'signups.deleteConfirmMessageRejected'
+            : 'signups.deleteConfirmMessage',
+        )
+        .replace('{{email}}', signup.email),
       icon: 'pi pi-exclamation-triangle',
-      acceptButtonProps: { severity: 'danger', label: 'Delete' },
-      rejectButtonProps: { severity: 'secondary', label: 'Keep it' },
+      acceptButtonProps: { severity: 'danger', label: this.translate.transform('holdings.delete') },
+      rejectButtonProps: {
+        severity: 'secondary',
+        label: this.translate.transform('invitations.keepIt'),
+      },
       accept: () => this.delete(signup),
     });
   }
@@ -148,11 +175,17 @@ export class SignupsComponent implements OnInit {
     this.signupsAdminService.delete(signup.id).subscribe({
       next: () => {
         this.refresh();
-        this.messageService.add({ severity: 'success', summary: 'Sign-up deleted' });
+        this.messageService.add({
+          severity: 'success',
+          summary: this.translate.transform('signups.deleted'),
+        });
       },
       error: () => {
         this.refresh();
-        this.messageService.add({ severity: 'error', summary: 'Unable to delete this sign-up.' });
+        this.messageService.add({
+          severity: 'error',
+          summary: this.translate.transform('signups.deleteError'),
+        });
       },
     });
   }

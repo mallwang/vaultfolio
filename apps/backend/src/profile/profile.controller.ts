@@ -21,6 +21,7 @@ import type {
   ResetPasswordRequest,
   SessionUser,
   UpdateDisplayNameRequest,
+  UpdateEmailLanguageRequest,
 } from '@vaultfolio/api-contract';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { RequestUser } from '../auth/current-user.decorator';
@@ -31,6 +32,10 @@ import { ProfileService } from './profile.service';
 const INVALID_DISPLAY_NAME: ProfileErrorResponse = {
   error: 'invalid_display_name',
   message: 'Display name must be 1–100 characters.',
+};
+const INVALID_EMAIL_LANGUAGE: ProfileErrorResponse = {
+  error: 'invalid_email_language',
+  message: 'Email language must be a supported language or unset.',
 };
 const EMAIL_UNAVAILABLE: ProfileErrorResponse = {
   error: 'email_unavailable',
@@ -94,6 +99,23 @@ export class ProfileController {
     if (result.kind === 'invalid_display_name') {
       res.status(HttpStatus.BAD_REQUEST);
       return INVALID_DISPLAY_NAME;
+    }
+    return result.profile;
+  }
+
+  @Patch('email-language')
+  async updateEmailLanguage(
+    @CurrentUser() currentUser: RequestUser,
+    @Body() body: UpdateEmailLanguageRequest,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<ProfileSummary | ProfileErrorResponse> {
+    const result = await this.profile.updateEmailLanguage(
+      currentUser.id,
+      body?.emailLanguage ?? null,
+    );
+    if (result.kind === 'invalid_email_language') {
+      res.status(HttpStatus.BAD_REQUEST);
+      return INVALID_EMAIL_LANGUAGE;
     }
     return result.profile;
   }

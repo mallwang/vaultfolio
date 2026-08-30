@@ -140,6 +140,7 @@ describe('/profile', () => {
         displayName: 'Member User',
         role: 'MEMBER',
         pendingEmail: null,
+        emailLanguage: null,
       });
     });
 
@@ -178,6 +179,63 @@ describe('/profile', () => {
         .send({ displayName: 'a'.repeat(101) });
       expect(response.status).toBe(400);
       expect(response.body.error).toBe('invalid_display_name');
+    });
+  });
+
+  describe('PATCH /profile/email-language', () => {
+    it('sets a valid supported code: 200', async () => {
+      const { cookie } = await createMember('email-language@example.com');
+      const response = await request(app.getHttpServer())
+        .patch('/profile/email-language')
+        .set('Cookie', cookie)
+        .send({ emailLanguage: 'de' });
+      expect(response.status).toBe(200);
+      expect(response.body.emailLanguage).toBe('de');
+    });
+
+    it('clears the setting with null: 200', async () => {
+      const { cookie } = await createMember('email-language-clear@example.com');
+      await request(app.getHttpServer())
+        .patch('/profile/email-language')
+        .set('Cookie', cookie)
+        .send({ emailLanguage: 'de' });
+      const response = await request(app.getHttpServer())
+        .patch('/profile/email-language')
+        .set('Cookie', cookie)
+        .send({ emailLanguage: null });
+      expect(response.status).toBe(200);
+      expect(response.body.emailLanguage).toBeNull();
+    });
+
+    it('returns 400 invalid_email_language for an unsupported code', async () => {
+      const { cookie } = await createMember('email-language-invalid@example.com');
+      const response = await request(app.getHttpServer())
+        .patch('/profile/email-language')
+        .set('Cookie', cookie)
+        .send({ emailLanguage: 'fr' });
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('invalid_email_language');
+    });
+
+    it('401s when unauthenticated', async () => {
+      const response = await request(app.getHttpServer())
+        .patch('/profile/email-language')
+        .send({ emailLanguage: 'de' });
+      expect(response.status).toBe(401);
+    });
+
+    it('does not affect the display language (FR-009 — no client-side coupling)', async () => {
+      const { cookie } = await createMember('email-language-independent@example.com');
+      await request(app.getHttpServer())
+        .patch('/profile/email-language')
+        .set('Cookie', cookie)
+        .send({ emailLanguage: 'de' });
+      const response = await request(app.getHttpServer()).get('/profile').set('Cookie', cookie);
+      expect(response.body.emailLanguage).toBe('de');
+      // The display language is a per-device localStorage concern the
+      // backend never stores or reads — nothing else on the profile
+      // response changes as a result of setting this field.
+      expect(response.body.displayName).toBe('Member User');
     });
   });
 

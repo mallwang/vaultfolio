@@ -11,6 +11,7 @@ import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { AccountsService } from './accounts.service';
+import { TranslatePipe } from '../../core/i18n/translate.pipe';
 
 type UserRole = AccountSummary['role'];
 
@@ -48,8 +49,9 @@ const ROLE_OPTIONS: RoleOption[] = [
     ConfirmDialogModule,
     ToastModule,
     FormsModule,
+    TranslatePipe,
   ],
-  providers: [ConfirmationService, MessageService],
+  providers: [ConfirmationService, MessageService, TranslatePipe],
   templateUrl: './accounts.component.html',
   styleUrl: './accounts.component.css',
 })
@@ -58,6 +60,7 @@ export class AccountsComponent implements OnInit {
   private readonly confirmationService = inject(ConfirmationService);
   private readonly messageService = inject(MessageService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly translate = inject(TranslatePipe);
 
   protected readonly accounts = signal<AccountSummary[]>([]);
   protected readonly loading = signal(true);
@@ -82,14 +85,16 @@ export class AccountsComponent implements OnInit {
         this.loading.set(false);
       },
       error: () => {
-        this.loadError.set('Unable to load accounts. Please try again.');
+        this.loadError.set(this.translate.transform('accounts.loadError'));
         this.loading.set(false);
       },
     });
   }
 
   protected archiveLabel(account: AccountSummary): string {
-    return account.isLastActiveAdmin ? "Can't archive the last administrator" : 'Archive account';
+    return this.translate.transform(
+      account.isLastActiveAdmin ? 'accounts.cannotArchiveLastAdmin' : 'accounts.archiveAccount',
+    );
   }
 
   protected daysLeft(account: AccountSummary): number | null {
@@ -108,7 +113,10 @@ export class AccountsComponent implements OnInit {
     this.accountsService.changeRole(account.id, { role }).subscribe({
       next: () => {
         this.refresh();
-        this.messageService.add({ severity: 'success', summary: 'Role updated' });
+        this.messageService.add({
+          severity: 'success',
+          summary: this.translate.transform('accounts.roleUpdated'),
+        });
       },
       error: (error: unknown) => {
         this.handleLifecycleError(account, error, 'change that role');
@@ -119,11 +127,19 @@ export class AccountsComponent implements OnInit {
   protected confirmArchive(account: AccountSummary, event: Event): void {
     this.confirmationService.confirm({
       target: event.target as EventTarget,
-      header: 'Archive this account?',
-      message: `${account.displayName} will be signed out immediately and won't be able to sign back in. Their data is kept for 30 days and can be restored by reactivating the account within that window.`,
+      header: this.translate.transform('accounts.archiveConfirmHeader'),
+      message: this.translate
+        .transform('accounts.archiveConfirmMessage')
+        .replace('{{name}}', account.displayName),
       icon: 'pi pi-exclamation-triangle',
-      acceptButtonProps: { severity: 'danger', label: 'Archive account' },
-      rejectButtonProps: { severity: 'secondary', label: 'Cancel' },
+      acceptButtonProps: {
+        severity: 'danger',
+        label: this.translate.transform('accounts.archiveAccount'),
+      },
+      rejectButtonProps: {
+        severity: 'secondary',
+        label: this.translate.transform('common.cancel'),
+      },
       accept: () => this.archive(account),
     });
   }
@@ -133,7 +149,10 @@ export class AccountsComponent implements OnInit {
     this.accountsService.archive(account.id).subscribe({
       next: () => {
         this.refresh();
-        this.messageService.add({ severity: 'success', summary: 'Account archived' });
+        this.messageService.add({
+          severity: 'success',
+          summary: this.translate.transform('accounts.archived'),
+        });
       },
       error: (error: unknown) => {
         const httpError = error as { status?: number; error?: { error?: string } };
@@ -141,8 +160,8 @@ export class AccountsComponent implements OnInit {
           this.refresh();
           this.messageService.add({
             severity: 'info',
-            summary: 'Already archived',
-            detail: 'This account was already archived.',
+            summary: this.translate.transform('accounts.alreadyArchived'),
+            detail: this.translate.transform('accounts.alreadyArchivedDetail'),
           });
           return;
         }
@@ -155,7 +174,10 @@ export class AccountsComponent implements OnInit {
     this.accountsService.reactivate(account.id).subscribe({
       next: () => {
         this.refresh();
-        this.messageService.add({ severity: 'success', summary: 'Account reactivated' });
+        this.messageService.add({
+          severity: 'success',
+          summary: this.translate.transform('accounts.reactivated'),
+        });
       },
       error: (error: unknown) => {
         const httpError = error as { status?: number };
@@ -163,13 +185,13 @@ export class AccountsComponent implements OnInit {
         if (httpError.status === 410) {
           this.messageService.add({
             severity: 'error',
-            summary: "Retention window has passed — this account can't be reactivated.",
+            summary: this.translate.transform('accounts.retentionWindowPassed'),
           });
           return;
         }
         this.messageService.add({
           severity: 'error',
-          summary: 'Unable to reactivate this account.',
+          summary: this.translate.transform('accounts.reactivateError'),
         });
       },
     });

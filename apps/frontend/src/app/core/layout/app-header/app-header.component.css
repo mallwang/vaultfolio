@@ -33,12 +33,27 @@
   font-weight: 800;
 }
 
-.app-header__meta {
+.app-header__meta,
+.app-header__controls {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   font-size: 0.8rem;
   color: var(--p-text-muted-color);
+}
+
+/* design.md "Header language switcher" — labeled pill (flag + name), placed
+   immediately before the theme toggle. */
+.app-header__language-flag {
+  margin-right: 0.35rem;
+}
+
+@media (max-width: 640px) {
+  /* design.md "Responsive": drops the text label, keeps flag + chevron,
+     mirroring the sidebar's existing mobile-collapse treatment. */
+  .app-header__language-label {
+    display: none;
+  }
 }
 
 /* design.md — small pill next to the display name, reusable verbatim (mockup.html). */

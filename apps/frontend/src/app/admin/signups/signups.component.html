@@ -4,8 +4,8 @@
 <section class="signups-panel">
   <div class="signups-panel__header">
     <div>
-      <h2>Sign-ups</h2>
-      <p>Public self-service sign-up requests awaiting verification and review.</p>
+      <h2>{{ 'nav.signups' | translate }}</h2>
+      <p>{{ 'signups.subtitle' | translate }}</p>
     </div>
   </div>
 
@@ -15,9 +15,9 @@
     <p-table [value]="signups()" [loading]="loading()" [tableStyle]="{ 'min-width': '50rem' }">
       <ng-template #header>
         <tr>
-          <th scope="col">Email</th>
-          <th scope="col">Submitted</th>
-          <th scope="col">Status</th>
+          <th scope="col">{{ 'invitations.columnEmail' | translate }}</th>
+          <th scope="col">{{ 'signups.columnSubmitted' | translate }}</th>
+          <th scope="col">{{ 'invitations.columnStatus' | translate }}</th>
           <th scope="col"></th>
         </tr>
       </ng-template>
@@ -28,12 +28,13 @@
           <td>
             <p-tag
               [severity]="statusSeverity(signup.status)"
-              [value]="statusLabel(signup.status)"
+              [value]="statusLabelKey(signup.status) | translate"
               [rounded]="true"
             />
             @if (signup.accountDeletedAt) {
               <div class="status-followup">
-                Account deleted {{ signup.accountDeletedAt | date: 'mediumDate' }}
+                {{ 'signups.accountDeleted' | translate }}
+                {{ signup.accountDeletedAt | date: 'mediumDate' }}
               </div>
             }
           </td>
@@ -46,7 +47,7 @@
                   iconOnly
                   severity="success"
                   [text]="true"
-                  aria-label="Approve sign-up"
+                  [attr.aria-label]="'signups.approveSignup' | translate"
                   (click)="confirmApprove(signup, $event)"
                 >
                   <i class="pi pi-check-circle" aria-hidden="true"></i>
@@ -57,7 +58,7 @@
                   iconOnly
                   severity="danger"
                   [text]="true"
-                  aria-label="Reject sign-up"
+                  [attr.aria-label]="'signups.rejectSignup' | translate"
                   (click)="openRejectDialog(signup)"
                 >
                   <i class="pi pi-times" aria-hidden="true"></i>
@@ -69,7 +70,7 @@
                 iconOnly
                 severity="secondary"
                 [text]="true"
-                aria-label="Delete sign-up"
+                [attr.aria-label]="'signups.deleteSignup' | translate"
                 (click)="confirmDelete(signup, $event)"
               >
                 <i class="pi pi-trash" aria-hidden="true"></i>
@@ -81,7 +82,7 @@
       <ng-template #emptymessage>
         <tr>
           <td colspan="4">
-            <div class="empty-state">No sign-up requests yet.</div>
+            <div class="empty-state">{{ 'signups.emptyState' | translate }}</div>
           </td>
         </tr>
       </ng-template>

@@ -1,16 +1,36 @@
 <div class="app-header__brand">
   <img class="app-header__logo" src="/vaultfolio-logo.png" alt="" aria-hidden="true" />
   <div>
-    <p class="app-header__crumb">Vaultfolio</p>
-    <h1 class="app-header__title">{{ activeAreaTitle() }}</h1>
+    <p class="app-header__crumb">{{ 'header.brand' | translate }}</p>
+    <h1 class="app-header__title">{{ activeAreaTitleKey() | translate }}</h1>
   </div>
 </div>
 @if (isAuthenticated()) {
   <div class="app-header__meta">
     <span>{{ user()?.displayName }}</span>
     @if (user()?.role) {
-      <span class="role-badge">{{ roleLabel() }}</span>
+      <span class="role-badge">{{ roleLabelKey() | translate }}</span>
     }
+    <p-select
+      class="app-header__language-select"
+      data-testid="language-switcher"
+      [options]="languageOptions"
+      optionLabel="label"
+      optionValue="code"
+      [ngModel]="language()"
+      [attr.aria-label]="'header.language' | translate"
+      appendTo="body"
+      (onChange)="setLanguage($event.value)"
+    >
+      <ng-template #selectedItem let-selected>
+        <span class="app-header__language-flag">{{ selected.flag }}</span>
+        <span class="app-header__language-label">{{ selected.label }}</span>
+      </ng-template>
+      <ng-template #item let-option>
+        <span class="app-header__language-flag">{{ option.flag }}</span>
+        <span class="app-header__language-label">{{ option.label }}</span>
+      </ng-template>
+    </p-select>
     <button
       pButton
       data-testid="theme-toggle"
@@ -19,8 +39,16 @@
       severity="secondary"
       [text]="true"
       [attr.aria-pressed]="theme() === 'dark'"
-      [attr.aria-label]="theme() === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'"
-      [pTooltip]="theme() === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'"
+      [attr.aria-label]="
+        theme() === 'dark'
+          ? ('header.switchToLightTheme' | translate)
+          : ('header.switchToDarkTheme' | translate)
+      "
+      [pTooltip]="
+        theme() === 'dark'
+          ? ('header.switchToLightTheme' | translate)
+          : ('header.switchToDarkTheme' | translate)
+      "
       tooltipPosition="bottom"
       appendTo="body"
       (click)="toggleTheme()"
@@ -31,28 +59,58 @@
       icon="pi pi-sign-out"
       severity="secondary"
       text
-      aria-label="Sign out"
-      pTooltip="Sign out"
+      [attr.aria-label]="'header.signOut' | translate"
+      [pTooltip]="'header.signOut' | translate"
       tooltipPosition="bottom"
       appendTo="body"
       (onClick)="signOut()"
     />
   </div>
 } @else {
-  <button
-    pButton
-    data-testid="theme-toggle"
-    type="button"
-    iconOnly
-    severity="secondary"
-    [text]="true"
-    [attr.aria-pressed]="theme() === 'dark'"
-    [attr.aria-label]="theme() === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'"
-    [pTooltip]="theme() === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'"
-    tooltipPosition="bottom"
-    appendTo="body"
-    (click)="toggleTheme()"
-  >
-    <i [class]="theme() === 'dark' ? 'pi pi-moon' : 'pi pi-sun'" aria-hidden="true"></i>
-  </button>
+  <div class="app-header__controls">
+    <p-select
+      class="app-header__language-select"
+      data-testid="language-switcher"
+      [options]="languageOptions"
+      optionLabel="label"
+      optionValue="code"
+      [ngModel]="language()"
+      [attr.aria-label]="'header.language' | translate"
+      appendTo="body"
+      (onChange)="setLanguage($event.value)"
+    >
+      <ng-template #selectedItem let-selected>
+        <span class="app-header__language-flag">{{ selected.flag }}</span>
+        <span class="app-header__language-label">{{ selected.label }}</span>
+      </ng-template>
+      <ng-template #item let-option>
+        <span class="app-header__language-flag">{{ option.flag }}</span>
+        <span class="app-header__language-label">{{ option.label }}</span>
+      </ng-template>
+    </p-select>
+    <button
+      pButton
+      data-testid="theme-toggle"
+      type="button"
+      iconOnly
+      severity="secondary"
+      [text]="true"
+      [attr.aria-pressed]="theme() === 'dark'"
+      [attr.aria-label]="
+        theme() === 'dark'
+          ? ('header.switchToLightTheme' | translate)
+          : ('header.switchToDarkTheme' | translate)
+      "
+      [pTooltip]="
+        theme() === 'dark'
+          ? ('header.switchToLightTheme' | translate)
+          : ('header.switchToDarkTheme' | translate)
+      "
+      tooltipPosition="bottom"
+      appendTo="body"
+      (click)="toggleTheme()"
+    >
+      <i [class]="theme() === 'dark' ? 'pi pi-moon' : 'pi pi-sun'" aria-hidden="true"></i>
+    </button>
+  </div>
 }
