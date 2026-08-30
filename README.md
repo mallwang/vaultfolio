@@ -1,7 +1,7 @@
 # Vaultfolio
 
 <p align="center">
-  <img src="logo.png" alt="Klaro" width="120" />
+  <img src="logo.png" alt="Vaultfolio" width="120" />
 </p>
 
 A personal investment tracking web application — frontend, backend, and database, packaged and
