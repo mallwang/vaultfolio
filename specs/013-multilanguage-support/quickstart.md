@@ -30,7 +30,7 @@ dev setup (`nx serve backend`, `nx serve frontend`, or `docker-compose up`).
 
 ## US2 — Configure a separate email correspondence language (P2)
 
-1. While signed in (any display language), open **Settings > Profile**.
+1. While signed in (any display language), open **Settings > Preferences**.
 2. Locate the "Email correspondence language" control — distinct from the header's display
    language switcher (FR-006, SC-003: reachable within 3 clicks from account settings).
 3. Note it presents the same language list as the header switcher (FR-012), and — if never set —

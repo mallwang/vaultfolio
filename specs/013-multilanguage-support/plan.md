@@ -132,7 +132,7 @@ apps/
         │   │       ├── en.ts                # default-language dictionary
         │   │       └── de.ts
         │   └── layout/app-header/           # + language switcher control (p-select)
-        └── settings/profile/                # + email correspondence language control
+        └── settings/preferences/             # + email correspondence language control (design.md)
 
 libs/
 └── api-contract/src/lib/

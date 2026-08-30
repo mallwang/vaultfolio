@@ -8,6 +8,8 @@
 
 **Input**: User description: "I would like to add multilanguage support to the application via a global language switcher in the header navbar. It should be persisted for later visits. Additionally, the user should be able to configure the email correspondence language as a separate configuration (maybe stored in the db), this will be used for later cron-based email notifications."
 
+**Design**: [design.md](./design.md) — approved mockup: flag+name header language switcher next to the theme toggle; email correspondence language field on Settings › Preferences.
+
 ## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Switch the application display language (Priority: P1)

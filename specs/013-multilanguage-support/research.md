@@ -55,7 +55,7 @@ changing list (adding a language is a code change and redeploy either way, per s
 **Decision**: `users.email_language` is `NULL` until a user explicitly sets it (mirrors the
 existing `pending_email` nullable-column pattern). While `NULL`, any backend process needing a
 language for that user's correspondence uses the application default language (`en`). The
-Settings > Profile control pre-fills its picker with the user's _current display language_ (read
+Settings > Preferences control pre-fills its picker with the user's _current display language_ (read
 client-side from `I18nService`) as a suggested starting value when no explicit setting exists yet,
 but that pre-fill only becomes the stored value once the user saves it — it is never written to
 `users.email_language` implicitly.
