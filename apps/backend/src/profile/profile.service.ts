@@ -2,7 +2,8 @@ import { randomBytes, randomUUID } from 'node:crypto';
 import { Injectable, Logger } from '@nestjs/common';
 import * as argon2 from 'argon2';
 import { expiryWindowHours, isTokenUsable, validatePassword } from '@vaultfolio/domain-auth';
-import type { ProfileSummary, SessionUser } from '@vaultfolio/api-contract';
+import { isSupportedLanguageCode } from '@vaultfolio/api-contract';
+import type { LanguageCode, ProfileSummary, SessionUser } from '@vaultfolio/api-contract';
 import { UsersRepository } from '../auth/users.repository';
 import { SessionsRepository } from '../auth/sessions.repository';
 import type { Session } from '../auth/sessions.repository';
@@ -27,6 +28,9 @@ function generateActionToken(): string {
 
 export type UpdateDisplayNameResult =
   { kind: 'success'; profile: ProfileSummary } | { kind: 'invalid_display_name' };
+
+export type UpdateEmailLanguageResult =
+  { kind: 'success'; profile: ProfileSummary } | { kind: 'invalid_email_language' };
 
 export type RequestEmailChangeResult =
   | { kind: 'success'; pendingEmail: string }
@@ -85,6 +89,7 @@ export class ProfileService {
       displayName: user.displayName,
       role: user.role,
       pendingEmail,
+      emailLanguage: user.emailLanguage,
     };
   }
 
@@ -118,6 +123,41 @@ export class ProfileService {
         displayName: updated.displayName,
         role: updated.role,
         pendingEmail,
+        emailLanguage: updated.emailLanguage,
+      },
+    };
+  }
+
+  /**
+   * Sets or clears (`null`) the caller's own email correspondence language
+   * (013, FR-006/FR-007), independent of their display language (FR-009).
+   * `null`/a `SUPPORTED_LANGUAGES` code are the only valid bodies —
+   * everything else is `invalid_email_language` (contracts/profile-api-i18n.md).
+   */
+  async updateEmailLanguage(
+    userId: string,
+    emailLanguage: LanguageCode | null,
+  ): Promise<UpdateEmailLanguageResult> {
+    if (emailLanguage !== null && !isSupportedLanguageCode(emailLanguage)) {
+      return { kind: 'invalid_email_language' };
+    }
+
+    const updated = await this.users.updateEmailLanguage(userId, emailLanguage);
+    if (!updated) {
+      return { kind: 'invalid_email_language' };
+    }
+
+    this.logger.log({ actor: userId, event: 'email_language_updated' });
+    const pendingEmail = await this.currentPendingEmail(userId);
+    return {
+      kind: 'success',
+      profile: {
+        id: updated.id,
+        email: updated.email,
+        displayName: updated.displayName,
+        role: updated.role,
+        pendingEmail,
+        emailLanguage: updated.emailLanguage,
       },
     };
   }

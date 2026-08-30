@@ -1,7 +1,7 @@
 <p-tabs [value]="activeTab()" (valueChange)="onTabChange($event)">
   <p-tablist>
-    <p-tab value="profile">Profile</p-tab>
-    <p-tab value="preferences">Preferences</p-tab>
+    <p-tab value="profile">{{ 'settings.profile' | translate }}</p-tab>
+    <p-tab value="preferences">{{ 'settings.preferences' | translate }}</p-tab>
   </p-tablist>
   <p-tabpanels>
     <router-outlet />

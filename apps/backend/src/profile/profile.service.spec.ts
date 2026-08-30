@@ -23,6 +23,7 @@ function makeUser(overrides: Partial<User> = {}): User {
     archivedAt: null,
     retentionExpiresAt: null,
     pendingEmail: null,
+    emailLanguage: null,
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
     ...overrides,
@@ -62,6 +63,7 @@ function service(
     setPendingEmail: jest.fn().mockResolvedValue(makeUser()),
     clearPendingEmail: jest.fn().mockResolvedValue(makeUser()),
     updatePasswordHash: jest.fn().mockResolvedValue(makeUser()),
+    updateEmailLanguage: jest.fn().mockResolvedValue(makeUser({ emailLanguage: 'de' })),
     ...overrides.users,
   };
   const sessions = {
@@ -156,6 +158,33 @@ describe('ProfileService.updateDisplayName', () => {
     const result = await svc.updateDisplayName('user1', '  Valid Name  ');
     expect(result.kind).toBe('success');
     expect(users.updateDisplayName).toHaveBeenCalledWith('user1', 'Valid Name');
+  });
+});
+
+describe('ProfileService.updateEmailLanguage', () => {
+  it('accepts a valid supported code and persists it', async () => {
+    const { svc, users } = service();
+    const result = await svc.updateEmailLanguage('user1', 'de');
+    expect(result.kind).toBe('success');
+    expect(users.updateEmailLanguage).toHaveBeenCalledWith('user1', 'de');
+  });
+
+  it('accepts null (clears the setting) and persists it', async () => {
+    const { svc, users } = service({
+      users: {
+        updateEmailLanguage: jest.fn().mockResolvedValue(makeUser({ emailLanguage: null })),
+      },
+    });
+    const result = await svc.updateEmailLanguage('user1', null);
+    expect(result.kind).toBe('success');
+    expect(users.updateEmailLanguage).toHaveBeenCalledWith('user1', null);
+  });
+
+  it('rejects an unsupported code before any write', async () => {
+    const { svc, users } = service();
+    const result = await svc.updateEmailLanguage('user1', 'fr' as never);
+    expect(result.kind).toBe('invalid_email_language');
+    expect(users.updateEmailLanguage).not.toHaveBeenCalled();
   });
 });
 

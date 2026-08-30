@@ -1,22 +1,19 @@
 <div class="card-row">
-  <p-card header="Total value">
-    <span class="stat-card__value">— pending —</span>
+  <p-card [header]="'dashboard.totalValue' | translate">
+    <span class="stat-card__value">{{ 'dashboard.pending' | translate }}</span>
   </p-card>
-  <p-card header="Today's change">
-    <span class="stat-card__value">— pending —</span>
+  <p-card [header]="'dashboard.todaysChange' | translate">
+    <span class="stat-card__value">{{ 'dashboard.pending' | translate }}</span>
   </p-card>
-  <p-card header="Allocation">
-    <span class="stat-card__value">— pending —</span>
+  <p-card [header]="'dashboard.allocation' | translate">
+    <span class="stat-card__value">{{ 'dashboard.pending' | translate }}</span>
   </p-card>
 </div>
 
 <p-card>
   <div class="empty-state">
     <i class="pi pi-chart-line empty-state__icon" aria-hidden="true"></i>
-    <h2>Portfolio overview coming soon</h2>
-    <p>
-      This area will show your holdings' total value, allocation, and performance once portfolio
-      data is available.
-    </p>
+    <h2>{{ 'dashboard.emptyStateTitle' | translate }}</h2>
+    <p>{{ 'dashboard.emptyStateBody' | translate }}</p>
   </div>
 </p-card>

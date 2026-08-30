@@ -5,6 +5,7 @@ import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { SignupsAdminService } from '../signups.service';
+import { TranslatePipe } from '../../../core/i18n/translate.pipe';
 
 /**
  * "Reject sign-up" dialog: an optional reason, kept admin-side only — never
@@ -13,7 +14,8 @@ import { SignupsAdminService } from '../signups.service';
  */
 @Component({
   selector: 'app-reject-dialog',
-  imports: [DialogModule, ButtonModule, InputTextModule, MessageModule, FormsModule],
+  imports: [DialogModule, ButtonModule, InputTextModule, MessageModule, FormsModule, TranslatePipe],
+  providers: [TranslatePipe],
   templateUrl: './reject-dialog.component.html',
   styleUrl: './reject-dialog.component.css',
 })
@@ -29,6 +31,7 @@ export class RejectDialogComponent {
   protected readonly errorMessage = signal<string | null>(null);
 
   private readonly signupsAdminService = inject(SignupsAdminService);
+  private readonly translate = inject(TranslatePipe);
 
   protected close(): void {
     this.visible = false;
@@ -57,7 +60,7 @@ export class RejectDialogComponent {
       },
       error: () => {
         this.submitting.set(false);
-        this.errorMessage.set('Unable to reject this sign-up. Please try again.');
+        this.errorMessage.set(this.translate.transform('signups.rejectError'));
       },
     });
   }

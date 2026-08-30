@@ -4,11 +4,11 @@
 <section class="invitations-panel">
   <div class="invitations-panel__header">
     <div>
-      <h2>Invitations</h2>
-      <p>Pending, accepted, and expired email invitations.</p>
+      <h2>{{ 'nav.invitations' | translate }}</h2>
+      <p>{{ 'invitations.subtitle' | translate }}</p>
     </div>
     <button pButton type="button" (click)="openInviteDialog()">
-      <i class="pi pi-plus" aria-hidden="true"></i> Invite member
+      <i class="pi pi-plus" aria-hidden="true"></i> {{ 'invitations.inviteMember' | translate }}
     </button>
   </div>
 
@@ -22,22 +22,26 @@
     >
       <ng-template #header>
         <tr>
-          <th scope="col">Email</th>
-          <th scope="col">Role</th>
-          <th scope="col">Sent</th>
-          <th scope="col">Status</th>
+          <th scope="col">{{ 'invitations.columnEmail' | translate }}</th>
+          <th scope="col">{{ 'invitations.columnRole' | translate }}</th>
+          <th scope="col">{{ 'invitations.columnSent' | translate }}</th>
+          <th scope="col">{{ 'invitations.columnStatus' | translate }}</th>
           <th scope="col"></th>
         </tr>
       </ng-template>
       <ng-template #body let-invitation>
         <tr>
           <td>{{ invitation.email }}</td>
-          <td>{{ invitation.role === 'ADMIN' ? 'Administrator' : 'Member' }}</td>
+          <td>
+            {{
+              (invitation.role === 'ADMIN' ? 'header.roleAdmin' : 'header.roleMember') | translate
+            }}
+          </td>
           <td>{{ invitation.createdAt | date: 'mediumDate' }}</td>
           <td>
             <p-tag
               [severity]="statusSeverity(invitation.status)"
-              [value]="statusLabel(invitation.status)"
+              [value]="statusLabelKey(invitation.status) | translate"
               [rounded]="true"
             />
           </td>
@@ -50,7 +54,7 @@
                   iconOnly
                   severity="secondary"
                   [text]="true"
-                  aria-label="Resend invitation"
+                  [attr.aria-label]="'invitations.resendInvitation' | translate"
                   (click)="resend(invitation)"
                 >
                   <i class="pi pi-send" aria-hidden="true"></i>
@@ -61,7 +65,7 @@
                   iconOnly
                   severity="danger"
                   [text]="true"
-                  aria-label="Cancel invitation"
+                  [attr.aria-label]="'invitations.cancelInvitation' | translate"
                   (click)="confirmCancel(invitation, $event)"
                 >
                   <i class="pi pi-times" aria-hidden="true"></i>
@@ -74,7 +78,7 @@
       <ng-template #emptymessage>
         <tr>
           <td colspan="5">
-            <div class="empty-state">No invitations yet.</div>
+            <div class="empty-state">{{ 'invitations.emptyState' | translate }}</div>
           </td>
         </tr>
       </ng-template>

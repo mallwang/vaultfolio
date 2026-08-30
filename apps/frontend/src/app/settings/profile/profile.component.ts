@@ -11,6 +11,7 @@ import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { CurrentUserStore } from '../../auth/current-user.store';
 import { ProfileService } from './profile.service';
+import { TranslatePipe } from '../../core/i18n/translate.pipe';
 
 /** Mirrors `libs/domain/auth/password-policy.ts` — a client-side hint only (scope:frontend can't depend on scope:domain libs). */
 const MIN_PASSWORD_LENGTH = 8;
@@ -41,8 +42,9 @@ function errorOf(error: unknown): { status?: number; body?: ProfileErrorResponse
     InputTextModule,
     MessageModule,
     ToastModule,
+    TranslatePipe,
   ],
-  providers: [MessageService],
+  providers: [MessageService, TranslatePipe],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.css',
 })
@@ -51,6 +53,7 @@ export class ProfileComponent implements OnInit {
   private readonly currentUser = inject(CurrentUserStore);
   private readonly messageService = inject(MessageService);
   private readonly router = inject(Router);
+  private readonly translate = inject(TranslatePipe);
 
   protected readonly loading = signal(true);
   protected readonly profile = signal<ProfileSummary | null>(null);
@@ -112,13 +115,16 @@ export class ProfileComponent implements OnInit {
         if (current) {
           this.currentUser.setAuthenticated({ ...current, displayName: profile.displayName });
         }
-        this.messageService.add({ severity: 'success', summary: 'Display name updated' });
+        this.messageService.add({
+          severity: 'success',
+          summary: this.translate.transform('profile.displayNameUpdated'),
+        });
       },
       error: () => {
         this.savingName.set(false);
         this.messageService.add({
           severity: 'error',
-          summary: 'Unable to update your display name.',
+          summary: this.translate.transform('profile.displayNameUpdateError'),
         });
       },
     });
@@ -136,23 +142,26 @@ export class ProfileComponent implements OnInit {
         this.requestingEmailChange.set(false);
         this.newEmail.set('');
         this.refresh();
-        this.messageService.add({ severity: 'success', summary: 'Verification link sent' });
+        this.messageService.add({
+          severity: 'success',
+          summary: this.translate.transform('profile.verificationLinkSent'),
+        });
       },
       error: (error: unknown) => {
         this.requestingEmailChange.set(false);
         const { status, body } = errorOf(error);
         if (status === 409) {
-          this.emailErrorMessage.set("This email can't be used right now.");
+          this.emailErrorMessage.set(this.translate.transform('profile.emailUnavailable'));
           return;
         }
         if (status === 502) {
           this.emailErrorMessage.set(
-            body?.message ?? 'Request saved, but the email could not be sent.',
+            body?.message ?? this.translate.transform('profile.emailDeliveryFailed'),
           );
           this.refresh();
           return;
         }
-        this.emailErrorMessage.set('Unable to request an email change. Please try again.');
+        this.emailErrorMessage.set(this.translate.transform('profile.emailChangeError'));
       },
     });
   }
@@ -163,7 +172,7 @@ export class ProfileComponent implements OnInit {
       error: () =>
         this.messageService.add({
           severity: 'error',
-          summary: 'Unable to cancel the pending request.',
+          summary: this.translate.transform('profile.cancelRequestError'),
         }),
     });
   }
@@ -176,12 +185,12 @@ export class ProfileComponent implements OnInit {
     this.passwordErrorMessage.set(null);
 
     if (this.newPassword() !== this.confirmNewPassword()) {
-      this.passwordErrorMessage.set('Passwords do not match.');
+      this.passwordErrorMessage.set(this.translate.transform('profile.passwordsDoNotMatch'));
       return;
     }
     const length = this.newPassword().length;
     if (length < MIN_PASSWORD_LENGTH || length > MAX_PASSWORD_LENGTH) {
-      this.passwordErrorMessage.set('Password must be 8–200 characters.');
+      this.passwordErrorMessage.set(this.translate.transform('profile.passwordLengthError'));
       return;
     }
 
@@ -199,8 +208,8 @@ export class ProfileComponent implements OnInit {
           this.confirmNewPassword.set('');
           this.messageService.add({
             severity: 'success',
-            summary: 'Password changed',
-            detail: 'Your other active sessions were signed out.',
+            summary: this.translate.transform('profile.passwordChanged'),
+            detail: this.translate.transform('profile.passwordChangedDetail'),
           });
         },
         error: (error: unknown) => {
@@ -208,14 +217,16 @@ export class ProfileComponent implements OnInit {
           const { status } = errorOf(error);
           if (status === 401) {
             this.currentPasswordError.set(true);
-            this.passwordErrorMessage.set("That's not your current password. Nothing was changed.");
+            this.passwordErrorMessage.set(
+              this.translate.transform('profile.currentPasswordIncorrect'),
+            );
             return;
           }
           if (status === 400) {
-            this.passwordErrorMessage.set('Password must be 8–200 characters.');
+            this.passwordErrorMessage.set(this.translate.transform('profile.passwordLengthError'));
             return;
           }
-          this.passwordErrorMessage.set('Unable to change your password. Please try again.');
+          this.passwordErrorMessage.set(this.translate.transform('profile.passwordChangeError'));
         },
       });
   }
@@ -254,7 +265,7 @@ export class ProfileComponent implements OnInit {
           this.dangerStep.set('blocked');
           return;
         }
-        this.deleteErrorMessage.set('Something went wrong. Your account was not changed.');
+        this.deleteErrorMessage.set(this.translate.transform('profile.deleteAccountError'));
       },
     });
   }

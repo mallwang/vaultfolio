@@ -3,6 +3,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter, map, startWith } from 'rxjs';
 import { TabsModule } from 'primeng/tabs';
+import { TranslatePipe } from '../core/i18n/translate.pipe';
 
 /**
  * Admin area (012-restructure-admin-nav): the admin-only "Accounts",
@@ -21,7 +22,7 @@ import { TabsModule } from 'primeng/tabs';
  */
 @Component({
   selector: 'app-admin',
-  imports: [TabsModule, RouterOutlet],
+  imports: [TabsModule, RouterOutlet, TranslatePipe],
   templateUrl: './admin.component.html',
   styleUrl: './admin.component.css',
 })

@@ -1,12 +1,14 @@
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { Router, provideRouter } from '@angular/router';
 import type { SessionUser } from '@vaultfolio/api-contract';
 import { AppHeaderComponent } from './app-header.component';
 import { CurrentUserStore } from '../../../auth/current-user.store';
 import { FakeCurrentUserStore } from '../../../auth/testing/current-user-store.testing';
 import { ThemeService } from '../../theme/theme.service';
+import { I18nService } from '../../i18n/i18n.service';
 
 const user: SessionUser = {
   id: 'user-1',
@@ -105,6 +107,27 @@ describe('AppHeaderComponent (integration)', () => {
     const signOutIndex = children.findIndex((el) => el.getAttribute('aria-label') === 'Sign out');
     expect(toggleIndex).toBeGreaterThanOrEqual(0);
     expect(signOutIndex).toBeGreaterThan(toggleIndex);
+  });
+
+  it('marks the active language option and calls I18nService.setLanguage() on selection (T011)', async () => {
+    localStorage.clear();
+    fakeCurrentUser.setUnauthenticated();
+    const fixture = TestBed.createComponent(AppHeaderComponent);
+    await fixture.whenStable();
+    const i18nService = TestBed.inject(I18nService);
+    const setLanguageSpy = vi.spyOn(i18nService, 'setLanguage');
+
+    const selectDebugEl = fixture.debugElement.query(By.css('[data-testid="language-switcher"]'));
+    expect(selectDebugEl).toBeTruthy();
+    const selectComponent = selectDebugEl.componentInstance as {
+      modelValue: () => string;
+      onChange: { emit: (event: { originalEvent: Event; value: string }) => void };
+    };
+    expect(selectComponent.modelValue()).toBe(i18nService.language());
+
+    selectComponent.onChange.emit({ originalEvent: new Event('change'), value: 'de' });
+
+    expect(setLanguageSpy).toHaveBeenCalledWith('de');
   });
 
   it('clicking the theme toggle calls ThemeService.toggle()', async () => {

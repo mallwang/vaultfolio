@@ -8,6 +8,7 @@ import { CardModule } from 'primeng/card';
 import type { AuthErrorResponse } from '@vaultfolio/api-contract';
 import { AuthService } from '../auth.service';
 import { CurrentUserStore } from '../current-user.store';
+import { TranslatePipe } from '../../core/i18n/translate.pipe';
 
 /**
  * Sign-in page (contracts/auth-api.md): email/password form; shows the
@@ -18,7 +19,16 @@ import { CurrentUserStore } from '../current-user.store';
  */
 @Component({
   selector: 'app-sign-in',
-  imports: [FormsModule, ButtonModule, InputTextModule, MessageModule, CardModule, RouterLink],
+  imports: [
+    FormsModule,
+    ButtonModule,
+    InputTextModule,
+    MessageModule,
+    CardModule,
+    RouterLink,
+    TranslatePipe,
+  ],
+  providers: [TranslatePipe],
   templateUrl: './sign-in.component.html',
   styleUrl: './sign-in.component.css',
 })
@@ -26,6 +36,7 @@ export class SignInComponent {
   private readonly authService = inject(AuthService);
   private readonly currentUser = inject(CurrentUserStore);
   private readonly router = inject(Router);
+  private readonly translate = inject(TranslatePipe);
 
   email = '';
   password = '';
@@ -47,7 +58,7 @@ export class SignInComponent {
       error: (error: unknown) => {
         this.submitting.set(false);
         const body = (error as { error?: AuthErrorResponse })?.error;
-        this.errorMessage.set(body?.message ?? 'Sign in failed. Please try again.');
+        this.errorMessage.set(body?.message ?? this.translate.transform('signIn.genericError'));
       },
     });
   }

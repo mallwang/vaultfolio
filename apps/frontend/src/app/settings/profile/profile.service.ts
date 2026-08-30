@@ -9,6 +9,7 @@ import type {
   ResetPasswordRequest,
   SessionUser,
   UpdateDisplayNameRequest,
+  UpdateEmailLanguageRequest,
 } from '@vaultfolio/api-contract';
 
 /**
@@ -28,6 +29,10 @@ export class ProfileService {
 
   updateDisplayName(body: UpdateDisplayNameRequest): Observable<ProfileSummary> {
     return this.http.patch<ProfileSummary>(`${this.baseUrl}/display-name`, body);
+  }
+
+  updateEmailLanguage(body: UpdateEmailLanguageRequest): Observable<ProfileSummary> {
+    return this.http.patch<ProfileSummary>(`${this.baseUrl}/email-language`, body);
   }
 
   requestEmailChange(body: RequestEmailChangeRequest): Observable<{ pendingEmail: string }> {

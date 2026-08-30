@@ -9,6 +9,7 @@ import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { InviteDialogComponent } from './invite-dialog/invite-dialog.component';
 import { InvitationsService } from './invitations.service';
+import { TranslatePipe } from '../../core/i18n/translate.pipe';
 
 type InvitationStatus = InvitationSummary['status'];
 
@@ -23,12 +24,13 @@ const STATUS_SEVERITY: Record<
   SUPERSEDED: 'secondary',
 };
 
-const STATUS_LABEL: Record<InvitationStatus, string> = {
-  PENDING: 'Pending',
-  ACCEPTED: 'Accepted',
-  EXPIRED: 'Expired',
-  CANCELLED: 'Cancelled',
-  SUPERSEDED: 'Superseded',
+/** Translation key per status — resolved through the `translate` pipe (013, US3). */
+const STATUS_LABEL_KEY: Record<InvitationStatus, string> = {
+  PENDING: 'invitations.statusPending',
+  ACCEPTED: 'invitations.statusAccepted',
+  EXPIRED: 'invitations.statusExpired',
+  CANCELLED: 'invitations.statusCancelled',
+  SUPERSEDED: 'invitations.statusSuperseded',
 };
 
 /**
@@ -48,8 +50,9 @@ const STATUS_LABEL: Record<InvitationStatus, string> = {
     ConfirmDialogModule,
     ToastModule,
     InviteDialogComponent,
+    TranslatePipe,
   ],
-  providers: [ConfirmationService, MessageService],
+  providers: [ConfirmationService, MessageService, TranslatePipe],
   templateUrl: './invitations.component.html',
   styleUrl: './invitations.component.css',
 })
@@ -57,6 +60,7 @@ export class InvitationsComponent implements OnInit {
   private readonly invitationsService = inject(InvitationsService);
   private readonly confirmationService = inject(ConfirmationService);
   private readonly messageService = inject(MessageService);
+  private readonly translate = inject(TranslatePipe);
 
   protected readonly invitations = signal<InvitationSummary[]>([]);
   protected readonly loading = signal(true);
@@ -87,8 +91,8 @@ export class InvitationsComponent implements OnInit {
     return STATUS_SEVERITY[status];
   }
 
-  protected statusLabel(status: InvitationStatus): string {
-    return STATUS_LABEL[status];
+  protected statusLabelKey(status: InvitationStatus): string {
+    return STATUS_LABEL_KEY[status];
   }
 
   ngOnInit(): void {
@@ -104,7 +108,7 @@ export class InvitationsComponent implements OnInit {
         this.loading.set(false);
       },
       error: () => {
-        this.loadError.set('Unable to load invitations. Please try again.');
+        this.loadError.set(this.translate.transform('invitations.loadError'));
         this.loading.set(false);
       },
     });
@@ -116,20 +120,26 @@ export class InvitationsComponent implements OnInit {
 
   protected onInvited(): void {
     this.refresh();
-    this.messageService.add({ severity: 'success', summary: 'Invitation sent' });
+    this.messageService.add({
+      severity: 'success',
+      summary: this.translate.transform('invitations.sent'),
+    });
   }
 
   protected resend(invitation: InvitationSummary): void {
     this.invitationsService.resend(invitation.id).subscribe({
       next: () => {
         this.refresh();
-        this.messageService.add({ severity: 'success', summary: 'Invitation resent' });
+        this.messageService.add({
+          severity: 'success',
+          summary: this.translate.transform('invitations.resent'),
+        });
       },
       error: () => {
         this.refresh();
         this.messageService.add({
           severity: 'error',
-          summary: 'Unable to resend this invitation.',
+          summary: this.translate.transform('invitations.resendError'),
         });
       },
     });
@@ -138,11 +148,19 @@ export class InvitationsComponent implements OnInit {
   protected confirmCancel(invitation: InvitationSummary, event: Event): void {
     this.confirmationService.confirm({
       target: event.target as EventTarget,
-      header: 'Cancel this invitation?',
-      message: `${invitation.email} won't be able to use this invitation link anymore.`,
+      header: this.translate.transform('invitations.cancelConfirmHeader'),
+      message: this.translate
+        .transform('invitations.cancelConfirmMessage')
+        .replace('{{email}}', invitation.email),
       icon: 'pi pi-exclamation-triangle',
-      acceptButtonProps: { severity: 'danger', label: 'Cancel invitation' },
-      rejectButtonProps: { severity: 'secondary', label: 'Keep it' },
+      acceptButtonProps: {
+        severity: 'danger',
+        label: this.translate.transform('invitations.cancelInvitation'),
+      },
+      rejectButtonProps: {
+        severity: 'secondary',
+        label: this.translate.transform('invitations.keepIt'),
+      },
       accept: () => this.cancel(invitation),
     });
   }
@@ -151,13 +169,16 @@ export class InvitationsComponent implements OnInit {
     this.invitationsService.cancel(invitation.id).subscribe({
       next: () => {
         this.refresh();
-        this.messageService.add({ severity: 'success', summary: 'Invitation cancelled' });
+        this.messageService.add({
+          severity: 'success',
+          summary: this.translate.transform('invitations.cancelled'),
+        });
       },
       error: () => {
         this.refresh();
         this.messageService.add({
           severity: 'error',
-          summary: 'Unable to cancel this invitation.',
+          summary: this.translate.transform('invitations.cancelError'),
         });
       },
     });

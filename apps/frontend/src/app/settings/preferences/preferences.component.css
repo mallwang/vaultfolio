@@ -9,3 +9,39 @@
   font-size: 0.85rem;
   color: var(--p-text-muted-color);
 }
+
+.preferences__language {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--p-content-border-color);
+}
+
+.preferences__section-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.preferences__label {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.preferences__hint,
+.preferences__fallback-note {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--p-text-muted-color);
+}
+
+.preferences__fallback-note {
+  font-style: italic;
+}
+
+.preferences__save {
+  align-self: flex-start;
+  margin-top: 0.25rem;
+}

@@ -189,6 +189,39 @@ describe('DatabaseService — auth/isolation migration', () => {
     await second.onModuleDestroy();
   });
 
+  it('013: adds users.email_language, idempotently', async () => {
+    const first = new DatabaseService();
+    await first.onModuleInit();
+    await first.onModuleDestroy();
+
+    const second = new DatabaseService();
+    await second.onModuleInit();
+
+    const userColumns = await second.query<{ name: string }>(
+      "SELECT name FROM pragma_table_info('users')",
+    );
+    expect(userColumns.map((c) => c.name)).toContain('email_language');
+
+    await second.onModuleDestroy();
+  });
+
+  it('013: users.email_language enforces a CHECK against SUPPORTED_LANGUAGES codes', async () => {
+    const database = new DatabaseService();
+    await database.onModuleInit();
+
+    const [user] = await database.query<{ id: string }>('SELECT id FROM users');
+
+    await expect(
+      database.query('UPDATE users SET email_language = $1 WHERE id = $2', ['fr', user.id]),
+    ).rejects.toThrow();
+
+    await expect(
+      database.query('UPDATE users SET email_language = $1 WHERE id = $2', ['de', user.id]),
+    ).resolves.not.toThrow();
+
+    await database.onModuleDestroy();
+  });
+
   it('008: account_action_tokens enforces purpose/status CHECK constraints and the user_id FK', async () => {
     const database = new DatabaseService();
     await database.onModuleInit();

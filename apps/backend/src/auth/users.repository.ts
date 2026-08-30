@@ -17,6 +17,7 @@ export interface User {
   archivedAt: string | null;
   retentionExpiresAt: string | null;
   pendingEmail: string | null;
+  emailLanguage: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -33,6 +34,7 @@ interface UserRow {
   archived_at: string | null;
   retention_expires_at: string | null;
   pending_email: string | null;
+  email_language: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -50,6 +52,7 @@ function rowToUser(row: UserRow): User {
     archivedAt: row.archived_at,
     retentionExpiresAt: row.retention_expires_at,
     pendingEmail: row.pending_email,
+    emailLanguage: row.email_language,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -276,6 +279,18 @@ export class UsersRepository {
        WHERE id = $1
        RETURNING *`,
       [id, passwordHash],
+    );
+    return rows[0] ? rowToUser(rows[0]) : null;
+  }
+
+  /** Sets or clears (`null`) the caller's own email correspondence language (013, FR-006/FR-007). */
+  async updateEmailLanguage(id: string, emailLanguage: string | null): Promise<User | null> {
+    const rows = await this.database.query<UserRow>(
+      `UPDATE users
+       SET email_language = $2, updated_at = STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')
+       WHERE id = $1
+       RETURNING *`,
+      [id, emailLanguage],
     );
     return rows[0] ? rowToUser(rows[0]) : null;
   }

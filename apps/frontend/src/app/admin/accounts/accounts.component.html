@@ -3,15 +3,14 @@
 
 @if (lastAdminBlockedFor()) {
   <p-message severity="warn" styleClass="last-admin-banner">
-    Can't demote, archive, or delete {{ lastAdminBlockedFor() }}. They're the only active
-    administrator — promote another account first, then try again.
+    {{ ('accounts.lastAdminBlocked' | translate).replace('{{name}}', lastAdminBlockedFor() ?? '') }}
   </p-message>
 }
 
 <section class="accounts-panel">
   <div class="accounts-panel__header">
-    <h2>Accounts</h2>
-    <p>Every account, active and archived — identity, role, and status.</p>
+    <h2>{{ 'nav.accounts' | translate }}</h2>
+    <p>{{ 'accounts.subtitle' | translate }}</p>
   </div>
 
   @if (loadError()) {
@@ -20,10 +19,10 @@
     <p-table [value]="accounts()" [loading]="loading()" [tableStyle]="{ 'min-width': '50rem' }">
       <ng-template #header>
         <tr>
-          <th scope="col">Name</th>
-          <th scope="col">Email</th>
-          <th scope="col">Role</th>
-          <th scope="col">Status</th>
+          <th scope="col">{{ 'accounts.columnName' | translate }}</th>
+          <th scope="col">{{ 'accounts.columnEmail' | translate }}</th>
+          <th scope="col">{{ 'accounts.columnRole' | translate }}</th>
+          <th scope="col">{{ 'accounts.columnStatus' | translate }}</th>
           <th scope="col"></th>
         </tr>
       </ng-template>
@@ -43,17 +42,26 @@
                 appendTo="body"
               />
               @if (account.isLastActiveAdmin) {
-                <p-tag severity="info" value="Last admin" [rounded]="true" />
+                <p-tag
+                  severity="info"
+                  [value]="'accounts.lastAdmin' | translate"
+                  [rounded]="true"
+                />
               }
             </div>
           </td>
           <td>
             @if (account.status === 'ACTIVE') {
-              <p-tag severity="success" value="Active" [rounded]="true" />
+              <p-tag severity="success" [value]="'accounts.active' | translate" [rounded]="true" />
             } @else {
               <p-tag
                 severity="secondary"
-                [value]="'Archived · ' + daysLeft(account) + 'd left'"
+                [value]="
+                  ('accounts.archivedDaysLeft' | translate).replace(
+                    '{{days}}',
+                    '' + daysLeft(account)
+                  )
+                "
                 [rounded]="true"
               />
             }
@@ -80,7 +88,7 @@
                   iconOnly
                   severity="secondary"
                   [text]="true"
-                  aria-label="Reactivate account"
+                  [attr.aria-label]="'accounts.reactivateAccount' | translate"
                   (click)="reactivate(account)"
                 >
                   <i class="pi pi-replay" aria-hidden="true"></i>
@@ -93,7 +101,7 @@
       <ng-template #emptymessage>
         <tr>
           <td colspan="5">
-            <div class="empty-state">No accounts yet.</div>
+            <div class="empty-state">{{ 'accounts.emptyState' | translate }}</div>
           </td>
         </tr>
       </ng-template>

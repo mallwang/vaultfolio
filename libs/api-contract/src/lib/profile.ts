@@ -1,9 +1,13 @@
 /**
  * Shared contract for the Profile API — see
- * specs/008-profile-password-account/contracts/profile-api.md. Plain
+ * specs/008-profile-password-account/contracts/profile-api.md and, for the
+ * `emailLanguage` field/endpoint,
+ * specs/013-multilanguage-support/contracts/profile-api-i18n.md. Plain
  * TypeScript interfaces, no runtime dependency, imported by both
  * `apps/backend` and `apps/frontend` (Principle II).
  */
+
+import type { LanguageCode } from './i18n.js';
 
 export interface ProfileSummary {
   id: string;
@@ -11,10 +15,16 @@ export interface ProfileSummary {
   displayName: string;
   role: 'ADMIN' | 'MEMBER';
   pendingEmail: string | null;
+  /** `null` = not explicitly set; falls back to the default language (013, FR-008). */
+  emailLanguage: LanguageCode | null;
 }
 
 export interface UpdateDisplayNameRequest {
   displayName: string;
+}
+
+export interface UpdateEmailLanguageRequest {
+  emailLanguage: LanguageCode | null;
 }
 
 export interface RequestEmailChangeRequest {
@@ -43,6 +53,7 @@ export interface ProfileErrorResponse {
     | 'invalid_password'
     | 'invalid_current_password'
     | 'last_admin'
-    | 'deletion_failed';
+    | 'deletion_failed'
+    | 'invalid_email_language';
   message: string;
 }

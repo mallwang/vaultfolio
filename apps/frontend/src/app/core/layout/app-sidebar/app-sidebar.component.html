@@ -8,7 +8,7 @@
         ariaCurrentWhenActive="page"
       >
         <i [class]="area.icon" aria-hidden="true"></i>
-        <span>{{ area.label }}</span>
+        <span>{{ 'nav.' + area.id | translate }}</span>
       </a>
     }
   </div>

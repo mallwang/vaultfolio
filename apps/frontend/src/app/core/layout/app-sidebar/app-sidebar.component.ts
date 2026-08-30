@@ -2,6 +2,7 @@ import { Component, computed, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { CurrentUserStore } from '../../../auth/current-user.store';
 import { APPLICATION_AREAS } from '../application-areas';
+import { TranslatePipe } from '../../i18n/translate.pipe';
 
 /**
  * Persistent nav shell (FR-003, FR-009): a desktop sidebar nav list, and a
@@ -13,7 +14,7 @@ import { APPLICATION_AREAS } from '../application-areas';
  */
 @Component({
   selector: 'app-sidebar',
-  imports: [RouterLink, RouterLinkActive],
+  imports: [RouterLink, RouterLinkActive, TranslatePipe],
   templateUrl: './app-sidebar.component.html',
   styleUrl: './app-sidebar.component.css',
 })

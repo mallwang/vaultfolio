@@ -10,6 +10,7 @@ import { ASSET_TYPE_LABELS } from './asset-type-fields';
 import { HoldingFormComponent } from './holding-form/holding-form.component';
 import { HoldingsDistributionComponent } from './holdings-distribution/holdings-distribution.component';
 import { HoldingsService } from './holdings.service';
+import { TranslatePipe } from '../core/i18n/translate.pipe';
 
 /**
  * Holdings area (FR-001–FR-016, User Stories 1–4): the value-distribution
@@ -25,8 +26,9 @@ import { HoldingsService } from './holdings.service';
     ToastModule,
     HoldingFormComponent,
     HoldingsDistributionComponent,
+    TranslatePipe,
   ],
-  providers: [ConfirmationService, MessageService],
+  providers: [ConfirmationService, MessageService, TranslatePipe],
   templateUrl: './holdings.component.html',
   styleUrl: './holdings.component.css',
 })
@@ -34,6 +36,7 @@ export class HoldingsComponent implements OnInit {
   private readonly holdingsService = inject(HoldingsService);
   private readonly confirmationService = inject(ConfirmationService);
   private readonly messageService = inject(MessageService);
+  private readonly translate = inject(TranslatePipe);
 
   protected readonly holdings = signal<HoldingResponse[]>([]);
   protected readonly loading = signal(true);
@@ -61,7 +64,7 @@ export class HoldingsComponent implements OnInit {
         this.loading.set(false);
       },
       error: () => {
-        this.loadError.set('Unable to load holdings. Please try again.');
+        this.loadError.set(this.translate.transform('holdings.loadError'));
         this.loading.set(false);
       },
     });
@@ -95,13 +98,19 @@ export class HoldingsComponent implements OnInit {
   }
 
   protected confirmDelete(holding: HoldingResponse, event: Event): void {
+    const template = this.translate.transform('holdings.deleteConfirmMessage');
     this.confirmationService.confirm({
       target: event.target as EventTarget,
-      message: `Delete this ${this.assetTypeLabels[holding.assetType]} holding (${holding.management})? This cannot be undone.`,
-      header: 'Delete holding',
+      message: template
+        .replace('{{assetType}}', this.assetTypeLabels[holding.assetType])
+        .replace('{{management}}', holding.management),
+      header: this.translate.transform('holdings.deleteConfirmHeader'),
       icon: 'pi pi-exclamation-triangle',
-      acceptButtonProps: { severity: 'danger', label: 'Delete' },
-      rejectButtonProps: { severity: 'secondary', label: 'Cancel' },
+      acceptButtonProps: { severity: 'danger', label: this.translate.transform('holdings.delete') },
+      rejectButtonProps: {
+        severity: 'secondary',
+        label: this.translate.transform('common.cancel'),
+      },
       accept: () => this.deleteHolding(holding),
     });
   }
@@ -110,7 +119,10 @@ export class HoldingsComponent implements OnInit {
     this.holdingsService.delete(holding.id).subscribe({
       next: () => {
         this.holdings.set(this.holdings().filter((existing) => existing.id !== holding.id));
-        this.messageService.add({ severity: 'success', summary: 'Holding deleted' });
+        this.messageService.add({
+          severity: 'success',
+          summary: this.translate.transform('holdings.deleted'),
+        });
       },
       error: (error: unknown) => {
         const httpError = error as { status?: number };
@@ -119,15 +131,15 @@ export class HoldingsComponent implements OnInit {
           this.holdings.set(this.holdings().filter((existing) => existing.id !== holding.id));
           this.messageService.add({
             severity: 'info',
-            summary: 'Already deleted',
-            detail: 'This holding was already removed.',
+            summary: this.translate.transform('holdings.alreadyDeleted'),
+            detail: this.translate.transform('holdings.alreadyDeletedDetail'),
           });
           this.refresh();
           return;
         }
         this.messageService.add({
           severity: 'error',
-          summary: 'Unable to delete this holding.',
+          summary: this.translate.transform('holdings.deleteError'),
         });
       },
     });

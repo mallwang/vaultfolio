@@ -2,15 +2,20 @@
 <p-confirmdialog />
 
 <section class="distribution-panel">
-  <h2>Distribution by value</h2>
+  <h2>{{ 'holdings.distributionByValue' | translate }}</h2>
   <app-holdings-distribution [holdings]="holdings()" />
 </section>
 
 <section class="holdings-panel">
   <div class="holdings-panel__header">
-    <h2>{{ holdings().length }} holding{{ holdings().length === 1 ? '' : 's' }}</h2>
+    <h2>
+      {{ holdings().length }}
+      {{
+        (holdings().length === 1 ? 'holdings.countSingular' : 'holdings.countPlural') | translate
+      }}
+    </h2>
     <button pButton type="button" (click)="openAddDialog()">
-      <i class="pi pi-plus" aria-hidden="true"></i> Add holding
+      <i class="pi pi-plus" aria-hidden="true"></i> {{ 'holdings.addHolding' | translate }}
     </button>
   </div>
 
@@ -20,19 +25,26 @@
     <p-table [value]="holdings()" [loading]="loading()" [tableStyle]="{ 'min-width': '50rem' }">
       <ng-template #header>
         <tr>
-          <th scope="col">Type</th>
-          <th scope="col">Asset</th>
-          <th scope="col">Management</th>
-          <th scope="col">Quantity / weight</th>
-          <th scope="col">Price / value</th>
-          <th scope="col">Purchase date</th>
+          <th scope="col">{{ 'holdings.columnType' | translate }}</th>
+          <th scope="col">{{ 'holdings.columnAsset' | translate }}</th>
+          <th scope="col">{{ 'holdings.columnManagement' | translate }}</th>
+          <th scope="col">{{ 'holdings.columnQuantity' | translate }}</th>
+          <th scope="col">{{ 'holdings.columnPrice' | translate }}</th>
+          <th scope="col">{{ 'holdings.columnPurchaseDate' | translate }}</th>
           <th scope="col"></th>
         </tr>
       </ng-template>
       <ng-template #body let-holding>
         <tr>
           <td>{{ labelFor(holding.assetType) }}</td>
-          <td>{{ holding.name ?? (holding.assetType === 'GOLD' ? 'Gold' : 'Bitcoin') }}</td>
+          <td>
+            {{
+              holding.name ??
+                (holding.assetType === 'GOLD'
+                  ? ('holdings.assetGold' | translate)
+                  : ('holdings.assetBitcoin' | translate))
+            }}
+          </td>
           <td>{{ holding.management }}</td>
           <td>{{ holding.quantity ?? holding.weightGrams ?? '—' }}</td>
           <td>{{ holding.purchasePrice ?? holding.currentValue ?? '—' }}</td>
@@ -44,7 +56,7 @@
               iconOnly
               severity="secondary"
               [text]="true"
-              aria-label="Edit holding"
+              [attr.aria-label]="'holdings.editHolding' | translate"
               (click)="openEditDialog(holding)"
             >
               <i class="pi pi-pencil" aria-hidden="true"></i>
@@ -55,7 +67,7 @@
               iconOnly
               severity="danger"
               [text]="true"
-              aria-label="Delete holding"
+              [attr.aria-label]="'holdings.deleteHolding' | translate"
               (click)="confirmDelete(holding, $event)"
             >
               <i class="pi pi-trash" aria-hidden="true"></i>
@@ -68,10 +80,10 @@
           <td colspan="7">
             <div class="empty-state">
               <i class="pi pi-briefcase empty-state__icon" aria-hidden="true"></i>
-              <h2>No holdings yet</h2>
-              <p>Add your first holding to see it listed here.</p>
+              <h2>{{ 'holdings.emptyStateTitle' | translate }}</h2>
+              <p>{{ 'holdings.emptyStateBody' | translate }}</p>
               <button pButton type="button" (click)="openAddDialog()">
-                Add your first holding
+                {{ 'holdings.addFirstHolding' | translate }}
               </button>
             </div>
           </td>
@@ -83,7 +95,7 @@
 
 <p-dialog
   [(visible)]="dialogVisible"
-  [header]="editingHolding() ? 'Edit holding' : 'Add holding'"
+  [header]="(editingHolding() ? 'holdings.editHolding' : 'holdings.addHolding') | translate"
   [modal]="true"
   [dismissableMask]="false"
 >

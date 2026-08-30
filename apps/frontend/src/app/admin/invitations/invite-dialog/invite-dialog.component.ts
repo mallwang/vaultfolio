@@ -7,6 +7,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { SelectModule } from 'primeng/select';
 import { InvitationsService } from '../invitations.service';
+import { TranslatePipe } from '../../../core/i18n/translate.pipe';
 
 type UserRole = 'ADMIN' | 'MEMBER';
 
@@ -28,7 +29,16 @@ const ROLE_OPTIONS: RoleOption[] = [
  */
 @Component({
   selector: 'app-invite-dialog',
-  imports: [DialogModule, ButtonModule, InputTextModule, SelectModule, MessageModule, FormsModule],
+  imports: [
+    DialogModule,
+    ButtonModule,
+    InputTextModule,
+    SelectModule,
+    MessageModule,
+    FormsModule,
+    TranslatePipe,
+  ],
+  providers: [TranslatePipe],
   templateUrl: './invite-dialog.component.html',
   styleUrl: './invite-dialog.component.css',
 })
@@ -44,6 +54,7 @@ export class InviteDialogComponent {
   protected readonly errorMessage = signal<string | null>(null);
 
   private readonly invitationsService = inject(InvitationsService);
+  private readonly translate = inject(TranslatePipe);
 
   protected close(): void {
     this.visible = false;
@@ -76,11 +87,11 @@ export class InviteDialogComponent {
         const httpError = error as { status?: number; error?: InvitationsErrorResponse };
         if (httpError.status === 409 && httpError.error?.error === 'account_exists') {
           this.errorMessage.set(
-            `${email} already has an account. If it's archived, reactivate the existing account instead of sending a new invitation.`,
+            this.translate.transform('invitations.accountExists').replace('{{email}}', email),
           );
           return;
         }
-        this.errorMessage.set('Unable to send this invitation. Please try again.');
+        this.errorMessage.set(this.translate.transform('invitations.sendError'));
       },
     });
   }
