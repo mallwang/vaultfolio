@@ -37,31 +37,33 @@
               [rounded]="true"
             />
           </td>
-          <td class="row-actions">
-            <button
-              pButton
-              type="button"
-              iconOnly
-              severity="secondary"
-              [text]="true"
-              aria-label="Resend invitation"
-              (click)="resend(invitation)"
-            >
-              <i class="pi pi-send" aria-hidden="true"></i>
-            </button>
-            @if (invitation.status === 'PENDING') {
+          <td>
+            <div class="row-actions">
               <button
                 pButton
                 type="button"
                 iconOnly
-                severity="danger"
+                severity="secondary"
                 [text]="true"
-                aria-label="Cancel invitation"
-                (click)="confirmCancel(invitation, $event)"
+                aria-label="Resend invitation"
+                (click)="resend(invitation)"
               >
-                <i class="pi pi-times" aria-hidden="true"></i>
+                <i class="pi pi-send" aria-hidden="true"></i>
               </button>
-            }
+              @if (invitation.status === 'PENDING') {
+                <button
+                  pButton
+                  type="button"
+                  iconOnly
+                  severity="danger"
+                  [text]="true"
+                  aria-label="Cancel invitation"
+                  (click)="confirmCancel(invitation, $event)"
+                >
+                  <i class="pi pi-times" aria-hidden="true"></i>
+                </button>
+              }
+            </div>
           </td>
         </tr>
       </ng-template>

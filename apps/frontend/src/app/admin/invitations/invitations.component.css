@@ -12,8 +12,11 @@
 
 .row-actions {
   display: flex;
+  align-items: center;
   gap: 0.25rem;
   justify-content: flex-end;
+  flex-wrap: nowrap;
+  white-space: nowrap;
 }
 
 .error-state {

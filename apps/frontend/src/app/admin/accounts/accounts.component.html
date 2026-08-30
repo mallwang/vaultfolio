@@ -31,18 +31,20 @@
         <tr>
           <td>{{ account.displayName }}</td>
           <td>{{ account.email }}</td>
-          <td class="role-cell">
-            <p-select
-              [options]="roleOptions"
-              optionLabel="label"
-              optionValue="value"
-              [ngModel]="account.role"
-              [disabled]="account.isLastActiveAdmin || account.status === 'ARCHIVED'"
-              (onChange)="onRoleChange(account, $event.value)"
-            />
-            @if (account.isLastActiveAdmin) {
-              <p-tag severity="info" value="Last admin" [rounded]="true" />
-            }
+          <td>
+            <div class="role-cell">
+              <p-select
+                [options]="roleOptions"
+                optionLabel="label"
+                optionValue="value"
+                [ngModel]="account.role"
+                [disabled]="account.isLastActiveAdmin || account.status === 'ARCHIVED'"
+                (onChange)="onRoleChange(account, $event.value)"
+              />
+              @if (account.isLastActiveAdmin) {
+                <p-tag severity="info" value="Last admin" [rounded]="true" />
+              }
+            </div>
           </td>
           <td>
             @if (account.status === 'ACTIVE') {
@@ -55,33 +57,35 @@
               />
             }
           </td>
-          <td class="row-actions">
-            @if (account.status === 'ACTIVE') {
-              <button
-                pButton
-                type="button"
-                iconOnly
-                severity="danger"
-                [text]="true"
-                [disabled]="account.isLastActiveAdmin"
-                [attr.aria-label]="archiveLabel(account)"
-                (click)="confirmArchive(account, $event)"
-              >
-                <i class="pi pi-inbox" aria-hidden="true"></i>
-              </button>
-            } @else {
-              <button
-                pButton
-                type="button"
-                iconOnly
-                severity="secondary"
-                [text]="true"
-                aria-label="Reactivate account"
-                (click)="reactivate(account)"
-              >
-                <i class="pi pi-replay" aria-hidden="true"></i>
-              </button>
-            }
+          <td>
+            <div class="row-actions">
+              @if (account.status === 'ACTIVE') {
+                <button
+                  pButton
+                  type="button"
+                  iconOnly
+                  severity="danger"
+                  [text]="true"
+                  [disabled]="account.isLastActiveAdmin"
+                  [attr.aria-label]="archiveLabel(account)"
+                  (click)="confirmArchive(account, $event)"
+                >
+                  <i class="pi pi-inbox" aria-hidden="true"></i>
+                </button>
+              } @else {
+                <button
+                  pButton
+                  type="button"
+                  iconOnly
+                  severity="secondary"
+                  [text]="true"
+                  aria-label="Reactivate account"
+                  (click)="reactivate(account)"
+                >
+                  <i class="pi pi-replay" aria-hidden="true"></i>
+                </button>
+              }
+            </div>
           </td>
         </tr>
       </ng-template>
