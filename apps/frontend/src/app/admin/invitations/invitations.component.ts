@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import type { InvitationSummary } from '@vaultfolio/api-contract';
 import { ButtonModule } from 'primeng/button';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -62,6 +62,24 @@ export class InvitationsComponent implements OnInit {
   protected readonly loading = signal(true);
   protected readonly loadError = signal<string | null>(null);
   protected readonly dialogVisible = signal(false);
+
+  /**
+   * A resend supersedes the prior invitation and creates a new row for the
+   * same email (see `InvitationsService.resend`), so the raw list can hold
+   * several rows per email. The table only ever needs each email's latest
+   * one, so collapse to the most-recently-created row per email here rather
+   * than teaching the backend a "latest per email" query.
+   */
+  protected readonly displayedInvitations = computed<InvitationSummary[]>(() => {
+    const latestByEmail = new Map<string, InvitationSummary>();
+    for (const invitation of this.invitations()) {
+      const current = latestByEmail.get(invitation.email);
+      if (!current || invitation.createdAt > current.createdAt) {
+        latestByEmail.set(invitation.email, invitation);
+      }
+    }
+    return Array.from(latestByEmail.values());
+  });
 
   protected statusSeverity(
     status: InvitationStatus,

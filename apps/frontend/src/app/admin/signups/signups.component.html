@@ -37,42 +37,44 @@
               </div>
             }
           </td>
-          <td class="row-actions">
-            @if (signup.status === 'VERIFIED') {
+          <td>
+            <div class="row-actions">
+              @if (signup.status === 'VERIFIED') {
+                <button
+                  pButton
+                  type="button"
+                  iconOnly
+                  severity="success"
+                  [text]="true"
+                  aria-label="Approve sign-up"
+                  (click)="confirmApprove(signup, $event)"
+                >
+                  <i class="pi pi-check-circle" aria-hidden="true"></i>
+                </button>
+                <button
+                  pButton
+                  type="button"
+                  iconOnly
+                  severity="danger"
+                  [text]="true"
+                  aria-label="Reject sign-up"
+                  (click)="openRejectDialog(signup)"
+                >
+                  <i class="pi pi-times" aria-hidden="true"></i>
+                </button>
+              }
               <button
                 pButton
                 type="button"
                 iconOnly
-                severity="success"
+                severity="secondary"
                 [text]="true"
-                aria-label="Approve sign-up"
-                (click)="confirmApprove(signup, $event)"
+                aria-label="Delete sign-up"
+                (click)="confirmDelete(signup, $event)"
               >
-                <i class="pi pi-check-circle" aria-hidden="true"></i>
+                <i class="pi pi-trash" aria-hidden="true"></i>
               </button>
-              <button
-                pButton
-                type="button"
-                iconOnly
-                severity="danger"
-                [text]="true"
-                aria-label="Reject sign-up"
-                (click)="openRejectDialog(signup)"
-              >
-                <i class="pi pi-times" aria-hidden="true"></i>
-              </button>
-            }
-            <button
-              pButton
-              type="button"
-              iconOnly
-              severity="secondary"
-              [text]="true"
-              aria-label="Delete sign-up"
-              (click)="confirmDelete(signup, $event)"
-            >
-              <i class="pi pi-trash" aria-hidden="true"></i>
-            </button>
+            </div>
           </td>
         </tr>
       </ng-template>

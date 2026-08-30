@@ -5,6 +5,7 @@
   gap: 1rem;
   padding: 1rem 1.5rem;
   border-bottom: 1px solid var(--p-content-border-color);
+  flex: 0 0 auto;
 }
 
 .app-header__brand {

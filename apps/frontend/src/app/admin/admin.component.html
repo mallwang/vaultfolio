@@ -1,0 +1,11 @@
+<p-tabs [value]="activeTab()" (valueChange)="onTabChange($event)">
+  <p-tablist>
+    <p-tab value="accounts">Accounts</p-tab>
+    <p-tab value="signups">Sign-ups</p-tab>
+    <p-tab value="invitations">Invitations</p-tab>
+    <p-tab value="general">General</p-tab>
+  </p-tablist>
+  <p-tabpanels>
+    <router-outlet />
+  </p-tabpanels>
+</p-tabs>

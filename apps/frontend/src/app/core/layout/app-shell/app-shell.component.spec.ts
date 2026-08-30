@@ -39,14 +39,17 @@ describe('AppShellComponent (integration)', () => {
     location = TestBed.inject(Location);
   });
 
-  it('renders the sidebar listing the four APPLICATION_AREAS entries when authenticated', async () => {
+  it('renders the sidebar listing the role-visible APPLICATION_AREAS entries when authenticated', async () => {
     fakeCurrentUser.setAuthenticated(user);
     const harness = await RouterTestingHarness.create('/app/dashboard');
+    const visibleAreas = APPLICATION_AREAS.filter(
+      (area) => !area.roles || area.roles.includes(user.role),
+    );
 
     const items = harness.routeNativeElement?.querySelectorAll('.app-nav__item');
-    expect(items?.length).toBe(APPLICATION_AREAS.length);
+    expect(items?.length).toBe(visibleAreas.length);
     const labels = Array.from(items ?? []).map((el) => el.textContent?.trim());
-    for (const area of APPLICATION_AREAS) {
+    for (const area of visibleAreas) {
       expect(labels.some((label) => label?.includes(area.label))).toBe(true);
     }
   });

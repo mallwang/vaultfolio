@@ -1,8 +1,14 @@
-.signups-panel {
+:host {
+  display: block;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.invitations-panel {
   margin-bottom: 1.5rem;
 }
 
-.signups-panel__header {
+.invitations-panel__header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -12,18 +18,15 @@
 
 .row-actions {
   display: flex;
+  align-items: center;
   gap: 0.25rem;
   justify-content: flex-end;
+  flex-wrap: nowrap;
+  white-space: nowrap;
 }
 
 .error-state {
   color: var(--p-red-500);
-}
-
-.status-followup {
-  margin-top: 0.25rem;
-  font-size: 0.8rem;
-  color: var(--p-text-muted-color);
 }
 
 .empty-state {

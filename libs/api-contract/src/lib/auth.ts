@@ -11,6 +11,8 @@ export interface SignInRequest {
   password: string;
 }
 
+export type UserRole = 'ADMIN' | 'MEMBER';
+
 /**
  * Also the shape returned by GET /api/auth/session. Never includes
  * `password_hash`, `failed_attempts`, `locked_until`, or any other user's
@@ -21,7 +23,7 @@ export interface SessionUser {
   id: string;
   email: string;
   displayName: string;
-  role: 'ADMIN' | 'MEMBER';
+  role: UserRole;
 }
 
 export interface AuthErrorResponse {
