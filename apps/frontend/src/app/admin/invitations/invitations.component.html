@@ -15,7 +15,11 @@
   @if (loadError()) {
     <p class="error-state">{{ loadError() }}</p>
   } @else {
-    <p-table [value]="invitations()" [loading]="loading()" [tableStyle]="{ 'min-width': '50rem' }">
+    <p-table
+      [value]="displayedInvitations()"
+      [loading]="loading()"
+      [tableStyle]="{ 'min-width': '50rem' }"
+    >
       <ng-template #header>
         <tr>
           <th scope="col">Email</th>
@@ -39,18 +43,18 @@
           </td>
           <td>
             <div class="row-actions">
-              <button
-                pButton
-                type="button"
-                iconOnly
-                severity="secondary"
-                [text]="true"
-                aria-label="Resend invitation"
-                (click)="resend(invitation)"
-              >
-                <i class="pi pi-send" aria-hidden="true"></i>
-              </button>
               @if (invitation.status === 'PENDING') {
+                <button
+                  pButton
+                  type="button"
+                  iconOnly
+                  severity="secondary"
+                  [text]="true"
+                  aria-label="Resend invitation"
+                  (click)="resend(invitation)"
+                >
+                  <i class="pi pi-send" aria-hidden="true"></i>
+                </button>
                 <button
                   pButton
                   type="button"
