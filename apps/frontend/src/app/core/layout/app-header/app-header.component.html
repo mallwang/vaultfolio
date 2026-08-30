@@ -1,6 +1,9 @@
-<div>
-  <p class="app-header__crumb">Vaultfolio</p>
-  <h1 class="app-header__title">{{ activeAreaTitle() }}</h1>
+<div class="app-header__brand">
+  <img class="app-header__logo" src="/vaultfolio-logo.png" alt="" aria-hidden="true" />
+  <div>
+    <p class="app-header__crumb">Vaultfolio</p>
+    <h1 class="app-header__title">{{ activeAreaTitle() }}</h1>
+  </div>
 </div>
 @if (isAuthenticated()) {
   <div class="app-header__meta">

@@ -16,29 +16,35 @@ export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'app/dashboard' },
   {
     path: 'sign-in',
+    title: 'Sign In',
     loadComponent: () => import('./auth/sign-in/sign-in.component').then((m) => m.SignInComponent),
   },
   {
     path: 'invite/expired',
+    title: 'Invite Expired',
     loadComponent: () =>
       import('./invite/expired/expired.component').then((m) => m.ExpiredComponent),
   },
   {
     path: 'invite/:token',
+    title: 'Accept Invite',
     loadComponent: () => import('./invite/accept/accept.component').then((m) => m.AcceptComponent),
   },
   {
     path: 'account/link-invalid',
+    title: 'Link Invalid',
     loadComponent: () =>
       import('./account/link-invalid/link-invalid.component').then((m) => m.LinkInvalidComponent),
   },
   {
     path: 'account/verify-email/:token',
+    title: 'Verify Email',
     loadComponent: () =>
       import('./account/verify-email/verify-email.component').then((m) => m.VerifyEmailComponent),
   },
   {
     path: 'account/forgot-password',
+    title: 'Forgot Password',
     loadComponent: () =>
       import('./account/forgot-password/forgot-password.component').then(
         (m) => m.ForgotPasswordComponent,
@@ -46,6 +52,7 @@ export const routes: Routes = [
   },
   {
     path: 'account/reset-password/:token',
+    title: 'Reset Password',
     loadComponent: () =>
       import('./account/reset-password/reset-password.component').then(
         (m) => m.ResetPasswordComponent,
@@ -53,10 +60,12 @@ export const routes: Routes = [
   },
   {
     path: 'signup',
+    title: 'Sign Up',
     loadComponent: () => import('./signup/signup.component').then((m) => m.SignupComponent),
   },
   {
     path: 'signup/verify/:token',
+    title: 'Verify Sign Up',
     loadComponent: () => import('./signup/verify/verify.component').then((m) => m.VerifyComponent),
   },
   // Legacy (pre-`/app`) addresses (FR-013, contracts/routes.md "Legacy
@@ -73,25 +82,29 @@ export const routes: Routes = [
     children: [
       {
         path: 'dashboard',
+        title: 'Dashboard',
         loadComponent: () =>
           import('./dashboard/dashboard.component').then((m) => m.DashboardComponent),
       },
       {
         path: 'holdings',
+        title: 'Holdings',
         loadComponent: () =>
           import('./holdings/holdings.component').then((m) => m.HoldingsComponent),
       },
       {
         path: 'imports',
+        title: 'Imports',
         loadComponent: () => import('./imports/imports.component').then((m) => m.ImportsComponent),
       },
       {
         path: 'settings',
+        title: 'Settings',
         loadComponent: () =>
           import('./settings/settings.component').then((m) => m.SettingsComponent),
       },
-      { path: '**', component: NotFoundComponent },
+      { path: '**', title: 'Not Found', component: NotFoundComponent },
     ],
   },
-  { path: '**', component: NotFoundComponent },
+  { path: '**', title: 'Not Found', component: NotFoundComponent },
 ];

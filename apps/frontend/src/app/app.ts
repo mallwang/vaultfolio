@@ -16,6 +16,4 @@ import { AppHeaderComponent } from './core/layout/app-header/app-header.componen
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
-export class App {
-  protected title = 'frontend';
-}
+export class App {}
