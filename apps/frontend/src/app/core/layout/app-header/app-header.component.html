@@ -9,6 +9,20 @@
       <span class="role-badge">{{ roleLabel() }}</span>
     }
     <p-avatar [label]="userInitials()" shape="circle" />
+    <button
+      pButton
+      data-testid="theme-toggle"
+      type="button"
+      iconOnly
+      severity="secondary"
+      [text]="true"
+      [attr.aria-pressed]="theme() === 'dark'"
+      [attr.aria-label]="theme() === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'"
+      [pTooltip]="theme() === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'"
+      (click)="toggleTheme()"
+    >
+      <i [class]="theme() === 'dark' ? 'pi pi-moon' : 'pi pi-sun'" aria-hidden="true"></i>
+    </button>
     <p-button
       icon="pi pi-sign-out"
       severity="secondary"
@@ -18,4 +32,19 @@
       (onClick)="signOut()"
     />
   </div>
+} @else {
+  <button
+    pButton
+    data-testid="theme-toggle"
+    type="button"
+    iconOnly
+    severity="secondary"
+    [text]="true"
+    [attr.aria-pressed]="theme() === 'dark'"
+    [attr.aria-label]="theme() === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'"
+    [pTooltip]="theme() === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'"
+    (click)="toggleTheme()"
+  >
+    <i [class]="theme() === 'dark' ? 'pi pi-moon' : 'pi pi-sun'" aria-hidden="true"></i>
+  </button>
 }

@@ -36,7 +36,7 @@ All paths are under `apps/frontend/src/app/`:
 `apps/frontend` Nx project, its Jest/Angular Testing Library setup, and PrimeNG/PrimeIcons already
 wired in `styles.css`/`app.config.ts`.
 
-- [ ] T001 Confirm `apps/frontend` builds and its test suite runs cleanly before starting
+- [x] T001 Confirm `apps/frontend` builds and its test suite runs cleanly before starting
       (`npm exec nx test frontend`, `npm exec nx build frontend`), so any later failures are
       attributable to this feature's changes.
 
@@ -53,11 +53,11 @@ correctly, here avoids rework across phases.
 
 **⚠️ CRITICAL**: No user story phase can be verified end-to-end until this phase is complete.
 
-- [ ] T002 Configure PrimeNG's dark-mode selector in
+- [x] T002 Configure PrimeNG's dark-mode selector in
       `apps/frontend/src/app/app.config.ts`: add `options: { darkModeSelector: '.app-dark' }` to
       the existing `providePrimeNG({ theme: { preset: Aura } })` call (research.md #1). Verify the
       existing light-theme rendering is unaffected (no `.app-dark` class present yet).
-- [ ] T003 [P] Write `apps/frontend/src/app/core/theme/theme.service.spec.ts` covering, per
+- [x] T003 [P] Write `apps/frontend/src/app/core/theme/theme.service.spec.ts` covering, per
       data-model.md "Lifecycle" and contracts/theme-service.md "Behavioral guarantees" (write
       first; expect failures until T004 exists): - Resolves `'dark'`/`'light'` from `localStorage['vaultfolio-theme']` when present and valid. - Falls back to `window.matchMedia('(prefers-color-scheme: dark)').matches` when no valid
       stored value exists. - Falls back to `'light'` when neither a valid stored value nor a matched media query exists. - Treats any invalid/corrupted `localStorage` value, or a thrown read, as "no explicit
@@ -65,7 +65,7 @@ correctly, here avoids rework across phases.
       `document.documentElement`, and writes the new value to
       `localStorage['vaultfolio-theme']`. - `toggle()` never throws even when `localStorage.setItem` throws (write is best-effort; the
       in-memory `theme()` value and DOM class still update).
-- [ ] T004 Implement `apps/frontend/src/app/core/theme/theme.service.ts` per
+- [x] T004 Implement `apps/frontend/src/app/core/theme/theme.service.ts` per
       contracts/theme-service.md: `providedIn: 'root'` class exporting `Theme = 'light' | 'dark'`,
       a `readonly theme: Signal<Theme>` resolved synchronously in the constructor per
       data-model.md's three-step lookup (localStorage → `prefers-color-scheme` → light), a
@@ -90,7 +90,7 @@ immediately with no navigation; repeat signed in.
 
 ### Tests for User Story 1 ⚠️
 
-- [ ] T005 [P] [US1] Extend `apps/frontend/src/app/core/layout/app-header/app-header.component.spec.ts`
+- [x] T005 [P] [US1] Extend `apps/frontend/src/app/core/layout/app-header/app-header.component.spec.ts`
       (write first; expect failures until T006/T007 exist) to cover: - The icon-only toggle button renders in both the unauthenticated state (alone, in the
       header's right-hand position) and the authenticated state (inside `app-header__meta`,
       immediately before the "Sign out" button). - Clicking the toggle calls `ThemeService.toggle()` (inject/spy on `ThemeService`, or assert
@@ -100,12 +100,12 @@ immediately with no navigation; repeat signed in.
 
 ### Implementation for User Story 1
 
-- [ ] T006 [US1] Update `apps/frontend/src/app/core/layout/app-header/app-header.component.ts`:
+- [x] T006 [US1] Update `apps/frontend/src/app/core/layout/app-header/app-header.component.ts`:
       `inject(ThemeService)` as a field (eager construction per research.md #3, since this
       component is always rendered at the root), expose a `protected readonly theme = this.themeService.theme`
       (or equivalent computed) and a `protected toggleTheme(): void { this.themeService.toggle(); }`
       handler.
-- [ ] T007 [US1] Update `apps/frontend/src/app/core/layout/app-header/app-header.component.html`:
+- [x] T007 [US1] Update `apps/frontend/src/app/core/layout/app-header/app-header.component.html`:
       move the theme toggle `p-button` outside the `@if (isAuthenticated())` block so it always
       renders (FR-003); inside the authenticated branch, place it as a sibling immediately before
       the existing sign-out `p-button` inside `app-header__meta` (design.md layout); for the
@@ -115,11 +115,11 @@ immediately with no navigation; repeat signed in.
       `[attr.aria-label]="theme() === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'"`,
       `severity="secondary"`, `text`, `(onClick)="toggleTheme()"`, matching the sign-out button's
       ghost styling (design.md "icon-only, circular ghost button").
-- [ ] T008 [US1] Update `apps/frontend/src/app/core/layout/app-header/app-header.component.css` if
+- [x] T008 [US1] Update `apps/frontend/src/app/core/layout/app-header/app-header.component.css` if
       needed to keep the toggle visually aligned at 30×30px within `app-header__meta` and in the
       standalone unauthenticated position (design.md); reuse existing `app-header__meta` gap/flex
       rules rather than introducing new layout primitives.
-- [ ] T009 [US1] Run T005 to green and manually validate quickstart.md steps 1–2 (unauthenticated
+- [x] T009 [US1] Run T005 to green and manually validate quickstart.md steps 1–2 (unauthenticated
       toggle visible/usable; authenticated toggle positioned before sign-out; both switch instantly
       with no page reload).
 
@@ -141,12 +141,12 @@ re-clicking.
 already implemented and unit-tested in `ThemeService` (T003/T004, Phase 2) — this phase is about
 confirming that behavior end-to-end through the real UI and closing any gaps found.
 
-- [ ] T010 [US2] Manually validate quickstart.md steps 3–4: switch to dark, reload, confirm it
+- [x] T010 [US2] Manually validate quickstart.md steps 3–4: switch to dark, reload, confirm it
       persists; clear `localStorage['vaultfolio-theme']` and reload, confirm fallback to
       `prefers-color-scheme` (or light if unset) without errors in the console; emulate
       `prefers-color-scheme: dark` with storage cleared and confirm a fresh load opens in dark
       theme.
-- [ ] T011 [US2] If manual validation in T010 surfaces a gap (e.g. a missed edge case in the
+- [x] T011 [US2] If manual validation in T010 surfaces a gap (e.g. a missed edge case in the
       resolution order), add a covering case to
       `apps/frontend/src/app/core/theme/theme.service.spec.ts` and fix it in
       `apps/frontend/src/app/core/theme/theme.service.ts`. Skip this task if T010 finds no gap.
@@ -170,10 +170,10 @@ unconditionally at the app root (`app.html`), this consistency is a structural p
 2–3's implementation rather than requiring separate per-route wiring. This phase validates that
 property holds and adds regression coverage.
 
-- [ ] T012 [US3] Manually validate quickstart.md step 5: switch to dark on a public page (e.g.
+- [x] T012 [US3] Manually validate quickstart.md step 5: switch to dark on a public page (e.g.
       `/sign-in`), sign in, confirm `/app/dashboard`, `/app/holdings`, `/app/settings` all render
       in dark theme; switch to light while signed in, sign out, confirm the public page is light.
-- [ ] T013 [P] [US3] Add a regression check to
+- [x] T013 [P] [US3] Add a regression check to
       `apps/frontend/src/app/core/theme/theme.service.spec.ts` (or extend
       `app-header.component.spec.ts`, whichever integration point already exercises navigation
       state) asserting the `app-dark` class on `document.documentElement` is unaffected by
@@ -189,13 +189,13 @@ persists, and applies everywhere regardless of auth state or route.
 
 **Purpose**: Final accessibility verification and full-suite validation across all stories.
 
-- [ ] T014 [P] Manually validate quickstart.md step 6 (accessibility): tab to the toggle
+- [x] T014 [P] Manually validate quickstart.md step 6 (accessibility): tab to the toggle
       keyboard-only, confirm visible focus and Enter/Space activation; inspect `aria-pressed` and
       `aria-label` update correctly after each toggle (SC-004, FR-008).
-- [ ] T015 Run the full frontend suite (`npm exec nx test frontend`) and confirm no regressions in
+- [x] T015 Run the full frontend suite (`npm exec nx test frontend`) and confirm no regressions in
       `app-header.component.spec.ts` or elsewhere from moving the toggle button outside the
       `@if` block.
-- [ ] T016 Run `npm exec nx build frontend` and manually re-walk quickstart.md end-to-end once more
+- [x] T016 Run `npm exec nx build frontend` and manually re-walk quickstart.md end-to-end once more
       as a final sanity pass before merge.
 
 ---

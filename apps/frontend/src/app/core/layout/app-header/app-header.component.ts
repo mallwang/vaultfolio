@@ -8,6 +8,7 @@ import { filter, map, startWith } from 'rxjs';
 import { APPLICATION_AREAS } from '../application-areas';
 import { AuthService } from '../../../auth/auth.service';
 import { CurrentUserStore } from '../../../auth/current-user.store';
+import { ThemeService } from '../../theme/theme.service';
 
 /**
  * Shows a small "Vaultfolio" eyebrow/crumb plus the active area's title, with
@@ -24,6 +25,11 @@ export class AppHeaderComponent {
   private readonly router = inject(Router);
   private readonly authService = inject(AuthService);
   private readonly currentUser = inject(CurrentUserStore);
+  // Eagerly injected (research.md #3): this component is always rendered at
+  // the app root, so constructing ThemeService here resolves/applies the
+  // initial theme before any routed page content paints.
+  private readonly themeService = inject(ThemeService);
+  protected readonly theme = this.themeService.theme;
 
   private readonly currentUrl = toSignal(
     this.router.events.pipe(
@@ -70,6 +76,10 @@ export class AppHeaderComponent {
         .join('') || '?'
     );
   });
+
+  protected toggleTheme(): void {
+    this.themeService.toggle();
+  }
 
   protected signOut(): void {
     this.authService.signOut().subscribe({
