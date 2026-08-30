@@ -1,7 +1,6 @@
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Component, computed, inject } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
-import { AvatarModule } from 'primeng/avatar';
 import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
 import { filter, map, startWith } from 'rxjs';
@@ -12,12 +11,12 @@ import { ThemeService } from '../../theme/theme.service';
 
 /**
  * Shows a small "Vaultfolio" eyebrow/crumb plus the active area's title, with
- * the signed-in user's name/avatar and a sign-out action on the right
+ * the signed-in user's name and a sign-out action on the right
  * (design.md "Header").
  */
 @Component({
   selector: 'app-header',
-  imports: [AvatarModule, ButtonModule, TooltipModule],
+  imports: [ButtonModule, TooltipModule],
   templateUrl: './app-header.component.html',
   styleUrl: './app-header.component.css',
 })
@@ -60,22 +59,10 @@ export class AppHeaderComponent {
     this.isAuthenticated() ? this.currentUser.current() : null,
   );
 
-  /** FR-004 (008): reflects role next to the display name/avatar — `SessionUser.role` already exists. */
+  /** FR-004 (008): reflects role next to the display name — `SessionUser.role` already exists. */
   protected readonly roleLabel = computed(() =>
     this.user()?.role === 'ADMIN' ? 'Admin' : 'Member',
   );
-
-  protected readonly userInitials = computed(() => {
-    const name = this.user()?.displayName ?? '';
-    return (
-      name
-        .split(/\s+/)
-        .filter(Boolean)
-        .map((part) => part[0]?.toUpperCase())
-        .slice(0, 2)
-        .join('') || '?'
-    );
-  });
 
   protected toggleTheme(): void {
     this.themeService.toggle();

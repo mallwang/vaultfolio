@@ -1,3 +1,9 @@
+:host {
+  display: block;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
 .settings__hint {
   margin: 0 0 0.9rem;
   font-size: 0.85rem;

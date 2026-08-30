@@ -1,8 +1,13 @@
+:host {
+  display: block;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
 .profile-grid {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
-  max-width: 620px;
 }
 
 h2 {
