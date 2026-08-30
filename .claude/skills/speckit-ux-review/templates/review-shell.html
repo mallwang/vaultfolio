@@ -157,6 +157,10 @@
 
       [data-screen] [data-show] { display: none; }
       {{STATE_VISIBILITY_RULES}}
+      /* Gotcha: if a shown block needs display:grid/flex (not the default block), the generic
+         `display:block` rule above wins on equal specificity (attribute selectors == class
+         selectors). Add a same-block override with an extra class qualifier, e.g.
+         [data-screen='X'] [data-show='X'].my-grid-block { display: grid; } */
 
       /* ============ feature styles (authored fresh per feature) ============ */
 
