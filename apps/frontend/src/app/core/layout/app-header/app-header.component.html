@@ -22,6 +22,8 @@
       [attr.aria-pressed]="theme() === 'dark'"
       [attr.aria-label]="theme() === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'"
       [pTooltip]="theme() === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'"
+      tooltipPosition="bottom"
+      appendTo="body"
       (click)="toggleTheme()"
     >
       <i [class]="theme() === 'dark' ? 'pi pi-moon' : 'pi pi-sun'" aria-hidden="true"></i>
@@ -32,6 +34,8 @@
       text
       aria-label="Sign out"
       pTooltip="Sign out"
+      tooltipPosition="bottom"
+      appendTo="body"
       (onClick)="signOut()"
     />
   </div>
@@ -46,6 +50,8 @@
     [attr.aria-pressed]="theme() === 'dark'"
     [attr.aria-label]="theme() === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'"
     [pTooltip]="theme() === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'"
+    tooltipPosition="bottom"
+    appendTo="body"
     (click)="toggleTheme()"
   >
     <i [class]="theme() === 'dark' ? 'pi pi-moon' : 'pi pi-sun'" aria-hidden="true"></i>
