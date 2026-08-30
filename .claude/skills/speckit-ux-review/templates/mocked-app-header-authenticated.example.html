@@ -1,0 +1,82 @@
+<!--
+  Authenticated navigation bar pattern — for features whose screens live under /app/* (behind
+  authGuard), rendered inside AppShellComponent: sidebar nav (collapsing to a horizontally
+  scrollable top bar on mobile, see app-sidebar.component.css's @media rule) + header.
+
+  Snapshot derived from apps/frontend/src/app/core/layout/{app-shell,app-sidebar,app-header}
+  component html/css, plus the theme toggle from specs/010-theme-switch/design.md ("Authenticated
+  header": inserted into the app-header__meta cluster immediately before the sign-out button —
+  not yet in app-header.component.html as of this snapshot; the spec was approved but
+  unimplemented). This file is a snapshot, not a source of truth — re-derive markup/classes/tokens
+  from the current app-shell/app-sidebar/app-header components (and check whether the theme toggle
+  has landed for real, and whether APPLICATION_AREAS has grown) before reusing.
+
+  Colors: this project's PrimeNG "Aura" preset default (emerald primary, #10b981 / #059669) — see
+  templates/review-shell.html's {{APP_TOKENS}} note. Use these same tokens in any mockup so it
+  reads as the same product, not a re-skinned one.
+-->
+<div class="app-shell-grid">
+  <nav class="app-sidebar" aria-label="Primary">
+    <div class="app-brand">
+      <span class="app-brand__mark" aria-hidden="true"></span>
+      <span class="app-brand__name">Vaultfolio</span>
+    </div>
+    <div class="app-nav">
+      <a class="app-nav__item app-nav__item--active">
+        <i class="pi pi-th-large" aria-hidden="true"></i>
+        <span>Dashboard</span>
+      </a>
+      <!-- …one .app-nav__item per APPLICATION_AREAS entry (core/layout/application-areas.ts),
+           each with a PrimeIcons class (no icon font substitute) and, on the active route,
+           .app-nav__item--active. -->
+    </div>
+  </nav>
+
+  <div class="app-main">
+    <div class="app-header">
+      <div>
+        <p class="app-header__crumb">Vaultfolio</p>
+        <h1 class="app-header__title">Dashboard</h1>
+      </div>
+      <div class="app-header__meta">
+        <span>Markus Allwang</span>
+        <span class="role-badge">Admin</span>
+        <span class="avatar">MA</span>
+        <button
+          type="button"
+          class="theme-toggle"
+          aria-pressed="false"
+          aria-label="Switch to dark theme"
+        >
+          <i class="pi pi-sun" aria-hidden="true"></i>
+        </button>
+        <button type="button" class="sign-out-btn">
+          <i class="pi pi-sign-out" aria-hidden="true"></i> Sign out
+        </button>
+      </div>
+    </div>
+
+    <div class="app-content">
+      <!-- {{FEATURE_MARKUP}} for the specific feature under review goes here. -->
+    </div>
+  </div>
+</div>
+
+<!--
+  Key CSS classes this pattern depends on (copy the full rules from a recent approved mockup that
+  used this pattern, e.g. specs/009-app-shell-restructure/mockup.html, rather than hand-deriving):
+  .app-shell-grid           — grid: 232px sidebar + 1fr content; collapses to stacked rows on
+                              mobile (.stage-frame[data-viewport='mobile'] .app-shell-grid)
+  .app-sidebar               — becomes a horizontal, scrollable top bar on mobile
+                              (.stage-frame[data-viewport='mobile'] .app-sidebar)
+  .app-brand / .app-brand__mark / .app-brand__name
+  .app-nav / .app-nav__item[--active] — active-area highlight with a left accent bar on desktop,
+                              centered icon+label chip on mobile
+  .app-header / .app-header__crumb / .app-header__title / .app-header__meta / .role-badge / .avatar
+  .theme-toggle              — 30×30px circular ghost icon button, no border/background, muted
+                              icon color, hover fill; swap the icon (pi-sun ↔ pi-moon) and both
+                              aria-pressed/aria-label with the active theme (design.md FR-009);
+                              sits immediately before .sign-out-btn, not below it
+  .sign-out-btn
+  .app-content                — the swappable per-screen content region
+-->

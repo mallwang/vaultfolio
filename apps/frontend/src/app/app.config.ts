@@ -35,7 +35,7 @@ export const appConfig: ApplicationConfig = {
       );
     }),
     providePrimeNG({
-      theme: { preset: Aura },
+      theme: { preset: Aura, options: { darkModeSelector: '.app-dark' } },
       // Prefer the runtime value written by docker/frontend-entrypoint.sh
       // (from PRIMENG_LICENSE_KEY) over the build-time environment.ts value,
       // so a deployed image can be licensed via a container env var without
