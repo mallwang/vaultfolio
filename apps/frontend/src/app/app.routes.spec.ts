@@ -15,6 +15,13 @@ const user: SessionUser = {
   role: 'MEMBER',
 };
 
+const admin: SessionUser = {
+  id: 'user-2',
+  email: 'admin@example.com',
+  displayName: 'Admin Example',
+  role: 'ADMIN',
+};
+
 /**
  * Route-table integration test per contracts/routes.md (T013): exercises
  * the router ↔ guard contract without rendering components, by navigating
@@ -49,7 +56,7 @@ describe('app.routes', () => {
       ['/app/dashboard', '/app/dashboard'],
       ['/app/holdings', '/app/holdings'],
       ['/app/imports', '/app/imports'],
-      ['/app/settings', '/app/settings'],
+      ['/app/settings', '/app/settings/profile'],
     ])('resolves %s under /app/*', async (path, expected) => {
       await router.navigateByUrl(path);
       expect(location.path()).toBe(expected);
@@ -60,10 +67,48 @@ describe('app.routes', () => {
       ['/dashboard', '/app/dashboard'],
       ['/holdings', '/app/holdings'],
       ['/imports', '/app/imports'],
-      ['/settings', '/app/settings'],
+      ['/settings', '/app/settings/profile'],
     ])('redirects legacy %s to %s', async (legacy, expected) => {
       await router.navigateByUrl(legacy);
       expect(location.path()).toBe(expected);
+    });
+
+    // 012 US4: each Settings/Admin tab is directly addressable for deep
+    // links (e.g. from emails), and opening the area with no subsection
+    // still defaults to its first tab.
+    it.each(['/app/settings/profile', '/app/settings/preferences'])(
+      'resolves %s directly to itself',
+      async (path) => {
+        await router.navigateByUrl(path);
+        expect(location.path()).toBe(path);
+      },
+    );
+
+    it('redirects a MEMBER opening an admin subsection address away, same as /app/admin', async () => {
+      await router.navigateByUrl('/app/admin/invitations');
+      expect(location.path()).toBe('/app/dashboard');
+    });
+  });
+
+  describe('when authenticated as ADMIN', () => {
+    beforeEach(() => {
+      setup();
+      fakeCurrentUser.setAuthenticated(admin);
+    });
+
+    it('defaults /app/admin to /app/admin/accounts', async () => {
+      await router.navigateByUrl('/app/admin');
+      expect(location.path()).toBe('/app/admin/accounts');
+    });
+
+    it.each([
+      '/app/admin/accounts',
+      '/app/admin/signups',
+      '/app/admin/invitations',
+      '/app/admin/general',
+    ])('resolves %s directly to itself', async (path) => {
+      await router.navigateByUrl(path);
+      expect(location.path()).toBe(path);
     });
   });
 

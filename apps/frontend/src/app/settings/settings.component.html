@@ -1,14 +1,9 @@
-<p-tabs value="profile">
+<p-tabs [value]="activeTab()" (valueChange)="onTabChange($event)">
   <p-tablist>
     <p-tab value="profile">Profile</p-tab>
     <p-tab value="preferences">Preferences</p-tab>
   </p-tablist>
   <p-tabpanels>
-    <p-tabpanel value="profile">
-      <app-profile />
-    </p-tabpanel>
-    <p-tabpanel value="preferences">
-      <app-preferences />
-    </p-tabpanel>
+    <router-outlet />
   </p-tabpanels>
 </p-tabs>

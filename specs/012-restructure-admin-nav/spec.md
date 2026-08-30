@@ -63,6 +63,41 @@ A MEMBER user should never see the "Admin" side-navigation entry or be able to r
 
 ---
 
+### User Story 4 - Deep-linkable Settings and Admin subsections (Priority: P2)
+
+Emails the system sends (e.g. an invitation follow-up, a notice about account preferences) need
+to link a user straight to a specific subsection — such as Settings → Preferences or Admin →
+Invitations — rather than always landing on the first tab (Profile / Accounts) and requiring the
+user to click through manually.
+
+**Why this priority**: Independently valuable once Settings and Admin exist as their own areas
+(User Stories 1 and 2); it does not block the core restructuring but is needed before any email
+template can link to a specific subsection.
+
+**Independent Test**: Can be fully tested by opening a URL such as `/app/settings/preferences` or
+`/app/admin/invitations` directly (e.g. from a fresh browser tab) and confirming the corresponding
+area opens with that subsection's tab already active, and that switching tabs within the page
+updates the address accordingly.
+
+**Acceptance Scenarios**:
+
+1. **Given** a signed-in user, **When** they open `/app/settings/preferences` directly, **Then**
+   the Settings page loads with the Preferences tab active (not Profile).
+2. **Given** a signed-in ADMIN user, **When** they open `/app/admin/invitations` directly, **Then**
+   the Admin page loads with the Invitations tab active (not Accounts).
+3. **Given** a signed-in user on any Settings or Admin subsection, **When** they select a different
+   tab, **Then** the address bar updates to reflect the newly active subsection (e.g. navigating
+   from Profile to Preferences updates the URL from `/app/settings/profile` to
+   `/app/settings/preferences`), so the current subsection is itself bookmarkable/shareable.
+4. **Given** a signed-in user, **When** they open `/app/settings` or `/app/admin` with no
+   subsection segment, **Then** they land on the first tab (Profile / Accounts respectively), same
+   as today.
+5. **Given** a signed-in MEMBER user, **When** they open `/app/admin/invitations` directly,
+   **Then** they are redirected away exactly as they would be for `/app/admin` (FR-007), and never
+   see the Invitations content.
+
+---
+
 ### Edge Cases
 
 - What happens if a MEMBER user has the Admin page bookmarked or types its address directly? The system must not display admin content to them, matching existing access-control behavior for admin-only actions.
@@ -82,6 +117,10 @@ A MEMBER user should never see the "Admin" side-navigation entry or be able to r
 - **FR-007**: The system MUST prevent MEMBER users from viewing admin content even if they navigate to an admin page's address directly, consistent with existing access-control behavior for admin-only actions.
 - **FR-008**: The system MUST continue to enforce all existing admin-only rules (e.g. who can approve sign-ups, manage accounts, or create invitations) unchanged by this restructuring — only the navigation location and visibility are changing.
 - **FR-009**: The system MUST keep the Settings area accessible to both ADMIN and MEMBER users, unchanged in that respect.
+- **FR-010**: The system MUST expose each Settings subsection (Profile, Preferences) and each Admin subsection (Accounts, Sign-ups, Invitations, General) at its own address (e.g. `/app/settings/preferences`, `/app/admin/invitations`), such that opening that address directly activates the corresponding tab.
+- **FR-011**: The system MUST update the address bar to reflect the active subsection when a user switches tabs within Settings or Admin, without a full page reload.
+- **FR-012**: The system MUST default to the first subsection (Profile for Settings, Accounts for Admin) when `/app/settings` or `/app/admin` is opened with no subsection segment.
+- **FR-013**: The system MUST apply the same role-based access control (FR-005/FR-006/FR-007) to Admin subsection addresses as it does to `/app/admin` itself — a MEMBER user opening an Admin subsection address directly MUST be redirected away, never shown admin content.
 
 ### Key Entities
 
@@ -96,6 +135,7 @@ A MEMBER user should never see the "Admin" side-navigation entry or be able to r
 - **SC-002**: 100% of MEMBER users see no trace of the Admin side-navigation entry or admin section content anywhere in the interface.
 - **SC-003**: Settings shows exactly two sections (Profile, Preferences) for every signed-in user, with zero admin-only sections remaining.
 - **SC-004**: No existing admin functionality (account management, sign-up review, invitations, general status) regresses in behavior as a result of the move — all prior actions remain available with identical outcomes, only reached via the new location.
+- **SC-005**: 100% of the six Settings/Admin subsection addresses (`/app/settings/profile`, `/app/settings/preferences`, `/app/admin/accounts`, `/app/admin/signups`, `/app/admin/invitations`, `/app/admin/general`) open directly to the correct active tab, enabling email links to a specific subsection.
 
 ## Assumptions
 

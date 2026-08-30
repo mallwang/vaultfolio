@@ -157,7 +157,48 @@ of role. All three user stories now complete.
 
 ---
 
-## Phase 6: Polish & Cross-Cutting Concerns
+## Phase 6: User Story 4 - Deep-linkable Settings and Admin subsections (Priority: P2)
+
+**Goal**: `/app/settings/profile`, `/app/settings/preferences`, `/app/admin/accounts`,
+`/app/admin/signups`, `/app/admin/invitations`, `/app/admin/general` are all directly addressable
+and open with the matching tab active; switching tabs updates the address; `/app/settings` and
+`/app/admin` with no subsection still default to the first tab; MEMBER users hitting an admin
+subsection address are redirected exactly as for `/app/admin` today.
+
+**Independent Test**: Open each of the six addresses directly in a fresh tab and confirm the
+matching tab is active; click through tabs and confirm the address updates; open
+`/app/admin/invitations` as a MEMBER and confirm redirect.
+
+### Implementation for User Story 4
+
+- [x] T024 [US4] Add child routes under both `app/settings` and `app/admin` in
+      `apps/frontend/src/app/app.routes.ts`: `{ path: '', pathMatch: 'full', redirectTo: 'profile' | 'accounts' }`
+      plus one data-only child route per tab (`profile`, `preferences` / `accounts`, `signups`,
+      `invitations`, `general`), each carrying a `title`; the admin children inherit `adminGuard`
+      from the parent `admin` route so no per-child guard is needed (depends on T009)
+- [x] T025 [US4] Update `SettingsComponent` (`settings.component.ts`) to inject `Router` +
+      `ActivatedRoute`, derive an `activeTab` signal from the active child route segment
+      (`toSignal` over `router.events` filtered to `NavigationEnd`, defaulting to `'profile'`), and
+      add an `onTabChange(value)` handler that calls `router.navigate([value], { relativeTo: route })`
+- [x] T026 [US4] Update `settings.component.html` to bind `p-tabs` `[value]="activeTab()"` and
+      `(valueChange)="onTabChange($event)"` instead of the static `value="profile"` (depends on
+      T025)
+- [x] T027 [US4] [P] Mirror T025 in `AdminComponent` (`admin.component.ts`), defaulting to
+      `'accounts'`
+- [x] T028 [US4] [P] Mirror T026 in `admin.component.html`
+- [x] T029 [P] [US4] Extend `app.routes.spec.ts` covering: direct navigation to each Settings/Admin
+      subsection address resolves to itself; `/app/settings` and `/app/admin` default to their
+      first tab's address; a MEMBER opening an admin subsection address is redirected away exactly
+      as for `/app/admin` (tab-click → URL-update behavior is exercised by `activeTab`/
+      `onTabChange` sharing the same `Router`/`ActivatedRoute` plumbing as the redirect tests
+      above, so no separate component-level spec was needed)
+
+**Checkpoint**: All six Settings/Admin subsections are independently addressable and stay in sync
+with the active tab. User Story 4 (P2) complete.
+
+---
+
+## Phase 7: Polish & Cross-Cutting Concerns
 
 **Purpose**: Final validation and cleanup across all three stories.
 

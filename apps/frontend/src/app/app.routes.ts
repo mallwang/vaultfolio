@@ -103,12 +103,65 @@ export const routes: Routes = [
         title: 'Settings',
         loadComponent: () =>
           import('./settings/settings.component').then((m) => m.SettingsComponent),
+        // Each tab is its own address (012 US4 — deep links from emails etc.):
+        // SettingsComponent renders a `<router-outlet>` inside its p-tabpanels
+        // and drives the active p-tab from the active child route.
+        children: [
+          { path: '', pathMatch: 'full', redirectTo: 'profile' },
+          {
+            path: 'profile',
+            title: 'Settings · Profile',
+            loadComponent: () =>
+              import('./settings/profile/profile.component').then((m) => m.ProfileComponent),
+          },
+          {
+            path: 'preferences',
+            title: 'Settings · Preferences',
+            loadComponent: () =>
+              import('./settings/preferences/preferences.component').then(
+                (m) => m.PreferencesComponent,
+              ),
+          },
+        ],
       },
       {
         path: 'admin',
         title: 'Admin',
         canActivate: [adminGuard],
         loadComponent: () => import('./admin/admin.component').then((m) => m.AdminComponent),
+        // Same pattern as `settings` above; the `adminGuard` on the parent
+        // route already covers these subsection addresses too.
+        children: [
+          { path: '', pathMatch: 'full', redirectTo: 'accounts' },
+          {
+            path: 'accounts',
+            title: 'Admin · Accounts',
+            loadComponent: () =>
+              import('./admin/accounts/accounts.component').then((m) => m.AccountsComponent),
+          },
+          {
+            path: 'signups',
+            title: 'Admin · Sign-ups',
+            loadComponent: () =>
+              import('./admin/signups/signups.component').then((m) => m.SignupsComponent),
+          },
+          {
+            path: 'invitations',
+            title: 'Admin · Invitations',
+            loadComponent: () =>
+              import('./admin/invitations/invitations.component').then(
+                (m) => m.InvitationsComponent,
+              ),
+          },
+          {
+            path: 'general',
+            title: 'Admin · General',
+            loadComponent: () =>
+              import('./admin/health-status/health-status.component').then(
+                (m) => m.HealthStatusComponent,
+              ),
+          },
+        ],
       },
       { path: '**', title: 'Not Found', component: NotFoundComponent },
     ],
