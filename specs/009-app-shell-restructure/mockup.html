@@ -1,0 +1,685 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>App Shell Restructure — Review</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        color-scheme: light;
+
+        /* App tokens — mirror apps/frontend's real PrimeNG "Aura" preset defaults, matching
+           the palette already approved in 003/006/007/008's mockups, so this reads as the same
+           app rather than a new one. */
+        --p-primary-color: #10b981;
+        --p-primary-600: #059669;
+        --p-primary-contrast-color: #ffffff;
+        --p-content-background: #ffffff;
+        --p-content-hover-background: #f4f6f7;
+        --p-content-border-color: #e2e8f0;
+        --p-highlight-background: #d1fae5;
+        --p-text-color: #1e2732;
+        --p-text-muted-color: #64748b;
+        --p-form-field-background: #ffffff;
+        --p-form-field-border-color: #cbd5e1;
+        --p-danger-color: #ef4444;
+        --p-danger-background: #fef2f2;
+        --p-warning-color: #b45309;
+        --p-warning-background: #fef3c7;
+        --p-info-color: #2563eb;
+        --p-info-background: #dbeafe;
+        --p-page-background: #f6f7f9;
+        --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+        /* Review-tool-only tokens */
+        --review-bg: #f3f2ee;
+        --review-ink: #2c2a25;
+        --review-muted: #7a7669;
+        --review-line: #ddd9d0;
+        --review-accent: #b45f2c;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--review-bg);
+        color: var(--review-ink);
+        font-family:
+          var(--font-ui),
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        text-wrap: balance;
+      }
+
+      /* ============ Review-tool chrome (reusable as-is) ============ */
+
+      .review-header {
+        padding: 1.5rem 2rem 1rem;
+        border-bottom: 1px solid var(--review-line);
+      }
+      .review-eyebrow {
+        font-size: 0.72rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--review-accent);
+        font-weight: 700;
+        margin: 0 0 0.25rem;
+      }
+      .review-header h1 {
+        margin: 0 0 0.35rem;
+        font-size: 1.35rem;
+        font-weight: 800;
+      }
+      .review-header p {
+        margin: 0;
+        color: var(--review-muted);
+        font-size: 0.9rem;
+        max-width: 68ch;
+        line-height: 1.5;
+      }
+
+      .review-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.25rem;
+        align-items: center;
+        padding: 0.85rem 2rem;
+        background: #fff;
+        border-bottom: 1px solid var(--review-line);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+      .control-group {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .control-group span.label {
+        font-size: 0.72rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--review-muted);
+        font-weight: 700;
+      }
+
+      .segmented {
+        display: inline-flex;
+        border: 1px solid var(--review-line);
+        border-radius: 8px;
+        overflow: hidden;
+        flex-wrap: wrap;
+      }
+      .segmented button {
+        appearance: none;
+        border: none;
+        background: #fff;
+        color: var(--review-ink);
+        font: inherit;
+        font-size: 0.83rem;
+        font-weight: 600;
+        padding: 0.4rem 0.75rem;
+        cursor: pointer;
+        border-right: 1px solid var(--review-line);
+      }
+      .segmented button:last-child {
+        border-right: none;
+      }
+      .segmented button:hover {
+        background: #f1efe9;
+      }
+      .segmented button:focus-visible {
+        outline: 2px solid var(--review-accent);
+        outline-offset: -2px;
+      }
+      .segmented button[aria-pressed='true'] {
+        background: var(--review-accent);
+        color: #fff;
+      }
+
+      .review-stage {
+        padding: 2rem;
+        display: flex;
+        justify-content: center;
+      }
+
+      .stage-frame {
+        width: 100%;
+        max-width: 1180px;
+        background: #d9d4c8;
+        border-radius: 14px;
+        padding: 1.25rem;
+        transition: max-width 0.2s ease;
+      }
+      .stage-frame[data-viewport='mobile'] {
+        max-width: 400px;
+      }
+
+      .stage-frame-label {
+        font-size: 0.72rem;
+        color: var(--review-muted);
+        text-align: center;
+        margin: 0 0 0.5rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .canvas {
+        background: var(--p-page-background);
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+        color: var(--p-text-color);
+      }
+
+      .review-footer {
+        padding: 0 2rem 2rem;
+        max-width: 1180px;
+        margin: 0 auto;
+        font-size: 0.85rem;
+        color: var(--review-muted);
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+      }
+      .review-footer code {
+        background: #fff;
+        border: 1px solid var(--review-line);
+        border-radius: 4px;
+        padding: 0.1em 0.4em;
+        font-size: 0.8em;
+      }
+      .review-footer h3 {
+        margin: 0.5rem 0 0;
+        font-size: 0.8rem;
+        color: var(--review-ink);
+      }
+      .review-footer ul {
+        margin: 0.25rem 0 0.5rem;
+        padding-left: 1.1rem;
+      }
+
+      /* ============ generic state-visibility mechanism (reusable as-is) ============ */
+
+      [data-screen] [data-show] {
+        display: none;
+      }
+      [data-screen='signed-out'] [data-show='signed-out'] {
+        display: block;
+      }
+      [data-screen='signed-in'] [data-show='signed-in'] {
+        display: block;
+      }
+      /* .app-shell-grid needs `display: grid`, not the generic `block` above — override with
+         higher specificity so the sidebar sits beside the content instead of stacking above it. */
+      [data-screen='signed-in'] [data-show='signed-in'].app-shell-grid {
+        display: grid;
+      }
+
+      /* ============ feature styles ============ */
+
+      /* Shared header — present in both states (User Story 1), content differs. */
+      .app-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--p-content-border-color);
+        background: var(--p-content-background);
+      }
+      .app-header__crumb {
+        font-size: 0.75rem;
+        color: var(--p-text-muted-color);
+        margin: 0 0 0.15rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+      }
+      .app-header__title {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 800;
+      }
+      .app-header__brand {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+      }
+      .app-header__mark {
+        width: 26px;
+        height: 26px;
+        border-radius: 7px;
+        background: linear-gradient(135deg, var(--p-primary-color), var(--p-primary-600));
+        flex: 0 0 auto;
+      }
+      .app-header__meta {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+        color: var(--p-text-muted-color);
+      }
+      .role-badge {
+        font-size: 0.68rem;
+        font-weight: 700;
+        color: var(--p-primary-600);
+        background: var(--p-highlight-background);
+        padding: 0.15rem 0.5rem;
+        border-radius: 999px;
+      }
+      .avatar {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: var(--p-primary-color);
+        color: var(--p-primary-contrast-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.72rem;
+        font-weight: 700;
+        flex: 0 0 auto;
+      }
+      .sign-out-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        border: none;
+        background: transparent;
+        color: var(--p-text-muted-color);
+        font: inherit;
+        font-size: 0.78rem;
+        font-weight: 600;
+        cursor: pointer;
+        padding: 0.4rem 0.55rem;
+        border-radius: 6px;
+      }
+      .sign-out-btn:hover {
+        background: var(--p-content-hover-background);
+        color: var(--p-text-color);
+      }
+
+      /* signed-out state: header only, no sidebar */
+      .public-page {
+        display: flex;
+        flex-direction: column;
+        min-height: 560px;
+      }
+      .public-page__body {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2.5rem 1.5rem;
+      }
+      .sign-in-card {
+        width: 100%;
+        max-width: 340px;
+        background: var(--p-content-background);
+        border: 1px solid var(--p-content-border-color);
+        border-radius: 12px;
+        padding: 1.75rem 1.5rem;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+      }
+      .sign-in-card h2 {
+        margin: 0 0 0.25rem;
+        font-size: 1.05rem;
+        font-weight: 800;
+      }
+      .sign-in-card p.hint {
+        margin: 0 0 1.25rem;
+        font-size: 0.8rem;
+        color: var(--p-text-muted-color);
+      }
+      .field {
+        margin-bottom: 0.9rem;
+      }
+      .field label {
+        display: block;
+        font-size: 0.75rem;
+        font-weight: 700;
+        margin-bottom: 0.3rem;
+        color: var(--p-text-color);
+      }
+      .field .fake-input {
+        border: 1px solid var(--p-form-field-border-color);
+        background: var(--p-form-field-background);
+        border-radius: 6px;
+        padding: 0.55rem 0.7rem;
+        font-size: 0.85rem;
+        color: var(--p-text-muted-color);
+      }
+      .submit-btn {
+        width: 100%;
+        margin-top: 0.4rem;
+        border: none;
+        border-radius: 6px;
+        padding: 0.6rem;
+        background: var(--p-primary-color);
+        color: var(--p-primary-contrast-color);
+        font: inherit;
+        font-weight: 700;
+        font-size: 0.85rem;
+        cursor: pointer;
+      }
+      .path-note {
+        margin-top: 1.4rem;
+        font-size: 0.7rem;
+        color: var(--p-text-muted-color);
+        text-align: center;
+      }
+      .path-note code {
+        background: var(--p-content-hover-background);
+        padding: 0.1em 0.4em;
+        border-radius: 4px;
+      }
+
+      /* signed-in state: sidebar + header, matching the existing app-shell grid */
+      .app-shell-grid {
+        display: grid;
+        grid-template-columns: 232px 1fr;
+        min-height: 560px;
+      }
+      .app-sidebar {
+        background: var(--p-content-background);
+        border-right: 1px solid var(--p-content-border-color);
+        display: flex;
+        flex-direction: column;
+        padding: 1.1rem 0.85rem;
+        gap: 1.5rem;
+      }
+      .app-brand {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        padding: 0 0.4rem;
+      }
+      .app-brand__mark {
+        width: 26px;
+        height: 26px;
+        border-radius: 7px;
+        background: linear-gradient(135deg, var(--p-primary-color), var(--p-primary-600));
+        flex: 0 0 auto;
+      }
+      .app-brand__name {
+        font-weight: 800;
+        font-size: 0.98rem;
+        letter-spacing: -0.01em;
+      }
+      .app-nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+      }
+      .app-nav__item {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        padding: 0.55rem 0.6rem;
+        border-radius: 8px;
+        font-size: 0.86rem;
+        font-weight: 600;
+        color: var(--p-text-muted-color);
+        text-decoration: none;
+        position: relative;
+      }
+      .app-nav__item i {
+        font-size: 1.05rem;
+        flex: 0 0 auto;
+        width: 1.1rem;
+        text-align: center;
+      }
+      .app-nav__item:hover {
+        background: var(--p-content-hover-background);
+        color: var(--p-text-color);
+      }
+      .app-nav__item--active {
+        background: var(--p-highlight-background);
+        color: var(--p-primary-color);
+      }
+      .app-nav__item--active::before {
+        content: '';
+        position: absolute;
+        left: -0.85rem;
+        top: 0.35rem;
+        bottom: 0.35rem;
+        width: 3px;
+        border-radius: 2px;
+        background: var(--p-primary-color);
+      }
+      .app-main {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+      }
+      .app-content {
+        padding: 1.5rem;
+        flex: 1;
+      }
+      .placeholder-card {
+        background: var(--p-content-background);
+        border: 1px solid var(--p-content-border-color);
+        border-radius: 10px;
+        padding: 1.25rem;
+        color: var(--p-text-muted-color);
+        font-size: 0.85rem;
+      }
+
+      /* Mobile: sidebar collapses to a horizontal top bar (matches app-sidebar.component.css) */
+      .stage-frame[data-viewport='mobile'] .app-shell-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr;
+      }
+      .stage-frame[data-viewport='mobile'] .app-sidebar {
+        flex-direction: row;
+        align-items: center;
+        border-right: none;
+        border-bottom: 1px solid var(--p-content-border-color);
+        padding: 0.65rem 0.85rem;
+        gap: 0.75rem;
+        overflow-x: auto;
+      }
+      .stage-frame[data-viewport='mobile'] .app-brand__name {
+        display: none;
+      }
+      .stage-frame[data-viewport='mobile'] .app-nav {
+        flex-direction: row;
+        gap: 0.3rem;
+      }
+      .stage-frame[data-viewport='mobile'] .app-nav__item {
+        flex-direction: column;
+        gap: 0.2rem;
+        min-width: 60px;
+        padding: 0.4rem 0.35rem;
+        font-size: 0.64rem;
+        text-align: center;
+        border-radius: 10px;
+      }
+      .stage-frame[data-viewport='mobile'] .app-nav__item--active::before {
+        display: none;
+      }
+      .stage-frame[data-viewport='mobile'] .app-header__meta span:not(.role-badge) {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="review-header">
+      <p class="review-eyebrow">Non-functional review mockup</p>
+      <h1>App Shell Restructure</h1>
+      <p>
+        Reviewing the header/side-navigation behavior for 009-app-shell-restructure: the header is
+        present in both states below; the sidebar and signed-in identity (name, role badge,
+        sign-out) appear only in the "Signed in" state. This is static markup, not the real app —
+        it's for shape/layout review only.
+      </p>
+    </header>
+
+    <div class="review-controls">
+      <div class="control-group">
+        <span class="label">Viewport</span>
+        <div class="segmented" id="viewport-toggle">
+          <button type="button" data-viewport="desktop" aria-pressed="true">Desktop</button>
+          <button type="button" data-viewport="mobile" aria-pressed="false">Mobile</button>
+        </div>
+      </div>
+      <div class="control-group">
+        <span class="label">Session state</span>
+        <div class="segmented" id="screen-toggle">
+          <button type="button" data-screen="signed-out" aria-pressed="true">Signed out</button>
+          <button type="button" data-screen="signed-in" aria-pressed="false">Signed in</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="review-stage">
+      <div class="stage-frame" id="stage-frame" data-viewport="desktop">
+        <p class="stage-frame-label" id="stage-frame-label">Desktop</p>
+        <div class="canvas" data-screen="signed-out" id="canvas">
+          <!-- Signed-out state: /sign-in (a public page, directly under base URL). Header only,
+               no sidebar, no identity content (FR-001, FR-003, FR-006, FR-009). -->
+          <div data-show="signed-out" class="public-page">
+            <div class="app-header">
+              <div class="app-header__brand">
+                <span class="app-header__mark" aria-hidden="true"></span>
+                <span class="app-header__title">Vaultfolio</span>
+              </div>
+              <div class="app-header__meta">
+                <span>Not signed in</span>
+              </div>
+            </div>
+            <div class="public-page__body">
+              <div class="sign-in-card">
+                <h2>Sign in</h2>
+                <p class="hint">Access your Vaultfolio portfolio.</p>
+                <div class="field">
+                  <label>Email</label>
+                  <div class="fake-input">markus.allwang@tuta.com</div>
+                </div>
+                <div class="field">
+                  <label>Password</label>
+                  <div class="fake-input">••••••••</div>
+                </div>
+                <button type="button" class="submit-btn">Sign in</button>
+                <p class="path-note">
+                  This page: <code>&lt;baseUrl&gt;/sign-in</code> — public routes stay directly
+                  under the base URL.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Signed-in state: /app/dashboard (an authenticated page, under /app). Header +
+               sidebar both present; header shows name, role badge, sign-out (FR-001, FR-002,
+               FR-004, FR-008). -->
+          <div data-show="signed-in" class="app-shell-grid">
+            <nav class="app-sidebar" aria-label="Primary">
+              <div class="app-brand">
+                <span class="app-brand__mark" aria-hidden="true"></span>
+                <span class="app-brand__name">Vaultfolio</span>
+              </div>
+              <div class="app-nav">
+                <a class="app-nav__item app-nav__item--active"
+                  ><i class="pi pi-th-large" aria-hidden="true"></i><span>Dashboard</span></a
+                >
+                <a class="app-nav__item"
+                  ><i class="pi pi-wallet" aria-hidden="true"></i><span>Holdings</span></a
+                >
+                <a class="app-nav__item"
+                  ><i class="pi pi-upload" aria-hidden="true"></i><span>Imports</span></a
+                >
+                <a class="app-nav__item"
+                  ><i class="pi pi-cog" aria-hidden="true"></i><span>Settings</span></a
+                >
+              </div>
+            </nav>
+            <div class="app-main">
+              <div class="app-header">
+                <div>
+                  <p class="app-header__crumb">Vaultfolio</p>
+                  <h1 class="app-header__title">Dashboard</h1>
+                </div>
+                <div class="app-header__meta">
+                  <span>Markus Allwang</span>
+                  <span class="role-badge">Admin</span>
+                  <span class="avatar">MA</span>
+                  <button type="button" class="sign-out-btn">
+                    <i class="pi pi-sign-out" aria-hidden="true"></i> Sign out
+                  </button>
+                </div>
+              </div>
+              <div class="app-content">
+                <div class="placeholder-card">
+                  Dashboard content — this page: <code>&lt;baseUrl&gt;/app/dashboard</code>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="review-footer">
+      <p>
+        <strong>What changed vs. the current app:</strong> the header now renders on
+        <em>every</em> page (previously omitted on public/shell-less pages); authenticated pages
+        move to <code>/app/*</code>; the sidebar and signed-in header content (name, role badge,
+        sign-out) show only once signed in.
+      </p>
+      <h3>Not shown in this mockup (out of scope)</h3>
+      <ul>
+        <li>Legacy-address redirects (FR-013) — a routing behavior, not a visual difference.</li>
+        <li>Session-expiry redirect handling (Edge Cases) — no visual state of its own.</li>
+        <li>
+          Other public pages (sign-up, invite, account/*) — they follow the same "header, no
+          sidebar" pattern shown here for sign-in.
+        </li>
+      </ul>
+    </footer>
+
+    <script>
+      const canvas = document.getElementById('canvas');
+      const stageFrame = document.getElementById('stage-frame');
+      const stageLabel = document.getElementById('stage-frame-label');
+
+      document.getElementById('viewport-toggle').addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-viewport]');
+        if (!btn) return;
+        const value = btn.getAttribute('data-viewport');
+        stageFrame.setAttribute('data-viewport', value);
+        stageLabel.textContent = value === 'mobile' ? 'Mobile' : 'Desktop';
+        [...document.getElementById('viewport-toggle').querySelectorAll('button')].forEach((b) =>
+          b.setAttribute('aria-pressed', String(b === btn)),
+        );
+      });
+
+      document.getElementById('screen-toggle').addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-screen]');
+        if (!btn) return;
+        const value = btn.getAttribute('data-screen');
+        canvas.setAttribute('data-screen', value);
+        [...document.getElementById('screen-toggle').querySelectorAll('button')].forEach((b) =>
+          b.setAttribute('aria-pressed', String(b === btn)),
+        );
+      });
+    </script>
+  </body>
+</html>

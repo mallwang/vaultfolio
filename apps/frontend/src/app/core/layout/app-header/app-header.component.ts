@@ -36,11 +36,23 @@ export class AppHeaderComponent {
 
   protected readonly activeAreaTitle = computed(() => {
     const url = this.currentUrl();
-    const area = APPLICATION_AREAS.find((candidate) => url.startsWith(`/${candidate.path}`));
+    const area = APPLICATION_AREAS.find((candidate) => url.startsWith(`/app/${candidate.path}`));
     return area?.label ?? 'Vaultfolio';
   });
 
-  protected readonly user = this.currentUser.current;
+  protected readonly isAuthenticated = computed(
+    () => this.currentUser.status() === 'authenticated',
+  );
+
+  /**
+   * data-model.md "Auth Status": resolves to "signed out" (no user) unless
+   * status is `authenticated`, so a stale `SessionUser` from a prior session
+   * can never surface identity content while status is `unknown` or
+   * `unauthenticated` (no flash of the wrong state).
+   */
+  protected readonly user = computed(() =>
+    this.isAuthenticated() ? this.currentUser.current() : null,
+  );
 
   /** FR-004 (008): reflects role next to the display name/avatar — `SessionUser.role` already exists. */
   protected readonly roleLabel = computed(() =>
@@ -70,7 +82,7 @@ export class AppHeaderComponent {
   }
 
   private completeSignOut(): void {
-    this.currentUser.clear();
+    this.currentUser.setUnauthenticated();
     this.router.navigateByUrl('/sign-in');
   }
 }

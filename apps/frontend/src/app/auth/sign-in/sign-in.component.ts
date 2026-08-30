@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
@@ -18,7 +18,7 @@ import { CurrentUserStore } from '../current-user.store';
  */
 @Component({
   selector: 'app-sign-in',
-  imports: [FormsModule, ButtonModule, InputTextModule, MessageModule, CardModule],
+  imports: [FormsModule, ButtonModule, InputTextModule, MessageModule, CardModule, RouterLink],
   templateUrl: './sign-in.component.html',
   styleUrl: './sign-in.component.css',
 })
@@ -41,8 +41,8 @@ export class SignInComponent {
 
     this.authService.signIn({ email: this.email, password: this.password }).subscribe({
       next: (user) => {
-        this.currentUser.set(user);
-        this.router.navigateByUrl('/dashboard');
+        this.currentUser.setAuthenticated(user);
+        this.router.navigateByUrl('/app/dashboard');
       },
       error: (error: unknown) => {
         this.submitting.set(false);

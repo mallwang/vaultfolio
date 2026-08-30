@@ -110,7 +110,7 @@ export class ProfileComponent implements OnInit {
         // FR-004: the header reflects the change immediately, no reload.
         const current = this.currentUser.current();
         if (current) {
-          this.currentUser.set({ ...current, displayName: profile.displayName });
+          this.currentUser.setAuthenticated({ ...current, displayName: profile.displayName });
         }
         this.messageService.add({ severity: 'success', summary: 'Display name updated' });
       },
@@ -244,7 +244,7 @@ export class ProfileComponent implements OnInit {
     this.deleteErrorMessage.set(null);
     this.profileService.deleteAccount().subscribe({
       next: () => {
-        this.currentUser.clear();
+        this.currentUser.setUnauthenticated();
         this.router.navigateByUrl('/sign-in');
       },
       error: (error: unknown) => {

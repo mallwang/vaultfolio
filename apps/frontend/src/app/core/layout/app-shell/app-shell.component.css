@@ -4,15 +4,9 @@
   min-height: 100vh;
 }
 
-.app-main {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
 .app-content {
   padding: 1.5rem;
-  flex: 1;
+  min-width: 0;
 }
 
 @media (max-width: 768px) {

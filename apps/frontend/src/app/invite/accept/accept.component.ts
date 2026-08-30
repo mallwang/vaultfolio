@@ -97,7 +97,7 @@ export class AcceptComponent implements OnInit {
     };
     this.invitationsService.accept(this.token, body).subscribe({
       next: () => {
-        this.router.navigateByUrl('/dashboard');
+        this.router.navigateByUrl('/app/dashboard');
       },
       error: (error: unknown) => {
         this.submitting.set(false);
