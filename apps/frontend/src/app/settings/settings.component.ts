@@ -1,31 +1,18 @@
 import { Component } from '@angular/core';
-import { CardModule } from 'primeng/card';
-import { TagModule } from 'primeng/tag';
 import { TabsModule } from 'primeng/tabs';
-import { HealthStatusComponent } from './health-status/health-status.component';
 import { ProfileComponent } from './profile/profile.component';
-import { AccountsComponent } from './accounts/accounts.component';
-import { InvitationsComponent } from './invitations/invitations.component';
-import { SignupsComponent } from './signups/signups.component';
+import { PreferencesComponent } from './preferences/preferences.component';
 
 /**
- * Settings area: a "Profile" sub-tab (008 — every signed-in user, non-admin-
- * gated, listed first per design.md), then the admin-only "Accounts",
- * "Invitations", and "Sign-ups" sub-tabs, plus a "General" tab hosting the
- * pre-existing health-status screen and preferences placeholder.
+ * Settings area (012-restructure-admin-nav): a "Profile" sub-tab (008 —
+ * every signed-in user, listed first per design.md) plus a "Preferences"
+ * sub-tab, both visible to every signed-in user regardless of role. The
+ * admin-only sections previously hosted here (Accounts, Sign-ups,
+ * Invitations, General) have moved to the dedicated `/app/admin` area.
  */
 @Component({
   selector: 'app-settings',
-  imports: [
-    CardModule,
-    TagModule,
-    TabsModule,
-    HealthStatusComponent,
-    ProfileComponent,
-    AccountsComponent,
-    InvitationsComponent,
-    SignupsComponent,
-  ],
+  imports: [TabsModule, ProfileComponent, PreferencesComponent],
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.css',
 })

@@ -25,7 +25,7 @@ Single Nx application project — all paths are under `apps/frontend/src/app/`.
 
 **Purpose**: Create the destination folder structure before moving anything into it.
 
-- [ ] T001 Create empty `apps/frontend/src/app/admin/` directory structure (no files yet) to
+- [x] T001 Create empty `apps/frontend/src/app/admin/` directory structure (no files yet) to
       receive the relocated tab components
 
 **Checkpoint**: Setup complete — no code changes yet, ready for foundational work.
@@ -38,10 +38,10 @@ Single Nx application project — all paths are under `apps/frontend/src/app/`.
 
 **⚠️ CRITICAL**: Complete before any user story phase below.
 
-- [ ] T002 Add optional `roles?: UserRole[]` field to the `ApplicationArea` interface in
+- [x] T002 Add optional `roles?: UserRole[]` field to the `ApplicationArea` interface in
       `apps/frontend/src/app/core/layout/application-areas.ts`, importing `UserRole` from
       `@vaultfolio/api-contract` (data-model.md "ApplicationArea")
-- [ ] T003 Create `apps/frontend/src/app/auth/admin.guard.ts`: a functional `CanActivateFn`
+- [x] T003 Create `apps/frontend/src/app/auth/admin.guard.ts`: a functional `CanActivateFn`
       `adminGuard` modeled on `apps/frontend/src/app/auth/auth.guard.ts`, checking
       `inject(CurrentUserStore).current()?.role === 'ADMIN'` and redirecting to
       `router.parseUrl('/app/dashboard')` otherwise (research.md "Decision: Route-level guard")
@@ -60,34 +60,34 @@ sections present and functioning; confirm they are no longer shown in Settings.
 
 ### Implementation for User Story 1
 
-- [ ] T004 [P] [US1] Move `apps/frontend/src/app/settings/accounts/` (component, service, css,
+- [x] T004 [P] [US1] Move `apps/frontend/src/app/settings/accounts/` (component, service, css,
       html) to `apps/frontend/src/app/admin/accounts/` unchanged internally
-- [ ] T005 [P] [US1] Move `apps/frontend/src/app/settings/signups/` (including `reject-dialog/`
+- [x] T005 [P] [US1] Move `apps/frontend/src/app/settings/signups/` (including `reject-dialog/`
       subfolder) to `apps/frontend/src/app/admin/signups/` unchanged internally
-- [ ] T006 [P] [US1] Move `apps/frontend/src/app/settings/invitations/` (including
+- [x] T006 [P] [US1] Move `apps/frontend/src/app/settings/invitations/` (including
       `invite-dialog/` subfolder) to `apps/frontend/src/app/admin/invitations/` unchanged
       internally
-- [ ] T007 [P] [US1] Move `apps/frontend/src/app/settings/health-status/` (including
+- [x] T007 [P] [US1] Move `apps/frontend/src/app/settings/health-status/` (including
       `health-status.component.spec.ts`) to `apps/frontend/src/app/admin/health-status/`
       unchanged internally
-- [ ] T008 [US1] Create `apps/frontend/src/app/admin/admin.component.ts` +
+- [x] T008 [US1] Create `apps/frontend/src/app/admin/admin.component.ts` +
       `admin.component.html` (+ `.css` if needed): a `p-tabs`/`p-tablist`/`p-tabpanels` container
       mirroring `settings.component.ts`'s existing pattern, with tabs Accounts, Sign-ups,
       Invitations, General, importing `AccountsComponent`, `SignupsComponent`,
       `InvitationsComponent`, `HealthStatusComponent` from their new `admin/` locations (depends
       on T004-T007)
-- [ ] T009 [US1] Add the `app/admin` child route to `apps/frontend/src/app/app.routes.ts`
+- [x] T009 [US1] Add the `app/admin` child route to `apps/frontend/src/app/app.routes.ts`
       (alongside `app/settings`, inside the `app` parent's `children`), lazy-loading
       `AdminComponent` from `./admin/admin.component`, gated with `canActivate: [adminGuard]`
       (depends on T003, T008)
-- [ ] T010 [US1] Add an `Admin` entry to `APPLICATION_AREAS` in
+- [x] T010 [US1] Add an `Admin` entry to `APPLICATION_AREAS` in
       `apps/frontend/src/app/core/layout/application-areas.ts` (id `admin`, label `Admin`, path
       `admin`, an appropriate PrimeIcons icon, `roles: ['ADMIN']`) (depends on T002)
-- [ ] T011 [US1] Remove Accounts, Sign-ups, Invitations, and General tabs (and their component
+- [x] T011 [US1] Remove Accounts, Sign-ups, Invitations, and General tabs (and their component
       imports) from `apps/frontend/src/app/settings/settings.component.ts` and
       `settings.component.html`, leaving only the Profile tab for now (depends on T004-T007;
       Preferences tab added in US2 below)
-- [ ] T012 [P] [US1] Update import paths in any moved spec files
+- [x] T012 [P] [US1] Update import paths in any moved spec files
       (`apps/frontend/src/app/admin/health-status/health-status.component.spec.ts`) to reflect
       the new `admin/` location
 
@@ -106,20 +106,20 @@ confirm it's present. Direct navigation to `/app/admin` as MEMBER redirects away
 
 ### Implementation for User Story 3
 
-- [ ] T013 [US3] Update `AppSidebarComponent`
+- [x] T013 [US3] Update `AppSidebarComponent`
       (`apps/frontend/src/app/core/layout/app-sidebar/app-sidebar.component.ts`) to filter
       `APPLICATION_AREAS` by `currentUserStore.current()?.role` before exposing them to the
       template — inject `CurrentUserStore`, expose a computed/filtered `areas` list omitting any
       area whose `roles` doesn't include the current role (depends on T002, T010)
-- [ ] T014 [US3] Verify `apps/frontend/src/app/core/layout/app-sidebar/app-sidebar.component.html`
+- [x] T014 [US3] Verify `apps/frontend/src/app/core/layout/app-sidebar/app-sidebar.component.html`
       requires no changes since it iterates over the component's `areas` property (confirm the
       `@for` binding still targets the filtered signal from T013); adjust the binding if the
       property name changed
-- [ ] T015 [P] [US3] Add a unit test for `AdminGuard` (new
+- [x] T015 [P] [US3] Add a unit test for `AdminGuard` (new
       `apps/frontend/src/app/auth/admin.guard.spec.ts`, modeled on any existing `auth.guard`
       test pattern if present) covering: ADMIN role → activates; MEMBER role → redirects to
       `/app/dashboard` (depends on T003)
-- [ ] T016 [P] [US3] Add a unit test for the sidebar's role filter (extend or add
+- [x] T016 [P] [US3] Add a unit test for the sidebar's role filter (extend or add
       `apps/frontend/src/app/core/layout/app-sidebar/app-sidebar.component.spec.ts`) covering:
       ADMIN sees the Admin entry; MEMBER does not (depends on T013)
 
@@ -138,17 +138,17 @@ Preferences) and that Preferences shows the placeholder content unchanged.
 
 ### Implementation for User Story 2
 
-- [ ] T017 [US2] Create `apps/frontend/src/app/settings/preferences/preferences.component.ts` +
+- [x] T017 [US2] Create `apps/frontend/src/app/settings/preferences/preferences.component.ts` +
       `preferences.component.html` (+ `.css` if needed): extract the `p-card`/`p-tag` "Coming
       soon" placeholder markup (currently inside `settings.component.html`'s General tab) into
       this new standalone component, unchanged content (research.md "Decision: Preferences
       promoted to a small standalone component")
-- [ ] T018 [US2] Add a `Preferences` tab to
+- [x] T018 [US2] Add a `Preferences` tab to
       `apps/frontend/src/app/settings/settings.component.html`, alongside `Profile`, rendering
       `<app-preferences />`; update `settings.component.ts`'s `imports` to include
       `PreferencesComponent` and drop the now-unused `CardModule`/`TagModule` imports if nothing
       else in the component uses them (depends on T011, T017)
-- [ ] T019 [US2] Confirm `settings.component.ts`/`.html` contain exactly two `p-tab`/`p-tabpanel`
+- [x] T019 [US2] Confirm `settings.component.ts`/`.html` contain exactly two `p-tab`/`p-tabpanel`
       pairs (Profile, Preferences) and no leftover references to Accounts/Invitations/Signups/
       HealthStatus (depends on T018)
 
@@ -161,11 +161,11 @@ of role. All three user stories now complete.
 
 **Purpose**: Final validation and cleanup across all three stories.
 
-- [ ] T020 [P] Run `npx nx lint frontend` and fix any import-path or unused-import fallout from
+- [x] T020 [P] Run `npx nx lint frontend` and fix any import-path or unused-import fallout from
       the moves (T004-T007, T011, T018)
-- [ ] T021 [P] Run `npx nx test frontend` and fix any broken import paths in moved spec files or
+- [x] T021 [P] Run `npx nx test frontend` and fix any broken import paths in moved spec files or
       newly-added tests (T012, T015, T016)
-- [ ] T022 Run `npx nx test backend` to confirm the unchanged `accounts.controller`,
+- [x] T022 Run `npx nx test backend` to confirm the unchanged `accounts.controller`,
       `signups.controller`, `invitations.controller` role-guard tests still pass (regression
       check, FR-008; no backend files are touched by this feature)
 - [ ] T023 Execute the manual validation scenarios in `specs/012-restructure-admin-nav/quickstart.md`

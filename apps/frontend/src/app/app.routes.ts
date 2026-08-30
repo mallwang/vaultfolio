@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { NotFoundComponent } from './core/layout/not-found/not-found.component';
 import { AppShellComponent } from './core/layout/app-shell/app-shell.component';
 import { authGuard } from './auth/auth.guard';
+import { adminGuard } from './auth/admin.guard';
 
 /**
  * Route table (contracts/routes.md): public pages live directly under the
@@ -102,6 +103,12 @@ export const routes: Routes = [
         title: 'Settings',
         loadComponent: () =>
           import('./settings/settings.component').then((m) => m.SettingsComponent),
+      },
+      {
+        path: 'admin',
+        title: 'Admin',
+        canActivate: [adminGuard],
+        loadComponent: () => import('./admin/admin.component').then((m) => m.AdminComponent),
       },
       { path: '**', title: 'Not Found', component: NotFoundComponent },
     ],

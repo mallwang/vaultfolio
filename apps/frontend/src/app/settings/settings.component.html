@@ -1,31 +1,14 @@
 <p-tabs value="profile">
   <p-tablist>
     <p-tab value="profile">Profile</p-tab>
-    <p-tab value="accounts">Accounts</p-tab>
-    <p-tab value="invitations">Invitations</p-tab>
-    <p-tab value="signups">Sign-ups</p-tab>
-    <p-tab value="general">General</p-tab>
+    <p-tab value="preferences">Preferences</p-tab>
   </p-tablist>
   <p-tabpanels>
     <p-tabpanel value="profile">
       <app-profile />
     </p-tabpanel>
-    <p-tabpanel value="accounts">
-      <app-accounts />
-    </p-tabpanel>
-    <p-tabpanel value="invitations">
-      <app-invitations />
-    </p-tabpanel>
-    <p-tabpanel value="signups">
-      <app-signups />
-    </p-tabpanel>
-    <p-tabpanel value="general">
-      <app-health-status />
-
-      <p-card header="Preferences">
-        <p class="settings__hint">Account, currency, and notification settings will live here.</p>
-        <p-tag severity="secondary" value="Coming soon" [rounded]="true" />
-      </p-card>
+    <p-tabpanel value="preferences">
+      <app-preferences />
     </p-tabpanel>
   </p-tabpanels>
 </p-tabs>

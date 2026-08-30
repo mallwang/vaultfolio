@@ -1,0 +1,5 @@
+.settings__hint {
+  margin: 0 0 0.9rem;
+  font-size: 0.85rem;
+  color: var(--p-text-muted-color);
+}

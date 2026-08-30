@@ -1,3 +1,5 @@
+import type { UserRole } from '@vaultfolio/api-contract';
+
 /**
  * Single source of truth for the app's top-level Application Areas — the
  * navigation shell (sidebar + mobile top bar) and the route table both read
@@ -13,6 +15,12 @@ export interface ApplicationArea {
   path: string;
   /** PrimeIcons class name, e.g. 'pi pi-home'. */
   icon: string;
+  /**
+   * When present, the area is rendered only for a current user whose role is
+   * included here; absent means visible to every authenticated role
+   * (data-model.md "ApplicationArea").
+   */
+  roles?: UserRole[];
 }
 
 export const APPLICATION_AREAS: ApplicationArea[] = [
@@ -20,4 +28,5 @@ export const APPLICATION_AREAS: ApplicationArea[] = [
   { id: 'holdings', label: 'Holdings', path: 'holdings', icon: 'pi pi-briefcase' },
   { id: 'imports', label: 'Imports', path: 'imports', icon: 'pi pi-upload' },
   { id: 'settings', label: 'Settings', path: 'settings', icon: 'pi pi-cog' },
+  { id: 'admin', label: 'Admin', path: 'admin', icon: 'pi pi-shield', roles: ['ADMIN'] },
 ];
