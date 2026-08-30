@@ -1,41 +1,21 @@
-import { Component, computed, inject } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
-import { filter, map } from 'rxjs';
-import { AppShellComponent } from './core/layout/app-shell/app-shell.component';
+import { Component } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
+import { AppHeaderComponent } from './core/layout/app-header/app-header.component';
 
 /**
- * Root component: renders `AppShellComponent` (sidebar+header+router-outlet)
- * for every route except `/invite/*` (006, User Story 2), `/signup*` (007,
- * User Story 1), and `/account/*` (008, User Stories 1–2 — email-change
- * verification, forgot/reset password), which are visitor-facing and
- * signed-out — design.md explicitly requires those pages to render with no
- * app shell, so they get a bare `router-outlet` instead.
- * `/sign-in` still renders inside the shell — that's a pre-existing gap
- * (005), not something this feature changes.
+ * Root component: renders `AppHeaderComponent` unconditionally, followed by
+ * a bare `router-outlet`, for every route — public and authenticated alike
+ * (research.md #1, FR-001). The header itself reads Auth Status to decide
+ * what (if anything) identity-specific to show; the sidebar only ever
+ * renders inside `AppShellComponent`, which is now reached solely via the
+ * `app` parent route (see app.routes.ts), not from here.
  */
 @Component({
-  imports: [AppShellComponent, RouterOutlet],
+  imports: [AppHeaderComponent, RouterOutlet],
   selector: 'app-root',
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
 export class App {
   protected title = 'frontend';
-
-  private readonly router = inject(Router);
-  private readonly url = toSignal(
-    this.router.events.pipe(
-      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
-      map((event) => event.urlAfterRedirects),
-    ),
-    { initialValue: this.router.url },
-  );
-
-  protected readonly shellless = computed(
-    () =>
-      this.url().startsWith('/invite/') ||
-      this.url().startsWith('/signup') ||
-      this.url().startsWith('/account/'),
-  );
 }

@@ -2,18 +2,20 @@
   <p class="app-header__crumb">Vaultfolio</p>
   <h1 class="app-header__title">{{ activeAreaTitle() }}</h1>
 </div>
-<div class="app-header__meta">
-  <span>{{ user()?.displayName }}</span>
-  @if (user()?.role) {
-    <span class="role-badge">{{ roleLabel() }}</span>
-  }
-  <p-avatar [label]="userInitials()" shape="circle" />
-  <p-button
-    icon="pi pi-sign-out"
-    severity="secondary"
-    text
-    aria-label="Sign out"
-    pTooltip="Sign out"
-    (onClick)="signOut()"
-  />
-</div>
+@if (isAuthenticated()) {
+  <div class="app-header__meta">
+    <span>{{ user()?.displayName }}</span>
+    @if (user()?.role) {
+      <span class="role-badge">{{ roleLabel() }}</span>
+    }
+    <p-avatar [label]="userInitials()" shape="circle" />
+    <p-button
+      icon="pi pi-sign-out"
+      severity="secondary"
+      text
+      aria-label="Sign out"
+      pTooltip="Sign out"
+      (onClick)="signOut()"
+    />
+  </div>
+}

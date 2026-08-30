@@ -1,24 +1,19 @@
 import { Routes } from '@angular/router';
 import { NotFoundComponent } from './core/layout/not-found/not-found.component';
+import { AppShellComponent } from './core/layout/app-shell/app-shell.component';
 import { authGuard } from './auth/auth.guard';
 
 /**
- * Route table (contracts/application-areas.md): one route per
- * APPLICATION_AREAS entry, lazy-loaded; '/' redirects to '/dashboard'; a
- * trailing wildcard renders NotFoundComponent inside the persistent shell
- * (FR-004, FR-006). `/sign-in` is the one public route
- * (005-auth-sessions-isolation); every other route carries `authGuard`.
- * `/invite/expired` and `/invite/:token` (006, User Story 2) are also
- * public — no session exists yet — and additionally render with no app
- * shell at all (design.md "Accept-invite page"/"Invite-expired page"); see
- * `App`'s route-based shell toggle in app.ts. `/invite/expired` is declared
+ * Route table (contracts/routes.md): public pages live directly under the
+ * base URL with no shell of their own beyond the always-on root header
+ * (app.ts); authenticated pages are nested under the `app` parent route,
+ * which carries `authGuard` once (research.md #3) and renders
+ * `AppShellComponent` (sidebar + routed content). `redirectTo` routes keep
+ * pre-restructure addresses working (FR-013). `/invite/expired` is declared
  * before the `:token` route so the literal segment wins the match.
- * `/account/*` (008, User Stories 1–2) are the equivalent public,
- * shell-less routes for email-change verification and forgot/reset
- * password.
  */
 export const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
+  { path: '', pathMatch: 'full', redirectTo: 'app/dashboard' },
   {
     path: 'sign-in',
     loadComponent: () => import('./auth/sign-in/sign-in.component').then((m) => m.SignInComponent),
@@ -64,26 +59,39 @@ export const routes: Routes = [
     path: 'signup/verify/:token',
     loadComponent: () => import('./signup/verify/verify.component').then((m) => m.VerifyComponent),
   },
+  // Legacy (pre-`/app`) addresses (FR-013, contracts/routes.md "Legacy
+  // redirects") — still subject to `authGuard` on arrival at their `/app`
+  // equivalent, same as any other `/app/...` request.
+  { path: 'dashboard', pathMatch: 'full', redirectTo: 'app/dashboard' },
+  { path: 'holdings', pathMatch: 'full', redirectTo: 'app/holdings' },
+  { path: 'imports', pathMatch: 'full', redirectTo: 'app/imports' },
+  { path: 'settings', pathMatch: 'full', redirectTo: 'app/settings' },
   {
-    path: 'dashboard',
+    path: 'app',
     canActivate: [authGuard],
-    loadComponent: () =>
-      import('./dashboard/dashboard.component').then((m) => m.DashboardComponent),
-  },
-  {
-    path: 'holdings',
-    canActivate: [authGuard],
-    loadComponent: () => import('./holdings/holdings.component').then((m) => m.HoldingsComponent),
-  },
-  {
-    path: 'imports',
-    canActivate: [authGuard],
-    loadComponent: () => import('./imports/imports.component').then((m) => m.ImportsComponent),
-  },
-  {
-    path: 'settings',
-    canActivate: [authGuard],
-    loadComponent: () => import('./settings/settings.component').then((m) => m.SettingsComponent),
+    component: AppShellComponent,
+    children: [
+      {
+        path: 'dashboard',
+        loadComponent: () =>
+          import('./dashboard/dashboard.component').then((m) => m.DashboardComponent),
+      },
+      {
+        path: 'holdings',
+        loadComponent: () =>
+          import('./holdings/holdings.component').then((m) => m.HoldingsComponent),
+      },
+      {
+        path: 'imports',
+        loadComponent: () => import('./imports/imports.component').then((m) => m.ImportsComponent),
+      },
+      {
+        path: 'settings',
+        loadComponent: () =>
+          import('./settings/settings.component').then((m) => m.SettingsComponent),
+      },
+      { path: '**', component: NotFoundComponent },
+    ],
   },
   { path: '**', component: NotFoundComponent },
 ];

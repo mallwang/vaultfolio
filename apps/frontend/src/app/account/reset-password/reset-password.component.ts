@@ -77,8 +77,8 @@ export class ResetPasswordComponent implements OnInit {
       .confirmPasswordReset(this.token, { newPassword: this.newPassword() })
       .subscribe({
         next: (user) => {
-          this.currentUser.set(user);
-          this.router.navigateByUrl('/dashboard');
+          this.currentUser.setAuthenticated(user);
+          this.router.navigateByUrl('/app/dashboard');
         },
         error: (error: unknown) => {
           this.submitting.set(false);

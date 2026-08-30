@@ -17,3 +17,9 @@
   flex-direction: column;
   gap: 0.25rem;
 }
+
+.field-hint {
+  margin: 0;
+  color: var(--p-text-muted-color);
+  font-size: 0.8rem;
+}

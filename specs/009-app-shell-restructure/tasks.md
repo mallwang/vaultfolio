@@ -34,7 +34,7 @@ plan.md's Project Structure. No backend or `libs/` changes.
 
 **Purpose**: Shared test scaffolding used by multiple user stories' tests below.
 
-- [ ] T001 [P] Add a reusable Auth Status test helper (a fake/override for `CurrentUserStore` that
+- [x] T001 [P] Add a reusable Auth Status test helper (a fake/override for `CurrentUserStore` that
       can be set to `unknown` / `authenticated` / `unauthenticated`) in
       `apps/frontend/src/app/auth/testing/current-user-store.testing.ts`, for use by the guard,
       header, and shell integration tests added in later phases
@@ -49,19 +49,19 @@ wrong signed-in/signed-out state.
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T002 Extend `CurrentUserStore` in `apps/frontend/src/app/auth/current-user.store.ts` with a
+- [x] T002 Extend `CurrentUserStore` in `apps/frontend/src/app/auth/current-user.store.ts` with a
       tri-state Auth Status signal (`'unknown' | 'authenticated' | 'unauthenticated'`, starting at
       `'unknown'`) and `setAuthenticated(user: SessionUser)` / `setUnauthenticated()` methods,
       replacing the current `set()`/`clear()` API
-- [ ] T003 Add bootstrap Auth Status resolution via Angular's `provideAppInitializer` in
+- [x] T003 Add bootstrap Auth Status resolution via Angular's `provideAppInitializer` in
       `apps/frontend/src/app/app.config.ts`: call `AuthService.getSession()` once at startup and
       populate `CurrentUserStore`'s Auth Status (`setAuthenticated` on success,
       `setUnauthenticated` on failure) before the app finishes bootstrapping (depends on: T002)
-- [ ] T004 Update `authGuard` in `apps/frontend/src/app/auth/auth.guard.ts` to authorize/redirect
+- [x] T004 Update `authGuard` in `apps/frontend/src/app/auth/auth.guard.ts` to authorize/redirect
       based on the already-resolved Auth Status on `CurrentUserStore` instead of issuing a second
       `GET /api/auth/session` request per activation (research.md #2 — "not duplicating" the
       bootstrap check) (depends on: T002, T003)
-- [ ] T005 [P] Unit test for the tri-state Auth Status transitions
+- [x] T005 [P] Unit test for the tri-state Auth Status transitions
       (`unknown` → `authenticated`/`unauthenticated`, `authenticated` → `unauthenticated`) in
       `apps/frontend/src/app/auth/current-user.store.spec.ts` (depends on: T002)
 
@@ -81,31 +81,31 @@ authenticated case.
 
 ### Tests for User Story 1
 
-- [ ] T006 [P] [US1] Update `apps/frontend/src/app/app.spec.ts`: the header renders for a public
+- [x] T006 [P] [US1] Update `apps/frontend/src/app/app.spec.ts`: the header renders for a public
       route and for an authenticated route, and shows no name/role-badge/sign-out content while
       Auth Status is `unknown` or `unauthenticated` (uses the T001 test helper)
 
 ### Implementation for User Story 1
 
-- [ ] T007 [US1] Update `apps/frontend/src/app/app.ts`: remove the `shellless` computed property
+- [x] T007 [US1] Update `apps/frontend/src/app/app.ts`: remove the `shellless` computed property
       and its route-based toggle logic, remove the `AppShellComponent` import, and import
       `AppHeaderComponent` so the header is available to render unconditionally
-- [ ] T008 [US1] Update `apps/frontend/src/app/app.html` to render `<app-header />` unconditionally
+- [x] T008 [US1] Update `apps/frontend/src/app/app.html` to render `<app-header />` unconditionally
       followed by `<router-outlet />` (removing the `@if (shellless())` conditional) (depends on:
       T007)
-- [ ] T009 [US1] Remove `AppHeaderComponent` from `AppShellComponent`'s imports and template in
+- [x] T009 [US1] Remove `AppHeaderComponent` from `AppShellComponent`'s imports and template in
       `apps/frontend/src/app/core/layout/app-shell/app-shell.component.ts` and
       `app-shell.component.html`, narrowing the shell to sidebar + routed content only
-- [ ] T010 [US1] Adjust `apps/frontend/src/app/core/layout/app-shell/app-shell.component.css`: drop
+- [x] T010 [US1] Adjust `apps/frontend/src/app/core/layout/app-shell/app-shell.component.css`: drop
       the header-only `.app-main` flex wrapper now that the header lives outside the shell, while
       preserving the `232px 1fr` grid, content padding, and mobile breakpoint (design.md's layout
       note: don't let this change clobber the shell's own `display: grid`) (depends on: T009)
-- [ ] T011 [US1] Update `apps/frontend/src/app/core/layout/app-header/app-header.component.ts` to
+- [x] T011 [US1] Update `apps/frontend/src/app/core/layout/app-header/app-header.component.ts` to
       read the tri-state Auth Status (instead of the raw `CurrentUserStore.current` value) so
       `user`/`roleLabel`/`userInitials` resolve to "signed out" whenever status isn't
       `authenticated`, and update `signOut()`/`completeSignOut()` to call the new
       `setUnauthenticated()` (depends on: T002, T004)
-- [ ] T012 [US1] Update `apps/frontend/src/app/core/layout/app-header/app-header.component.html` to
+- [x] T012 [US1] Update `apps/frontend/src/app/core/layout/app-header/app-header.component.html` to
       wrap the name/role-badge/avatar/sign-out block in a condition on Auth Status being
       `authenticated`, so it renders only when signed in (depends on: T011)
 
@@ -126,7 +126,7 @@ a legacy address (e.g. `/dashboard`) redirects to its `/app` equivalent.
 
 ### Tests for User Story 2
 
-- [ ] T013 [P] [US2] Add a route-table integration test per
+- [x] T013 [P] [US2] Add a route-table integration test per
       [contracts/routes.md](./contracts/routes.md) in `apps/frontend/src/app/app.routes.spec.ts`
       (new file): authenticated paths resolve under `/app/*` guarded by `authGuard`, public paths
       carry no `/app` prefix, the legacy paths (`/`, `/dashboard`, `/holdings`, `/imports`,
@@ -135,25 +135,25 @@ a legacy address (e.g. `/dashboard`) redirects to its `/app` equivalent.
 
 ### Implementation for User Story 2
 
-- [ ] T014 [US2] Restructure `apps/frontend/src/app/app.routes.ts`: introduce an `app` parent route
+- [x] T014 [US2] Restructure `apps/frontend/src/app/app.routes.ts`: introduce an `app` parent route
       with `canActivate: [authGuard]` and `component: AppShellComponent`, nesting the `dashboard`,
       `holdings`, `imports`, and `settings` routes as its children (same path segments, now
       relative to `app/`)
-- [ ] T015 [US2] Add legacy `redirectTo` routes for `/dashboard`, `/holdings`, `/imports`, and
+- [x] T015 [US2] Add legacy `redirectTo` routes for `/dashboard`, `/holdings`, `/imports`, and
       `/settings` to their `/app/...` equivalents, and change the root `''` redirect from
       `dashboard` to `app/dashboard`, in `apps/frontend/src/app/app.routes.ts` (depends on: T014)
-- [ ] T016 [US2] Add a child `**` wildcard route under the `app` parent rendering
+- [x] T016 [US2] Add a child `**` wildcard route under the `app` parent rendering
       `NotFoundComponent` (inheriting the parent's `authGuard`), keeping the existing top-level
       `**` wildcard for unmatched public addresses, in `apps/frontend/src/app/app.routes.ts`
       (depends on: T014)
-- [ ] T017 [P] [US2] Update the `activeAreaTitle` URL matching in
+- [x] T017 [P] [US2] Update the `activeAreaTitle` URL matching in
       `apps/frontend/src/app/core/layout/app-header/app-header.component.ts` to match against
       `/app/<path>` instead of `/<path>` (depends on: T014)
-- [ ] T018 [P] [US2] Update the hardcoded post-action navigations from `/dashboard` to
+- [x] T018 [P] [US2] Update the hardcoded post-action navigations from `/dashboard` to
       `/app/dashboard` in `apps/frontend/src/app/auth/sign-in/sign-in.component.ts`,
       `apps/frontend/src/app/invite/accept/accept.component.ts`, and
       `apps/frontend/src/app/account/reset-password/reset-password.component.ts`
-- [ ] T019 [P] [US2] Update `routerLink="/dashboard"` to `routerLink="/app/dashboard"` in
+- [x] T019 [P] [US2] Update `routerLink="/dashboard"` to `routerLink="/app/dashboard"` in
       `apps/frontend/src/app/core/layout/not-found/not-found.component.html`
 
 **Checkpoint**: All authenticated pages are reachable only under `/app/*`; public pages are
@@ -171,7 +171,7 @@ sidebar appears and lists the four authenticated areas; sign out and confirm it 
 
 ### Tests for User Story 3
 
-- [ ] T020 [P] [US3] Add an integration test in
+- [x] T020 [P] [US3] Add an integration test in
       `apps/frontend/src/app/core/layout/app-shell/app-shell.component.spec.ts` (new file): the
       sidebar renders within the `app` route tree and lists the four `APPLICATION_AREAS` entries,
       and the `/app/*` route tree is unreachable (redirects to `/sign-in`) when Auth Status is not
@@ -179,7 +179,7 @@ sidebar appears and lists the four authenticated areas; sign out and confirm it 
 
 ### Implementation for User Story 3
 
-- [ ] T021 [US3] Update the `routerLink` targets in
+- [x] T021 [US3] Update the `routerLink` targets in
       `apps/frontend/src/app/core/layout/app-sidebar/app-sidebar.component.html` from
       `['/', area.path]` to `['/app', area.path]` so in-app navigation stays under `/app/*`
       (depends on: T014)
@@ -200,7 +200,7 @@ sign-out control that successfully ends the session when activated.
 
 ### Tests for User Story 4
 
-- [ ] T022 [P] [US4] Add an integration test in
+- [x] T022 [P] [US4] Add an integration test in
       `apps/frontend/src/app/core/layout/app-header/app-header.component.spec.ts` (new file): a
       signed-in header shows the display name and role badge, and activating sign-out clears Auth
       Status and navigates to `/sign-in` with no identity content or sidebar visible afterward
@@ -216,12 +216,12 @@ test coverage, per FR-008/FR-009/FR-010.
 
 **Purpose**: Verification across all stories and stale-comment cleanup.
 
-- [ ] T023 [P] Update the doc comments in `apps/frontend/src/app/app.ts` and
+- [x] T023 [P] Update the doc comments in `apps/frontend/src/app/app.ts` and
       `apps/frontend/src/app/app.routes.ts` that describe the old shell-less/flat-route behavior to
       reflect the new always-on header and `/app` parent route
-- [ ] T024 Run `npx nx run frontend:lint` and fix any findings from removed imports/unused code
-- [ ] T025 Run `npx nx run frontend:test` and confirm all existing and new specs pass
-- [ ] T026 Walk through [quickstart.md](./quickstart.md) scenarios 1–4 and its edge cases manually
+- [x] T024 Run `npx nx run frontend:lint` and fix any findings from removed imports/unused code
+- [x] T025 Run `npx nx run frontend:test` and confirm all existing and new specs pass
+- [x] T026 Walk through [quickstart.md](./quickstart.md) scenarios 1–4 and its edge cases manually
       against `npm exec nx run-many -t serve -p backend,frontend`
 
 ---

@@ -7,7 +7,7 @@
     @for (area of areas; track area.id) {
       <a
         class="app-nav__item"
-        [routerLink]="['/', area.path]"
+        [routerLink]="['/app', area.path]"
         routerLinkActive="app-nav__item--active"
         ariaCurrentWhenActive="page"
       >
