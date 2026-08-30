@@ -40,6 +40,7 @@
                 [ngModel]="account.role"
                 [disabled]="account.isLastActiveAdmin || account.status === 'ARCHIVED'"
                 (onChange)="onRoleChange(account, $event.value)"
+                appendTo="body"
               />
               @if (account.isLastActiveAdmin) {
                 <p-tag severity="info" value="Last admin" [rounded]="true" />
