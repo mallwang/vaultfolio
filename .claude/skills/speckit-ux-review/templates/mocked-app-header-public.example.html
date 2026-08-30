@@ -1,0 +1,55 @@
+<!--
+  Public/unauthenticated navigation bar pattern — for features whose screens live directly under
+  the base URL (sign-in, signup, invite/*, account/*), not under /app/*.
+
+  Snapshot derived from apps/frontend/src/app/core/layout/app-header/{app-header.component.html,
+  app-header.component.css} as rendered for a signed-out visitor (the `@if (isAuthenticated())`
+  block in app-header.component.html is skipped, so only the crumb/title and the theme toggle
+  show — no name/role-badge/avatar/sign-out), plus the theme toggle from
+  specs/010-theme-switch/design.md ("Unauthenticated header": same icon-only toggle, alone, in the
+  equivalent right-hand position — not yet in app-header.component.html as of this snapshot; the
+  spec was approved but unimplemented). This file is a snapshot, not a source of truth — re-derive
+  markup/classes/tokens from the current app-header.component.{html,css} (and check whether the
+  theme toggle has landed for real) before reusing.
+
+  Colors: this project's PrimeNG "Aura" preset default (emerald primary, #10b981 / #059669) — see
+  templates/review-shell.html's {{APP_TOKENS}} note. Use these same tokens in any mockup so it
+  reads as the same product, not a re-skinned one.
+-->
+<div class="app-header">
+  <div class="app-header__brand">
+    <span class="app-header__mark" aria-hidden="true"></span>
+    <span class="app-header__title">Vaultfolio</span>
+  </div>
+  <div class="app-header__meta">
+    <button
+      type="button"
+      class="theme-toggle"
+      aria-pressed="false"
+      aria-label="Switch to dark theme"
+    >
+      <i class="pi pi-sun" aria-hidden="true"></i>
+    </button>
+  </div>
+</div>
+
+<!--
+  {{PAGE_MARKUP}} for the public page under review goes directly below the header — this pattern
+  has no sidebar, unlike the authenticated one (see mocked-app-header-authenticated.example.html).
+-->
+
+<!--
+  Key CSS classes this pattern depends on (copy the full rules from a recent approved mockup that
+  used this pattern, e.g. specs/009-app-shell-restructure/mockup.html, rather than hand-deriving):
+  .app-header              — flex row, space-between, border-bottom, var(--p-content-background)
+  .app-header__brand / .app-header__mark / .app-header__title
+                            — brand mark + "Vaultfolio" wordmark on public pages; on authenticated
+                              pages the title cell instead shows a crumb + the active area's name
+                              (see the authenticated template) — the header markup differs slightly
+                              between the two contexts even though the CSS classes overlap.
+  .app-header__meta         — right-hand cluster; holds only the theme toggle here (no identity
+                              content for a signed-out visitor)
+  .theme-toggle             — 30×30px circular ghost icon button, no border/background, muted icon
+                              color, hover fill; swap the icon (pi-sun ↔ pi-moon) and both
+                              aria-pressed/aria-label with the active theme (design.md FR-009)
+-->
