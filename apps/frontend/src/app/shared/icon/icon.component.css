@@ -1,3 +1,15 @@
+/* Material Symbols glyphs sit much higher above the baseline than regular
+   text (they're drawn ascent-heavy for standalone use), so the default
+   `vertical-align: baseline` on an inline element leaves them looking
+   shifted up whenever an icon sits next to a text label. Centering the
+   glyph's own box against the surrounding line box fixes that regardless
+   of the call site's layout. */
+:host {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+}
+
 /* Same visual effect as PrimeIcons' pi-spin: a steady, linear 360deg spin. */
 @keyframes vf-icon-spin {
   from {

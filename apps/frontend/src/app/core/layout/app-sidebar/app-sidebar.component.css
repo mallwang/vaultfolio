@@ -31,7 +31,7 @@
   position: relative;
 }
 
-.app-nav__item i {
+.app-nav__item app-icon {
   font-size: 1.05rem;
   flex: 0 0 auto;
 }

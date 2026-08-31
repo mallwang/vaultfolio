@@ -13,7 +13,7 @@
   color: var(--p-text-muted-color);
 }
 
-.dropzone i {
+.dropzone app-icon {
   font-size: 1.9rem;
   margin: 0 auto 0.75rem;
   color: var(--p-primary-color);

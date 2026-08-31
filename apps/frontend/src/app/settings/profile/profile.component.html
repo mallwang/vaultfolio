@@ -24,7 +24,7 @@
           [disabled]="!displayName().trim() || savingName()"
           (click)="saveDisplayName()"
         >
-          {{ 'profile.saveName' | translate }}
+          <app-icon name="save" /> {{ 'profile.saveName' | translate }}
         </button>
       </div>
 
