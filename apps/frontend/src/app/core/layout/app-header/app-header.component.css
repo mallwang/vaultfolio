@@ -42,18 +42,58 @@
   color: var(--p-text-muted-color);
 }
 
-/* design.md "Header language switcher" — labeled pill (flag + name), placed
-   immediately before the theme toggle. */
+/* design.md "Header language switcher" — flag-only pill, placed immediately
+   before the theme toggle.
+   Real SVG flags rather than flag emoji: most Linux/Windows browsers have no
+   color-flag font glyphs and fall back to the raw two-letter region code
+   (e.g. "GB"). Inlined data URIs (sourced from the flag-icons project, MIT
+   licensed: https://github.com/lipis/flag-icons) rather than importing that
+   package's full CSS, which pulls in ~250 flags and made the Angular/esbuild
+   build fail on duplicate asset filenames across its 1x1/4x3 variants. */
 .app-header__language-flag {
-  margin-right: 0.35rem;
+  display: inline-block;
+  width: 1.5em;
+  aspect-ratio: 4 / 3;
+  font-size: 1.15rem;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px var(--p-content-border-color);
+  background-size: contain;
+  background-position: 50%;
+  background-repeat: no-repeat;
 }
 
-@media (max-width: 640px) {
-  /* design.md "Responsive": drops the text label, keeps flag + chevron,
-     mirroring the sidebar's existing mobile-collapse treatment. */
-  .app-header__language-label {
-    display: none;
-  }
+.app-header__language-flag.fi-gb {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 480'%3E%3Cpath fill='%23012169' d='M0 0h640v480H0z'/%3E%3Cpath fill='%23FFF' d='m75 0 244 181L562 0h78v62L400 241l240 178v61h-80L320 301 81 480H0v-60l239-178L0 64V0z'/%3E%3Cpath fill='%23C8102E' d='m424 281 216 159v40L369 281zm-184 20 6 35L54 480H0zM640 0v3L391 191l2-44L590 0zM0 0l239 176h-60L0 42z'/%3E%3Cpath fill='%23FFF' d='M241 0v480h160V0zM0 160v160h640V160z'/%3E%3Cpath fill='%23C8102E' d='M0 193v96h640v-96zM273 0v480h96V0z'/%3E%3C/svg%3E");
+}
+
+.app-header__language-flag.fi-de {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 480'%3E%3Cpath fill='%23fc0' d='M0 320h640v160H0z'/%3E%3Cpath fill='%23000001' d='M0 0h640v160H0z'/%3E%3Cpath fill='red' d='M0 160h640v160H0z'/%3E%3C/svg%3E");
+}
+
+/* PrimeNG's `.p-select-label` is a plain block (the flag sits on its text
+   baseline, not centered) and flex-grows to fill the select's width (the gap
+   before the chevron), and `.p-select-dropdown` reserves a full text-size
+   icon slot — all sized for a text label we no longer render. Re-flex/shrink
+   both so the select hugs the flag. */
+::ng-deep .app-header__language-select .p-select-label {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  width: auto;
+  padding: 0.5rem;
+}
+
+::ng-deep .app-header__language-select .p-select-dropdown {
+  width: 1rem;
+  padding-right: 0.5rem;
+}
+
+/* Drop the select's own chrome so it reads as part of the header bar rather
+   than a boxed control. */
+::ng-deep .app-header__language-select.p-select {
+  border: none;
+  box-shadow: none;
+  background: transparent;
 }
 
 /* design.md — small pill next to the display name, reusable verbatim (mockup.html). */

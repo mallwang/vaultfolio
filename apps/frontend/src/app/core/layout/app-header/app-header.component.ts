@@ -15,8 +15,16 @@ import { ThemeService } from '../../theme/theme.service';
 import { I18nService } from '../../i18n/i18n.service';
 import { TranslatePipe } from '../../i18n/translate.pipe';
 
-/** design.md's "Header language switcher" — flag emoji per language, not part of the shared catalog (display-only concern). */
-const LANGUAGE_FLAGS: Record<LanguageCode, string> = { en: '🇬🇧', de: '🇩🇪' };
+/**
+ * design.md's "Header language switcher" — CSS class per language, not part
+ * of the shared catalog (display-only concern). Matches the flag-icons
+ * naming convention (`fi-<ISO code>`); the actual SVGs are inlined as data
+ * URIs in app-header.component.css (see the comment there for why). Flag
+ * *emoji* were tried first, but most Linux/Windows browsers have no
+ * color-flag font glyphs and fall back to showing the raw two-letter region
+ * code (e.g. "GB"), so we render actual SVG flags instead.
+ */
+const LANGUAGE_FLAGS: Record<LanguageCode, string> = { en: 'fi-gb', de: 'fi-de' };
 
 interface LanguageOption {
   code: LanguageCode;
