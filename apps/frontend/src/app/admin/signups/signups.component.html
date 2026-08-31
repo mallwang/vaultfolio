@@ -1,5 +1,7 @@
 <p-toast />
-<p-confirmdialog />
+<p-confirmdialog>
+  <ng-template #icon><app-icon [name]="confirmIcon()" /></ng-template>
+</p-confirmdialog>
 
 <section class="signups-panel">
   <div class="signups-panel__header">
@@ -50,7 +52,7 @@
                   [attr.aria-label]="'signups.approveSignup' | translate"
                   (click)="confirmApprove(signup, $event)"
                 >
-                  <i class="pi pi-check-circle" aria-hidden="true"></i>
+                  <app-icon name="check-circle" />
                 </button>
                 <button
                   pButton
@@ -61,7 +63,7 @@
                   [attr.aria-label]="'signups.rejectSignup' | translate"
                   (click)="openRejectDialog(signup)"
                 >
-                  <i class="pi pi-times" aria-hidden="true"></i>
+                  <app-icon name="close" />
                 </button>
               }
               <button
@@ -73,7 +75,7 @@
                 [attr.aria-label]="'signups.deleteSignup' | translate"
                 (click)="confirmDelete(signup, $event)"
               >
-                <i class="pi pi-trash" aria-hidden="true"></i>
+                <app-icon name="trash" />
               </button>
             </div>
           </td>

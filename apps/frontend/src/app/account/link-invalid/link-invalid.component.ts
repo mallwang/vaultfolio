@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
+import { IconComponent } from '../../shared/icon/icon.component';
 
 /**
  * Shared "no longer valid" page (design.md "Link-invalid page", Edge Cases/
@@ -11,7 +12,7 @@ import { CardModule } from 'primeng/card';
  */
 @Component({
   selector: 'app-link-invalid',
-  imports: [ButtonModule, CardModule, RouterLink],
+  imports: [ButtonModule, CardModule, RouterLink, IconComponent],
   templateUrl: './link-invalid.component.html',
   styleUrl: './link-invalid.component.css',
 })

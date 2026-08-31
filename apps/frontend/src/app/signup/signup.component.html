@@ -2,19 +2,16 @@
   <p-card styleClass="invite-card">
     @if (submitted()) {
       <div class="invite-expired-icon">
-        <i class="pi pi-envelope" aria-hidden="true"></i>
+        <app-icon name="envelope" />
       </div>
       <h1>Check your email</h1>
       <p class="lede">
         We've sent a verification link to {{ email() }}. Open it to confirm your address — an
         administrator will review your request afterward.
       </p>
-      <p-button
-        label="Go to sign in"
-        icon="pi pi-lock"
-        severity="secondary"
-        routerLink="/sign-in"
-      />
+      <p-button label="Go to sign in" severity="secondary" routerLink="/sign-in">
+        <ng-template #icon><app-icon name="lock" /></ng-template>
+      </p-button>
     } @else {
       <h1>Create your account</h1>
       <p class="lede">Sign up for Vaultfolio. An administrator reviews every new request.</p>
@@ -64,13 +61,9 @@
           <p-message severity="error">{{ errorMessage() }}</p-message>
         }
 
-        <p-button
-          type="submit"
-          label="Sign up"
-          icon="pi pi-user-plus"
-          [loading]="submitting()"
-          [disabled]="submitting()"
-        />
+        <p-button type="submit" label="Sign up" [loading]="submitting()" [disabled]="submitting()">
+          <ng-template #icon><app-icon name="user-plus" /></ng-template>
+        </p-button>
 
         <p class="field-hint">Already have an account? <a routerLink="/sign-in">Sign in</a></p>
       </form>

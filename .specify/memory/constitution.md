@@ -1,41 +1,26 @@
 <!--
 Sync Impact Report
-- Version change: 2.3.0 → 3.0.0 (MAJOR: Principle III redefined — mandatory Test-Driven
-  Development, the tests-first/Red-Green-Refactor ordering, is removed and replaced with a
-  normal implement-then-test approach; this is a backward-incompatible change to a
-  NON-NEGOTIABLE principle, not a clarification or additive change)
-- Modified principles:
-  - III. Test-First (NON-NEGOTIABLE) → III. Test Coverage — dropped the TDD mandate (tests
-    written first, confirmed to fail, then implementation) and the strict Red-Green-Refactor
-    cycle; the substantive requirement that financial code be thoroughly tested with exact-value
-    assertions is retained, tests are just written after (or alongside) the implementation
-    instead of before it.
-- Added sections: n/a
-- Removed sections: n/a
+- Version change: 3.0.0 → 3.1.0 (MINOR: new Stack Decision entry adds a materially new,
+  binding constraint — Material Icons as the sole icon library, PrimeIcons prohibited — without
+  redefining or removing any existing principle or constraint)
+- Modified principles: none
+- Added sections: none (new bullet added to existing "Stack Decision" subsection)
+- Removed sections: none
 - Modified sections:
-  - Development Workflow & Quality Gates: removed the "skipping test-first for a specific change"
-    example of a principle deviation (no longer applicable now that test order isn't mandated);
-    kept the requirement that PRs weakening test coverage on money-handling code be rejected.
-- Rationale for this amendment: the team's development workflow is agentic — one LLM context
-  window typically produces both the implementation and its tests, using the precise logic
-  already established by upfront research/plan/tasks artifacts. Writing tests strictly before
-  implementation in that workflow does not provide the human-TDD benefit of tests as an
-  independent design/spec check, so the ordering mandate is dropped in favor of writing
-  implementation first and adding tests afterward.
+  - Technology & Architecture Constraints → Stack Decision: added an "Icon library" entry
+    naming Google Material Icons (via PrimeNG's documented custom-icon mechanism) as the
+    required, sole icon library for the frontend, and prohibiting PrimeIcons (PrimeNG's
+    bundled default icon font) anywhere in the application UI.
+- Rationale for this amendment: driven by feature 014-material-icons — the project is
+  standardizing on one consistent icon visual language across the app instead of mixing
+  PrimeIcons with other icon usage, and this decision needs to be binding for all future
+  feature work, not just the one feature that introduces it.
 - Templates requiring updates:
-  - .specify/templates/constitution-template.md ⚠ pending — Principle 3 example comment still
-    illustrates "Test-First (NON-NEGOTIABLE)" / TDD as the generic placeholder example; harmless
-    (it's inert template guidance, not a live rule) but should be refreshed to avoid steering
-    future amendments back toward TDD by default.
-  - .claude/skills/speckit-implement/SKILL.md ⚠ pending — step still instructs "Follow TDD
-    approach: Execute test tasks before their corresponding implementation tasks"; needs
-    updating to reflect implement-then-test ordering.
-  - .specify/templates/plan-template.md ✅ no change needed (no TDD-specific language)
-  - .specify/templates/tasks-template.md ✅ no change needed (already treats tests as optional,
-    not TDD-ordered)
-  - .specify/templates/spec-template.md ✅ no change needed (spec stays test-approach-agnostic)
-  - .claude/skills/speckit-tasks/SKILL.md ✅ no change needed (already generates test tasks only
-    when explicitly requested, not as a default TDD mandate)
+  - .specify/templates/constitution-template.md ✅ no change needed (generic placeholder
+    template, no icon-specific language to update)
+  - .specify/templates/plan-template.md ✅ no change needed (no icon-specific language)
+  - .specify/templates/tasks-template.md ✅ no change needed (no icon-specific language)
+  - .specify/templates/spec-template.md ✅ no change needed (spec stays technology-agnostic)
 - Follow-up TODOs:
   - TODO(MARKET_DATA_PROVIDER): Specific market-data API vendor (prices, ETF composition) not yet
     chosen. Resolve during the /speckit-plan run for the first feature that needs live market data;
@@ -208,6 +193,11 @@ provider is unreachable, since a user's recorded holdings are the source of trut
   Report above. Whichever provider is chosen MUST be isolated behind a dedicated Nx library/module
   per Principle I and the Product Scope's External Market Data rules, so it can be swapped without
   touching domain logic.
+- **Icon library**: Google Material Icons (Material Symbols) is the sole, standard icon library for
+  the frontend. All icons MUST be sourced from Material Icons via PrimeNG's documented custom-icon
+  mechanism (https://primeng.dev/customicons); PrimeIcons (PrimeNG's bundled default icon font)
+  MUST NOT be used anywhere in the application UI — new and existing icon usage alike MUST resolve
+  to a Material Icons glyph, with no partial/mixed icon sets left in place.
 
 ## Development Workflow & Quality Gates
 
@@ -235,4 +225,4 @@ alignment with the Core Principles; unresolved violations MUST be justified in t
 Complexity Tracking section or the plan MUST be revised to comply. Reviewers MUST treat this
 constitution as authoritative over informal team conventions.
 
-**Version**: 3.0.0 | **Ratified**: 2026-08-13 | **Last Amended**: 2026-08-30
+**Version**: 3.1.0 | **Ratified**: 2026-08-13 | **Last Amended**: 2026-08-31

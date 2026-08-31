@@ -5,6 +5,7 @@ import { NavigationEnd, Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
 import { TooltipModule } from 'primeng/tooltip';
+import { IconComponent } from '../../../shared/icon/icon.component';
 import { SUPPORTED_LANGUAGES } from '@vaultfolio/api-contract';
 import type { LanguageCode } from '@vaultfolio/api-contract';
 import { filter, map, startWith } from 'rxjs';
@@ -39,7 +40,7 @@ interface LanguageOption {
  */
 @Component({
   selector: 'app-header',
-  imports: [ButtonModule, FormsModule, SelectModule, TooltipModule, TranslatePipe],
+  imports: [ButtonModule, FormsModule, SelectModule, TooltipModule, TranslatePipe, IconComponent],
   templateUrl: './app-header.component.html',
   styleUrl: './app-header.component.css',
 })

@@ -8,7 +8,9 @@
       optionLabel="label"
       optionValue="value"
       [disabled]="isEditMode"
-    />
+    >
+      <ng-template #dropdownicon><app-icon name="chevron-down" /></ng-template>
+    </p-select>
   </div>
 
   <div class="field">
@@ -118,7 +120,9 @@
         formControlName="purchaseDate"
         dateFormat="yy-mm-dd"
         [showIcon]="true"
-      />
+      >
+        <ng-template #triggericon><app-icon name="calendar" /></ng-template>
+      </p-datepicker>
       @if (form.controls.purchaseDate.invalid && form.controls.purchaseDate.touched) {
         <p-message severity="error">{{ 'holdingForm.purchaseDateInvalid' | translate }}</p-message>
       }

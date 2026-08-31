@@ -3,36 +3,30 @@
     @case ('verified') {
       <p-card styleClass="invite-card">
         <div class="invite-expired-icon">
-          <i class="pi pi-check-circle" aria-hidden="true"></i>
+          <app-icon name="check-circle" />
         </div>
         <h1>Email verified</h1>
         <p class="lede">
           Thanks — an administrator has been notified and will review your request soon. You'll be
           able to sign in once it's approved.
         </p>
-        <p-button
-          label="Go to sign in"
-          icon="pi pi-lock"
-          severity="secondary"
-          routerLink="/sign-in"
-        />
+        <p-button label="Go to sign in" severity="secondary" routerLink="/sign-in">
+          <ng-template #icon><app-icon name="lock" /></ng-template>
+        </p-button>
       </p-card>
     }
     @case ('invalid') {
       <p-card styleClass="invite-card is-expired">
         <div class="invite-expired-icon">
-          <i class="pi pi-clock" aria-hidden="true"></i>
+          <app-icon name="clock" />
         </div>
         <h1>This verification link isn't valid</h1>
         <p class="lede">
           It's already been used or has expired. Ask to sign up again if you still want an account.
         </p>
-        <p-button
-          label="Sign up again"
-          icon="pi pi-user-plus"
-          severity="secondary"
-          routerLink="/signup"
-        />
+        <p-button label="Sign up again" severity="secondary" routerLink="/signup">
+          <ng-template #icon><app-icon name="user-plus" /></ng-template>
+        </p-button>
       </p-card>
     }
     @default {

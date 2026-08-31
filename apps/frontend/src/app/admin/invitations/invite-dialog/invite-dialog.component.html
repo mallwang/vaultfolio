@@ -5,6 +5,7 @@
   [style]="{ width: '28rem' }"
   (visibleChange)="close()"
 >
+  <ng-template #closeicon><app-icon name="close" /></ng-template>
   @if (errorMessage()) {
     <p-message severity="error" styleClass="invite-dialog__error">{{ errorMessage() }}</p-message>
   }
@@ -30,7 +31,9 @@
       optionValue="value"
       [ngModel]="role()"
       (ngModelChange)="role.set($event)"
-    />
+    >
+      <ng-template #dropdownicon><app-icon name="chevron-down" /></ng-template>
+    </p-select>
   </div>
 
   <p class="invite-dialog__hint">{{ 'invitations.dialogHint' | translate }}</p>
@@ -46,7 +49,7 @@
       [disabled]="!email().trim()"
       (click)="submit()"
     >
-      <i class="pi pi-send" aria-hidden="true"></i> {{ 'invitations.sendInvitation' | translate }}
+      <app-icon name="send" /> {{ 'invitations.sendInvitation' | translate }}
     </button>
   </ng-template>
 </p-dialog>

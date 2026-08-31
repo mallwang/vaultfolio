@@ -1,5 +1,7 @@
 <p-toast />
-<p-confirmdialog />
+<p-confirmdialog>
+  <ng-template #icon><app-icon name="warning" /></ng-template>
+</p-confirmdialog>
 
 <section class="distribution-panel">
   <h2>{{ 'holdings.distributionByValue' | translate }}</h2>
@@ -15,7 +17,7 @@
       }}
     </h2>
     <button pButton type="button" (click)="openAddDialog()">
-      <i class="pi pi-plus" aria-hidden="true"></i> {{ 'holdings.addHolding' | translate }}
+      <app-icon name="plus" /> {{ 'holdings.addHolding' | translate }}
     </button>
   </div>
 
@@ -59,7 +61,7 @@
               [attr.aria-label]="'holdings.editHolding' | translate"
               (click)="openEditDialog(holding)"
             >
-              <i class="pi pi-pencil" aria-hidden="true"></i>
+              <app-icon name="pencil" />
             </button>
             <button
               pButton
@@ -70,7 +72,7 @@
               [attr.aria-label]="'holdings.deleteHolding' | translate"
               (click)="confirmDelete(holding, $event)"
             >
-              <i class="pi pi-trash" aria-hidden="true"></i>
+              <app-icon name="contract-delete" />
             </button>
           </td>
         </tr>
@@ -79,7 +81,7 @@
         <tr>
           <td colspan="7">
             <div class="empty-state">
-              <i class="pi pi-briefcase empty-state__icon" aria-hidden="true"></i>
+              <app-icon name="briefcase" class="empty-state__icon" />
               <h2>{{ 'holdings.emptyStateTitle' | translate }}</h2>
               <p>{{ 'holdings.emptyStateBody' | translate }}</p>
               <button pButton type="button" (click)="openAddDialog()">
@@ -99,6 +101,7 @@
   [modal]="true"
   [dismissableMask]="false"
 >
+  <ng-template #closeicon><app-icon name="close" /></ng-template>
   @if (dialogVisible()) {
     <app-holding-form
       [holding]="editingHolding()"

@@ -4,6 +4,7 @@ import type { HealthStatus } from '@vaultfolio/api-contract';
 import { CardModule } from 'primeng/card';
 import { MessageModule } from 'primeng/message';
 import { TagModule } from 'primeng/tag';
+import { IconComponent } from '../../shared/icon/icon.component';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 
 /**
@@ -19,7 +20,7 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
  */
 @Component({
   selector: 'app-health-status',
-  imports: [CardModule, TagModule, MessageModule, TranslatePipe],
+  imports: [CardModule, TagModule, MessageModule, TranslatePipe, IconComponent],
   providers: [TranslatePipe],
   templateUrl: './health-status.component.html',
   styleUrl: './health-status.component.css',

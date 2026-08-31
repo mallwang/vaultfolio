@@ -3,18 +3,15 @@
     <p-card styleClass="invite-card">
       @if (confirmedEmail()) {
         <div class="invite-expired-icon">
-          <i class="pi pi-check-circle" aria-hidden="true"></i>
+          <app-icon name="check-circle" />
         </div>
         <h1>Email confirmed</h1>
         <p class="lede">
           Your account email is now {{ confirmedEmail() }}. You can sign in with it.
         </p>
-        <p-button
-          label="Go to sign in"
-          icon="pi pi-lock"
-          severity="secondary"
-          routerLink="/sign-in"
-        />
+        <p-button label="Go to sign in" severity="secondary" routerLink="/sign-in">
+          <ng-template #icon><app-icon name="lock" /></ng-template>
+        </p-button>
       } @else {
         <h1>Confirm your new email</h1>
         <p class="lede">
@@ -22,11 +19,12 @@
         </p>
         <p-button
           label="Confirm email change"
-          icon="pi pi-check-circle"
           [loading]="confirming()"
           [disabled]="confirming()"
           (onClick)="confirm()"
-        />
+        >
+          <ng-template #icon><app-icon name="check-circle" /></ng-template>
+        </p-button>
       }
     </p-card>
   }

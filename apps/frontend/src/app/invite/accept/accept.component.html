@@ -56,10 +56,11 @@
         <p-button
           type="submit"
           label="Activate account"
-          icon="pi pi-check-circle"
           [loading]="submitting()"
           [disabled]="submitting()"
-        />
+        >
+          <ng-template #icon><app-icon name="check-circle" /></ng-template>
+        </p-button>
       </form>
     </p-card>
   }

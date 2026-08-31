@@ -10,6 +10,7 @@ import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
+import { IconComponent } from '../../shared/icon/icon.component';
 import { AccountsService } from './accounts.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 
@@ -50,6 +51,7 @@ const ROLE_OPTIONS: RoleOption[] = [
     ToastModule,
     FormsModule,
     TranslatePipe,
+    IconComponent,
   ],
   providers: [ConfirmationService, MessageService, TranslatePipe],
   templateUrl: './accounts.component.html',
@@ -131,7 +133,6 @@ export class AccountsComponent implements OnInit {
       message: this.translate
         .transform('accounts.archiveConfirmMessage')
         .replace('{{name}}', account.displayName),
-      icon: 'pi pi-exclamation-triangle',
       acceptButtonProps: {
         severity: 'danger',
         label: this.translate.transform('accounts.archiveAccount'),

@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
+import { IconComponent } from '../../shared/icon/icon.component';
 
 /**
  * Neutral "no longer valid" page (design.md "Invite-expired page", FR-012):
@@ -10,7 +11,7 @@ import { CardModule } from 'primeng/card';
  */
 @Component({
   selector: 'app-invite-expired',
-  imports: [ButtonModule, CardModule, RouterLink],
+  imports: [ButtonModule, CardModule, RouterLink, IconComponent],
   templateUrl: './expired.component.html',
   styleUrl: './expired.component.css',
 })

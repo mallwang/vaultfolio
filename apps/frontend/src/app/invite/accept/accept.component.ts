@@ -6,6 +6,7 @@ import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
+import { IconComponent } from '../../shared/icon/icon.component';
 import { InvitationsService } from '../../admin/invitations/invitations.service';
 
 const ROLE_LABEL: Record<'ADMIN' | 'MEMBER', string> = {
@@ -30,7 +31,7 @@ const MAX_PASSWORD_LENGTH = 200;
  */
 @Component({
   selector: 'app-invite-accept',
-  imports: [FormsModule, ButtonModule, CardModule, InputTextModule, MessageModule],
+  imports: [FormsModule, ButtonModule, CardModule, InputTextModule, MessageModule, IconComponent],
   templateUrl: './accept.component.html',
   styleUrl: './accept.component.css',
 })

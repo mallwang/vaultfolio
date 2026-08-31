@@ -7,6 +7,7 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
+import { IconComponent } from '../../shared/icon/icon.component';
 import { AccountsService } from '../accounts/accounts.service';
 import { RejectDialogComponent } from './reject-dialog/reject-dialog.component';
 import { SignupsAdminService } from './signups.service';
@@ -48,6 +49,7 @@ const STATUS_LABEL_KEY: Record<SignupStatus, string> = {
     ToastModule,
     RejectDialogComponent,
     TranslatePipe,
+    IconComponent,
   ],
   providers: [ConfirmationService, MessageService, TranslatePipe],
   templateUrl: './signups.component.html',
@@ -65,6 +67,12 @@ export class SignupsComponent implements OnInit {
   protected readonly loadError = signal<string | null>(null);
   protected readonly rejectDialogVisible = signal(false);
   protected readonly rejectTarget = signal<SignupSummary | null>(null);
+  /**
+   * `p-confirmdialog`'s `#icon` template is static per instance, but this
+   * component's two confirm() calls (approve/delete) need different icons —
+   * set right before each `confirm()` call so the shared dialog picks it up.
+   */
+  protected readonly confirmIcon = signal<string>('warning');
 
   protected statusSeverity(
     status: SignupStatus,
@@ -96,13 +104,13 @@ export class SignupsComponent implements OnInit {
   }
 
   protected confirmApprove(signup: SignupSummary, event: Event): void {
+    this.confirmIcon.set('check-circle');
     this.confirmationService.confirm({
       target: event.target as EventTarget,
       header: this.translate.transform('signups.approveConfirmHeader'),
       message: this.translate
         .transform('signups.approveConfirmMessage')
         .replace('{{email}}', signup.email),
-      icon: 'pi pi-check-circle',
       acceptButtonProps: {
         severity: 'success',
         label: this.translate.transform('signups.approve'),
@@ -151,6 +159,7 @@ export class SignupsComponent implements OnInit {
   }
 
   protected confirmDelete(signup: SignupSummary, event: Event): void {
+    this.confirmIcon.set('warning');
     this.confirmationService.confirm({
       target: event.target as EventTarget,
       header: this.translate.transform('signups.deleteConfirmHeader'),
@@ -161,7 +170,6 @@ export class SignupsComponent implements OnInit {
             : 'signups.deleteConfirmMessage',
         )
         .replace('{{email}}', signup.email),
-      icon: 'pi pi-exclamation-triangle',
       acceptButtonProps: { severity: 'danger', label: this.translate.transform('holdings.delete') },
       rejectButtonProps: {
         severity: 'secondary',

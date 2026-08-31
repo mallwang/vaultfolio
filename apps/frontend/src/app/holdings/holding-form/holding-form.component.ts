@@ -28,6 +28,7 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { SelectModule } from 'primeng/select';
+import { IconComponent } from '../../shared/icon/icon.component';
 import {
   ASSET_TYPES,
   ASSET_TYPE_FIELD_SETS,
@@ -105,6 +106,7 @@ function toIsoDateOnly(value: Date | null): string | undefined {
     ButtonModule,
     MessageModule,
     TranslatePipe,
+    IconComponent,
   ],
   templateUrl: './holding-form.component.html',
   styleUrl: './holding-form.component.css',

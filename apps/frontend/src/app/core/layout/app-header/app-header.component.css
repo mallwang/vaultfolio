@@ -42,6 +42,17 @@
   color: var(--p-text-muted-color);
 }
 
+/* The chevron/moon/sign-out icons are projected as raw content into PrimeNG's
+   dropdownicon/icon template slots, which apply no sizing class of their own
+   (that only happens for PrimeNG's built-in icon inputs) — so without this
+   they inherit each control's own ambient font-size instead of the header's
+   text size, rendering oversized and out of line with the labels beside them. */
+.app-header__meta app-icon,
+.app-header__controls app-icon {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
 /* design.md "Header language switcher" — flag-only pill, placed immediately
    before the theme toggle.
    Real SVG flags rather than flag emoji: most Linux/Windows browsers have no

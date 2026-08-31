@@ -1,5 +1,7 @@
 <p-toast />
-<p-confirmdialog />
+<p-confirmdialog>
+  <ng-template #icon><app-icon name="warning" /></ng-template>
+</p-confirmdialog>
 
 <section class="invitations-panel">
   <div class="invitations-panel__header">
@@ -8,7 +10,7 @@
       <p>{{ 'invitations.subtitle' | translate }}</p>
     </div>
     <button pButton type="button" (click)="openInviteDialog()">
-      <i class="pi pi-plus" aria-hidden="true"></i> {{ 'invitations.inviteMember' | translate }}
+      <app-icon name="plus" /> {{ 'invitations.inviteMember' | translate }}
     </button>
   </div>
 
@@ -57,7 +59,7 @@
                   [attr.aria-label]="'invitations.resendInvitation' | translate"
                   (click)="resend(invitation)"
                 >
-                  <i class="pi pi-send" aria-hidden="true"></i>
+                  <app-icon name="send" />
                 </button>
                 <button
                   pButton
@@ -68,7 +70,7 @@
                   [attr.aria-label]="'invitations.cancelInvitation' | translate"
                   (click)="confirmCancel(invitation, $event)"
                 >
-                  <i class="pi pi-times" aria-hidden="true"></i>
+                  <app-icon name="close" />
                 </button>
               }
             </div>

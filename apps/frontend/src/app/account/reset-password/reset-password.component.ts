@@ -5,6 +5,7 @@ import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
+import { IconComponent } from '../../shared/icon/icon.component';
 import { CurrentUserStore } from '../../auth/current-user.store';
 import { ProfileService } from '../../settings/profile/profile.service';
 
@@ -22,7 +23,7 @@ const MAX_PASSWORD_LENGTH = 200;
  */
 @Component({
   selector: 'app-reset-password',
-  imports: [FormsModule, ButtonModule, CardModule, InputTextModule, MessageModule],
+  imports: [FormsModule, ButtonModule, CardModule, InputTextModule, MessageModule, IconComponent],
   templateUrl: './reset-password.component.html',
   styleUrl: './reset-password.component.css',
 })

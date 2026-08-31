@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
+import { IconComponent } from '../../shared/icon/icon.component';
 import { SignupService } from '../signup.service';
 
 type ViewState = 'loading' | 'verified' | 'invalid';
@@ -15,7 +16,7 @@ type ViewState = 'loading' | 'verified' | 'invalid';
  */
 @Component({
   selector: 'app-signup-verify',
-  imports: [ButtonModule, CardModule, RouterLink],
+  imports: [ButtonModule, CardModule, RouterLink, IconComponent],
   templateUrl: './verify.component.html',
   styleUrl: './verify.component.css',
 })

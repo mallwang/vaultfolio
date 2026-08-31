@@ -34,6 +34,7 @@
       <ng-template #item let-option>
         <span class="app-header__language-flag fi" [class]="option.flag" aria-hidden="true"></span>
       </ng-template>
+      <ng-template #dropdownicon><app-icon name="chevron-down" /></ng-template>
     </p-select>
     <button
       pButton
@@ -57,10 +58,9 @@
       appendTo="body"
       (click)="toggleTheme()"
     >
-      <i [class]="theme() === 'dark' ? 'pi pi-moon' : 'pi pi-sun'" aria-hidden="true"></i>
+      <app-icon [name]="theme() === 'dark' ? 'moon' : 'sun'" />
     </button>
     <p-button
-      icon="pi pi-sign-out"
       severity="secondary"
       text
       [attr.aria-label]="'header.signOut' | translate"
@@ -68,7 +68,9 @@
       tooltipPosition="bottom"
       appendTo="body"
       (onClick)="signOut()"
-    />
+    >
+      <ng-template #icon><app-icon name="sign-out" /></ng-template>
+    </p-button>
   </div>
 } @else {
   <div class="app-header__controls">
@@ -95,6 +97,7 @@
       <ng-template #item let-option>
         <span class="app-header__language-flag fi" [class]="option.flag" aria-hidden="true"></span>
       </ng-template>
+      <ng-template #dropdownicon><app-icon name="chevron-down" /></ng-template>
     </p-select>
     <button
       pButton
@@ -118,7 +121,7 @@
       appendTo="body"
       (click)="toggleTheme()"
     >
-      <i [class]="theme() === 'dark' ? 'pi pi-moon' : 'pi pi-sun'" aria-hidden="true"></i>
+      <app-icon [name]="theme() === 'dark' ? 'moon' : 'sun'" />
     </button>
   </div>
 }
