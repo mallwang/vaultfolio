@@ -19,16 +19,20 @@
       optionValue="code"
       [ngModel]="language()"
       [attr.aria-label]="'header.language' | translate"
+      [pTooltip]="'header.language' | translate"
+      tooltipPosition="bottom"
       appendTo="body"
       (onChange)="setLanguage($event.value)"
     >
       <ng-template #selectedItem let-selected>
-        <span class="app-header__language-flag">{{ selected.flag }}</span>
-        <span class="app-header__language-label">{{ selected.label }}</span>
+        <span
+          class="app-header__language-flag fi"
+          [class]="selected.flag"
+          aria-hidden="true"
+        ></span>
       </ng-template>
       <ng-template #item let-option>
-        <span class="app-header__language-flag">{{ option.flag }}</span>
-        <span class="app-header__language-label">{{ option.label }}</span>
+        <span class="app-header__language-flag fi" [class]="option.flag" aria-hidden="true"></span>
       </ng-template>
     </p-select>
     <button
@@ -76,16 +80,20 @@
       optionValue="code"
       [ngModel]="language()"
       [attr.aria-label]="'header.language' | translate"
+      [pTooltip]="'header.language' | translate"
+      tooltipPosition="bottom"
       appendTo="body"
       (onChange)="setLanguage($event.value)"
     >
       <ng-template #selectedItem let-selected>
-        <span class="app-header__language-flag">{{ selected.flag }}</span>
-        <span class="app-header__language-label">{{ selected.label }}</span>
+        <span
+          class="app-header__language-flag fi"
+          [class]="selected.flag"
+          aria-hidden="true"
+        ></span>
       </ng-template>
       <ng-template #item let-option>
-        <span class="app-header__language-flag">{{ option.flag }}</span>
-        <span class="app-header__language-label">{{ option.label }}</span>
+        <span class="app-header__language-flag fi" [class]="option.flag" aria-hidden="true"></span>
       </ng-template>
     </p-select>
     <button
