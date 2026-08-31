@@ -13,7 +13,7 @@ export interface ApplicationArea {
   label: string;
   /** Router path segment, e.g. 'dashboard' → /dashboard. */
   path: string;
-  /** PrimeIcons class name, e.g. 'pi pi-home'. */
+  /** `vf-icon` semantic name (see `shared/icon/icon-name.map.ts`), e.g. 'home'. */
   icon: string;
   /**
    * When present, the area is rendered only for a current user whose role is
@@ -24,9 +24,9 @@ export interface ApplicationArea {
 }
 
 export const APPLICATION_AREAS: ApplicationArea[] = [
-  { id: 'dashboard', label: 'Dashboard', path: 'dashboard', icon: 'pi pi-home' },
-  { id: 'holdings', label: 'Holdings', path: 'holdings', icon: 'pi pi-briefcase' },
-  { id: 'imports', label: 'Imports', path: 'imports', icon: 'pi pi-upload' },
-  { id: 'settings', label: 'Settings', path: 'settings', icon: 'pi pi-cog' },
-  { id: 'admin', label: 'Admin', path: 'admin', icon: 'pi pi-shield', roles: ['ADMIN'] },
+  { id: 'dashboard', label: 'Dashboard', path: 'dashboard', icon: 'home' },
+  { id: 'holdings', label: 'Holdings', path: 'holdings', icon: 'briefcase' },
+  { id: 'imports', label: 'Imports', path: 'imports', icon: 'upload' },
+  { id: 'settings', label: 'Settings', path: 'settings', icon: 'cog' },
+  { id: 'admin', label: 'Admin', path: 'admin', icon: 'shield', roles: ['ADMIN'] },
 ];

@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
+import { IconComponent } from '../../../shared/icon/icon.component';
 
 /**
  * In-shell "not found" state (FR-006) — rendered by the wildcard route so a
@@ -8,7 +9,7 @@ import { ButtonModule } from 'primeng/button';
  */
 @Component({
   selector: 'app-not-found',
-  imports: [ButtonModule, RouterLink],
+  imports: [ButtonModule, RouterLink, IconComponent],
   templateUrl: './not-found.component.html',
   styleUrl: './not-found.component.css',
 })

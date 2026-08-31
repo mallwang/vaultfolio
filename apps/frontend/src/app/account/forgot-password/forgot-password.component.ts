@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
+import { IconComponent } from '../../shared/icon/icon.component';
 import { ProfileService } from '../../settings/profile/profile.service';
 
 /**
@@ -15,7 +16,7 @@ import { ProfileService } from '../../settings/profile/profile.service';
  */
 @Component({
   selector: 'app-forgot-password',
-  imports: [FormsModule, ButtonModule, CardModule, InputTextModule, RouterLink],
+  imports: [FormsModule, ButtonModule, CardModule, InputTextModule, RouterLink, IconComponent],
   templateUrl: './forgot-password.component.html',
   styleUrl: './forgot-password.component.css',
 })

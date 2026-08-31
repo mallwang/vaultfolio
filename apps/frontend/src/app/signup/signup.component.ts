@@ -6,6 +6,7 @@ import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
+import { IconComponent } from '../shared/icon/icon.component';
 import { SignupService } from './signup.service';
 
 /** Mirrors `libs/domain/auth/password-policy.ts` (spec 005) — a client-side
@@ -24,7 +25,15 @@ const MAX_PASSWORD_LENGTH = 200;
  */
 @Component({
   selector: 'app-signup',
-  imports: [FormsModule, ButtonModule, CardModule, InputTextModule, MessageModule, RouterLink],
+  imports: [
+    FormsModule,
+    ButtonModule,
+    CardModule,
+    InputTextModule,
+    MessageModule,
+    RouterLink,
+    IconComponent,
+  ],
   templateUrl: './signup.component.html',
   styleUrl: './signup.component.css',
 })

@@ -22,6 +22,7 @@
       <ng-template #item let-option>
         {{ option.code === '__use_default__' ? (option.label | translate) : option.label }}
       </ng-template>
+      <ng-template #dropdownicon><app-icon name="chevron-down" /></ng-template>
     </p-select>
 
     <p class="preferences__hint">{{ 'preferences.language.hint' | translate }}</p>

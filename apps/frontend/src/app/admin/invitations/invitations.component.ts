@@ -7,6 +7,7 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
+import { IconComponent } from '../../shared/icon/icon.component';
 import { InviteDialogComponent } from './invite-dialog/invite-dialog.component';
 import { InvitationsService } from './invitations.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
@@ -51,6 +52,7 @@ const STATUS_LABEL_KEY: Record<InvitationStatus, string> = {
     ToastModule,
     InviteDialogComponent,
     TranslatePipe,
+    IconComponent,
   ],
   providers: [ConfirmationService, MessageService, TranslatePipe],
   templateUrl: './invitations.component.html',
@@ -152,7 +154,6 @@ export class InvitationsComponent implements OnInit {
       message: this.translate
         .transform('invitations.cancelConfirmMessage')
         .replace('{{email}}', invitation.email),
-      icon: 'pi pi-exclamation-triangle',
       acceptButtonProps: {
         severity: 'danger',
         label: this.translate.transform('invitations.cancelInvitation'),

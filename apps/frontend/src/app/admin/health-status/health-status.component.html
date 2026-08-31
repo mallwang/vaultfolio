@@ -14,9 +14,13 @@
       {{ 'healthStatus.checkedAt' | translate }} {{ result.timestamp }}
     </p>
   } @else if (error()) {
-    <p-message severity="error" icon="pi pi-exclamation-triangle">{{ error() }}</p-message>
+    <p-message severity="error">
+      <ng-template #icon><app-icon name="warning" /></ng-template>
+      {{ error() }}
+    </p-message>
   } @else {
-    <p-message severity="secondary" icon="pi pi-spinner pi-spin">
+    <p-message severity="secondary">
+      <ng-template #icon><app-icon name="spinner" [spin]="true" /></ng-template>
       {{ 'healthStatus.checking' | translate }}
     </p-message>
   }

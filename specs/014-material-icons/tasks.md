@@ -33,21 +33,21 @@ Single Nx app, no new project: all paths are under `apps/frontend/src/app/` or
 **Purpose**: Load the Material Symbols font and scaffold the `vf-icon` component that every user
 story's file conversions depend on.
 
-- [ ] T001 Add Material Symbols Outlined `<link>` tags (preconnect + stylesheet, per research.md
+- [x] T001 Add Material Symbols Outlined `<link>` tags (preconnect + stylesheet, per research.md
       §1) to `apps/frontend/src/index.html`, following the existing Inter font `<link>` pattern
-- [ ] T002 [P] Create `ICON_NAME_MAP` in `apps/frontend/src/app/shared/icon/icon-name.map.ts` with
+- [x] T002 [P] Create `ICON_NAME_MAP` in `apps/frontend/src/app/shared/icon/icon-name.map.ts` with
       the known mappings from data-model.md's table (`home`, `briefcase`→`work`,
       `chart-line`→`show_chart`, `check-circle`→`check_circle`, `clock`→`schedule`, `cog`→`settings`,
       `contract`→`description`, `download`, `envelope`→`mail`, `warning`, `inbox`, `key`, `lock`,
       `moon`→`dark_mode`, `sun`→`light_mode`, `pencil`→`edit`, `plus`→`add`, `replay`, `search`,
       `send`, `shield`, `sign-out`→`logout`, `spinner`→`progress_activity`, `close`, `trash`→`delete`,
       `upload`, `user-plus`→`person_add`, `arrow-left`→`arrow_back`)
-- [ ] T003 [US1] Create `vf-icon` standalone Angular component
+- [x] T003 [US1] Create `vf-icon` standalone Angular component
       (`apps/frontend/src/app/shared/icon/icon.component.ts` + `.html`) with a `name` input resolved
       via `ICON_NAME_MAP`, a `spin` input toggling a `vf-icon--spin` CSS class, `aria-hidden="true"` by
       default (research.md §4), and an `error`-glyph + `console.warn` fallback for unmapped names
       (FR-007, data-model.md's fallback contract)
-- [ ] T004 [P] Add the `vf-icon--spin` rotation keyframe animation (same visual effect as today's
+- [x] T004 [P] Add the `vf-icon--spin` rotation keyframe animation (same visual effect as today's
       `pi-spin` CSS) to `apps/frontend/src/styles.css` or a component-scoped stylesheet for
       `icon.component.ts`
 
@@ -77,63 +77,63 @@ profile) and confirm all icons render from the same visual family with no leftov
 
 ### Tests for User Story 1
 
-- [ ] T005 [P] [US1] Component test for `vf-icon` name→glyph resolution (each `ICON_NAME_MAP`
+- [x] T005 [P] [US1] Component test for `vf-icon` name→glyph resolution (each `ICON_NAME_MAP`
       entry renders its mapped glyph) in
       `apps/frontend/src/app/shared/icon/icon.component.spec.ts`
-- [ ] T006 [P] [US1] Component test for `vf-icon` unknown-name fallback (renders `error` glyph +
+- [x] T006 [P] [US1] Component test for `vf-icon` unknown-name fallback (renders `error` glyph +
       calls `console.warn`) in `apps/frontend/src/app/shared/icon/icon.component.spec.ts`
 
 ### Implementation for User Story 1
 
-- [ ] T007 [P] [US1] Replace `pi pi-*` usages with `<vf-icon name="...">` in
+- [x] T007 [P] [US1] Replace `pi pi-*` usages with `<vf-icon name="...">` in
       `apps/frontend/src/app/account/forgot-password/forgot-password.component.html`
-- [ ] T008 [P] [US1] Replace `pi pi-*` usages with `<vf-icon name="...">` in
+- [x] T008 [P] [US1] Replace `pi pi-*` usages with `<vf-icon name="...">` in
       `apps/frontend/src/app/account/link-invalid/link-invalid.component.html`
-- [ ] T009 [P] [US1] Replace `pi pi-*` usages with `<vf-icon name="...">` in
+- [x] T009 [P] [US1] Replace `pi pi-*` usages with `<vf-icon name="...">` in
       `apps/frontend/src/app/account/reset-password/reset-password.component.html`
-- [ ] T010 [P] [US1] Replace `pi pi-*` usages with `<vf-icon name="...">` in
+- [x] T010 [P] [US1] Replace `pi pi-*` usages with `<vf-icon name="...">` in
       `apps/frontend/src/app/account/verify-email/verify-email.component.html`
-- [ ] T011 [P] [US1] Replace `pi pi-*` usages with `<vf-icon name="...">` in
+- [x] T011 [P] [US1] Replace `pi pi-*` usages with `<vf-icon name="...">` in
       `apps/frontend/src/app/admin/accounts/accounts.component.html` and
       `apps/frontend/src/app/admin/accounts/accounts.component.ts`
-- [ ] T012 [P] [US1] Replace `pi pi-*` usages with `<vf-icon name="...">` in
+- [x] T012 [P] [US1] Replace `pi pi-*` usages with `<vf-icon name="...">` in
       `apps/frontend/src/app/admin/health-status/health-status.component.html`
-- [ ] T013 [P] [US1] Replace `pi pi-*` usages with `<vf-icon name="...">` in
+- [x] T013 [P] [US1] Replace `pi pi-*` usages with `<vf-icon name="...">` in
       `apps/frontend/src/app/admin/invitations/invitations.component.html` and
       `apps/frontend/src/app/admin/invitations/invitations.component.ts`
-- [ ] T014 [P] [US1] Replace `pi pi-*` usages with `<vf-icon name="...">` in
+- [x] T014 [P] [US1] Replace `pi pi-*` usages with `<vf-icon name="...">` in
       `apps/frontend/src/app/admin/invitations/invite-dialog/invite-dialog.component.html`
-- [ ] T015 [P] [US1] Replace `pi pi-*` usages with `<vf-icon name="...">` in
+- [x] T015 [P] [US1] Replace `pi pi-*` usages with `<vf-icon name="...">` in
       `apps/frontend/src/app/admin/signups/reject-dialog/reject-dialog.component.html`
-- [ ] T016 [P] [US1] Replace `pi pi-*` usages with `<vf-icon name="...">` in
+- [x] T016 [P] [US1] Replace `pi pi-*` usages with `<vf-icon name="...">` in
       `apps/frontend/src/app/admin/signups/signups.component.html` and
       `apps/frontend/src/app/admin/signups/signups.component.ts`
-- [ ] T017 [P] [US1] Replace `pi pi-*` usages with `<vf-icon name="...">` in
+- [x] T017 [P] [US1] Replace `pi pi-*` usages with `<vf-icon name="...">` in
       `apps/frontend/src/app/core/layout/app-header/app-header.component.html`
-- [ ] T018 [P] [US1] Replace `pi pi-*` usages with `<vf-icon name="...">` in
+- [x] T018 [P] [US1] Replace `pi pi-*` usages with `<vf-icon name="...">` in
       `apps/frontend/src/app/core/layout/application-areas.ts`
-- [ ] T019 [P] [US1] Replace `pi pi-*` usages with `<vf-icon name="...">` in
+- [x] T019 [P] [US1] Replace `pi pi-*` usages with `<vf-icon name="...">` in
       `apps/frontend/src/app/core/layout/not-found/not-found.component.html`
-- [ ] T020 [P] [US1] Replace `pi pi-*` usages with `<vf-icon name="...">` in
+- [x] T020 [P] [US1] Replace `pi pi-*` usages with `<vf-icon name="...">` in
       `apps/frontend/src/app/dashboard/dashboard.component.html`
-- [ ] T021 [P] [US1] Replace `pi pi-*` usages with `<vf-icon name="...">` in
+- [x] T021 [P] [US1] Replace `pi pi-*` usages with `<vf-icon name="...">` in
       `apps/frontend/src/app/holdings/holdings.component.html` and
       `apps/frontend/src/app/holdings/holdings.component.ts`
-- [ ] T022 [P] [US1] Replace `pi pi-*` usages with `<vf-icon name="...">` in
+- [x] T022 [P] [US1] Replace `pi pi-*` usages with `<vf-icon name="...">` in
       `apps/frontend/src/app/imports/imports.component.html`
-- [ ] T023 [P] [US1] Replace `pi pi-*` usages with `<vf-icon name="...">` in
+- [x] T023 [P] [US1] Replace `pi pi-*` usages with `<vf-icon name="...">` in
       `apps/frontend/src/app/invite/accept/accept.component.html`
-- [ ] T024 [P] [US1] Replace `pi pi-*` usages with `<vf-icon name="...">` in
+- [x] T024 [P] [US1] Replace `pi pi-*` usages with `<vf-icon name="...">` in
       `apps/frontend/src/app/invite/expired/expired.component.html`
-- [ ] T025 [P] [US1] Replace `pi pi-*` usages with `<vf-icon name="...">` in
+- [x] T025 [P] [US1] Replace `pi pi-*` usages with `<vf-icon name="...">` in
       `apps/frontend/src/app/settings/profile/profile.component.html`
-- [ ] T026 [P] [US1] Replace `pi pi-*` usages with `<vf-icon name="...">` in
+- [x] T026 [P] [US1] Replace `pi pi-*` usages with `<vf-icon name="...">` in
       `apps/frontend/src/app/signup/signup.component.html`
-- [ ] T027 [P] [US1] Replace `pi pi-*` usages with `<vf-icon name="...">` in
+- [x] T027 [P] [US1] Replace `pi pi-*` usages with `<vf-icon name="...">` in
       `apps/frontend/src/app/signup/verify/verify.component.html`
-- [ ] T028 [US1] Extend `ICON_NAME_MAP` (`icon-name.map.ts`) with any additional icon names
+- [x] T028 [US1] Extend `ICON_NAME_MAP` (`icon-name.map.ts`) with any additional icon names
       discovered while performing T007–T027 that were not in the data-model.md starting inventory
-- [ ] T029 [US1] Re-run
+- [x] T029 [US1] Re-run
       `grep -rE "pi pi-|['\"]pi-[a-z]" apps/frontend/src` and confirm zero matches remain in app-level
       templates/components (PrimeNG-internal icons handled separately in User Story 2)
 
@@ -154,33 +154,33 @@ recognizable icon that conveys the same meaning as its prior counterpart (quicks
 
 ### Implementation for User Story 2
 
-- [ ] T030 [US2] Add `#closeicon` `ng-template` override (rendering `<vf-icon name="close">`) to
+- [x] T030 [US2] Add `#closeicon` `ng-template` override (rendering `<vf-icon name="close">`) to
       every `p-dialog` usage: `apps/frontend/src/app/admin/signups/reject-dialog/reject-dialog.component.html`,
       `apps/frontend/src/app/admin/invitations/invite-dialog/invite-dialog.component.html`,
       `apps/frontend/src/app/settings/profile/profile.component.html`,
       `apps/frontend/src/app/holdings/holdings.component.html`
-- [ ] T031 [US2] Add dropdown-trigger icon-slot `ng-template` override (rendering
+- [x] T031 [US2] Add dropdown-trigger icon-slot `ng-template` override (rendering
       `<vf-icon name="...">` with a chevron-down equivalent glyph) to every `p-select` usage:
       `apps/frontend/src/app/core/layout/app-header/app-header.component.html`,
       `apps/frontend/src/app/admin/invitations/invite-dialog/invite-dialog.component.html`,
       `apps/frontend/src/app/admin/accounts/accounts.component.html`,
       `apps/frontend/src/app/settings/preferences/preferences.component.html`,
       `apps/frontend/src/app/holdings/holding-form/holding-form.component.html`
-- [ ] T032 [US2] Add trigger-icon `ng-template` override (rendering `<vf-icon name="...">` with a
+- [x] T032 [US2] Add trigger-icon `ng-template` override (rendering `<vf-icon name="...">` with a
       calendar glyph) to the `p-datepicker` usage in
       `apps/frontend/src/app/holdings/holding-form/holding-form.component.html`
-- [ ] T033 [US2] Add sort-icon `ng-template` override(s) (ascending/descending/unsorted states,
+- [x] T033 [US2] Add sort-icon `ng-template` override(s) (ascending/descending/unsorted states,
       rendering `<vf-icon name="...">`) to every `p-table` usage:
       `apps/frontend/src/app/admin/signups/signups.component.html`,
       `apps/frontend/src/app/admin/invitations/invitations.component.html`,
       `apps/frontend/src/app/admin/accounts/accounts.component.html`,
       `apps/frontend/src/app/holdings/holdings.component.html`
-- [ ] T034 [US2] Add icon + close icon-slot overrides to every `p-confirmdialog`/
+- [x] T034 [US2] Add icon + close icon-slot overrides to every `p-confirmdialog`/
       `ConfirmationService` usage: `apps/frontend/src/app/admin/signups/signups.component.ts`/`.html`,
       `apps/frontend/src/app/admin/invitations/invitations.component.ts`/`.html`,
       `apps/frontend/src/app/admin/accounts/accounts.component.ts`/`.html`,
       `apps/frontend/src/app/holdings/holdings.component.ts`/`.html`
-- [ ] T035 [US2] Audit and, if rendered via a slot rather than CSS, add severity-icon overrides
+- [x] T035 [US2] Audit and, if rendered via a slot rather than CSS, add severity-icon overrides
       (success/warning/error/info, each a distinct `vf-icon` glyph) for every `p-toast`/`p-message`
       usage: `apps/frontend/src/app/admin/signups/signups.component.html`,
       `apps/frontend/src/app/admin/invitations/invitations.component.html`,
@@ -188,7 +188,7 @@ recognizable icon that conveys the same meaning as its prior counterpart (quicks
       `apps/frontend/src/app/settings/profile/profile.component.html`,
       `apps/frontend/src/app/settings/preferences/preferences.component.html`,
       `apps/frontend/src/app/holdings/holdings.component.html`
-- [ ] T036 [US2] Manually verify the loading/spinner icon (`vf-icon`'s `[spin]` input,
+- [x] T036 [US2] Manually verify the loading/spinner icon (`vf-icon`'s `[spin]` input,
       `spinner`→`progress_activity`) still animates wherever the old `pi-spin`/`pi-spinner` was used
 
 **Checkpoint**: All PrimeNG-internal icons are overridden; User Stories 1 AND 2 both work
@@ -217,19 +217,19 @@ part of Polish (T040).
 **Purpose**: Remove the now-unused `primeicons` dependency and run full validation per
 quickstart.md.
 
-- [ ] T037 Remove `@import 'primeicons/primeicons.css';` from `apps/frontend/src/styles.css`
-- [ ] T038 [P] Remove the `primeicons` dependency from `package.json` (and
+- [x] T037 Remove `@import 'primeicons/primeicons.css';` from `apps/frontend/src/styles.css`
+- [x] T038 [P] Remove the `primeicons` dependency from `package.json` (and
       `apps/frontend/package.json` if declared there too, per this repo's convention of declaring
       runtime deps in each app's own package.json) and run `npm install` to update the lockfile
-- [ ] T039 Run
+- [x] T039 Run
       `grep -rE "pi pi-|['\"]pi-[a-z]" apps/frontend/src && echo "FAIL" || echo "PASS"` and
       `grep -rn "primeicons" apps/frontend/src apps/frontend/package.json package.json 2>/dev/null && echo "FAIL" || echo "PASS"`
       (quickstart.md §1) and confirm both print `PASS`
-- [ ] T040 [P] Run quickstart.md's full validation checklist (§§1–6): visual sweep across
+- [x] T040 [P] Run quickstart.md's full validation checklist (§§1–6): visual sweep across
       dashboard/holdings/admin/auth/profile, interactive-control meaning check, light/dark theme +
       disabled-state check, unknown-icon fallback check, accessibility spot-check, and the constitution
       documentation check
-- [ ] T041 [P] Run `npm exec nx test frontend` and `npm exec nx lint frontend` and fix any
+- [x] T041 [P] Run `npm exec nx test frontend` and `npm exec nx lint frontend` and fix any
       failures introduced by the icon swap
 
 ---

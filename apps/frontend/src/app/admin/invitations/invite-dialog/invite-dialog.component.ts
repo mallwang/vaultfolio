@@ -6,6 +6,7 @@ import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { SelectModule } from 'primeng/select';
+import { IconComponent } from '../../../shared/icon/icon.component';
 import { InvitationsService } from '../invitations.service';
 import { TranslatePipe } from '../../../core/i18n/translate.pipe';
 
@@ -37,6 +38,7 @@ const ROLE_OPTIONS: RoleOption[] = [
     MessageModule,
     FormsModule,
     TranslatePipe,
+    IconComponent,
   ],
   providers: [TranslatePipe],
   templateUrl: './invite-dialog.component.html',

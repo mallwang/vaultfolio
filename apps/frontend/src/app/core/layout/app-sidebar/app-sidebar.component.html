@@ -7,7 +7,7 @@
         routerLinkActive="app-nav__item--active"
         ariaCurrentWhenActive="page"
       >
-        <i [class]="area.icon" aria-hidden="true"></i>
+        <app-icon [name]="area.icon" />
         <span>{{ 'nav.' + area.id | translate }}</span>
       </a>
     }

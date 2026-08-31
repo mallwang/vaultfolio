@@ -71,7 +71,7 @@
           [disabled]="!newEmail().trim() || requestingEmailChange()"
           (click)="requestEmailChange()"
         >
-          <i class="pi pi-envelope" aria-hidden="true"></i>
+          <app-icon name="envelope" />
           {{ 'profile.sendVerificationLink' | translate }}
         </button>
       </div>
@@ -129,7 +129,7 @@
           [disabled]="!currentPassword() || !newPassword() || changingPassword()"
           (click)="changePassword()"
         >
-          <i class="pi pi-key" aria-hidden="true"></i>
+          <app-icon name="key" />
           {{ 'profile.changePassword' | translate }}
         </button>
       </div>
@@ -138,17 +138,17 @@
     <!-- ===== Danger Zone (User Story 3 — FR-008–FR-010) ===== -->
     <div class="danger-zone">
       <h2>
-        <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+        <app-icon name="warning" />
         {{ 'profile.dangerZone' | translate }}
       </h2>
       <p>{{ 'profile.dangerZoneHint' | translate }}</p>
       <div class="danger-actions">
         <button pButton type="button" severity="secondary">
-          <i class="pi pi-download" aria-hidden="true"></i>
+          <app-icon name="download" />
           {{ 'profile.exportData' | translate }}
         </button>
         <button pButton type="button" severity="danger" (click)="openDangerZone()">
-          <i class="pi pi-trash" aria-hidden="true"></i>
+          <app-icon name="trash" />
           {{ 'profile.deleteAccount' | translate }}
         </button>
       </div>
@@ -164,10 +164,11 @@
   [style]="{ width: '28rem' }"
   (visibleChange)="closeDangerZone()"
 >
+  <ng-template #closeicon><app-icon name="close" /></ng-template>
   <p>{{ 'profile.deleteAdvisory' | translate }}</p>
   <ng-template #footer>
     <button pButton type="button" severity="secondary" [text]="true">
-      <i class="pi pi-download" aria-hidden="true"></i> {{ 'profile.exportDataFirst' | translate }}
+      <app-icon name="download" /> {{ 'profile.exportDataFirst' | translate }}
     </button>
     <button pButton type="button" severity="danger" (click)="proceedToConfirm()">
       {{ 'profile.continue' | translate }}
@@ -183,6 +184,7 @@
   [style]="{ width: '28rem' }"
   (visibleChange)="closeDangerZone()"
 >
+  <ng-template #closeicon><app-icon name="close" /></ng-template>
   <p>{{ 'profile.deleteFinalWarning' | translate }}</p>
   <div class="field">
     <label for="delete-confirm-text">{{ 'profile.typeDeleteToConfirm' | translate }}</label>
@@ -209,7 +211,7 @@
       [disabled]="deleteConfirmText() !== 'DELETE' || deleting()"
       (click)="confirmDeleteAccount()"
     >
-      <i class="pi pi-trash" aria-hidden="true"></i>
+      <app-icon name="trash" />
       {{ 'profile.permanentlyDeleteAccount' | translate }}
     </button>
   </ng-template>
@@ -223,6 +225,7 @@
   [style]="{ width: '28rem' }"
   (visibleChange)="closeDangerZone()"
 >
+  <ng-template #closeicon><app-icon name="close" /></ng-template>
   <p>{{ 'profile.deleteFinalWarning' | translate }}</p>
   <p-message severity="warn" styleClass="last-admin-banner">
     <strong>{{ 'profile.soleAdministrator' | translate }}</strong>
@@ -233,7 +236,7 @@
       {{ 'common.cancel' | translate }}
     </button>
     <button pButton type="button" severity="danger" [disabled]="true">
-      <i class="pi pi-trash" aria-hidden="true"></i>
+      <app-icon name="trash" />
       {{ 'profile.permanentlyDeleteAccount' | translate }}
     </button>
   </ng-template>

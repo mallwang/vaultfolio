@@ -9,6 +9,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
+import { IconComponent } from '../../shared/icon/icon.component';
 import { CurrentUserStore } from '../../auth/current-user.store';
 import { ProfileService } from './profile.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
@@ -43,6 +44,7 @@ function errorOf(error: unknown): { status?: number; body?: ProfileErrorResponse
     MessageModule,
     ToastModule,
     TranslatePipe,
+    IconComponent,
   ],
   providers: [MessageService, TranslatePipe],
   templateUrl: './profile.component.html',

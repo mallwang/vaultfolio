@@ -5,6 +5,7 @@
   [style]="{ width: '28rem' }"
   (visibleChange)="close()"
 >
+  <ng-template #closeicon><app-icon name="close" /></ng-template>
   @if (errorMessage()) {
     <p-message severity="error" styleClass="reject-dialog__error">{{ errorMessage() }}</p-message>
   }
@@ -29,7 +30,7 @@
       {{ 'invitations.keepIt' | translate }}
     </button>
     <button pButton type="button" severity="danger" [loading]="submitting()" (click)="submit()">
-      <i class="pi pi-times" aria-hidden="true"></i> {{ 'signups.rejectSignup' | translate }}
+      <app-icon name="close" /> {{ 'signups.rejectSignup' | translate }}
     </button>
   </ng-template>
 </p-dialog>

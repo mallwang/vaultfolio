@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
+import { IconComponent } from '../../shared/icon/icon.component';
 import { ProfileService } from '../../settings/profile/profile.service';
 
 type ViewState = 'loading' | 'ready' | 'invalid';
@@ -16,7 +17,7 @@ type ViewState = 'loading' | 'ready' | 'invalid';
  */
 @Component({
   selector: 'app-verify-email',
-  imports: [ButtonModule, CardModule, RouterLink],
+  imports: [ButtonModule, CardModule, RouterLink, IconComponent],
   templateUrl: './verify-email.component.html',
   styleUrl: './verify-email.component.css',
 })

@@ -1,6 +1,7 @@
 import { Component, computed, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { CurrentUserStore } from '../../../auth/current-user.store';
+import { IconComponent } from '../../../shared/icon/icon.component';
 import { APPLICATION_AREAS } from '../application-areas';
 import { TranslatePipe } from '../../i18n/translate.pipe';
 
@@ -14,7 +15,7 @@ import { TranslatePipe } from '../../i18n/translate.pipe';
  */
 @Component({
   selector: 'app-sidebar',
-  imports: [RouterLink, RouterLinkActive, TranslatePipe],
+  imports: [RouterLink, RouterLinkActive, TranslatePipe, IconComponent],
   templateUrl: './app-sidebar.component.html',
   styleUrl: './app-sidebar.component.css',
 })

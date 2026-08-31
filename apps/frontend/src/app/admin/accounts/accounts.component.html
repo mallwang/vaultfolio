@@ -1,5 +1,7 @@
 <p-toast />
-<p-confirmdialog />
+<p-confirmdialog>
+  <ng-template #icon><app-icon name="warning" /></ng-template>
+</p-confirmdialog>
 
 @if (lastAdminBlockedFor()) {
   <p-message severity="warn" styleClass="last-admin-banner">
@@ -40,7 +42,9 @@
                 [disabled]="account.isLastActiveAdmin || account.status === 'ARCHIVED'"
                 (onChange)="onRoleChange(account, $event.value)"
                 appendTo="body"
-              />
+              >
+                <ng-template #dropdownicon><app-icon name="chevron-down" /></ng-template>
+              </p-select>
               @if (account.isLastActiveAdmin) {
                 <p-tag
                   severity="info"
@@ -79,7 +83,7 @@
                   [attr.aria-label]="archiveLabel(account)"
                   (click)="confirmArchive(account, $event)"
                 >
-                  <i class="pi pi-inbox" aria-hidden="true"></i>
+                  <app-icon name="inbox" />
                 </button>
               } @else {
                 <button
@@ -91,7 +95,7 @@
                   [attr.aria-label]="'accounts.reactivateAccount' | translate"
                   (click)="reactivate(account)"
                 >
-                  <i class="pi pi-replay" aria-hidden="true"></i>
+                  <app-icon name="replay" />
                 </button>
               }
             </div>

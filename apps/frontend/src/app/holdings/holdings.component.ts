@@ -6,6 +6,7 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DialogModule } from 'primeng/dialog';
 import { TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
+import { IconComponent } from '../shared/icon/icon.component';
 import { ASSET_TYPE_LABELS } from './asset-type-fields';
 import { HoldingFormComponent } from './holding-form/holding-form.component';
 import { HoldingsDistributionComponent } from './holdings-distribution/holdings-distribution.component';
@@ -27,6 +28,7 @@ import { TranslatePipe } from '../core/i18n/translate.pipe';
     HoldingFormComponent,
     HoldingsDistributionComponent,
     TranslatePipe,
+    IconComponent,
   ],
   providers: [ConfirmationService, MessageService, TranslatePipe],
   templateUrl: './holdings.component.html',
@@ -105,7 +107,6 @@ export class HoldingsComponent implements OnInit {
         .replace('{{assetType}}', this.assetTypeLabels[holding.assetType])
         .replace('{{management}}', holding.management),
       header: this.translate.transform('holdings.deleteConfirmHeader'),
-      icon: 'pi pi-exclamation-triangle',
       acceptButtonProps: { severity: 'danger', label: this.translate.transform('holdings.delete') },
       rejectButtonProps: {
         severity: 'secondary',
