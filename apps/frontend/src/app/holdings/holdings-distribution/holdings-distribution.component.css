@@ -1,8 +1,18 @@
 .distribution {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 0.5rem;
   max-width: 24rem;
+  margin: 0 auto;
+}
+
+/* app-echart fills its parent (shared css); give it a concrete height here
+   since .distribution itself only sizes to its content. */
+.distribution app-echart {
+  display: block;
+  width: 100%;
+  height: 18rem;
 }
 
 .distribution__note,

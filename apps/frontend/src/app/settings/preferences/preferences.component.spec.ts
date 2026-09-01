@@ -28,6 +28,11 @@ describe('PreferencesComponent (integration)', () => {
 
   afterEach(() => {
     httpMock.verify();
+    // Tests in this file call I18nService.setLanguage('de'), which persists
+    // to localStorage — clear it so the choice doesn't leak into other spec
+    // files sharing this jsdom environment (I18nService reads it eagerly at
+    // construction, defaulting other components' language to German).
+    localStorage.clear();
   });
 
   it('pre-fills the picker with the current display language when no email language is set yet', async () => {

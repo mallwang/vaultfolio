@@ -2,5 +2,8 @@
   "name": "frontend",
   "version": "0.0.4",
   "license": "MIT",
-  "private": true
+  "private": true,
+  "dependencies": {
+    "echarts": "^6.1.0"
+  }
 }
