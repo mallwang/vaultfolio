@@ -1,25 +1,25 @@
 <!--
 Sync Impact Report
-- Version change: 3.0.0 → 3.1.0 (MINOR: new Stack Decision entry adds a materially new,
-  binding constraint — Material Icons as the sole icon library, PrimeIcons prohibited — without
-  redefining or removing any existing principle or constraint)
+- Version change: 3.1.0 → 3.2.0 (MINOR: new Stack Decision entry adds a materially new,
+  binding constraint — ECharts as the sole charting library, PrimeNG Chart/Chart.js prohibited —
+  without redefining or removing any existing principle or constraint)
 - Modified principles: none
 - Added sections: none (new bullet added to existing "Stack Decision" subsection)
 - Removed sections: none
 - Modified sections:
-  - Technology & Architecture Constraints → Stack Decision: added an "Icon library" entry
-    naming Google Material Icons (via PrimeNG's documented custom-icon mechanism) as the
-    required, sole icon library for the frontend, and prohibiting PrimeIcons (PrimeNG's
-    bundled default icon font) anywhere in the application UI.
-- Rationale for this amendment: driven by feature 014-material-icons — the project is
-  standardizing on one consistent icon visual language across the app instead of mixing
-  PrimeIcons with other icon usage, and this decision needs to be binding for all future
-  feature work, not just the one feature that introduces it.
+  - Technology & Architecture Constraints → Stack Decision: added a "Charting library" entry
+    naming Apache ECharts as the required, sole charting library for the frontend, and
+    prohibiting PrimeNG's Chart component (and its underlying Chart.js dependency) anywhere in
+    the application UI.
+- Rationale for this amendment: driven by feature 016-echarts-chart-migration — the project is
+  standardizing on one consistent charting library across the app instead of relying on PrimeNG's
+  bundled Chart.js-based component, and this decision needs to be binding for all future feature
+  work, not just the one feature that introduces it.
 - Templates requiring updates:
   - .specify/templates/constitution-template.md ✅ no change needed (generic placeholder
-    template, no icon-specific language to update)
-  - .specify/templates/plan-template.md ✅ no change needed (no icon-specific language)
-  - .specify/templates/tasks-template.md ✅ no change needed (no icon-specific language)
+    template, no charting-specific language to update)
+  - .specify/templates/plan-template.md ✅ no change needed (no charting-specific language)
+  - .specify/templates/tasks-template.md ✅ no change needed (no charting-specific language)
   - .specify/templates/spec-template.md ✅ no change needed (spec stays technology-agnostic)
 - Follow-up TODOs:
   - TODO(MARKET_DATA_PROVIDER): Specific market-data API vendor (prices, ETF composition) not yet
@@ -198,6 +198,10 @@ provider is unreachable, since a user's recorded holdings are the source of trut
   mechanism (https://primeng.dev/customicons); PrimeIcons (PrimeNG's bundled default icon font)
   MUST NOT be used anywhere in the application UI — new and existing icon usage alike MUST resolve
   to a Material Icons glyph, with no partial/mixed icon sets left in place.
+- **Charting library**: Apache ECharts is the sole, standard charting library for the frontend.
+  All charts MUST be rendered via ECharts; PrimeNG's Chart component (and its underlying Chart.js
+  dependency) MUST NOT be used anywhere in the application UI — new and existing chart usage alike
+  MUST be migrated to ECharts, with no partial/mixed charting libraries left in place.
 
 ## Development Workflow & Quality Gates
 
@@ -225,4 +229,4 @@ alignment with the Core Principles; unresolved violations MUST be justified in t
 Complexity Tracking section or the plan MUST be revised to comply. Reviewers MUST treat this
 constitution as authoritative over informal team conventions.
 
-**Version**: 3.1.0 | **Ratified**: 2026-08-13 | **Last Amended**: 2026-08-31
+**Version**: 3.2.0 | **Ratified**: 2026-08-13 | **Last Amended**: 2026-09-01
