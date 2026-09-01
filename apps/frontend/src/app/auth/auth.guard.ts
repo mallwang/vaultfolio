@@ -14,10 +14,16 @@ import { CurrentUserStore } from './current-user.store';
  * interceptor (`authInterceptor`) handles the equivalent redirect for calls
  * made *after* a route has already activated (e.g. session expiry
  * mid-session).
+ *
+ * The deep link the user was headed for (`state.url`) is carried along as a
+ * `redirect` query param so `SignInComponent` can send them there once they
+ * authenticate, instead of always landing on the dashboard.
  */
-export const authGuard: CanActivateFn = () => {
+export const authGuard: CanActivateFn = (_route, state) => {
   const currentUser = inject(CurrentUserStore);
   const router = inject(Router);
 
-  return currentUser.status() === 'authenticated' ? true : router.parseUrl('/sign-in');
+  return currentUser.status() === 'authenticated'
+    ? true
+    : router.parseUrl(`/sign-in?redirect=${encodeURIComponent(state.url)}`);
 };

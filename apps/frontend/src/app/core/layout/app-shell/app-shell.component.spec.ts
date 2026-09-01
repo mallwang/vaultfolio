@@ -57,12 +57,12 @@ describe('AppShellComponent (integration)', () => {
   it('is unreachable (redirects to /sign-in) when Auth Status is unauthenticated', async () => {
     fakeCurrentUser.setUnauthenticated();
     await RouterTestingHarness.create('/app/dashboard');
-    expect(location.path()).toBe('/sign-in');
+    expect(location.path()).toBe(`/sign-in?redirect=${encodeURIComponent('/app/dashboard')}`);
   });
 
   it('is unreachable (redirects to /sign-in) while Auth Status is unknown', async () => {
     fakeCurrentUser.setUnknown();
     await RouterTestingHarness.create('/app/dashboard');
-    expect(location.path()).toBe('/sign-in');
+    expect(location.path()).toBe(`/sign-in?redirect=${encodeURIComponent('/app/dashboard')}`);
   });
 });

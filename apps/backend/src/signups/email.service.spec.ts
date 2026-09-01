@@ -58,12 +58,18 @@ describe('EmailService (signups)', () => {
     expect(renderNotification).toHaveBeenCalledWith({
       type: 'signup-admin-alert',
       preferredLanguage: 'en',
-      viewModel: { requestEmail: 'newuser@example.com' },
+      viewModel: {
+        requestEmail: 'newuser@example.com',
+        reviewUrl: 'https://vaultfolio.example.com/app/admin/signups',
+      },
     });
     expect(renderNotification).toHaveBeenCalledWith({
       type: 'signup-admin-alert',
       preferredLanguage: 'de',
-      viewModel: { requestEmail: 'newuser@example.com' },
+      viewModel: {
+        requestEmail: 'newuser@example.com',
+        reviewUrl: 'https://vaultfolio.example.com/app/admin/signups',
+      },
     });
     expect(mailerService.send).toHaveBeenCalledWith({
       to: 'admin-en@example.com',

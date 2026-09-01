@@ -60,12 +60,13 @@ export class EmailService {
     admins: { email: string; emailLanguage: string | null }[],
     requestEmail: string,
   ): Promise<void> {
+    const reviewUrl = requireAbsoluteUrl('/app/admin/signups');
     await Promise.all(
       admins.map((admin) => {
         const rendered = renderNotification({
           type: 'signup-admin-alert',
           preferredLanguage: admin.emailLanguage,
-          viewModel: { requestEmail },
+          viewModel: { requestEmail, reviewUrl },
         });
         return this.mailerService.send({ to: admin.email, ...rendered });
       }),
