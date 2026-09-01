@@ -4,18 +4,23 @@ import { ButtonModule } from 'primeng/button';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DialogModule } from 'primeng/dialog';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { InputTextModule } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
 import { IconComponent } from '../shared/icon/icon.component';
 import { ASSET_TYPE_LABELS } from './asset-type-fields';
 import { HoldingFormComponent } from './holding-form/holding-form.component';
-import { HoldingsDistributionComponent } from './holdings-distribution/holdings-distribution.component';
 import { HoldingsService } from './holdings.service';
 import { TranslatePipe } from '../core/i18n/translate.pipe';
 
 /**
- * Holdings area (FR-001–FR-016, User Stories 1–4): the value-distribution
- * view, the holdings list, and the add/edit/delete flows, per design.md.
+ * Holdings area (FR-001–FR-016, User Stories 1–4): the holdings list and the
+ * add/edit/delete flows, per design.md. The value-distribution view (FR-012a)
+ * has moved to the dashboard's "Allocation" card
+ * (dashboard/dashboard.component.ts) — it consumes the same
+ * `app-holdings-distribution` component.
  */
 @Component({
   selector: 'app-holdings',
@@ -25,8 +30,10 @@ import { TranslatePipe } from '../core/i18n/translate.pipe';
     DialogModule,
     ConfirmDialogModule,
     ToastModule,
+    IconFieldModule,
+    InputIconModule,
+    InputTextModule,
     HoldingFormComponent,
-    HoldingsDistributionComponent,
     TranslatePipe,
     IconComponent,
   ],

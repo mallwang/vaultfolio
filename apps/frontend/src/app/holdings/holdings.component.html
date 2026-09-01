@@ -3,11 +3,6 @@
   <ng-template #icon><app-icon name="warning" /></ng-template>
 </p-confirmdialog>
 
-<section class="distribution-panel">
-  <h2>{{ 'holdings.distributionByValue' | translate }}</h2>
-  <app-holdings-distribution [holdings]="holdings()" />
-</section>
-
 <section class="holdings-panel">
   <div class="holdings-panel__header">
     <h2>
@@ -24,15 +19,55 @@
   @if (loadError()) {
     <p class="error-state">{{ loadError() }}</p>
   } @else {
-    <p-table [value]="holdings()" [loading]="loading()" [tableStyle]="{ 'min-width': '50rem' }">
+    <div class="holdings-panel__filter">
+      <p-iconfield iconPosition="left">
+        <p-inputicon>
+          <app-icon name="search" />
+        </p-inputicon>
+        <input
+          pInputText
+          type="text"
+          [attr.aria-label]="'holdings.filterPlaceholder' | translate"
+          [placeholder]="'holdings.filterPlaceholder' | translate"
+          (input)="dt.filterGlobal($any($event.target).value, 'contains')"
+        />
+      </p-iconfield>
+    </div>
+    <p-table
+      #dt
+      [value]="holdings()"
+      [loading]="loading()"
+      [tableStyle]="{ 'min-width': '50rem' }"
+      [globalFilterFields]="['assetType', 'name', 'management', 'purchaseDate']"
+      sortMode="single"
+      removableSort
+    >
       <ng-template #header>
         <tr>
-          <th scope="col">{{ 'holdings.columnType' | translate }}</th>
-          <th scope="col">{{ 'holdings.columnAsset' | translate }}</th>
-          <th scope="col">{{ 'holdings.columnManagement' | translate }}</th>
-          <th scope="col">{{ 'holdings.columnQuantity' | translate }}</th>
-          <th scope="col">{{ 'holdings.columnPrice' | translate }}</th>
-          <th scope="col">{{ 'holdings.columnPurchaseDate' | translate }}</th>
+          <th scope="col" pSortableColumn="assetType">
+            {{ 'holdings.columnType' | translate }}
+            <p-sort-icon field="assetType" />
+          </th>
+          <th scope="col" pSortableColumn="name">
+            {{ 'holdings.columnAsset' | translate }}
+            <p-sort-icon field="name" />
+          </th>
+          <th scope="col" pSortableColumn="management">
+            {{ 'holdings.columnManagement' | translate }}
+            <p-sort-icon field="management" />
+          </th>
+          <th scope="col" pSortableColumn="quantity">
+            {{ 'holdings.columnQuantity' | translate }}
+            <p-sort-icon field="quantity" />
+          </th>
+          <th scope="col" pSortableColumn="purchasePrice">
+            {{ 'holdings.columnPrice' | translate }}
+            <p-sort-icon field="purchasePrice" />
+          </th>
+          <th scope="col" pSortableColumn="purchaseDate">
+            {{ 'holdings.columnPurchaseDate' | translate }}
+            <p-sort-icon field="purchaseDate" />
+          </th>
           <th scope="col"></th>
         </tr>
       </ng-template>

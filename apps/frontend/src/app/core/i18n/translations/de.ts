@@ -54,7 +54,7 @@ export const de: TranslationDictionary = {
   },
   holdings: {
     addHolding: 'Bestand hinzufügen',
-    distributionByValue: 'Verteilung nach Wert',
+    filterPlaceholder: 'Bestände durchsuchen',
     countSingular: 'Bestand',
     countPlural: 'Bestände',
     columnType: 'Typ',

@@ -81,13 +81,6 @@ describe('HoldingsComponent', () => {
     expect(text).toContain('No holdings yet');
   });
 
-  it('excludes a valueless Gold holding from the distribution view', () => {
-    flushList([goldNoValue]);
-
-    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
-    expect(text).toContain('Add a holding with a known value');
-  });
-
   describe('delete flow', () => {
     beforeEach(() => {
       flushList([etf]);
