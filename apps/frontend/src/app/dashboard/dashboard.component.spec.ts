@@ -44,6 +44,10 @@ describe('DashboardComponent', () => {
   let httpMock: HttpTestingController;
 
   beforeEach(async () => {
+    // Guard against a leaked 'de' language choice from another spec file
+    // sharing this jsdom environment (I18nService reads localStorage eagerly
+    // at construction) — this test asserts against the English copy.
+    localStorage.clear();
     vi.stubGlobal('ResizeObserver', FakeResizeObserver);
 
     await TestBed.configureTestingModule({
