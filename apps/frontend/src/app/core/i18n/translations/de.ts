@@ -47,7 +47,11 @@ export const de: TranslationDictionary = {
     totalValue: 'Gesamtwert',
     todaysChange: 'Heutige Veränderung',
     allocation: 'Verteilung',
-    pending: '— ausstehend —',
+    comingSoon: 'Bald verfügbar',
+    totalValueBody:
+      'Diese Karte zeigt den Gesamtwert Ihrer Bestände, sobald Portfoliodaten verfügbar sind.',
+    todaysChangeBody:
+      'Diese Karte zeigt die heutige Wertentwicklung Ihres Portfolios, sobald Portfoliodaten verfügbar sind.',
     emptyStateTitle: 'Portfolioübersicht folgt in Kürze',
     emptyStateBody:
       'Hier werden Gesamtwert, Verteilung und Wertentwicklung Ihrer Bestände angezeigt, sobald Portfoliodaten verfügbar sind.',
@@ -55,6 +59,11 @@ export const de: TranslationDictionary = {
   holdingsDistribution: {
     emptyState:
       'Fügen Sie einen Bestand mit bekanntem Wert hinzu, um die Verteilung nach Wert zu sehen.',
+  },
+  imports: {
+    dropzoneTitle: 'Ziehen Sie eine Abrechnung oder CSV-Datei hierher',
+    dropzoneBody:
+      'Der Import wird bald unterstützt — dieser Bereich wird Broker-Exporte akzeptieren und mit Ihren Beständen abgleichen.',
   },
   holdings: {
     addHolding: 'Bestand hinzufügen',

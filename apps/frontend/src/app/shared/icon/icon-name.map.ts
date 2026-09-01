@@ -48,4 +48,6 @@ export const ICON_NAME_MAP: Record<string, string> = {
   'sort-down': 'arrow_downward',
   info: 'info',
   ban: 'block',
+  wallet: 'account_balance_wallet',
+  'trending-up': 'trending_up',
 };

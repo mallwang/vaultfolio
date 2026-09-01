@@ -44,12 +44,15 @@ export class HoldingsDistributionComponent implements OnChanges {
     const palette = resolveChartPalette(this.themeService.theme());
     return {
       color: palette.seriesColors,
-      legend: { orient: 'vertical', right: 0, top: 'center' },
+      legend: { orient: 'horizontal', bottom: 0, left: 'center' },
       tooltip: { trigger: 'item' },
       series: [
         {
           type: 'pie',
-          radius: ['closer-to-40%', '70%'],
+          radius: ['40%', '65%'],
+          center: ['50%', '42%'],
+          padAngle: 2,
+          itemStyle: { borderRadius: 9 },
           data: entries.map(({ name, value }) => ({ name, value })),
         },
       ],

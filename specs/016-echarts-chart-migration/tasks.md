@@ -151,7 +151,7 @@ message instead of a blank/broken chart.
 
 - [x] T018 [P] [US2] Add `holdingsDistribution.emptyState` translation keys to
       `apps/frontend/src/app/core/i18n/translations/en.ts` (`'Add a holding with a known value to
-  see the distribution by value.'`) and
+see the distribution by value.'`) and
       `apps/frontend/src/app/core/i18n/translations/de.ts` (German equivalent)
 - [x] T019 [US2] In
       `apps/frontend/src/app/holdings/holdings-distribution/holdings-distribution.component.html`,
