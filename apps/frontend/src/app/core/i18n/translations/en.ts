@@ -59,7 +59,7 @@ export const en: TranslationDictionary = {
   },
   holdings: {
     addHolding: 'Add holding',
-    distributionByValue: 'Distribution by value',
+    filterPlaceholder: 'Search holdings',
     countSingular: 'holding',
     countPlural: 'holdings',
     columnType: 'Type',

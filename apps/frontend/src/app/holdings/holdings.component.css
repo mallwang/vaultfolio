@@ -1,4 +1,3 @@
-.distribution-panel,
 .holdings-panel {
   margin-bottom: 1.5rem;
 }
@@ -7,6 +6,12 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.holdings-panel__filter {
+  display: flex;
+  justify-content: flex-end;
   margin-bottom: 0.75rem;
 }
 

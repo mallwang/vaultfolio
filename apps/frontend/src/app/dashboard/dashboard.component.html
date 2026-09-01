@@ -6,7 +6,7 @@
     <span class="stat-card__value">{{ 'dashboard.pending' | translate }}</span>
   </p-card>
   <p-card [header]="'dashboard.allocation' | translate">
-    <span class="stat-card__value">{{ 'dashboard.pending' | translate }}</span>
+    <app-holdings-distribution [holdings]="holdings()" />
   </p-card>
 </div>
 
