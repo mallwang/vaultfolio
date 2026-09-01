@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AuthModule } from '../auth/auth.module';
 import { AccountsModule } from '../accounts/accounts.module';
+import { MailerModule } from '../mail/mailer.module';
 import { EmailAvailabilityService } from '../shared/email-availability.service';
 import { InvitationsRepository } from '../invitations/invitations.repository';
 import { SignupsRepository } from '../signups/signups.repository';
@@ -18,7 +19,7 @@ import { EmailService } from './email.service';
  * mirroring `InvitationsModule`'s own provider list.
  */
 @Module({
-  imports: [AuthModule, AccountsModule],
+  imports: [AuthModule, AccountsModule, MailerModule],
   controllers: [ProfileController],
   providers: [
     ProfileService,

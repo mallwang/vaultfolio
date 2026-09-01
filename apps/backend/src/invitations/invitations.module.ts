@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { AuthModule } from '../auth/auth.module';
+import { MailerModule } from '../mail/mailer.module';
 import { EmailAvailabilityService } from '../shared/email-availability.service';
 import { SignupsRepository } from '../signups/signups.repository';
 import { InvitationsController } from './invitations.controller';
@@ -15,7 +16,7 @@ import { EmailService } from './email.service';
  * `EmailAvailabilityService` can see 007's sign-up/blacklist tables.
  */
 @Module({
-  imports: [AuthModule],
+  imports: [AuthModule, MailerModule],
   controllers: [InvitationsController],
   providers: [
     InvitationsService,

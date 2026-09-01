@@ -118,17 +118,19 @@ describe('app.routes', () => {
       fakeCurrentUser.setUnauthenticated();
     });
 
-    it.each(['/app/dashboard', '/app/holdings', '/app/imports', '/app/settings'])(
-      'redirects %s to /sign-in',
-      async (path) => {
-        await router.navigateByUrl(path);
-        expect(location.path()).toBe('/sign-in');
-      },
-    );
+    it.each([
+      ['/app/dashboard', '/app/dashboard'],
+      ['/app/holdings', '/app/holdings'],
+      ['/app/imports', '/app/imports'],
+      ['/app/settings', '/app/settings/profile'],
+    ])('redirects %s to /sign-in, preserving %s as a redirect target', async (path, resolved) => {
+      await router.navigateByUrl(path);
+      expect(location.path()).toBe(`/sign-in?redirect=${encodeURIComponent(resolved)}`);
+    });
 
-    it('redirects a legacy address to /sign-in via its /app equivalent', async () => {
+    it('redirects a legacy address to /sign-in via its /app equivalent, preserving the resolved /app address as a redirect target', async () => {
       await router.navigateByUrl('/dashboard');
-      expect(location.path()).toBe('/sign-in');
+      expect(location.path()).toBe(`/sign-in?redirect=${encodeURIComponent('/app/dashboard')}`);
     });
 
     it.each(['/sign-in', '/signup', '/invite/expired'])(

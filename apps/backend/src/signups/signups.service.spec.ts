@@ -34,7 +34,7 @@ describe('SignupsService', () => {
     markVerified?: SignupRequest | null;
     markApproved?: SignupRequest | null;
     markRejected?: SignupRequest | null;
-    admins?: { email: string }[];
+    admins?: { email: string; emailLanguage: string | null }[];
   }) {
     const signups = {
       create: jest.fn().mockResolvedValue(makeRequest()),
@@ -52,7 +52,7 @@ describe('SignupsService', () => {
       create: jest.fn().mockResolvedValue({ id: 'u1', email: 'visitor@example.com' }),
       findAllByRole: jest
         .fn()
-        .mockResolvedValue(options.admins ?? [{ email: 'admin@example.com' }]),
+        .mockResolvedValue(options.admins ?? [{ email: 'admin@example.com', emailLanguage: null }]),
     };
     const emailAvailability = {
       check: jest.fn().mockResolvedValue(options.availability ?? { kind: 'available' }),
@@ -131,12 +131,18 @@ describe('SignupsService', () => {
       const { svc, emailService } = service({
         findByToken: makeRequest(),
         markVerified: makeRequest({ status: 'VERIFIED', verifiedAt: '2026-01-01T00:00:00.000Z' }),
-        admins: [{ email: 'admin1@example.com' }, { email: 'admin2@example.com' }],
+        admins: [
+          { email: 'admin1@example.com', emailLanguage: 'en' },
+          { email: 'admin2@example.com', emailLanguage: 'de' },
+        ],
       });
       const result = await svc.verify('tok');
       expect(result.kind).toBe('success');
       expect(emailService.sendAdminNotification).toHaveBeenCalledWith(
-        ['admin1@example.com', 'admin2@example.com'],
+        [
+          { email: 'admin1@example.com', emailLanguage: 'en' },
+          { email: 'admin2@example.com', emailLanguage: 'de' },
+        ],
         'visitor@example.com',
       );
     });

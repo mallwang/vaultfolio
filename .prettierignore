@@ -5,3 +5,8 @@
 /.nx/workspace-data
 .nx/self-healing
 .angular
+
+# Handlebars notification templates/partials (libs/notifications) — Prettier's
+# bundled hbs parser doesn't support standalone (non-component) partials
+# like `{{> header-en}}`.
+*.hbs

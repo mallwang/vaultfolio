@@ -176,7 +176,12 @@ export class ProfileService {
     await this.users.setPendingEmail(userId, newEmail);
 
     try {
-      await this.emailService.sendEmailChangeVerification(newEmail, newEmail, token);
+      const actingUser = await this.users.findById(userId);
+      await this.emailService.sendEmailChangeVerification(
+        { email: newEmail, emailLanguage: actingUser?.emailLanguage ?? null },
+        newEmail,
+        token,
+      );
     } catch (error) {
       this.logger.error({
         event: 'email_change_email_failed',
@@ -267,7 +272,10 @@ export class ProfileService {
       ).toISOString();
       await this.tokens.create({ userId: user.id, purpose: 'PASSWORD_RESET', token, expiresAt });
       try {
-        await this.emailService.sendPasswordReset(user.email, token);
+        await this.emailService.sendPasswordReset(
+          { email: user.email, emailLanguage: user.emailLanguage },
+          token,
+        );
       } catch (error) {
         // Never surfaced — a delivery failure on this branch would itself
         // leak account existence if it changed the response (research.md #6).

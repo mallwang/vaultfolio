@@ -210,7 +210,11 @@ describe('ProfileService.requestEmailChange', () => {
       }),
     );
     expect(users.setPendingEmail).toHaveBeenCalledWith('user1', 'new@example.com');
-    expect(emailService.sendEmailChangeVerification).toHaveBeenCalled();
+    expect(emailService.sendEmailChangeVerification).toHaveBeenCalledWith(
+      { email: 'new@example.com', emailLanguage: makeUser().emailLanguage },
+      'new@example.com',
+      expect.any(String),
+    );
   });
 
   it('reports email_delivery_failed without rolling back the created row', async () => {
@@ -349,6 +353,18 @@ describe('ProfileService.requestPasswordReset — response-shape/timing uniformi
       emailService: { sendPasswordReset: jest.fn().mockRejectedValue(new Error('smtp down')) },
     });
     await expect(svc.requestPasswordReset('user@example.com')).resolves.toBeUndefined();
+  });
+
+  it('passes the already-loaded user (with emailLanguage) to sendPasswordReset', async () => {
+    const user = makeUser({ email: 'user@example.com', emailLanguage: 'de' });
+    const { svc, emailService } = service({
+      users: { findByEmail: jest.fn().mockResolvedValue(user) },
+    });
+    await svc.requestPasswordReset('user@example.com');
+    expect(emailService.sendPasswordReset).toHaveBeenCalledWith(
+      { email: 'user@example.com', emailLanguage: 'de' },
+      expect.any(String),
+    );
   });
 });
 

@@ -137,7 +137,7 @@ export class SignupsService {
     try {
       const admins = await this.users.findAllByRole('ADMIN');
       await this.emailService.sendAdminNotification(
-        admins.map((admin) => admin.email),
+        admins.map((admin) => ({ email: admin.email, emailLanguage: admin.emailLanguage })),
         verified.email,
       );
     } catch (error) {
