@@ -52,6 +52,10 @@ export const de: TranslationDictionary = {
     emptyStateBody:
       'Hier werden Gesamtwert, Verteilung und Wertentwicklung Ihrer Bestände angezeigt, sobald Portfoliodaten verfügbar sind.',
   },
+  holdingsDistribution: {
+    emptyState:
+      'Fügen Sie einen Bestand mit bekanntem Wert hinzu, um die Verteilung nach Wert zu sehen.',
+  },
   holdings: {
     addHolding: 'Bestand hinzufügen',
     filterPlaceholder: 'Bestände durchsuchen',

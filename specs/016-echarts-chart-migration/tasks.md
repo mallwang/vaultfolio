@@ -33,11 +33,11 @@ Single Nx project touched: `apps/frontend/`. New shared component under
 
 **Purpose**: Add the `echarts` dependency the rest of the feature builds on.
 
-- [ ] T001 [P] Add `"echarts"` to `dependencies` in root `package.json`
-- [ ] T002 [P] Add `"echarts"` to `dependencies` in `apps/frontend/package.json` (required so
+- [x] T001 [P] Add `"echarts"` to `dependencies` in root `package.json`
+- [x] T002 [P] Add `"echarts"` to `dependencies` in `apps/frontend/package.json` (required so
       `@nx/js:prune-lockfile` includes it in the production Docker image — plan.md Technical
       Context)
-- [ ] T003 Run `npm install` at the repo root to resolve and lock the new `echarts` dependency,
+- [x] T003 Run `npm install` at the repo root to resolve and lock the new `echarts` dependency,
       confirming `package-lock.json` updates cleanly
 
 **Checkpoint**: `echarts` is installed and importable from `apps/frontend`.
@@ -52,40 +52,40 @@ a chart without it, and US3's "reusable pattern" IS this component.
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T004 [P] Create `resolveChartPalette(theme: Theme)` in
+- [x] T004 [P] Create `resolveChartPalette(theme: Theme)` in
       `apps/frontend/src/app/shared/chart/chart-palette.ts`, returning `seriesColors: string[]`,
       `textColor: string`, `backgroundColor: string` for `'light'`/`'dark'` (data-model.md Chart
       Configuration; research.md #3 — fixed palette object, not `--p-*` CSS var reads)
-- [ ] T005 [P] Create `apps/frontend/src/app/shared/chart/echart.component.html` — a single host
+- [x] T005 [P] Create `apps/frontend/src/app/shared/chart/echart.component.html` — a single host
       container `<div>` element the ECharts instance mounts into (mirrors
       `apps/frontend/src/app/shared/icon/icon.component.html` co-location convention)
-- [ ] T006 [P] Create `apps/frontend/src/app/shared/chart/echart.component.css` — host/container
+- [x] T006 [P] Create `apps/frontend/src/app/shared/chart/echart.component.css` — host/container
       sized to 100% width/height so it fills its parent card (no fixed pixel dimensions, per
       contracts/echart-component-api.md Responsiveness guarantee)
-- [ ] T007 Create `EchartComponent` (selector `app-echart`) in
+- [x] T007 Create `EchartComponent` (selector `app-echart`) in
       `apps/frontend/src/app/shared/chart/echart.component.ts`: standalone component with
       `option: EChartsOption` (required) and `loading: boolean` (default `false`) inputs; creates
       the ECharts instance via `echarts.init()` on the host element after view init
       (`afterNextRender`/`ngAfterViewInit`), applies `option` via `setOption`, and `dispose()`s the
       instance in `ngOnDestroy` (contracts/echart-component-api.md Lifecycle)
-- [ ] T008 [US-shared] Wire theme reactivity into `echart.component.ts`: inject `ThemeService`, add
+- [x] T008 [US-shared] Wire theme reactivity into `echart.component.ts`: inject `ThemeService`, add
       an `effect()` over `theme()` that re-applies `resolveChartPalette(theme)` (T004) to the live
       instance via `setOption` without requiring the caller to rebuild `option` (contracts
       Theming guarantee; depends on T004, T007)
-- [ ] T009 Wire responsiveness into `echart.component.ts`: observe the host element with a
+- [x] T009 Wire responsiveness into `echart.component.ts`: observe the host element with a
       `ResizeObserver` and call the ECharts instance's `resize()` on every size change; disconnect
       the observer in `ngOnDestroy` alongside `dispose()` (contracts Responsiveness guarantee;
       depends on T007)
-- [ ] T010 Wire the `loading` input into `echart.component.ts`: when `true`, call
+- [x] T010 Wire the `loading` input into `echart.component.ts`: when `true`, call
       `showLoading()` (themed via `resolveChartPalette`, T004) instead of `setOption`; call
       `hideLoading()` and re-apply `option` when it transitions back to `false` (contracts
       Loading guarantee; depends on T004, T007)
-- [ ] T011 [P] Unit tests for `EchartComponent` in
+- [x] T011 [P] Unit tests for `EchartComponent` in
       `apps/frontend/src/app/shared/chart/echart.component.spec.ts`: asserts `option` is applied on
       init, `loading=true`/`false` toggles `showLoading`/`hideLoading`, a `ThemeService.theme()`
       change re-applies palette colors via `setOption`, a host resize triggers `resize()`, and
       `ngOnDestroy` calls `dispose()` (depends on T007–T010)
-- [ ] T012 [P] Unit tests for `resolveChartPalette` in
+- [x] T012 [P] Unit tests for `resolveChartPalette` in
       `apps/frontend/src/app/shared/chart/chart-palette.spec.ts`: asserts distinct, defined
       `seriesColors`/`textColor`/`backgroundColor` for both `'light'` and `'dark'` (depends on
       T004)
@@ -106,7 +106,7 @@ chart resizes cleanly on window resize — with no `<p-chart>`/Chart.js element 
 
 ### Implementation for User Story 1
 
-- [ ] T013 [US1] In `apps/frontend/src/app/holdings/holdings-distribution/holdings-distribution.component.ts`,
+- [x] T013 [US1] In `apps/frontend/src/app/holdings/holdings-distribution/holdings-distribution.component.ts`,
       replace the `DoughnutChartData`/`ChartDataset` shapes and `recompute()`'s Chart.js dataset
       build with the `HoldingsDistributionEntry[]` shape (data-model.md) and a `chartOption`
       computed `echarts.EChartsOption`: a `pie` series with
@@ -115,18 +115,18 @@ chart resizes cleanly on window resize — with no `<p-chart>`/Chart.js element 
       current `plugins.legend.position: 'right'`), and colors from
       `resolveChartPalette(themeService.theme()).seriesColors` (T004) instead of the local
       `SLICE_COLORS` array (which is removed)
-- [ ] T014 [US1] In the same file, inject `ThemeService` and add a reactive recompute (`effect()`
+- [x] T014 [US1] In the same file, inject `ThemeService` and add a reactive recompute (`effect()`
       or updated `computed()`) so `chartOption` rebuilds when `themeService.theme()` changes,
       re-coloring the pie series (depends on T013)
-- [ ] T015 [US1] In
+- [x] T015 [US1] In
       `apps/frontend/src/app/holdings/holdings-distribution/holdings-distribution.component.html`,
       replace `<p-chart type="doughnut" [data]="..." [options]="...">` with
       `<app-echart [option]="chartOption()" />` inside the existing `@if (hasData())` block
       (depends on T013)
-- [ ] T016 [US1] In `holdings-distribution.component.ts`, remove the `ChartModule` import from
+- [x] T016 [US1] In `holdings-distribution.component.ts`, remove the `ChartModule` import from
       `primeng/chart` and its entry in the component's `imports` array; add `EchartComponent`
       (from `../../shared/chart/echart.component`) to `imports` instead (depends on T015)
-- [ ] T017 [P] [US1] Create
+- [x] T017 [P] [US1] Create
       `apps/frontend/src/app/holdings/holdings-distribution/holdings-distribution.component.spec.ts`
       (or update if one already exists): asserts the built `chartOption`'s pie series `data`
       matches the expected `{ name, value }` entries grouped by `assetType` for a fixed holdings
@@ -149,24 +149,24 @@ message instead of a blank/broken chart.
 
 ### Implementation for User Story 2
 
-- [ ] T018 [P] [US2] Add `holdingsDistribution.emptyState` translation keys to
+- [x] T018 [P] [US2] Add `holdingsDistribution.emptyState` translation keys to
       `apps/frontend/src/app/core/i18n/translations/en.ts` (`'Add a holding with a known value to
-    see the distribution by value.'`) and
+  see the distribution by value.'`) and
       `apps/frontend/src/app/core/i18n/translations/de.ts` (German equivalent)
-- [ ] T019 [US2] In
+- [x] T019 [US2] In
       `apps/frontend/src/app/holdings/holdings-distribution/holdings-distribution.component.html`,
       replace the hardcoded empty-state `<p class="distribution__empty">` text with
       `{{ 'holdingsDistribution.emptyState' | translate }}`, and add `TranslatePipe` to the
       component's `imports` in `holdings-distribution.component.ts` (depends on T018)
-- [ ] T020 [P] [US2] Add a data-parity unit test in
+- [x] T020 [P] [US2] Add a data-parity unit test in
       `holdings-distribution.component.spec.ts`: given a fixed multi-`assetType` holdings fixture,
       assert `chartOption`'s series values equal the same Decimal totals the pre-migration
       Chart.js `dataset.data` would have produced (same grouping/exclusion rule — `computeValue()`
       is unchanged) (depends on T013, T017)
-- [ ] T021 [P] [US2] Add an empty-state unit test in `holdings-distribution.component.spec.ts`:
+- [x] T021 [P] [US2] Add an empty-state unit test in `holdings-distribution.component.spec.ts`:
       given holdings with no computable value, assert `hasData()` is `false`, no `<app-echart>`
       renders, and the localized empty-state key/text is shown (depends on T019)
-- [ ] T022 [US2] Confirm `<app-echart [option]="chartOption()" [loading]="false" />` explicitly
+- [x] T022 [US2] Confirm `<app-echart [option]="chartOption()" [loading]="false" />` explicitly
       passes `loading` in
       `apps/frontend/src/app/holdings/holdings-distribution/holdings-distribution.component.html`
       (synchronous data today, per research.md #6 — establishes the pattern for a future
@@ -188,12 +188,12 @@ pattern for future charts.
 
 ### Implementation for User Story 3
 
-- [ ] T023 [US3] Remove the `chart.js` entry from the root `package.json` `dependencies` (currently
+- [x] T023 [US3] Remove the `chart.js` entry from the root `package.json` `dependencies` (currently
       pulled in transitively via PrimeNG's chart module, unused elsewhere per research.md #7)
-- [ ] T024 [US3] Run `npm install` at the repo root to update `package-lock.json` after the
+- [x] T024 [US3] Run `npm install` at the repo root to update `package-lock.json` after the
       `chart.js` removal (depends on T023, and on T016 having removed the last `ChartModule`
       import)
-- [ ] T025 [US3] Verify via `grep -rn "primeng/chart" apps/ libs/` and
+- [x] T025 [US3] Verify via `grep -rn "primeng/chart" apps/ libs/` and
       `grep -rn "chart.js" package.json apps/frontend/package.json` that no matches remain outside
       `specs/016-echarts-chart-migration/` documentation (quickstart.md scenario 7; depends on
       T016, T023)
@@ -207,13 +207,13 @@ the codebase.
 
 **Purpose**: Final validation across all stories.
 
-- [ ] T026 [P] Run `npm exec nx lint frontend` and fix any lint findings introduced by this feature
-- [ ] T027 [P] Run `npm exec nx test frontend` and confirm all new/updated specs
+- [x] T026 [P] Run `npm exec nx lint frontend` and fix any lint findings introduced by this feature
+- [x] T027 [P] Run `npm exec nx test frontend` and confirm all new/updated specs
       (`echart.component.spec.ts`, `chart-palette.spec.ts`,
       `holdings-distribution.component.spec.ts`) pass
-- [ ] T028 Run `npm exec nx build frontend` to confirm the `chart.js`/`primeng/chart` removal
+- [x] T028 Run `npm exec nx build frontend` to confirm the `chart.js`/`primeng/chart` removal
       doesn't break the production build
-- [ ] T029 Walk through quickstart.md's Validation scenarios 1–8 manually against
+- [x] T029 Walk through quickstart.md's Validation scenarios 1–8 manually against
       `npm exec nx serve frontend` (render, tooltip/legend, theme toggle, resize, data parity,
       empty state, no-remnants grep, documented pattern) and note any deviation
 

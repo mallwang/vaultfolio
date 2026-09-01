@@ -1,20 +1,20 @@
-import { Component, Input, OnChanges, computed, signal } from '@angular/core';
+import { Component, Input, OnChanges, computed, inject, signal } from '@angular/core';
 import Decimal from 'decimal.js';
+import type { EChartsOption } from 'echarts';
 import type { HoldingResponse } from '@vaultfolio/api-contract';
-import { ChartModule } from 'primeng/chart';
 import { ASSET_TYPE_LABELS } from '../asset-type-fields';
+import { EchartComponent } from '../../shared/chart/echart.component';
+import { resolveChartPalette } from '../../shared/chart/chart-palette';
+import { ThemeService } from '../../core/theme/theme.service';
+import { TranslatePipe } from '../../core/i18n/translate.pipe';
 
-interface ChartDataset {
-  data: number[];
-  backgroundColor: string[];
+/** data-model.md "Holdings Distribution Chart Data" — replaces the previous Chart.js `DoughnutChartData` shape. */
+interface HoldingsDistributionEntry {
+  /** Localized asset-type label (ASSET_TYPE_LABELS). */
+  name: string;
+  /** Decimal total, converted via `.toNumber()` at the presentation boundary only. */
+  value: number;
 }
-
-interface DoughnutChartData {
-  labels: string[];
-  datasets: ChartDataset[];
-}
-
-const SLICE_COLORS = ['#22c55e', '#3b82f6', '#eab308', '#f97316', '#8b5cf6', '#ec4899'];
 
 /**
  * FR-012a: each holding's share of total portfolio value, computed
@@ -26,16 +26,35 @@ const SLICE_COLORS = ['#22c55e', '#3b82f6', '#eab308', '#f97316', '#8b5cf6', '#e
  */
 @Component({
   selector: 'app-holdings-distribution',
-  imports: [ChartModule],
+  imports: [EchartComponent, TranslatePipe],
   templateUrl: './holdings-distribution.component.html',
   styleUrl: './holdings-distribution.component.css',
 })
 export class HoldingsDistributionComponent implements OnChanges {
   @Input({ required: true }) holdings: HoldingResponse[] = [];
 
-  protected readonly chartData = signal<DoughnutChartData | null>(null);
+  private readonly themeService = inject(ThemeService);
+
+  private readonly entries = signal<HoldingsDistributionEntry[] | null>(null);
   protected readonly excludedCount = signal(0);
-  protected readonly hasData = computed(() => this.chartData() != null);
+  protected readonly hasData = computed(() => this.entries() != null);
+
+  protected readonly chartOption = computed<EChartsOption>(() => {
+    const entries = this.entries() ?? [];
+    const palette = resolveChartPalette(this.themeService.theme());
+    return {
+      color: palette.seriesColors,
+      legend: { orient: 'vertical', right: 0, top: 'center' },
+      tooltip: { trigger: 'item' },
+      series: [
+        {
+          type: 'pie',
+          radius: ['closer-to-40%', '70%'],
+          data: entries.map(({ name, value }) => ({ name, value })),
+        },
+      ],
+    };
+  });
 
   ngOnChanges(): void {
     this.recompute();
@@ -58,22 +77,16 @@ export class HoldingsDistributionComponent implements OnChanges {
     this.excludedCount.set(excluded);
 
     if (totalsByType.size === 0) {
-      this.chartData.set(null);
+      this.entries.set(null);
       return;
     }
 
-    const entries = [...totalsByType.entries()];
-    this.chartData.set({
-      labels: entries.map(
-        ([assetType]) => ASSET_TYPE_LABELS[assetType as keyof typeof ASSET_TYPE_LABELS],
-      ),
-      datasets: [
-        {
-          data: entries.map(([, total]) => total.toNumber()),
-          backgroundColor: entries.map((_, index) => SLICE_COLORS[index % SLICE_COLORS.length]),
-        },
-      ],
-    });
+    this.entries.set(
+      [...totalsByType.entries()].map(([assetType, total]) => ({
+        name: ASSET_TYPE_LABELS[assetType as keyof typeof ASSET_TYPE_LABELS],
+        value: total.toNumber(),
+      })),
+    );
   }
 
   private static computeValue(holding: HoldingResponse): Decimal | null {

@@ -1,10 +1,6 @@
 @if (hasData()) {
   <div class="distribution">
-    <p-chart
-      type="doughnut"
-      [data]="chartData() ?? undefined"
-      [options]="{ plugins: { legend: { position: 'right' } } }"
-    />
+    <app-echart [option]="chartOption()" [loading]="false" />
     @if (excludedCount() > 0) {
       <p class="distribution__note">
         {{ excludedCount() }} holding{{ excludedCount() === 1 ? '' : 's' }} excluded — no value
@@ -13,7 +9,5 @@
     }
   </div>
 } @else {
-  <p class="distribution__empty">
-    Add a holding with a known value to see the distribution by value.
-  </p>
+  <p class="distribution__empty">{{ 'holdingsDistribution.emptyState' | translate }}</p>
 }

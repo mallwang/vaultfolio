@@ -5,6 +5,13 @@
   max-width: 24rem;
 }
 
+/* app-echart fills its parent (shared css); give it a concrete height here
+   since .distribution itself only sizes to its content. */
+.distribution app-echart {
+  display: block;
+  height: 16rem;
+}
+
 .distribution__note,
 .distribution__empty {
   color: var(--p-text-muted-color);

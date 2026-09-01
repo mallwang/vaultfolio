@@ -57,6 +57,9 @@ export const en: TranslationDictionary = {
     emptyStateBody:
       "This area will show your holdings' total value, allocation, and performance once portfolio data is available.",
   },
+  holdingsDistribution: {
+    emptyState: 'Add a holding with a known value to see the distribution by value.',
+  },
   holdings: {
     addHolding: 'Add holding',
     filterPlaceholder: 'Search holdings',

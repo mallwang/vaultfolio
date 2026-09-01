@@ -4,6 +4,26 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import type { HoldingResponse } from '@vaultfolio/api-contract';
 import { DashboardComponent } from './dashboard.component';
 
+// The dashboard renders the holdings distribution chart (<app-echart>), which
+// calls into real ECharts — jsdom has no canvas 2D context (no `canvas`
+// package installed), so this test double keeps the render path fast and
+// environment-independent, same as echart.component.spec.ts.
+vi.mock('echarts', () => ({
+  init: vi.fn(() => ({
+    setOption: vi.fn(),
+    showLoading: vi.fn(),
+    hideLoading: vi.fn(),
+    resize: vi.fn(),
+    dispose: vi.fn(),
+  })),
+}));
+
+class FakeResizeObserver {
+  observe = vi.fn();
+  disconnect = vi.fn();
+  unobserve = vi.fn();
+}
+
 const etf: HoldingResponse = {
   id: 'etf-1',
   assetType: 'ETF',
@@ -24,6 +44,8 @@ describe('DashboardComponent', () => {
   let httpMock: HttpTestingController;
 
   beforeEach(async () => {
+    vi.stubGlobal('ResizeObserver', FakeResizeObserver);
+
     await TestBed.configureTestingModule({
       imports: [DashboardComponent],
       providers: [provideHttpClient(), provideHttpClientTesting()],
@@ -35,6 +57,7 @@ describe('DashboardComponent', () => {
 
   afterEach(() => {
     httpMock.verify();
+    vi.unstubAllGlobals();
   });
 
   it('renders the holdings distribution view in the allocation card', () => {
