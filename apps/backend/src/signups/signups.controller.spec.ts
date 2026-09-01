@@ -239,7 +239,9 @@ describe('/signups', () => {
       expect(response.status).toBe(200);
       expect(response.body).toEqual({ email: 'verify-me@example.com', status: 'VERIFIED' });
       expect(sendAdminNotification).toHaveBeenCalledTimes(1);
-      expect(sendAdminNotification.mock.calls[0][0]).toContain(ADMIN_EMAIL);
+      expect(sendAdminNotification.mock.calls[0][0]).toContainEqual(
+        expect.objectContaining({ email: ADMIN_EMAIL }),
+      );
     });
 
     it('returns 410 invalid_token on a second verify attempt (replay)', async () => {

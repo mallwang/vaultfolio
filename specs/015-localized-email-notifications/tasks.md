@@ -32,10 +32,10 @@ Nx monorepo: `libs/notifications/src/` (new framework-independent library), `app
 
 **Purpose**: Add the new dependency and scaffold the new library so later phases have somewhere to put code.
 
-- [ ] T001 Add `handlebars` as a runtime dependency in `package.json` (root) and
+- [x] T001 Add `handlebars` as a runtime dependency in `package.json` (root) and
       `apps/backend/package.json`, matching the existing pattern for shared runtime deps (e.g.
       `decimal.js`, per `libs/domain/holdings/package.json`); run `npm install` at the repo root.
-- [ ] T002 Scaffold the new `libs/notifications` Nx library (`@vaultfolio/notifications`):
+- [x] T002 Scaffold the new `libs/notifications` Nx library (`@vaultfolio/notifications`):
       `tsconfig.json`/`tsconfig.lib.json`/`tsconfig.spec.json`, `jest.config.cts`, `project.json`
       (tags `scope:libs`, buildable + testable targets mirroring `libs/domain/holdings/project.json`),
       `package.json` with `"dependencies": { "handlebars": "^<installed-version>" }` (per the
@@ -53,18 +53,18 @@ until this phase is complete.
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T003 [P] Define the public contract types in `libs/notifications/src/lib/types.ts`:
+- [x] T003 [P] Define the public contract types in `libs/notifications/src/lib/types.ts`:
       `NotificationType` union (7 values per data-model.md), `RenderedNotificationEmail`,
       `RenderNotificationRequest<V>`, re-exporting `LanguageCode` from `@vaultfolio/api-contract` —
       per contracts/notifications-lib.md §1.
-- [ ] T004 [P] Implement `resolveLanguage` in `libs/notifications/src/lib/language-resolution.ts`:
+- [x] T004 [P] Implement `resolveLanguage` in `libs/notifications/src/lib/language-resolution.ts`:
       `isSupportedLanguageCode(preferredLanguage) ? preferredLanguage : DEFAULT_LANGUAGE_CODE`, reusing
       `@vaultfolio/api-contract`'s `SUPPORTED_LANGUAGES`/`DEFAULT_LANGUAGE_CODE`/
       `isSupportedLanguageCode` (FR-002).
-- [ ] T005 [P] Unit tests for `resolveLanguage` in
+- [x] T005 [P] Unit tests for `resolveLanguage` in
       `libs/notifications/src/lib/language-resolution.spec.ts`: `null` → `'en'`, unsupported (e.g.
       `'fr'`) → `'en'`, `'de'` → `'de'`.
-- [ ] T006 Implement `renderNotification` in `libs/notifications/src/lib/notification-renderer.ts`:
+- [x] T006 Implement `renderNotification` in `libs/notifications/src/lib/notification-renderer.ts`:
       loads `templates/<type>/<lang>.{subject,html,text}.hbs` and `partials/<name>/<lang>.hbs` from
       disk, registers partials with Handlebars keyed `<name>-<lang>`, compiles once and caches
       in-process per `type+lang+file`, resolves the recipient's language via `resolveLanguage`, and
@@ -73,10 +73,10 @@ until this phase is complete.
       per-language branching**, so a new language needs no changes to this file (US3). Throws only if
       the English fallback files for a type are themselves missing/malformed. `language` on the result
       reflects the language actually rendered (contracts/notifications-lib.md §1.2–1.3).
-- [ ] T007 [P] Create shared partials in `libs/notifications/src/lib/partials/{header,footer,salutation,signature}/{en,de}.hbs`
+- [x] T007 [P] Create shared partials in `libs/notifications/src/lib/partials/{header,footer,salutation,signature}/{en,de}.hbs`
       (branding/logo header, footer, `{{name}}`-parameterized salutation, sign-off signature) — reused
       by every notification template (FR-005).
-- [ ] T008 Create `apps/backend/src/mail/mailer.module.ts` and `apps/backend/src/mail/mailer.service.ts`:
+- [x] T008 Create `apps/backend/src/mail/mailer.module.ts` and `apps/backend/src/mail/mailer.service.ts`:
       consolidate the three duplicated `nodemailer.createTransport({...})` + `process.env.SMTP_*`
       blocks (currently in `profile/email.service.ts`, `signups/email.service.ts`,
       `invitations/email.service.ts`) into one `MailerService.send({to, subject, html, text})`
@@ -86,7 +86,7 @@ until this phase is complete.
       bare `SMTP_FROM` string (FR-008/FR-009, nodemailer performs RFC 5322/2047 encoding — FR-010);
       logs errors (never credentials/tokens) and rethrows, preserving today's 502-mapping behavior at
       callers.
-- [ ] T009 [P] Unit tests for `MailerService` in `apps/backend/src/mail/mailer.service.spec.ts`:
+- [x] T009 [P] Unit tests for `MailerService` in `apps/backend/src/mail/mailer.service.spec.ts`:
       `SMTP_SENDER_NAME` set → structured `from`; unset → bare `SMTP_FROM` (FR-009); a value
       containing a double-quote and a comma still produces a valid encoded `from` and does not throw
       (FR-010); send failure is logged and rethrown.
@@ -108,31 +108,31 @@ type, confirm subject+HTML+text are German; set it to unset/null and confirm Eng
 
 ### Template content for User Story 1
 
-- [ ] T010 [P] [US1] `password-reset` templates: `libs/notifications/src/lib/templates/password-reset/{en,de}.{subject,html,text}.hbs`, view model `{ resetUrl }`, including `header`/`salutation`/`footer`/`signature` partials.
-- [ ] T011 [P] [US1] `email-change-verification` templates: `libs/notifications/src/lib/templates/email-change-verification/{en,de}.{subject,html,text}.hbs`, view model `{ newEmail, verifyUrl }`.
-- [ ] T012 [P] [US1] `invitation` templates: `libs/notifications/src/lib/templates/invitation/{en,de}.{subject,html,text}.hbs`, view model `{ acceptUrl }`.
-- [ ] T013 [P] [US1] `signup-verification` templates: `libs/notifications/src/lib/templates/signup-verification/{en,de}.{subject,html,text}.hbs`, view model `{ verifyUrl }`.
-- [ ] T014 [P] [US1] `signup-admin-alert` templates: `libs/notifications/src/lib/templates/signup-admin-alert/{en,de}.{subject,html,text}.hbs`, view model `{ requestEmail }`.
-- [ ] T015 [P] [US1] `signup-welcome` templates: `libs/notifications/src/lib/templates/signup-welcome/{en,de}.{subject,html,text}.hbs`, view model `{ appUrl }`.
-- [ ] T016 [P] [US1] `signup-rejection` templates: `libs/notifications/src/lib/templates/signup-rejection/{en,de}.{subject,html,text}.hbs`, no reason exposed (FR-009 of spec 007), no view model needed.
+- [x] T010 [P] [US1] `password-reset` templates: `libs/notifications/src/lib/templates/password-reset/{en,de}.{subject,html,text}.hbs`, view model `{ resetUrl }`, including `header`/`salutation`/`footer`/`signature` partials.
+- [x] T011 [P] [US1] `email-change-verification` templates: `libs/notifications/src/lib/templates/email-change-verification/{en,de}.{subject,html,text}.hbs`, view model `{ newEmail, verifyUrl }`.
+- [x] T012 [P] [US1] `invitation` templates: `libs/notifications/src/lib/templates/invitation/{en,de}.{subject,html,text}.hbs`, view model `{ acceptUrl }`.
+- [x] T013 [P] [US1] `signup-verification` templates: `libs/notifications/src/lib/templates/signup-verification/{en,de}.{subject,html,text}.hbs`, view model `{ verifyUrl }`.
+- [x] T014 [P] [US1] `signup-admin-alert` templates: `libs/notifications/src/lib/templates/signup-admin-alert/{en,de}.{subject,html,text}.hbs`, view model `{ requestEmail }`.
+- [x] T015 [P] [US1] `signup-welcome` templates: `libs/notifications/src/lib/templates/signup-welcome/{en,de}.{subject,html,text}.hbs`, view model `{ appUrl }`.
+- [x] T016 [P] [US1] `signup-rejection` templates: `libs/notifications/src/lib/templates/signup-rejection/{en,de}.{subject,html,text}.hbs`, no reason exposed (FR-009 of spec 007), no view model needed.
 
 ### Renderer contract tests for User Story 1
 
-- [ ] T017 [US1] Contract tests in `libs/notifications/src/lib/notification-renderer.spec.ts` against the real `.hbs` files from T007/T010–T016: correct German content when `de` files exist for a type; correct English content when `preferredLanguage` is `null`/unsupported; `subject`/`html`/`text` always non-empty (FR-007); `language` on the result reflects what was actually rendered.
+- [x] T017 [US1] Contract tests in `libs/notifications/src/lib/notification-renderer.spec.ts` against the real `.hbs` files from T007/T010–T016: correct German content when `de` files exist for a type; correct English content when `preferredLanguage` is `null`/unsupported; `subject`/`html`/`text` always non-empty (FR-007); `language` on the result reflects what was actually rendered.
 
 ### EmailService adapters for User Story 1
 
-- [ ] T018 [US1] Rewrite `apps/backend/src/profile/email.service.ts`: inject `MailerService`, drop the local `transport()`/`process.env.SMTP_*` block; `sendEmailChangeVerification(user: {email, emailLanguage}, newEmail, token)` and `sendPasswordReset(user: {email, emailLanguage}, token)` call `renderNotification` (per contracts/notifications-lib.md §2) then `mailerService.send`; keep the existing `requireAbsoluteUrl` helper for building `verifyUrl`/`resetUrl`.
-- [ ] T019 [US1] Update `apps/backend/src/profile/profile.service.ts`: in `requestEmailChange`, load the acting user via `this.users.findById(userId)` (not currently loaded) so `emailLanguage` is available, and pass `{email: newEmail, emailLanguage: user.emailLanguage}` to `sendEmailChangeVerification`; in `requestPasswordReset`, pass the already-loaded `user` to `sendPasswordReset` instead of `user.email` alone. No change to when/whether these methods are called (FR-012).
-- [ ] T020 [US1] New `apps/backend/src/profile/email.service.spec.ts`: unit tests mocking `MailerService`, asserting `renderNotification` is invoked with the correct `type`/`preferredLanguage`/`viewModel` and `mailerService.send` receives the rendered result.
-- [ ] T021 [US1] Update `apps/backend/src/profile/profile.service.spec.ts` for the new `EmailService` call signatures from T018/T019.
-- [ ] T022 [US1] Rewrite `apps/backend/src/signups/email.service.ts`: inject `MailerService`; `sendVerification`/`sendWelcome`/`sendRejection` call `renderNotification`+`mailerService.send` (recipients have no account yet, so `preferredLanguage: null` → English fallback, per data-model.md); `sendAdminNotification(admins: {email, emailLanguage}[], requestEmail)` changes from one `to: [...]` send to `Promise.all` of one render+send per admin, each using that admin's own `emailLanguage` (FR-011, contracts/notifications-lib.md §2).
-- [ ] T023 [US1] Update `apps/backend/src/signups/signups.service.ts`'s `verify()` call site: pass the full `admins` array (`{email, emailLanguage}`) to `sendAdminNotification` instead of `admins.map((admin) => admin.email)`.
-- [ ] T024 [US1] New `apps/backend/src/signups/email.service.spec.ts`: unit tests mocking `MailerService`, including one asserting `sendAdminNotification` with mixed-language admins produces one render+send call per admin with each admin's own resolved language.
-- [ ] T025 [US1] Update `apps/backend/src/signups/signups.service.spec.ts` for the `sendAdminNotification` signature change from T022/T023.
-- [ ] T026 [US1] Rewrite `apps/backend/src/invitations/email.service.ts`: inject `MailerService`; `sendInvitation(to, token)` calls `renderNotification({type: 'invitation', preferredLanguage: null, viewModel: {acceptUrl}})` (invitees have no account/preference yet) then `mailerService.send`; keep the existing `APP_BASE_URL` validation.
-- [ ] T027 [US1] New `apps/backend/src/invitations/email.service.spec.ts`: unit tests mocking `MailerService`, asserting `renderNotification`/`mailerService.send` are called correctly.
-- [ ] T028 [US1] Wire `MailerModule` into `apps/backend/src/profile/profile.module.ts`, `apps/backend/src/signups/signups.module.ts`, and `apps/backend/src/invitations/invitations.module.ts` (`imports: [..., MailerModule]`) so each `EmailService`'s new `MailerService` dependency resolves.
+- [x] T018 [US1] Rewrite `apps/backend/src/profile/email.service.ts`: inject `MailerService`, drop the local `transport()`/`process.env.SMTP_*` block; `sendEmailChangeVerification(user: {email, emailLanguage}, newEmail, token)` and `sendPasswordReset(user: {email, emailLanguage}, token)` call `renderNotification` (per contracts/notifications-lib.md §2) then `mailerService.send`; keep the existing `requireAbsoluteUrl` helper for building `verifyUrl`/`resetUrl`.
+- [x] T019 [US1] Update `apps/backend/src/profile/profile.service.ts`: in `requestEmailChange`, load the acting user via `this.users.findById(userId)` (not currently loaded) so `emailLanguage` is available, and pass `{email: newEmail, emailLanguage: user.emailLanguage}` to `sendEmailChangeVerification`; in `requestPasswordReset`, pass the already-loaded `user` to `sendPasswordReset` instead of `user.email` alone. No change to when/whether these methods are called (FR-012).
+- [x] T020 [US1] New `apps/backend/src/profile/email.service.spec.ts`: unit tests mocking `MailerService`, asserting `renderNotification` is invoked with the correct `type`/`preferredLanguage`/`viewModel` and `mailerService.send` receives the rendered result.
+- [x] T021 [US1] Update `apps/backend/src/profile/profile.service.spec.ts` for the new `EmailService` call signatures from T018/T019.
+- [x] T022 [US1] Rewrite `apps/backend/src/signups/email.service.ts`: inject `MailerService`; `sendVerification`/`sendWelcome`/`sendRejection` call `renderNotification`+`mailerService.send` (recipients have no account yet, so `preferredLanguage: null` → English fallback, per data-model.md); `sendAdminNotification(admins: {email, emailLanguage}[], requestEmail)` changes from one `to: [...]` send to `Promise.all` of one render+send per admin, each using that admin's own `emailLanguage` (FR-011, contracts/notifications-lib.md §2).
+- [x] T023 [US1] Update `apps/backend/src/signups/signups.service.ts`'s `verify()` call site: pass the full `admins` array (`{email, emailLanguage}`) to `sendAdminNotification` instead of `admins.map((admin) => admin.email)`.
+- [x] T024 [US1] New `apps/backend/src/signups/email.service.spec.ts`: unit tests mocking `MailerService`, including one asserting `sendAdminNotification` with mixed-language admins produces one render+send call per admin with each admin's own resolved language.
+- [x] T025 [US1] Update `apps/backend/src/signups/signups.service.spec.ts` for the `sendAdminNotification` signature change from T022/T023.
+- [x] T026 [US1] Rewrite `apps/backend/src/invitations/email.service.ts`: inject `MailerService`; `sendInvitation(to, token)` calls `renderNotification({type: 'invitation', preferredLanguage: null, viewModel: {acceptUrl}})` (invitees have no account/preference yet) then `mailerService.send`; keep the existing `APP_BASE_URL` validation.
+- [x] T027 [US1] New `apps/backend/src/invitations/email.service.spec.ts`: unit tests mocking `MailerService`, asserting `renderNotification`/`mailerService.send` are called correctly.
+- [x] T028 [US1] Wire `MailerModule` into `apps/backend/src/profile/profile.module.ts`, `apps/backend/src/signups/signups.module.ts`, and `apps/backend/src/invitations/invitations.module.ts` (`imports: [..., MailerModule]`) so each `EmailService`'s new `MailerService` dependency resolves.
 
 **Checkpoint**: All 7 notification types render and send in the recipient's resolved language;
 existing send call sites are otherwise unchanged. This is the MVP.
@@ -147,9 +147,9 @@ files — no `.ts` changes (FR-004, FR-005, SC-003, SC-006).
 **Independent Test**: Change one notification's template wording only, rebuild/restart, confirm
 the new wording is delivered with zero sending-logic changes.
 
-- [ ] T029 [P] [US2] Regression test in `libs/notifications/src/lib/notification-renderer.spec.ts`: assert a fixture template's exact rendered subject/body text matches known content (documents SC-003's "template-only edit" contract — a future wording change is expected to require updating only this fixture's expected string, not renderer code).
-- [ ] T030 [P] [US2] Partial-propagation test in `libs/notifications/src/lib/notification-renderer.spec.ts`: render two different notification types that both include the `footer` partial and assert both outputs contain the same footer content sourced from the one `partials/footer/en.hbs` file (SC-006).
-- [ ] T031 [P] [US2] `libs/notifications/README.md`: document the file-naming convention (contracts/notifications-lib.md §4), how to edit an existing template/partial's wording, and that no code changes are required for a content-only change.
+- [x] T029 [P] [US2] Regression test in `libs/notifications/src/lib/notification-renderer.spec.ts`: assert a fixture template's exact rendered subject/body text matches known content (documents SC-003's "template-only edit" contract — a future wording change is expected to require updating only this fixture's expected string, not renderer code).
+- [x] T030 [P] [US2] Partial-propagation test in `libs/notifications/src/lib/notification-renderer.spec.ts`: render two different notification types that both include the `footer` partial and assert both outputs contain the same footer content sourced from the one `partials/footer/en.hbs` file (SC-006).
+- [x] T031 [P] [US2] `libs/notifications/README.md`: document the file-naming convention (contracts/notifications-lib.md §4), how to edit an existing template/partial's wording, and that no code changes are required for a content-only change.
 
 **Checkpoint**: Maintainability contract is verified by tests and documented for template authors.
 
@@ -163,9 +163,9 @@ changes to support a new language, and document the exact steps (FR-006, SC-004)
 **Independent Test**: Following only the documented pattern, add one language's content for one
 type and confirm it sends correctly with no sending-logic changes.
 
-- [ ] T032 [US3] Table-driven test in `libs/notifications/src/lib/notification-renderer.spec.ts` parameterized across both existing languages (`en`, `de`) proving `renderNotification` contains no per-language branching (same code path, only the resolved language and looked-up files differ) — documents that a 3rd language needs only new files, not renderer changes.
-- [ ] T033 [US3] Regression test in `libs/notifications/src/lib/notification-renderer.spec.ts`: a language that is `isSupportedLanguageCode()`-true but has no template files for a given type falls back to English for that type rather than throwing (Edge Cases, partial-rollout scenario).
-- [ ] T034 [US3] Extend `libs/notifications/README.md` (from T031) with the "add a language" steps from contracts/notifications-lib.md §4 / quickstart.md Scenario 6: add `<lang>.subject/html/text.hbs` per type, add matching `partials/*/<lang>.hbs`, add one entry to `SUPPORTED_LANGUAGES` in `libs/api-contract/src/lib/i18n.ts` — no changes to `notification-renderer.ts`, `language-resolution.ts`, or any `*.service.ts`.
+- [x] T032 [US3] Table-driven test in `libs/notifications/src/lib/notification-renderer.spec.ts` parameterized across both existing languages (`en`, `de`) proving `renderNotification` contains no per-language branching (same code path, only the resolved language and looked-up files differ) — documents that a 3rd language needs only new files, not renderer changes.
+- [x] T033 [US3] Regression test in `libs/notifications/src/lib/notification-renderer.spec.ts`: a language that is `isSupportedLanguageCode()`-true but has no template files for a given type falls back to English for that type rather than throwing (Edge Cases, partial-rollout scenario).
+- [x] T034 [US3] Extend `libs/notifications/README.md` (from T031) with the "add a language" steps from contracts/notifications-lib.md §4 / quickstart.md Scenario 6: add `<lang>.subject/html/text.hbs` per type, add matching `partials/*/<lang>.hbs`, add one entry to `SUPPORTED_LANGUAGES` in `libs/api-contract/src/lib/i18n.ts` — no changes to `notification-renderer.ts`, `language-resolution.ts`, or any `*.service.ts`.
 
 **Checkpoint**: Adding a language is proven, by test and documentation, to touch only template
 files plus one catalog entry.
@@ -180,8 +180,8 @@ encoded, with a working fallback when unset (FR-008, FR-009, FR-010).
 **Independent Test**: Set `SMTP_SENDER_NAME`, trigger any notification, confirm the From header
 shows `"<name>" <address>`; unset it and confirm the email still sends using the bare address.
 
-- [ ] T035 [US4] Add an integration-style test in `apps/backend/src/mail/mailer.service.spec.ts` (extending T009) that sends through a captured/mocked nodemailer transport and asserts the exact `from` value passed to `sendMail` for: `SMTP_SENDER_NAME` set to a plain name, unset, and a value containing `<`/`>`/`"`/`,` — confirming nodemailer's structured `from` form is used in all cases (FR-008/009/010 end-to-end, not just the transport-agnostic unit assertions from T009).
-- [ ] T036 [US4] Document `SMTP_SENDER_NAME` in the backend's environment-variable reference (wherever `SMTP_HOST`/`SMTP_FROM` etc. are already documented, e.g. `.env.example` or `README.md`) including its optional/fallback behavior.
+- [x] T035 [US4] Add an integration-style test in `apps/backend/src/mail/mailer.service.spec.ts` (extending T009) that sends through a captured/mocked nodemailer transport and asserts the exact `from` value passed to `sendMail` for: `SMTP_SENDER_NAME` set to a plain name, unset, and a value containing `<`/`>`/`"`/`,` — confirming nodemailer's structured `from` form is used in all cases (FR-008/009/010 end-to-end, not just the transport-agnostic unit assertions from T009).
+- [x] T036 [US4] Document `SMTP_SENDER_NAME` in the backend's environment-variable reference (wherever `SMTP_HOST`/`SMTP_FROM` etc. are already documented, e.g. `.env.example` or `README.md`) including its optional/fallback behavior.
 
 **Checkpoint**: Sender display name is verified correct and documented for deployment.
 
@@ -191,9 +191,9 @@ shows `"<name>" <address>`; unset it and confirm the email still sends using the
 
 **Purpose**: Final validation across all stories.
 
-- [ ] T037 Run `npm exec nx test notifications` and `npm exec nx test backend` (all updated/new spec files) and fix any failures.
-- [ ] T038 Run `npm exec nx lint notifications` and `npm exec nx lint backend`.
-- [ ] T039 Walk through quickstart.md Scenarios 1–6 manually (or via a local SMTP catch-all) to confirm end-to-end behavior matches the automated tests.
+- [x] T037 Run `npm exec nx test notifications` and `npm exec nx test backend` (all updated/new spec files) and fix any failures.
+- [x] T038 Run `npm exec nx lint notifications` and `npm exec nx lint backend`.
+- [x] T039 Walk through quickstart.md Scenarios 1–6 manually (or via a local SMTP catch-all) to confirm end-to-end behavior matches the automated tests.
 
 ---
 

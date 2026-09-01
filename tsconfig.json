@@ -26,6 +26,9 @@
     },
     {
       "path": "./libs/domain/invitations"
+    },
+    {
+      "path": "./libs/notifications"
     }
   ],
   "compilerOptions": {}

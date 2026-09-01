@@ -1,5 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
-import * as nodemailer from 'nodemailer';
+import { Injectable } from '@nestjs/common';
+import { renderNotification } from '@vaultfolio/notifications';
+import { MailerService } from '../mail/mailer.service';
 
 function requireAbsoluteUrl(path: string): string {
   const url = `${process.env.APP_BASE_URL ?? ''}${path}`;
@@ -28,59 +29,41 @@ function requireAbsoluteUrl(path: string): string {
 /**
  * Outbound email for the profile self-service flows (008 — research.md #4):
  * a deliberate third `EmailService` instance, not a shared one — mirrors
- * `invitations/email.service.ts`/`signups/email.service.ts`'s exact lazy-
- * transport-construction pattern (created per send, never crashes the
- * process on a misconfigured/unreachable SMTP host, rethrows on failure for
- * the caller to map to a delivery-failure response).
+ * `invitations/email.service.ts`/`signups/email.service.ts`'s exact shape.
+ * Content is rendered by `@vaultfolio/notifications` in the recipient's
+ * resolved `email_language` (015, FR-001/FR-002); delivery goes through the
+ * shared `MailerService` (FR-008/FR-009/FR-010).
  */
 @Injectable()
 export class EmailService {
-  private readonly logger = new Logger(EmailService.name);
-
-  private transport() {
-    return nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT) || 587,
-      auth: process.env.SMTP_USER
-        ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASSWORD }
-        : undefined,
-    });
-  }
+  constructor(private readonly mailerService: MailerService) {}
 
   /** Email-change verification link (FR-002), sent to the *new* address. */
-  async sendEmailChangeVerification(to: string, newEmail: string, token: string): Promise<void> {
+  async sendEmailChangeVerification(
+    user: { email: string; emailLanguage: string | null },
+    newEmail: string,
+    token: string,
+  ): Promise<void> {
     const verifyUrl = requireAbsoluteUrl(`/account/verify-email/${token}`);
-    try {
-      await this.transport().sendMail({
-        from: process.env.SMTP_FROM,
-        to,
-        subject: 'Confirm your new Vaultfolio email address',
-        text: `Confirm this address (${newEmail}) as your new Vaultfolio email: ${verifyUrl}`,
-        html: `<p>Confirm <strong>${newEmail}</strong> as your new Vaultfolio email.</p><p><a href="${verifyUrl}">Confirm email change</a></p>`,
-      });
-    } catch (error) {
-      this.logger.error(
-        `Email-change verification delivery failed (recipient: ${to})`,
-        error as Error,
-      );
-      throw error;
-    }
+    const rendered = renderNotification({
+      type: 'email-change-verification',
+      preferredLanguage: user.emailLanguage,
+      viewModel: { newEmail, verifyUrl },
+    });
+    await this.mailerService.send({ to: user.email, ...rendered });
   }
 
   /** Password-reset link (FR-006). */
-  async sendPasswordReset(to: string, token: string): Promise<void> {
+  async sendPasswordReset(
+    user: { email: string; emailLanguage: string | null },
+    token: string,
+  ): Promise<void> {
     const resetUrl = requireAbsoluteUrl(`/account/reset-password/${token}`);
-    try {
-      await this.transport().sendMail({
-        from: process.env.SMTP_FROM,
-        to,
-        subject: 'Reset your Vaultfolio password',
-        text: `Reset your Vaultfolio password: ${resetUrl}`,
-        html: `<p>Reset your Vaultfolio password.</p><p><a href="${resetUrl}">Reset password</a></p>`,
-      });
-    } catch (error) {
-      this.logger.error(`Password-reset email delivery failed (recipient: ${to})`, error as Error);
-      throw error;
-    }
+    const rendered = renderNotification({
+      type: 'password-reset',
+      preferredLanguage: user.emailLanguage,
+      viewModel: { resetUrl },
+    });
+    await this.mailerService.send({ to: user.email, ...rendered });
   }
 }

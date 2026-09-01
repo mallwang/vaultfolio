@@ -1,5 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
-import * as nodemailer from 'nodemailer';
+import { Injectable } from '@nestjs/common';
+import { renderNotification } from '@vaultfolio/notifications';
+import { MailerService } from '../mail/mailer.service';
 
 function requireAbsoluteUrl(path: string): string {
   const url = `${process.env.APP_BASE_URL ?? ''}${path}`;
@@ -28,90 +29,70 @@ function requireAbsoluteUrl(path: string): string {
 /**
  * Outbound email for the sign-up flow (research.md #2) — a new instance
  * scoped to `signups/` rather than generalizing `invitations/email.service.ts`
- * into a shared mailer (YAGNI), following its exact lazy-transport
- * construction pattern: created per send, never crashes the process on a
- * misconfigured/unreachable SMTP host, rethrows on failure for the caller to
- * map to the 502 `email_delivery_failed` response.
+ * into a shared mailer (YAGNI). Content is rendered by
+ * `@vaultfolio/notifications` in the recipient's resolved `email_language`
+ * (015); delivery goes through the shared `MailerService`.
  */
 @Injectable()
 export class EmailService {
-  private readonly logger = new Logger(EmailService.name);
+  constructor(private readonly mailerService: MailerService) {}
 
-  private transport() {
-    return nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT) || 587,
-      auth: process.env.SMTP_USER
-        ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASSWORD }
-        : undefined,
-    });
-  }
-
-  /** Verification-link email (FR-001/FR-003). */
+  /**
+   * Verification-link email (FR-001/FR-003). Recipients have no account yet
+   * — `preferredLanguage: null` resolves to English (data-model.md).
+   */
   async sendVerification(to: string, token: string): Promise<void> {
     const verifyUrl = requireAbsoluteUrl(`/signup/verify/${token}`);
-    try {
-      await this.transport().sendMail({
-        from: process.env.SMTP_FROM,
-        to,
-        subject: 'Verify your Vaultfolio sign-up',
-        text: `Confirm your Vaultfolio sign-up: ${verifyUrl}`,
-        html: `<p>Confirm your Vaultfolio sign-up.</p><p><a href="${verifyUrl}">Verify your email</a></p>`,
-      });
-    } catch (error) {
-      this.logger.error(`Verification email delivery failed (recipient: ${to})`, error as Error);
-      throw error;
-    }
+    const rendered = renderNotification({
+      type: 'signup-verification',
+      preferredLanguage: null,
+      viewModel: { verifyUrl },
+    });
+    await this.mailerService.send({ to, ...rendered });
   }
 
-  /** Notifies every admin that a sign-up request is awaiting review (FR-004). */
-  async sendAdminNotification(adminEmails: string[], requestEmail: string): Promise<void> {
-    if (adminEmails.length === 0) {
-      return;
-    }
-    try {
-      await this.transport().sendMail({
-        from: process.env.SMTP_FROM,
-        to: adminEmails,
-        subject: 'New Vaultfolio sign-up awaiting review',
-        text: `${requestEmail} has verified their email and is awaiting sign-up approval.`,
-        html: `<p><strong>${requestEmail}</strong> has verified their email and is awaiting sign-up approval.</p>`,
-      });
-    } catch (error) {
-      this.logger.error('Admin-notification email delivery failed', error as Error);
-      throw error;
-    }
+  /**
+   * Notifies every admin that a sign-up request is awaiting review
+   * (FR-004): one render+send per admin, each in that admin's own resolved
+   * language (015 FR-011), not one shared-language send to all.
+   */
+  async sendAdminNotification(
+    admins: { email: string; emailLanguage: string | null }[],
+    requestEmail: string,
+  ): Promise<void> {
+    await Promise.all(
+      admins.map((admin) => {
+        const rendered = renderNotification({
+          type: 'signup-admin-alert',
+          preferredLanguage: admin.emailLanguage,
+          viewModel: { requestEmail },
+        });
+        return this.mailerService.send({ to: admin.email, ...rendered });
+      }),
+    );
   }
 
-  /** Sent when an admin approves the request (FR-006). */
+  /**
+   * Sent when an admin approves the request (FR-006). The new account has
+   * no `email_language` yet at this point — `preferredLanguage: null`
+   * resolves to English.
+   */
   async sendWelcome(to: string): Promise<void> {
-    try {
-      await this.transport().sendMail({
-        from: process.env.SMTP_FROM,
-        to,
-        subject: 'Your Vaultfolio account is ready',
-        text: `Your sign-up was approved — you can now sign in to Vaultfolio: ${process.env.APP_BASE_URL ?? ''}`,
-        html: `<p>Your sign-up was approved — you can now <a href="${process.env.APP_BASE_URL ?? ''}">sign in to Vaultfolio</a>.</p>`,
-      });
-    } catch (error) {
-      this.logger.error(`Welcome email delivery failed (recipient: ${to})`, error as Error);
-      throw error;
-    }
+    const rendered = renderNotification({
+      type: 'signup-welcome',
+      preferredLanguage: null,
+      viewModel: { appUrl: process.env.APP_BASE_URL ?? '' },
+    });
+    await this.mailerService.send({ to, ...rendered });
   }
 
-  /** Sent when an admin rejects the request. Never includes the reject reason (FR-009). */
+  /** Sent when an admin rejects the request. Never includes the reject reason (FR-009 of 007). */
   async sendRejection(to: string): Promise<void> {
-    try {
-      await this.transport().sendMail({
-        from: process.env.SMTP_FROM,
-        to,
-        subject: 'Your Vaultfolio sign-up was not approved',
-        text: 'Your Vaultfolio sign-up request was not approved.',
-        html: '<p>Your Vaultfolio sign-up request was not approved.</p>',
-      });
-    } catch (error) {
-      this.logger.error(`Rejection email delivery failed (recipient: ${to})`, error as Error);
-      throw error;
-    }
+    const rendered = renderNotification({
+      type: 'signup-rejection',
+      preferredLanguage: null,
+      viewModel: {},
+    });
+    await this.mailerService.send({ to, ...rendered });
   }
 }
