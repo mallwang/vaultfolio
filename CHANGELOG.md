@@ -1,3 +1,11 @@
+## 0.0.5 (2026-09-01)
+
+### 🚀 Features
+
+- **frontend:** move holdings distribution to dashboard allocation ([#23](https://github.com/mallwang/vaultfolio/pull/23))
+- **frontend:** migrate holdings distribution chart to ECharts ([#24](https://github.com/mallwang/vaultfolio/pull/24))
+- **notifications:** add localized email notifications library ([#22](https://github.com/mallwang/vaultfolio/pull/22))
+
 ## 0.0.4 (2026-09-01)
 
 ### 🚀 Features
