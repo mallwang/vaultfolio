@@ -1,5 +1,17 @@
 :host {
   display: block;
+  width: 232px;
+  transition: width 0.2s ease;
+}
+
+:host(.collapsed) {
+  width: 64px;
+  overflow: hidden;
+}
+
+:host(.collapsed) .app-nav__item {
+  justify-content: center;
+  padding: 0.55rem;
 }
 
 .app-sidebar {
@@ -10,12 +22,14 @@
   padding: 1.1rem 0.85rem;
   gap: 1.5rem;
   height: 100%;
+  overflow: hidden;
 }
 
 .app-nav {
   display: flex;
   flex-direction: column;
   gap: 0.15rem;
+  flex: 1 1 auto;
 }
 
 .app-nav__item {
@@ -29,6 +43,7 @@
   color: var(--p-text-muted-color);
   text-decoration: none;
   position: relative;
+  white-space: nowrap;
 }
 
 .app-nav__item app-icon {
@@ -57,8 +72,33 @@
   background: var(--p-primary-color);
 }
 
+.app-sidebar__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 1px solid var(--p-content-border-color);
+  border-radius: 8px;
+  padding: 0.4rem;
+  color: var(--p-text-muted-color);
+  cursor: pointer;
+  align-self: flex-end;
+  font-size: 1.05rem;
+  flex: 0 0 auto;
+}
+
+.app-sidebar__toggle:hover {
+  background: var(--p-content-hover-background);
+  color: var(--p-text-color);
+}
+
 /* Mobile: collapse to a horizontally-scrollable top bar (FR-009) */
 @media (max-width: 768px) {
+  :host {
+    width: auto;
+    transition: none;
+  }
+
   .app-sidebar {
     flex-direction: row;
     align-items: center;
@@ -87,6 +127,10 @@
   }
 
   .app-nav__item--active::before {
+    display: none;
+  }
+
+  .app-sidebar__toggle {
     display: none;
   }
 }

@@ -37,6 +37,8 @@ export const en: TranslationDictionary = {
     invitations: 'Invitations',
     signups: 'Sign-ups',
     healthStatus: 'Health status',
+    collapseSidebar: 'Collapse sidebar',
+    expandSidebar: 'Expand sidebar',
   },
   signIn: {
     title: 'Sign in',

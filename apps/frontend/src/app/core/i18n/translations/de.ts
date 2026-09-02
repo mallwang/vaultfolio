@@ -32,6 +32,8 @@ export const de: TranslationDictionary = {
     invitations: 'Einladungen',
     signups: 'Anmeldungen',
     healthStatus: 'Systemstatus',
+    collapseSidebar: 'Navigation einklappen',
+    expandSidebar: 'Navigation ausklappen',
   },
   signIn: {
     title: 'Anmelden',

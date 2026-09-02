@@ -42,6 +42,8 @@ export const ICON_NAME_MAP: Record<string, string> = {
   'arrow-left': 'arrow_back',
   // Additional names discovered while converting call sites (T028).
   'chevron-down': 'expand_more',
+  'chevron-left': 'chevron_left',
+  'chevron-right': 'chevron_right',
   calendar: 'calendar_month',
   'sort-alt': 'unfold_more',
   'sort-up': 'arrow_upward',
