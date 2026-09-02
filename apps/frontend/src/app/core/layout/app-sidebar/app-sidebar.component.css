@@ -82,7 +82,7 @@
   padding: 0.4rem;
   color: var(--p-text-muted-color);
   cursor: pointer;
-  align-self: flex-end;
+  align-self: flex-start;
   font-size: 1.05rem;
   flex: 0 0 auto;
 }

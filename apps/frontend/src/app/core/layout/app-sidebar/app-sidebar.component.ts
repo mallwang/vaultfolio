@@ -28,9 +28,15 @@ export class AppSidebarComponent {
     return APPLICATION_AREAS.filter((area) => !area.roles || (role && area.roles.includes(role)));
   });
 
-  protected readonly collapsed = signal(false);
+  protected readonly collapsed = signal(
+    localStorage.getItem('vaultfolio-sidebar-collapsed') === 'true',
+  );
 
   protected toggleCollapsed(): void {
-    this.collapsed.update((v) => !v);
+    this.collapsed.update((v) => {
+      const next = !v;
+      localStorage.setItem('vaultfolio-sidebar-collapsed', String(next));
+      return next;
+    });
   }
 }
