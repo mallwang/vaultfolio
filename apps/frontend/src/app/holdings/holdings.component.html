@@ -83,9 +83,9 @@
             }}
           </td>
           <td>{{ holding.management }}</td>
-          <td>{{ holding.quantity ?? holding.weightGrams ?? '—' }}</td>
-          <td>{{ holding.purchasePrice ?? holding.currentValue ?? '—' }}</td>
-          <td>{{ holding.purchaseDate ?? '—' }}</td>
+          <td>{{ holding.quantity ?? holding.weightGrams | localeNumber }}</td>
+          <td>{{ holding.purchasePrice ?? holding.currentValue | localeNumber }}</td>
+          <td>{{ holding.purchaseDate | localeDate }}</td>
           <td class="row-actions">
             <button
               pButton

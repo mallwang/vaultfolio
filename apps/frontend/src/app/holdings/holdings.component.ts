@@ -14,6 +14,8 @@ import { ASSET_TYPE_LABELS } from './asset-type-fields';
 import { HoldingFormComponent } from './holding-form/holding-form.component';
 import { HoldingsService } from './holdings.service';
 import { TranslatePipe } from '../core/i18n/translate.pipe';
+import { LocaleNumberPipe } from '../core/i18n/locale-number.pipe';
+import { LocaleDatePipe } from '../core/i18n/locale-date.pipe';
 
 /**
  * Holdings area (FR-001–FR-016, User Stories 1–4): the holdings list and the
@@ -35,6 +37,8 @@ import { TranslatePipe } from '../core/i18n/translate.pipe';
     InputTextModule,
     HoldingFormComponent,
     TranslatePipe,
+    LocaleNumberPipe,
+    LocaleDatePipe,
     IconComponent,
   ],
   providers: [ConfirmationService, MessageService, TranslatePipe],
