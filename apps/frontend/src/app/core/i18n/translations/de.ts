@@ -119,16 +119,23 @@ export const de: TranslationDictionary = {
     preferences: 'Präferenzen',
   },
   preferences: {
-    title: 'Präferenzen',
-    comingSoonHint: 'Konto-, Währungs- und Benachrichtigungseinstellungen folgen hier.',
+    title: 'E-Mail-Einstellungen',
+    comingSoonHint: 'Konto-, Währungs- und weitere Einstellungen folgen hier.',
     comingSoon: 'Demnächst verfügbar',
+    notifications: {
+      sectionTitle: 'Benachrichtigungen',
+      emailNotificationsLabel: 'E-Mail-Benachrichtigungen',
+      hint: 'Erhalten Sie E-Mail-Hinweise zu Portfolio-Aktivitäten und wichtigen Kontoereignissen.',
+    },
+    more: {
+      sectionTitle: 'Weitere Einstellungen',
+    },
     language: {
       sectionTitle: 'Sprache',
       emailLanguageLabel: 'E-Mail-Korrespondenzsprache',
       useDefault: 'Standard verwenden (Englisch)',
-      hint: 'Wird für zukünftige automatische E-Mails verwendet, unabhängig von Ihrer Anzeigesprache oben.',
-      fallbackNote:
-        'Noch nicht festgelegt — die Korrespondenz verwendet Vaultfolios Standardsprache, Englisch.',
+      hint: 'Wird für automatische E-Mails verwendet, unabhängig von Ihrer Anzeigesprache oben.',
+      fallbackNote: 'Noch nicht festgelegt — die Korrespondenz wird auf Englisch zurückfallen.',
       saved: 'E-Mail-Korrespondenzsprache aktualisiert',
       saveError: 'Ihre E-Mail-Korrespondenzsprache konnte nicht aktualisiert werden.',
     },

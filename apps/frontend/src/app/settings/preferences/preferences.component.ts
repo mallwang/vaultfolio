@@ -6,6 +6,7 @@ import { MessageService } from 'primeng/api';
 import { SelectModule } from 'primeng/select';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
+import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { IconComponent } from '../../shared/icon/icon.component';
 import { SUPPORTED_LANGUAGES } from '@vaultfolio/api-contract';
 import type { LanguageCode } from '@vaultfolio/api-contract';
@@ -33,6 +34,7 @@ const USE_DEFAULT = '__use_default__';
     SelectModule,
     TagModule,
     ToastModule,
+    ToggleSwitchModule,
     TranslatePipe,
     IconComponent,
   ],

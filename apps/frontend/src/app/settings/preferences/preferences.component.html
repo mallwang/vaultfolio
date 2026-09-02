@@ -1,49 +1,78 @@
 <p-toast />
-<p-card header="{{ 'preferences.title' | translate }}">
-  <section class="preferences__language">
-    <h3 class="preferences__section-title">
-      {{ 'preferences.language.sectionTitle' | translate }}
-    </h3>
+<div class="preferences-grid">
+  <!-- ===== Email Preferences (left column) ===== -->
+  <p-card>
+    <h2>{{ 'preferences.title' | translate }}</h2>
 
-    <label class="preferences__label" for="email-language-select">
-      {{ 'preferences.language.emailLanguageLabel' | translate }}
-    </label>
-    <p-select
-      inputId="email-language-select"
-      [options]="languageOptions"
-      optionValue="code"
-      [ngModel]="selectedCode()"
-      (ngModelChange)="selectedCode.set($event)"
-      [disabled]="loading()"
-    >
-      <ng-template #selectedItem let-selected>
-        {{ selected.code === '__use_default__' ? (selected.label | translate) : selected.label }}
-      </ng-template>
-      <ng-template #item let-option>
-        {{ option.code === '__use_default__' ? (option.label | translate) : option.label }}
-      </ng-template>
-      <ng-template #dropdownicon><app-icon name="chevron-down" /></ng-template>
-    </p-select>
+    <section class="preferences__notifications">
+      <h3 class="preferences__section-title">
+        {{ 'preferences.notifications.sectionTitle' | translate }}
+      </h3>
+      <div class="preferences__toggle-row">
+        <div>
+          <p class="preferences__label">
+            {{ 'preferences.notifications.emailNotificationsLabel' | translate }}
+          </p>
+          <p class="preferences__hint">{{ 'preferences.notifications.hint' | translate }}</p>
+        </div>
+        <p-toggleswitch [ngModel]="false" [disabled]="true" />
+      </div>
+      <p-tag severity="secondary" [value]="'preferences.comingSoon' | translate" [rounded]="true" />
+    </section>
 
-    <p class="preferences__hint">{{ 'preferences.language.hint' | translate }}</p>
+    <hr class="preferences__divider" />
 
-    @if (isUnset) {
-      <p class="preferences__fallback-note">
-        {{ 'preferences.language.fallbackNote' | translate }}
-      </p>
-    }
+    <section class="preferences__language">
+      <h3 class="preferences__section-title">
+        {{ 'preferences.language.sectionTitle' | translate }}
+      </h3>
 
-    <button
-      pButton
-      type="button"
-      class="preferences__save"
-      [disabled]="saving() || loading()"
-      (click)="save()"
-    >
-      {{ (saving() ? 'common.saving' : 'common.save') | translate }}
-    </button>
-  </section>
+      <label class="preferences__label" for="email-language-select">
+        {{ 'preferences.language.emailLanguageLabel' | translate }}
+      </label>
+      <p-select
+        inputId="email-language-select"
+        [options]="languageOptions"
+        optionValue="code"
+        [ngModel]="selectedCode()"
+        (ngModelChange)="selectedCode.set($event)"
+        [disabled]="loading()"
+      >
+        <ng-template #selectedItem let-selected>
+          {{ selected.code === '__use_default__' ? (selected.label | translate) : selected.label }}
+        </ng-template>
+        <ng-template #item let-option>
+          {{ option.code === '__use_default__' ? (option.label | translate) : option.label }}
+        </ng-template>
+        <ng-template #dropdownicon><app-icon name="chevron-down" /></ng-template>
+      </p-select>
 
-  <p class="settings__hint">{{ 'preferences.comingSoonHint' | translate }}</p>
-  <p-tag severity="secondary" [value]="'preferences.comingSoon' | translate" [rounded]="true" />
-</p-card>
+      <p class="preferences__hint">{{ 'preferences.language.hint' | translate }}</p>
+
+      @if (isUnset) {
+        <p class="preferences__fallback-note">
+          {{ 'preferences.language.fallbackNote' | translate }}
+        </p>
+      }
+
+      <button
+        pButton
+        type="button"
+        class="preferences__save"
+        [disabled]="saving() || loading()"
+        (click)="save()"
+      >
+        {{ (saving() ? 'common.saving' : 'common.save') | translate }}
+      </button>
+    </section>
+  </p-card>
+
+  <!-- ===== Future Preferences (right column — placeholder) ===== -->
+  <p-card>
+    <h2>{{ 'preferences.more.sectionTitle' | translate }}</h2>
+    <div class="preferences__placeholder">
+      <p class="settings__hint">{{ 'preferences.comingSoonHint' | translate }}</p>
+      <p-tag severity="secondary" [value]="'preferences.comingSoon' | translate" [rounded]="true" />
+    </div>
+  </p-card>
+</div>
