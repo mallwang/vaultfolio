@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { CurrentUserStore } from '../../../auth/current-user.store';
 import { IconComponent } from '../../../shared/icon/icon.component';
@@ -18,6 +18,7 @@ import { TranslatePipe } from '../../i18n/translate.pipe';
   imports: [RouterLink, RouterLinkActive, TranslatePipe, IconComponent],
   templateUrl: './app-sidebar.component.html',
   styleUrl: './app-sidebar.component.css',
+  host: { '[class.collapsed]': 'collapsed()' },
 })
 export class AppSidebarComponent {
   private readonly currentUserStore = inject(CurrentUserStore);
@@ -26,4 +27,16 @@ export class AppSidebarComponent {
     const role = this.currentUserStore.current()?.role;
     return APPLICATION_AREAS.filter((area) => !area.roles || (role && area.roles.includes(role)));
   });
+
+  protected readonly collapsed = signal(
+    localStorage.getItem('vaultfolio-sidebar-collapsed') === 'true',
+  );
+
+  protected toggleCollapsed(): void {
+    this.collapsed.update((v) => {
+      const next = !v;
+      localStorage.setItem('vaultfolio-sidebar-collapsed', String(next));
+      return next;
+    });
+  }
 }

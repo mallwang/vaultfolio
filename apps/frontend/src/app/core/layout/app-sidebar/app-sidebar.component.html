@@ -6,10 +6,23 @@
         [routerLink]="['/app', area.path]"
         routerLinkActive="app-nav__item--active"
         ariaCurrentWhenActive="page"
+        [title]="collapsed() ? ('nav.' + area.id | translate) : ''"
       >
         <app-icon [name]="area.icon" />
-        <span>{{ 'nav.' + area.id | translate }}</span>
+        @if (!collapsed()) {
+          <span>{{ 'nav.' + area.id | translate }}</span>
+        }
       </a>
     }
   </div>
+
+  <button
+    class="app-sidebar__toggle"
+    type="button"
+    (click)="toggleCollapsed()"
+    [attr.aria-label]="(collapsed() ? 'nav.expandSidebar' : 'nav.collapseSidebar') | translate"
+    [title]="(collapsed() ? 'nav.expandSidebar' : 'nav.collapseSidebar') | translate"
+  >
+    <app-icon [name]="collapsed() ? 'chevron-right' : 'chevron-left'" />
+  </button>
 </nav>
