@@ -123,15 +123,23 @@ export const en: TranslationDictionary = {
     preferences: 'Preferences',
   },
   preferences: {
-    title: 'Preferences',
-    comingSoonHint: 'Account, currency, and notification settings will live here.',
+    title: 'Email Preferences',
+    comingSoonHint: 'Account, currency, and other settings will live here.',
     comingSoon: 'Coming soon',
+    notifications: {
+      sectionTitle: 'Notifications',
+      emailNotificationsLabel: 'Email notifications',
+      hint: 'Receive email alerts for portfolio activity and important account events.',
+    },
+    more: {
+      sectionTitle: 'More Preferences',
+    },
     language: {
       sectionTitle: 'Language',
       emailLanguageLabel: 'Email correspondence language',
       useDefault: 'Use default (English)',
-      hint: 'Used for future automated emails, independent of your display language above.',
-      fallbackNote: "Not set yet — correspondence will use Vaultfolio's default language, English.",
+      hint: 'Used for automated emails, independent of your display language above.',
+      fallbackNote: 'Not set yet — correspondence will fall back to English.',
       saved: 'Email correspondence language updated',
       saveError: 'Unable to update your email correspondence language.',
     },
