@@ -6,6 +6,7 @@ import { ASSET_TYPE_LABELS } from '../asset-type-fields';
 import { EchartComponent } from '../../shared/chart/echart.component';
 import { resolveChartPalette } from '../../shared/chart/chart-palette';
 import { ThemeService } from '../../core/theme/theme.service';
+import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 
 /** data-model.md "Holdings Distribution Chart Data" — replaces the previous Chart.js `DoughnutChartData` shape. */
@@ -34,6 +35,7 @@ export class HoldingsDistributionComponent implements OnChanges {
   @Input({ required: true }) holdings: HoldingResponse[] = [];
 
   private readonly themeService = inject(ThemeService);
+  private readonly i18n = inject(I18nService);
 
   private readonly entries = signal<HoldingsDistributionEntry[] | null>(null);
   protected readonly excludedCount = signal(0);
@@ -42,10 +44,18 @@ export class HoldingsDistributionComponent implements OnChanges {
   protected readonly chartOption = computed<EChartsOption>(() => {
     const entries = this.entries() ?? [];
     const palette = resolveChartPalette(this.themeService.theme());
+    const locale = this.i18n.language();
+    const fmt = new Intl.NumberFormat(locale, { maximumFractionDigits: 2 });
     return {
       color: palette.seriesColors,
       legend: { orient: 'horizontal', bottom: 0, left: 'center' },
-      tooltip: { trigger: 'item' },
+      tooltip: {
+        trigger: 'item',
+        formatter: (params: unknown) => {
+          const p = params as { name: string; value: number; percent: number };
+          return `${p.name}: ${fmt.format(p.value)} (${p.percent}%)`;
+        },
+      },
       series: [
         {
           type: 'pie',
