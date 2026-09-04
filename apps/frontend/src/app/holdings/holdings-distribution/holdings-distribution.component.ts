@@ -9,31 +9,24 @@ import { ThemeService } from '../../core/theme/theme.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 
-/** data-model.md "Holdings Distribution Chart Data" — replaces the previous Chart.js `DoughnutChartData` shape. */
+/** data-model.md "Holdings Distribution Chart Entry (revised)" — one aggregate per `AssetType`. */
 interface HoldingsDistributionEntry {
-  /**
-   * Either a fixed display name (Precious metal/Crypto holdings, grouped by
-   * their own `name`) or an `assetType.*` translation key (every other
-   * group) — resolved to the localized label in `chartOption`, not here, so
-   * a language switch relabels the chart without recomputing the totals.
-   */
-  name: string;
-  isTranslationKey: boolean;
+  /** The sole grouping key — also drives the slice's fixed color (`ASSET_TYPE_COLORS`). */
+  assetType: AssetType;
   /** Decimal total, converted via `.toNumber()` at the presentation boundary only. */
   value: number;
-  /** Drives the slice's fixed color (`ASSET_TYPE_COLORS`) — every holding in a group shares one type. */
-  assetType: AssetType;
 }
 
 /**
  * FR-012a: each holding's share of total portfolio value, computed
  * client-side from the already-fetched `GET /holdings` list (research.md
  * #6) — no dedicated backend endpoint. Value is `quantity × purchasePrice`
- * for Share/Crypto/ETF, `currentValue` for Precious metal; holdings with no
- * computable value are excluded from the percentage base entirely, never
- * counted as zero. Precious metal/Crypto holdings are grouped per-name
- * (research.md #3, FR-010) — "Gold" and "Silver" are separate slices, two
- * same-named Crypto lots sum into one.
+ * for Share/Crypto/ETF, `currentValue` for Precious metal/Deposit money;
+ * holdings with no computable value are excluded from the percentage base
+ * entirely, never counted as zero. Every holding is grouped by its
+ * `assetType` only (research.md #1, FR-001/FR-005) — at most one slice per
+ * type, labeled with the type's localized `assetType.*` name, regardless of
+ * how many differently-named holdings of that type exist.
  */
 @Component({
   selector: 'app-holdings-distribution',
@@ -68,7 +61,7 @@ export class HoldingsDistributionComponent implements OnChanges {
       maximumFractionDigits: 2,
     });
     const resolveName = (entry: HoldingsDistributionEntry): string =>
-      entry.isTranslationKey ? this.translate.transform(entry.name) : entry.name;
+      this.translate.transform(ASSET_TYPE_LABEL_KEYS[entry.assetType]);
     const pieCenter: [string, string] = ['50%', '42%'];
     return {
       legend: { orient: 'horizontal', bottom: 0, left: 'center' },
@@ -86,7 +79,10 @@ export class HoldingsDistributionComponent implements OnChanges {
           center: pieCenter,
           padAngle: 2,
           itemStyle: { borderRadius: 9 },
-          label: { color: palette.textColor },
+          // Name is redundant with the legend and would otherwise get
+          // clipped for longer localized asset-type labels in this small a
+          // chart — percentage only avoids that entirely.
+          label: { color: palette.textColor, formatter: '{d}%' },
           labelLine: { lineStyle: { color: palette.textColor } },
           data: entries.map((entry) => ({
             name: resolveName(entry),
@@ -123,10 +119,7 @@ export class HoldingsDistributionComponent implements OnChanges {
   }
 
   private recompute(): void {
-    const totals = new Map<
-      string,
-      { name: string; isTranslationKey: boolean; assetType: AssetType; total: Decimal }
-    >();
+    const totals = new Map<AssetType, Decimal>();
     let excluded = 0;
 
     for (const holding of this.holdings) {
@@ -135,21 +128,8 @@ export class HoldingsDistributionComponent implements OnChanges {
         excluded += 1;
         continue;
       }
-      const isNamedGroup =
-        holding.assetType === 'PRECIOUS_METAL' ||
-        holding.assetType === 'CRYPTO' ||
-        holding.assetType === 'DEPOSIT_MONEY';
-      const key = isNamedGroup ? `${holding.assetType}::${holding.name}` : holding.assetType;
-      const name = isNamedGroup
-        ? (holding.name as string)
-        : ASSET_TYPE_LABEL_KEYS[holding.assetType];
-      const existing = totals.get(key);
-      totals.set(key, {
-        name,
-        isTranslationKey: !isNamedGroup,
-        assetType: holding.assetType,
-        total: (existing?.total ?? new Decimal(0)).plus(value),
-      });
+      const key = holding.assetType;
+      totals.set(key, (totals.get(key) ?? new Decimal(0)).plus(value));
     }
 
     this.excludedCount.set(excluded);
@@ -160,9 +140,7 @@ export class HoldingsDistributionComponent implements OnChanges {
     }
 
     this.entries.set(
-      [...totals.values()].map(({ name, isTranslationKey, assetType, total }) => ({
-        name,
-        isTranslationKey,
+      [...totals.entries()].map(([assetType, total]) => ({
         assetType,
         value: total.toNumber(),
       })),
