@@ -1,10 +1,10 @@
 import { Component, Input, OnChanges, computed, inject, signal } from '@angular/core';
 import Decimal from 'decimal.js';
 import type { EChartsOption } from 'echarts';
-import type { HoldingResponse } from '@vaultfolio/api-contract';
+import type { AssetType, HoldingResponse } from '@vaultfolio/api-contract';
 import { ASSET_TYPE_LABEL_KEYS } from '../asset-type-fields';
 import { EchartComponent } from '../../shared/chart/echart.component';
-import { resolveChartPalette } from '../../shared/chart/chart-palette';
+import { ASSET_TYPE_COLORS, resolveChartPalette } from '../../shared/chart/chart-palette';
 import { ThemeService } from '../../core/theme/theme.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
@@ -21,6 +21,8 @@ interface HoldingsDistributionEntry {
   isTranslationKey: boolean;
   /** Decimal total, converted via `.toNumber()` at the presentation boundary only. */
   value: number;
+  /** Drives the slice's fixed color (`ASSET_TYPE_COLORS`) — every holding in a group shares one type. */
+  assetType: AssetType;
 }
 
 /**
@@ -53,8 +55,13 @@ export class HoldingsDistributionComponent implements OnChanges {
 
   protected readonly chartOption = computed<EChartsOption>(() => {
     const entries = this.entries() ?? [];
-    const palette = resolveChartPalette(this.themeService.theme());
     const locale = this.i18n.language();
+    // The pie's outer "pointer" labels/lines have their own `label`/
+    // `labelLine` style, independent of `EchartComponent`'s global
+    // `textStyle` fragment (which only themes component text — legend,
+    // tooltip, axes) — left unset, ECharts falls back to a fixed dark-gray
+    // default that's nearly invisible on the dark card background.
+    const palette = resolveChartPalette(this.themeService.theme());
     const fmt = new Intl.NumberFormat(locale, {
       style: 'currency',
       currency: 'EUR',
@@ -64,7 +71,6 @@ export class HoldingsDistributionComponent implements OnChanges {
       entry.isTranslationKey ? this.translate.transform(entry.name) : entry.name;
     const pieCenter: [string, string] = ['50%', '42%'];
     return {
-      color: palette.seriesColors,
       legend: { orient: 'horizontal', bottom: 0, left: 'center' },
       tooltip: {
         trigger: 'item',
@@ -80,7 +86,13 @@ export class HoldingsDistributionComponent implements OnChanges {
           center: pieCenter,
           padAngle: 2,
           itemStyle: { borderRadius: 9 },
-          data: entries.map((entry) => ({ name: resolveName(entry), value: entry.value })),
+          label: { color: palette.textColor },
+          labelLine: { lineStyle: { color: palette.textColor } },
+          data: entries.map((entry) => ({
+            name: resolveName(entry),
+            value: entry.value,
+            itemStyle: { color: ASSET_TYPE_COLORS[entry.assetType] },
+          })),
         },
       ],
     };
@@ -111,7 +123,10 @@ export class HoldingsDistributionComponent implements OnChanges {
   }
 
   private recompute(): void {
-    const totals = new Map<string, { name: string; isTranslationKey: boolean; total: Decimal }>();
+    const totals = new Map<
+      string,
+      { name: string; isTranslationKey: boolean; assetType: AssetType; total: Decimal }
+    >();
     let excluded = 0;
 
     for (const holding of this.holdings) {
@@ -129,6 +144,7 @@ export class HoldingsDistributionComponent implements OnChanges {
       totals.set(key, {
         name,
         isTranslationKey: !isNamedGroup,
+        assetType: holding.assetType,
         total: (existing?.total ?? new Decimal(0)).plus(value),
       });
     }
@@ -141,9 +157,10 @@ export class HoldingsDistributionComponent implements OnChanges {
     }
 
     this.entries.set(
-      [...totals.values()].map(({ name, isTranslationKey, total }) => ({
+      [...totals.values()].map(({ name, isTranslationKey, assetType, total }) => ({
         name,
         isTranslationKey,
+        assetType,
         value: total.toNumber(),
       })),
     );
