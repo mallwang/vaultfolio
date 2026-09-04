@@ -1,3 +1,18 @@
+## 0.0.6 (2026-09-04)
+
+### 🚀 Features
+
+- **frontend:** two-column layout for settings profile and preferences pages ([#25](https://github.com/mallwang/vaultfolio/pull/25))
+- **frontend:** add locale-aware number and date formatting ([#26](https://github.com/mallwang/vaultfolio/pull/26))
+- **frontend:** add collapsible sidebar with icon-only mode ([#27](https://github.com/mallwang/vaultfolio/pull/27))
+- **frontend:** improve holding form UX and add PrimeNG tooltips across admin UI ([#34](https://github.com/mallwang/vaultfolio/pull/34))
+- **holdings:** rename Gold/Bitcoin asset types and add name field ([#28](https://github.com/mallwang/vaultfolio/pull/28))
+- **holdings:** add DEPOSIT_MONEY asset type for cash/bank balances ([#31](https://github.com/mallwang/vaultfolio/pull/31))
+
+### 🩹 Fixes
+
+- **frontend:** fix dark-mode chart legibility for pie labels and legend ([#29](https://github.com/mallwang/vaultfolio/pull/29))
+
 ## 0.0.5 (2026-09-01)
 
 ### 🚀 Features
