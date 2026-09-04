@@ -1,4 +1,5 @@
 installed:
+  - assess
   - git
 settings:
   auto_execute_hooks: true
@@ -31,8 +32,6 @@ hooks:
       description: Auto-commit before spec clarification
       condition: null
   before_plan:
-    # Second nudge in case a UI-related spec skipped the after_specify offer above (e.g. clarify
-    # ran in between, or the offer was declined earlier). See after_specify entry for rationale.
     - extension: ux-review
       command: speckit.ux-review
       enabled: true
@@ -112,12 +111,6 @@ hooks:
       prompt: Commit specification changes?
       description: Auto-commit after specification
       condition: null
-    # Project-local skill, not an installed spec-kit extension (no .specify/extensions/ux-review/
-    # package — see .claude/skills/speckit-ux-review/). Registered here purely so
-    # /speckit-specify's existing hook-discovery step surfaces it consistently, the same way it
-    # already surfaces git. Always optional: whether a spec is UI-related is a judgment call the
-    # hook-listing step doesn't make (conditions aren't evaluated), so this always offers rather
-    # than always running.
     - extension: ux-review
       command: speckit.ux-review
       enabled: true
