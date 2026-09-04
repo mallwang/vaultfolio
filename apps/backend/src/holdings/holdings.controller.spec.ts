@@ -212,3 +212,172 @@ describe('/holdings — per-user isolation (005-auth-sessions-isolation)', () =>
     }
   });
 });
+
+/**
+ * Integration tests for 018-deposit-money: POST/GET behavior, validation
+ * (required fields, extraneous fields, the currentValue >= 0 boundary), and
+ * upsert-in-place on repeated `(name, management)` submissions (User Stories
+ * 1 & 2), per contracts/holdings-api-deposit-money.md.
+ */
+describe('/holdings — deposit money (018-deposit-money)', () => {
+  let app: INestApplication;
+  let tempDir: string;
+  let cookie: string;
+
+  const ADMIN_EMAIL = 'admin@example.com';
+  const ADMIN_PASSWORD = 'a-valid-8-char-password';
+
+  const validDeposit: CreateHoldingRequest = {
+    assetType: 'DEPOSIT_MONEY',
+    management: 'N26',
+    name: 'N26 checking',
+    currentValue: '1250.00',
+  };
+
+  beforeAll(async () => {
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'vaultfolio-holdings-deposit-money-'));
+    process.env.DATABASE_PATH = path.join(tempDir, 'test.db');
+    process.env.BOOTSTRAP_ADMIN_EMAIL = ADMIN_EMAIL;
+    process.env.BOOTSTRAP_ADMIN_PASSWORD = ADMIN_PASSWORD;
+
+    const moduleRef: TestingModule = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
+
+    app = moduleRef.createNestApplication();
+    app.use(cookieParser());
+    await app.init();
+
+    const signIn = await request(app.getHttpServer())
+      .post('/auth/sign-in')
+      .send({ email: ADMIN_EMAIL, password: ADMIN_PASSWORD });
+    cookie = (signIn.headers['set-cookie'] as unknown as string[])[0].split(';')[0];
+  });
+
+  afterAll(async () => {
+    await app.close();
+    delete process.env.DATABASE_PATH;
+    delete process.env.BOOTSTRAP_ADMIN_EMAIL;
+    delete process.env.BOOTSTRAP_ADMIN_PASSWORD;
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  });
+
+  it('T012: POST /holdings with a valid DEPOSIT_MONEY body returns 201, and GET /holdings includes it', async () => {
+    const created = await request(app.getHttpServer())
+      .post('/holdings')
+      .set('Cookie', cookie)
+      .send(validDeposit);
+    expect(created.status).toBe(201);
+    expect(created.body).toMatchObject({
+      assetType: 'DEPOSIT_MONEY',
+      management: 'N26',
+      name: 'N26 checking',
+      currentValue: '1250',
+    });
+
+    const list = await request(app.getHttpServer()).get('/holdings').set('Cookie', cookie);
+    expect((list.body as { id: string }[]).some((holding) => holding.id === created.body.id)).toBe(
+      true,
+    );
+  });
+
+  it('T013: POST /holdings with DEPOSIT_MONEY rejects missing name/currentValue, negative currentValue, and extraneous fields; accepts currentValue "0"', async () => {
+    const missingName = await request(app.getHttpServer())
+      .post('/holdings')
+      .set('Cookie', cookie)
+      .send({ assetType: 'DEPOSIT_MONEY', management: 'N26', currentValue: '100' });
+    expect(missingName.status).toBe(400);
+    expect(missingName.body.error).toBe('VALIDATION_FAILED');
+    expect(missingName.body.fieldErrors).toContainEqual(expect.objectContaining({ field: 'name' }));
+
+    const missingCurrentValue = await request(app.getHttpServer())
+      .post('/holdings')
+      .set('Cookie', cookie)
+      .send({ assetType: 'DEPOSIT_MONEY', management: 'N26', name: 'Checking' });
+    expect(missingCurrentValue.status).toBe(400);
+    expect(missingCurrentValue.body.fieldErrors).toContainEqual(
+      expect.objectContaining({ field: 'currentValue' }),
+    );
+
+    const negative = await request(app.getHttpServer())
+      .post('/holdings')
+      .set('Cookie', cookie)
+      .send({ ...validDeposit, currentValue: '-5' });
+    expect(negative.status).toBe(400);
+    expect(negative.body.fieldErrors).toContainEqual(
+      expect.objectContaining({ field: 'currentValue' }),
+    );
+
+    const zero = await request(app.getHttpServer())
+      .post('/holdings')
+      .set('Cookie', cookie)
+      .send({ ...validDeposit, management: 'ZeroBank', currentValue: '0' });
+    expect(zero.status).toBe(201);
+
+    for (const [field, value] of [
+      ['isin', 'US0378331005'],
+      ['quantity', '1'],
+      ['purchasePrice', '1'],
+      ['purchaseDate', '2020-01-01'],
+      ['weightGrams', '1'],
+    ] as const) {
+      const response = await request(app.getHttpServer())
+        .post('/holdings')
+        .set('Cookie', cookie)
+        .send({ ...validDeposit, management: `Extraneous-${field}`, [field]: value });
+      expect(response.status).toBe(400);
+      expect(response.body.fieldErrors).toContainEqual(expect.objectContaining({ field }));
+    }
+  });
+
+  it('T018: submitting POST /holdings twice with the same (name, management) results in exactly one holding, valued at the second currentValue', async () => {
+    const first = await request(app.getHttpServer())
+      .post('/holdings')
+      .set('Cookie', cookie)
+      .send({ ...validDeposit, management: 'Upsert bank', name: 'Upsert checking' });
+    expect(first.status).toBe(201);
+
+    const second = await request(app.getHttpServer())
+      .post('/holdings')
+      .set('Cookie', cookie)
+      .send({
+        ...validDeposit,
+        management: 'Upsert bank',
+        name: 'Upsert checking',
+        currentValue: '999.99',
+      });
+    expect(second.status).toBe(200);
+    expect(second.body.id).toBe(first.body.id);
+    expect(second.body.currentValue).toBe('999.99');
+
+    const list = await request(app.getHttpServer()).get('/holdings').set('Cookie', cookie);
+    const matches = (list.body as { management: string; name: string }[]).filter(
+      (holding) => holding.management === 'Upsert bank' && holding.name === 'Upsert checking',
+    );
+    expect(matches).toHaveLength(1);
+    expect(matches[0]).toMatchObject({ currentValue: '999.99' } as never);
+  });
+
+  it('T019: two DEPOSIT_MONEY holdings with the same name but different management remain distinct after one is updated', async () => {
+    const first = await request(app.getHttpServer())
+      .post('/holdings')
+      .set('Cookie', cookie)
+      .send({ ...validDeposit, management: 'Bank One', name: 'Shared name' });
+    const second = await request(app.getHttpServer())
+      .post('/holdings')
+      .set('Cookie', cookie)
+      .send({ ...validDeposit, management: 'Bank Two', name: 'Shared name', currentValue: '50' });
+    expect(first.body.id).not.toBe(second.body.id);
+
+    await request(app.getHttpServer())
+      .post('/holdings')
+      .set('Cookie', cookie)
+      .send({ ...validDeposit, management: 'Bank One', name: 'Shared name', currentValue: '777' });
+
+    const list = await request(app.getHttpServer()).get('/holdings').set('Cookie', cookie);
+    const bankTwo = (list.body as { id: string; currentValue: string }[]).find(
+      (holding) => holding.id === second.body.id,
+    );
+    expect(bankTwo?.currentValue).toBe('50');
+  });
+});

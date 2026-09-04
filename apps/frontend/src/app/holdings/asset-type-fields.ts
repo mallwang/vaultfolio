@@ -10,7 +10,13 @@ import type { AssetType } from '@vaultfolio/api-contract';
  * purely a UI-layer concern (which controls to show); `holding-validation.ts`
  * remains the single source of truth for what the server actually accepts.
  */
-export const ASSET_TYPES: readonly AssetType[] = ['ETF', 'SHARE', 'PRECIOUS_METAL', 'CRYPTO'];
+export const ASSET_TYPES: readonly AssetType[] = [
+  'ETF',
+  'SHARE',
+  'PRECIOUS_METAL',
+  'CRYPTO',
+  'DEPOSIT_MONEY',
+];
 
 export interface AssetTypeFieldSet {
   isin: boolean;
@@ -60,6 +66,15 @@ export const ASSET_TYPE_FIELD_SETS: Readonly<Record<AssetType, AssetTypeFieldSet
     weightGrams: false,
     currentValue: false,
   },
+  DEPOSIT_MONEY: {
+    isin: false,
+    name: true,
+    quantity: false,
+    purchasePrice: false,
+    purchaseDate: 'hidden',
+    weightGrams: false,
+    currentValue: true,
+  },
 };
 
 /**
@@ -73,6 +88,7 @@ export const ASSET_TYPE_LABEL_KEYS: Readonly<Record<AssetType, string>> = {
   SHARE: 'assetType.SHARE',
   PRECIOUS_METAL: 'assetType.PRECIOUS_METAL',
   CRYPTO: 'assetType.CRYPTO',
+  DEPOSIT_MONEY: 'assetType.DEPOSIT_MONEY',
 };
 
 /**

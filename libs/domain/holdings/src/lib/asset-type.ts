@@ -5,9 +5,15 @@
  * same literals via `libs/api-contract` without a vendor-specific runtime
  * dependency (FR-001).
  */
-export type AssetType = 'ETF' | 'SHARE' | 'PRECIOUS_METAL' | 'CRYPTO';
+export type AssetType = 'ETF' | 'SHARE' | 'PRECIOUS_METAL' | 'CRYPTO' | 'DEPOSIT_MONEY';
 
-export const ASSET_TYPES: readonly AssetType[] = ['ETF', 'SHARE', 'PRECIOUS_METAL', 'CRYPTO'];
+export const ASSET_TYPES: readonly AssetType[] = [
+  'ETF',
+  'SHARE',
+  'PRECIOUS_METAL',
+  'CRYPTO',
+  'DEPOSIT_MONEY',
+];
 
 /** Every field that can appear on a Holding, across all asset types. */
 export type HoldingField =
@@ -45,6 +51,10 @@ export const ASSET_TYPE_FIELDS: Readonly<Record<AssetType, AssetTypeFieldMetadat
   CRYPTO: {
     required: ['name', 'quantity', 'purchasePrice'],
     optional: ['purchaseDate'],
+  },
+  DEPOSIT_MONEY: {
+    required: ['name', 'currentValue'],
+    optional: [],
   },
 };
 

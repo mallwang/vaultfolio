@@ -141,6 +141,89 @@ describe('decideMerge — Precious metal', () => {
   });
 });
 
+describe('decideMerge — Deposit money', () => {
+  it('updates the existing row when name+management match', () => {
+    const existing = makeExisting({
+      assetType: 'DEPOSIT_MONEY',
+      management: 'N26',
+      isin: null,
+      name: 'N26 checking',
+      quantity: null,
+      purchasePrice: null,
+      weightGrams: null,
+      currentValue: new Decimal('1250.00'),
+    });
+    const decision = decideMerge(
+      submission({
+        assetType: 'DEPOSIT_MONEY',
+        management: 'N26',
+        isin: null,
+        name: 'N26 checking',
+        quantity: null,
+        purchasePrice: null,
+        weightGrams: null,
+        currentValue: new Decimal('1300.00'),
+      }),
+      [existing],
+    );
+    expect(decision).toEqual({ kind: 'update', existingId: 'existing-id' });
+  });
+
+  it('does not match when name differs under the same management', () => {
+    const existing = makeExisting({
+      assetType: 'DEPOSIT_MONEY',
+      management: 'N26',
+      isin: null,
+      name: 'N26 checking',
+      quantity: null,
+      purchasePrice: null,
+      weightGrams: null,
+      currentValue: new Decimal('1250.00'),
+    });
+    const decision = decideMerge(
+      submission({
+        assetType: 'DEPOSIT_MONEY',
+        management: 'N26',
+        isin: null,
+        name: 'N26 savings',
+        quantity: null,
+        purchasePrice: null,
+        weightGrams: null,
+        currentValue: new Decimal('500'),
+      }),
+      [existing],
+    );
+    expect(decision).toEqual({ kind: 'create' });
+  });
+
+  it('creates a separate row for the same name under a different management', () => {
+    const existing = makeExisting({
+      assetType: 'DEPOSIT_MONEY',
+      management: 'N26',
+      isin: null,
+      name: 'Checking',
+      quantity: null,
+      purchasePrice: null,
+      weightGrams: null,
+      currentValue: new Decimal('1250.00'),
+    });
+    const decision = decideMerge(
+      submission({
+        assetType: 'DEPOSIT_MONEY',
+        management: 'Revolut',
+        isin: null,
+        name: 'Checking',
+        quantity: null,
+        purchasePrice: null,
+        weightGrams: null,
+        currentValue: new Decimal('300'),
+      }),
+      [existing],
+    );
+    expect(decision).toEqual({ kind: 'create' });
+  });
+});
+
 describe('decideMerge — Share/Crypto', () => {
   it('always creates a new row for Share, even with an identical isin+management match', () => {
     const existing = makeExisting({ assetType: 'SHARE', management: 'Private' });

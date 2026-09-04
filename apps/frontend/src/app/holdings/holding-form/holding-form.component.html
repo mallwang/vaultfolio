@@ -112,7 +112,7 @@
 
   @if (fieldSet().currentValue) {
     <div class="field">
-      <label for="currentValue">{{ 'holdingForm.currentValue' | translate }}</label>
+      <label for="currentValue">{{ currentValueLabelKey() | translate }}</label>
       <p-inputnumber
         id="currentValue"
         formControlName="currentValue"

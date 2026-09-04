@@ -381,3 +381,124 @@ describe('DatabaseService — asset type restructure migration', () => {
     await second.onModuleDestroy();
   });
 });
+
+/**
+ * Migration test for 018-deposit-money (data-model.md): the `holdings` table
+ * rebuild that widens the `asset_type` CHECK to accept `DEPOSIT_MONEY` and
+ * relaxes `current_value`'s CHECK from `> 0` to `>= 0`, is idempotent on a
+ * second boot, and leaves pre-existing holdings unchanged.
+ */
+describe('DatabaseService — deposit money migration', () => {
+  let tempDir: string;
+
+  beforeEach(() => {
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'vaultfolio-db-deposit-money-'));
+    process.env.DATABASE_PATH = path.join(tempDir, 'test.db');
+    process.env.BOOTSTRAP_ADMIN_EMAIL = 'admin@example.com';
+    process.env.BOOTSTRAP_ADMIN_PASSWORD = 'a-valid-8-char-password';
+  });
+
+  afterEach(() => {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+    delete process.env.DATABASE_PATH;
+    delete process.env.BOOTSTRAP_ADMIN_EMAIL;
+    delete process.env.BOOTSTRAP_ADMIN_PASSWORD;
+  });
+
+  it('a fresh DB accepts DEPOSIT_MONEY with current_value = 0, and pre-existing holdings survive unchanged', async () => {
+    // Simulate a pre-018 database (post-017 shape) seeded with a
+    // PRECIOUS_METAL row, created directly so the migration sees it for the
+    // first time on the next onModuleInit().
+    const raw = new Database(process.env.DATABASE_PATH as string);
+    raw.exec(`
+      CREATE TABLE holdings (
+        id             TEXT PRIMARY KEY,
+        asset_type     TEXT NOT NULL CHECK (asset_type IN ('ETF', 'SHARE', 'PRECIOUS_METAL', 'CRYPTO')),
+        management     TEXT NOT NULL CHECK (management <> ''),
+        quantity       TEXT NULL CHECK (quantity IS NULL OR CAST(quantity AS REAL) > 0),
+        purchase_price TEXT NULL CHECK (purchase_price IS NULL OR CAST(purchase_price AS REAL) > 0),
+        purchase_date  TEXT NULL,
+        isin           TEXT NULL,
+        name           TEXT NULL,
+        weight_grams   TEXT NULL CHECK (weight_grams IS NULL OR CAST(weight_grams AS REAL) > 0),
+        current_value  TEXT NULL CHECK (current_value IS NULL OR CAST(current_value AS REAL) > 0),
+        created_at     TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')),
+        updated_at     TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')),
+        owner_id       TEXT NULL
+      )
+    `);
+    raw
+      .prepare(
+        `INSERT INTO holdings
+           (id, asset_type, management, name, weight_grams, current_value, owner_id, created_at, updated_at)
+         VALUES ('gold-1', 'PRECIOUS_METAL', 'Home safe', 'Gold', '31.1', '2450.00', 'owner-1',
+                 '2026-08-01T09:00:00.000Z', '2026-08-01T09:00:00.000Z')`,
+      )
+      .run();
+    raw.close();
+
+    const first = new DatabaseService();
+    await first.onModuleInit();
+
+    // Pre-existing PRECIOUS_METAL holding survives unchanged.
+    const rowsAfterFirst = await first.query<{
+      id: string;
+      asset_type: string;
+      name: string | null;
+      weight_grams: string | null;
+      current_value: string | null;
+      owner_id: string | null;
+    }>('SELECT * FROM holdings ORDER BY id ASC');
+    expect(rowsAfterFirst).toHaveLength(1);
+    expect(rowsAfterFirst[0]).toMatchObject({
+      id: 'gold-1',
+      asset_type: 'PRECIOUS_METAL',
+      name: 'Gold',
+      weight_grams: '31.1',
+      current_value: '2450.00',
+      owner_id: 'owner-1',
+    });
+
+    // A new DEPOSIT_MONEY holding with current_value = 0 is now accepted.
+    await first.query(
+      `INSERT INTO holdings
+         (id, asset_type, management, name, current_value, owner_id, created_at, updated_at)
+       VALUES ('deposit-1', 'DEPOSIT_MONEY', 'N26', 'N26 checking', '0', 'owner-1',
+               '2026-09-04T09:00:00.000Z', '2026-09-04T09:00:00.000Z')`,
+    );
+    const deposit = await first.query<{ asset_type: string; current_value: string | null }>(
+      "SELECT * FROM holdings WHERE id = 'deposit-1'",
+    );
+    expect(deposit).toHaveLength(1);
+    expect(deposit[0]).toMatchObject({ asset_type: 'DEPOSIT_MONEY', current_value: '0' });
+
+    await first.onModuleDestroy();
+
+    // Second boot against the same on-disk DB: idempotency guard must find
+    // the migration already applied and produce zero further changes.
+    const second = new DatabaseService();
+    await second.onModuleInit();
+
+    const rowsAfterSecond = await second.query<{ id: string }>(
+      'SELECT * FROM holdings ORDER BY id ASC',
+    );
+    expect(rowsAfterSecond).toHaveLength(2);
+    expect(rowsAfterSecond.map((row) => row.id)).toEqual(['deposit-1', 'gold-1']);
+
+    await second.onModuleDestroy();
+  });
+
+  it('re-running the migration on an already-migrated DB is a no-op', async () => {
+    const first = new DatabaseService();
+    await first.onModuleInit();
+    await first.onModuleDestroy();
+
+    const second = new DatabaseService();
+    await second.onModuleInit();
+    const table = await second.query<{ sql: string }>(
+      "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'holdings'",
+    );
+    expect(table[0].sql).toContain('DEPOSIT_MONEY');
+    await second.onModuleDestroy();
+  });
+});

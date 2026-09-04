@@ -135,7 +135,10 @@ export class HoldingsDistributionComponent implements OnChanges {
         excluded += 1;
         continue;
       }
-      const isNamedGroup = holding.assetType === 'PRECIOUS_METAL' || holding.assetType === 'CRYPTO';
+      const isNamedGroup =
+        holding.assetType === 'PRECIOUS_METAL' ||
+        holding.assetType === 'CRYPTO' ||
+        holding.assetType === 'DEPOSIT_MONEY';
       const key = isNamedGroup ? `${holding.assetType}::${holding.name}` : holding.assetType;
       const name = isNamedGroup
         ? (holding.name as string)
@@ -167,7 +170,7 @@ export class HoldingsDistributionComponent implements OnChanges {
   }
 
   private static computeValue(holding: HoldingResponse): Decimal | null {
-    if (holding.assetType === 'PRECIOUS_METAL') {
+    if (holding.assetType === 'PRECIOUS_METAL' || holding.assetType === 'DEPOSIT_MONEY') {
       return holding.currentValue != null ? new Decimal(holding.currentValue) : null;
     }
     if (holding.quantity != null && holding.purchasePrice != null) {

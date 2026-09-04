@@ -34,6 +34,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       this.migrate();
       await this.migrateAuth();
       this.migrateAssetTypeRestructure();
+      this.migrateDepositMoney();
       this.migrateProfile();
       this.migrateI18n();
       this.ready = true;
@@ -345,6 +346,106 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
 
     rebuild();
     this.logger.log(`Asset type restructure migration applied (${rowCount} rows migrated).`);
+  }
+
+  /**
+   * 018-deposit-money: rebuilds the `holdings` table once more to widen the
+   * `asset_type` CHECK to accept `'DEPOSIT_MONEY'`, add its
+   * `holdings_fields_match_asset_type` clause, and relax `current_value`'s
+   * CHECK from `> 0` to `>= 0` (data-model.md — the widened floor applies to
+   * every type that already uses `current_value`, i.e. also `PRECIOUS_METAL`).
+   * No data backfill needed — no prior literal is renamed, this only adds a
+   * new allowed value and widens an existing constraint. Must run after
+   * `migrateAssetTypeRestructure()`, since it preserves the `owner_id` column
+   * that migration's rebuild introduces. Idempotency guard: the stored
+   * `CREATE TABLE` text contains `'DEPOSIT_MONEY'`, mirroring
+   * `migrateAssetTypeRestructure()`'s own guard.
+   */
+  private migrateDepositMoney(): void {
+    const db = this.requireDb();
+
+    const table = db
+      .prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'holdings'")
+      .get() as { sql: string } | undefined;
+
+    if (table?.sql.includes('DEPOSIT_MONEY')) {
+      this.logger.log('Deposit money migration already applied, skipped.');
+      return;
+    }
+
+    const rowCount = (
+      db.prepare('SELECT COUNT(*) AS count FROM holdings').get() as { count: number }
+    ).count;
+
+    const rebuild = db.transaction(() => {
+      db.exec(`
+        CREATE TABLE holdings_new (
+          id             TEXT PRIMARY KEY,
+          asset_type     TEXT NOT NULL CHECK (asset_type IN ('ETF', 'SHARE', 'PRECIOUS_METAL', 'CRYPTO', 'DEPOSIT_MONEY')),
+          management     TEXT NOT NULL CHECK (management <> ''),
+          quantity       TEXT NULL CHECK (quantity IS NULL OR CAST(quantity AS REAL) > 0),
+          purchase_price TEXT NULL CHECK (purchase_price IS NULL OR CAST(purchase_price AS REAL) > 0),
+          purchase_date  TEXT NULL,
+          isin           TEXT NULL,
+          name           TEXT NULL,
+          weight_grams   TEXT NULL CHECK (weight_grams IS NULL OR CAST(weight_grams AS REAL) > 0),
+          current_value  TEXT NULL CHECK (current_value IS NULL OR CAST(current_value AS REAL) >= 0),
+          created_at     TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')),
+          updated_at     TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')),
+          owner_id       TEXT NULL,
+          CONSTRAINT holdings_fields_match_asset_type CHECK (
+            (asset_type = 'ETF' AND isin IS NOT NULL AND name IS NOT NULL AND quantity IS NOT NULL
+              AND purchase_price IS NOT NULL AND purchase_date IS NULL
+              AND weight_grams IS NULL AND current_value IS NULL)
+            OR
+            (asset_type = 'SHARE' AND isin IS NOT NULL AND name IS NOT NULL AND quantity IS NOT NULL
+              AND purchase_price IS NOT NULL AND weight_grams IS NULL AND current_value IS NULL)
+            OR
+            (asset_type = 'PRECIOUS_METAL' AND name IS NOT NULL AND weight_grams IS NOT NULL
+              AND isin IS NULL AND quantity IS NULL AND purchase_price IS NULL
+              AND purchase_date IS NULL)
+            OR
+            (asset_type = 'CRYPTO' AND name IS NOT NULL AND quantity IS NOT NULL
+              AND purchase_price IS NOT NULL AND isin IS NULL AND weight_grams IS NULL
+              AND current_value IS NULL)
+            OR
+            (asset_type = 'DEPOSIT_MONEY' AND name IS NOT NULL AND current_value IS NOT NULL
+              AND isin IS NULL AND quantity IS NULL AND purchase_price IS NULL
+              AND purchase_date IS NULL AND weight_grams IS NULL)
+          )
+        )
+      `);
+
+      db.exec(`
+        INSERT INTO holdings_new
+        SELECT
+          id,
+          asset_type,
+          management,
+          quantity,
+          purchase_price,
+          purchase_date,
+          isin,
+          name,
+          weight_grams,
+          current_value,
+          created_at,
+          updated_at,
+          owner_id
+        FROM holdings
+      `);
+
+      db.exec('DROP TABLE holdings');
+      db.exec('ALTER TABLE holdings_new RENAME TO holdings');
+      db.exec(`
+        CREATE INDEX IF NOT EXISTS holdings_upsert_lookup_idx
+          ON holdings (asset_type, management, isin)
+      `);
+      db.exec('CREATE INDEX IF NOT EXISTS holdings_owner_id_idx ON holdings (owner_id)');
+    });
+
+    rebuild();
+    this.logger.log(`Deposit money migration applied (${rowCount} rows migrated).`);
   }
 
   /**

@@ -47,6 +47,16 @@ function positiveNumberValidator(): ValidatorFn {
   };
 }
 
+/** currentValue's floor is 0 (an emptied deposit-money balance is valid), unlike every other decimal field. */
+function nonNegativeNumberValidator(): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    if (control.value == null || control.value === '') {
+      return null;
+    }
+    return Number(control.value) >= 0 ? null : { nonNegative: true };
+  };
+}
+
 function notFutureDateValidator(): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
     const value = control.value as Date | null;
@@ -126,6 +136,7 @@ export class HoldingFormComponent implements OnChanges {
     SHARE: 'building',
     PRECIOUS_METAL: 'diamond',
     CRYPTO: 'currency-bitcoin',
+    DEPOSIT_MONEY: 'wallet',
   };
 
   protected readonly assetTypeOptions = ASSET_TYPES.map((value) => ({
@@ -221,9 +232,11 @@ export class HoldingFormComponent implements OnChanges {
     this.configureControl(
       controls.currentValue,
       fieldSet.currentValue,
-      [positiveNumberValidator()],
+      [nonNegativeNumberValidator()],
       options.resetInapplicable,
-      { requiredWhenApplicable: false },
+      // Required for DEPOSIT_MONEY (FR-002); optional for PRECIOUS_METAL
+      // (used only by the distribution view, FR-012a).
+      { requiredWhenApplicable: assetType === 'DEPOSIT_MONEY' },
     );
 
     if (fieldSet.isin) {
@@ -296,6 +309,13 @@ export class HoldingFormComponent implements OnChanges {
 
   protected labelFor(assetType: AssetType): string {
     return this.translate.transform(ASSET_TYPE_LABEL_KEYS[assetType]);
+  }
+
+  /** currentValue is required for DEPOSIT_MONEY, optional for PRECIOUS_METAL (FR-012a) — different label text. */
+  protected currentValueLabelKey(): string {
+    return this.form.controls.assetType.value === 'DEPOSIT_MONEY'
+      ? 'holdingForm.currentValueRequired'
+      : 'holdingForm.currentValue';
   }
 
   protected iconFor(assetType: AssetType): string {

@@ -103,6 +103,7 @@ export const en: TranslationDictionary = {
     SHARE: 'Share',
     PRECIOUS_METAL: 'Precious metal',
     CRYPTO: 'Crypto',
+    DEPOSIT_MONEY: 'Deposit money',
   },
   holdingForm: {
     assetType: 'Asset type',
@@ -121,7 +122,8 @@ export const en: TranslationDictionary = {
     weightGrams: 'Weight (grams)',
     weightGramsInvalid: 'Weight must be a positive number.',
     currentValue: 'Current value (optional)',
-    currentValueInvalid: 'Current value must be a positive number.',
+    currentValueRequired: 'Current value',
+    currentValueInvalid: 'Current value must be a non-negative number.',
     purchaseDate: 'Purchase date (optional)',
     purchaseDateInvalid: 'Purchase date must not be in the future.',
   },
