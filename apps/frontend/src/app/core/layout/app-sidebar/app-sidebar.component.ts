@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { TooltipModule } from 'primeng/tooltip';
 import { CurrentUserStore } from '../../../auth/current-user.store';
 import { IconComponent } from '../../../shared/icon/icon.component';
 import { APPLICATION_AREAS } from '../application-areas';
@@ -15,7 +16,7 @@ import { TranslatePipe } from '../../i18n/translate.pipe';
  */
 @Component({
   selector: 'app-sidebar',
-  imports: [RouterLink, RouterLinkActive, TranslatePipe, IconComponent],
+  imports: [RouterLink, RouterLinkActive, TranslatePipe, IconComponent, TooltipModule],
   templateUrl: './app-sidebar.component.html',
   styleUrl: './app-sidebar.component.css',
   host: { '[class.collapsed]': 'collapsed()' },

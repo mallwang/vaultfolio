@@ -34,17 +34,23 @@
           <td>{{ account.email }}</td>
           <td>
             <div class="role-cell">
-              <p-select
-                [options]="roleOptions"
-                optionLabel="label"
-                optionValue="value"
-                [ngModel]="account.role"
-                [disabled]="account.isLastActiveAdmin || account.status === 'ARCHIVED'"
-                (onChange)="onRoleChange(account, $event.value)"
+              <span
+                [pTooltip]="roleSelectDisabledReason(account)"
+                tooltipPosition="top"
                 appendTo="body"
               >
-                <ng-template #dropdownicon><app-icon name="chevron-down" /></ng-template>
-              </p-select>
+                <p-select
+                  [options]="roleOptions"
+                  optionLabel="label"
+                  optionValue="value"
+                  [ngModel]="account.role"
+                  [disabled]="account.isLastActiveAdmin || account.status === 'ARCHIVED'"
+                  (onChange)="onRoleChange(account, $event.value)"
+                  appendTo="body"
+                >
+                  <ng-template #dropdownicon><app-icon name="chevron-down" /></ng-template>
+                </p-select>
+              </span>
               @if (account.isLastActiveAdmin) {
                 <p-tag
                   severity="info"
@@ -73,18 +79,20 @@
           <td>
             <div class="row-actions">
               @if (account.status === 'ACTIVE') {
-                <button
-                  pButton
-                  type="button"
-                  iconOnly
-                  severity="danger"
-                  [text]="true"
-                  [disabled]="account.isLastActiveAdmin"
-                  [attr.aria-label]="archiveLabel(account)"
-                  (click)="confirmArchive(account, $event)"
-                >
-                  <app-icon name="inbox" />
-                </button>
+                <span [pTooltip]="archiveLabel(account)" tooltipPosition="top" appendTo="body">
+                  <button
+                    pButton
+                    type="button"
+                    iconOnly
+                    severity="danger"
+                    [text]="true"
+                    [disabled]="account.isLastActiveAdmin"
+                    [attr.aria-label]="archiveLabel(account)"
+                    (click)="confirmArchive(account, $event)"
+                  >
+                    <app-icon name="inbox" />
+                  </button>
+                </span>
               } @else {
                 <button
                   pButton
@@ -93,6 +101,9 @@
                   severity="secondary"
                   [text]="true"
                   [attr.aria-label]="'accounts.reactivateAccount' | translate"
+                  [pTooltip]="'accounts.reactivateAccount' | translate"
+                  tooltipPosition="top"
+                  appendTo="body"
                   (click)="reactivate(account)"
                 >
                   <app-icon name="replay" />

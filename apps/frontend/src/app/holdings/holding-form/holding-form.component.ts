@@ -32,11 +32,13 @@ import {
   ASSET_TYPES,
   ASSET_TYPE_FIELD_SETS,
   ASSET_TYPE_LABEL_KEYS,
+  ASSET_TYPE_NAME_PLACEHOLDER_KEYS,
   isValidIsin,
   type AssetTypeFieldSet,
 } from '../asset-type-fields';
 import { HoldingsService } from '../holdings.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
+import { I18nService } from '../../core/i18n/i18n.service';
 
 function positiveNumberValidator(): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
@@ -129,6 +131,11 @@ export class HoldingFormComponent implements OnChanges {
   private readonly fb = inject(FormBuilder);
   private readonly holdingsService = inject(HoldingsService);
   private readonly translate = inject(TranslatePipe);
+  /** Drives p-inputnumber's [locale] input — without it, PrimeNG falls back to the
+   *  browser's OS locale for decimal-separator parsing, which can silently
+   *  disagree with the app's own language setting (e.g. an English UI on a
+   *  German-locale OS would still only accept "45,50", not "45.50"). */
+  protected readonly i18n = inject(I18nService);
 
   /** Icon shown on each type-selector button/card (FR-012, design.md's approved mockup). */
   private static readonly ASSET_TYPE_ICONS: Readonly<Record<AssetType, string>> = {
@@ -311,15 +318,28 @@ export class HoldingFormComponent implements OnChanges {
     return this.translate.transform(ASSET_TYPE_LABEL_KEYS[assetType]);
   }
 
-  /** currentValue is required for DEPOSIT_MONEY, optional for PRECIOUS_METAL (FR-012a) — different label text. */
-  protected currentValueLabelKey(): string {
-    return this.form.controls.assetType.value === 'DEPOSIT_MONEY'
-      ? 'holdingForm.currentValueRequired'
-      : 'holdingForm.currentValue';
+  /** Example text shown in the "name" field's placeholder differs by asset type (FR-012a-adjacent UX polish). */
+  protected namePlaceholderKey(): string {
+    return ASSET_TYPE_NAME_PLACEHOLDER_KEYS[this.form.controls.assetType.value];
   }
 
   protected iconFor(assetType: AssetType): string {
     return HoldingFormComponent.ASSET_TYPE_ICONS[assetType];
+  }
+
+  /** p-datepicker's display/typing format (PrimeNG tokens, not a date-fns/ICU pattern) —
+   *  kept in lockstep with the holdings table's `localeDate` pipe (Intl.DateTimeFormat
+   *  under the active language), so the same date reads the same way whether it's
+   *  being typed here or displayed there: German is day-month-year with dots
+   *  (TT.MM.JJJJ), English is US month/day/year (MM/DD/YYYY). Storage is unaffected:
+   *  toIsoDateOnly() reads the Date object's fields directly, not this display string. */
+  protected dateFormat(): string {
+    return this.i18n.language() === 'de' ? 'dd.mm.yy' : 'mm/dd/yy';
+  }
+
+  /** Drives the label's "*" marker — required-ness varies by asset type (e.g. currentValue). */
+  protected isRequired(controlName: keyof typeof this.form.controls): boolean {
+    return this.form.controls[controlName].hasValidator(Validators.required);
   }
 
   private toRequestBody(raw: {

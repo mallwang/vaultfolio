@@ -10,6 +10,7 @@ import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
 import { IconComponent } from '../shared/icon/icon.component';
 import { ASSET_TYPE_LABEL_KEYS } from './asset-type-fields';
 import { HoldingFormComponent } from './holding-form/holding-form.component';
@@ -38,6 +39,7 @@ import { LocaleDatePipe } from '../core/i18n/locale-date.pipe';
     IconFieldModule,
     InputIconModule,
     InputTextModule,
+    TooltipModule,
     HoldingFormComponent,
     HoldingsDistributionComponent,
     TranslatePipe,

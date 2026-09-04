@@ -81,7 +81,12 @@
           <td>{{ holding.name }}</td>
           <td>{{ holding.management }}</td>
           <td>{{ holding.quantity ?? holding.weightGrams | localeNumber }}</td>
-          <td>{{ holding.purchasePrice ?? holding.currentValue | localeNumber }}</td>
+          <td>
+            {{
+              holding.purchasePrice ?? holding.currentValue
+                | localeNumber: { style: 'currency', currency: 'EUR' }
+            }}
+          </td>
           <td>{{ holding.purchaseDate | localeDate }}</td>
           <td class="row-actions">
             <button
@@ -91,6 +96,8 @@
               severity="secondary"
               [text]="true"
               [attr.aria-label]="'holdings.editHolding' | translate"
+              [pTooltip]="'holdings.editHolding' | translate"
+              tooltipPosition="top"
               (click)="openEditDialog(holding)"
             >
               <app-icon name="pencil" />
@@ -102,6 +109,8 @@
               severity="danger"
               [text]="true"
               [attr.aria-label]="'holdings.deleteHolding' | translate"
+              [pTooltip]="'holdings.deleteHolding' | translate"
+              tooltipPosition="top"
               (click)="confirmDelete(holding, $event)"
             >
               <app-icon name="contract-delete" />
