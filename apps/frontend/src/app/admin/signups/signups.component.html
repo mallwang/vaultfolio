@@ -50,6 +50,9 @@
                   severity="success"
                   [text]="true"
                   [attr.aria-label]="'signups.approveSignup' | translate"
+                  [pTooltip]="'signups.approveSignup' | translate"
+                  tooltipPosition="top"
+                  appendTo="body"
                   (click)="confirmApprove(signup, $event)"
                 >
                   <app-icon name="check-circle" />
@@ -61,6 +64,9 @@
                   severity="danger"
                   [text]="true"
                   [attr.aria-label]="'signups.rejectSignup' | translate"
+                  [pTooltip]="'signups.rejectSignup' | translate"
+                  tooltipPosition="top"
+                  appendTo="body"
                   (click)="openRejectDialog(signup)"
                 >
                   <app-icon name="close" />
@@ -73,6 +79,9 @@
                 severity="secondary"
                 [text]="true"
                 [attr.aria-label]="'signups.deleteSignup' | translate"
+                [pTooltip]="'signups.deleteSignup' | translate"
+                tooltipPosition="top"
+                appendTo="body"
                 (click)="confirmDelete(signup, $event)"
               >
                 <app-icon name="trash" />

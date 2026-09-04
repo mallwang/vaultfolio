@@ -7,6 +7,7 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
 import { IconComponent } from '../../shared/icon/icon.component';
 import { InviteDialogComponent } from './invite-dialog/invite-dialog.component';
 import { InvitationsService } from './invitations.service';
@@ -50,6 +51,7 @@ const STATUS_LABEL_KEY: Record<InvitationStatus, string> = {
     TagModule,
     ConfirmDialogModule,
     ToastModule,
+    TooltipModule,
     InviteDialogComponent,
     TranslatePipe,
     IconComponent,

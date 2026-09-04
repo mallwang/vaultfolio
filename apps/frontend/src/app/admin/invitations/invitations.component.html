@@ -57,6 +57,9 @@
                   severity="secondary"
                   [text]="true"
                   [attr.aria-label]="'invitations.resendInvitation' | translate"
+                  [pTooltip]="'invitations.resendInvitation' | translate"
+                  tooltipPosition="top"
+                  appendTo="body"
                   (click)="resend(invitation)"
                 >
                   <app-icon name="send" />
@@ -68,6 +71,9 @@
                   severity="danger"
                   [text]="true"
                   [attr.aria-label]="'invitations.cancelInvitation' | translate"
+                  [pTooltip]="'invitations.cancelInvitation' | translate"
+                  tooltipPosition="top"
+                  appendTo="body"
                   (click)="confirmCancel(invitation, $event)"
                 >
                   <app-icon name="close" />

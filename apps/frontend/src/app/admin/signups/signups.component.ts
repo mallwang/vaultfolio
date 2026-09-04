@@ -7,6 +7,7 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
 import { IconComponent } from '../../shared/icon/icon.component';
 import { AccountsService } from '../accounts/accounts.service';
 import { RejectDialogComponent } from './reject-dialog/reject-dialog.component';
@@ -47,6 +48,7 @@ const STATUS_LABEL_KEY: Record<SignupStatus, string> = {
     TagModule,
     ConfirmDialogModule,
     ToastModule,
+    TooltipModule,
     RejectDialogComponent,
     TranslatePipe,
     IconComponent,

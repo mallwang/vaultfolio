@@ -26,18 +26,54 @@
     }
   </fieldset>
 
-  <div class="field">
-    <label for="management">{{ 'holdingForm.management' | translate }}</label>
-    <input id="management" type="text" pInputText formControlName="management" />
-    @if (form.controls.management.invalid && form.controls.management.touched) {
-      <p-message severity="error">{{ 'holdingForm.managementRequired' | translate }}</p-message>
+  <div class="field-row">
+    <div class="field">
+      <label for="management" [class.field-label--required]="isRequired('management')">
+        {{ 'holdingForm.management' | translate }}
+      </label>
+      <input
+        id="management"
+        type="text"
+        pInputText
+        formControlName="management"
+        [placeholder]="'holdingForm.managementPlaceholder' | translate"
+      />
+      @if (form.controls.management.invalid && form.controls.management.touched) {
+        <p-message severity="error">{{ 'holdingForm.managementRequired' | translate }}</p-message>
+      }
+    </div>
+
+    @if (fieldSet().name) {
+      <div class="field">
+        <label for="name" [class.field-label--required]="isRequired('name')">
+          {{ 'holdingForm.name' | translate }}
+        </label>
+        <input
+          id="name"
+          type="text"
+          pInputText
+          formControlName="name"
+          [placeholder]="namePlaceholderKey() | translate"
+        />
+        @if (form.controls.name.invalid && form.controls.name.touched) {
+          <p-message severity="error">{{ 'holdingForm.nameRequired' | translate }}</p-message>
+        }
+      </div>
     }
   </div>
 
   @if (fieldSet().isin) {
     <div class="field">
-      <label for="isin">{{ 'holdingForm.isin' | translate }}</label>
-      <input id="isin" type="text" pInputText formControlName="isin" />
+      <label for="isin" [class.field-label--required]="isRequired('isin')">
+        {{ 'holdingForm.isin' | translate }}
+      </label>
+      <input
+        id="isin"
+        type="text"
+        pInputText
+        formControlName="isin"
+        [placeholder]="'holdingForm.isinPlaceholder' | translate"
+      />
       @if (form.controls.isin.invalid && form.controls.isin.touched) {
         @if (form.controls.isin.errors?.['isin']) {
           <p-message severity="error">{{ 'holdingForm.isinInvalid' | translate }}</p-message>
@@ -48,79 +84,97 @@
     </div>
   }
 
-  @if (fieldSet().name) {
-    <div class="field">
-      <label for="name">{{ 'holdingForm.name' | translate }}</label>
-      <input id="name" type="text" pInputText formControlName="name" />
-      @if (form.controls.name.invalid && form.controls.name.touched) {
-        <p-message severity="error">{{ 'holdingForm.nameRequired' | translate }}</p-message>
+  @if (fieldSet().quantity || fieldSet().purchasePrice) {
+    <div class="field-row">
+      @if (fieldSet().quantity) {
+        <div class="field">
+          <label for="quantity" [class.field-label--required]="isRequired('quantity')">
+            {{ 'holdingForm.quantity' | translate }}
+          </label>
+          <p-inputnumber
+            id="quantity"
+            formControlName="quantity"
+            mode="decimal"
+            [locale]="i18n.language()"
+            [maxFractionDigits]="8"
+            [placeholder]="'holdingForm.quantityPlaceholder' | translate"
+          />
+          @if (form.controls.quantity.invalid && form.controls.quantity.touched) {
+            <p-message severity="error">{{ 'holdingForm.quantityInvalid' | translate }}</p-message>
+          }
+        </div>
+      }
+
+      @if (fieldSet().purchasePrice) {
+        <div class="field">
+          <label for="purchasePrice" [class.field-label--required]="isRequired('purchasePrice')">
+            {{
+              (form.controls.assetType.value === 'ETF'
+                ? 'holdingForm.averagePurchasePrice'
+                : 'holdingForm.purchasePrice'
+              ) | translate
+            }}
+          </label>
+          <p-inputnumber
+            id="purchasePrice"
+            formControlName="purchasePrice"
+            mode="decimal"
+            [locale]="i18n.language()"
+            [maxFractionDigits]="8"
+            [placeholder]="'holdingForm.purchasePricePlaceholder' | translate"
+          />
+          @if (form.controls.purchasePrice.invalid && form.controls.purchasePrice.touched) {
+            <p-message severity="error">{{
+              'holdingForm.purchasePriceInvalid' | translate
+            }}</p-message>
+          }
+        </div>
       }
     </div>
   }
 
-  @if (fieldSet().quantity) {
-    <div class="field">
-      <label for="quantity">{{ 'holdingForm.quantity' | translate }}</label>
-      <p-inputnumber
-        id="quantity"
-        formControlName="quantity"
-        mode="decimal"
-        [maxFractionDigits]="8"
-      />
-      @if (form.controls.quantity.invalid && form.controls.quantity.touched) {
-        <p-message severity="error">{{ 'holdingForm.quantityInvalid' | translate }}</p-message>
+  @if (fieldSet().weightGrams || fieldSet().currentValue) {
+    <div class="field-row">
+      @if (fieldSet().weightGrams) {
+        <div class="field">
+          <label for="weightGrams" [class.field-label--required]="isRequired('weightGrams')">
+            {{ 'holdingForm.weightGrams' | translate }}
+          </label>
+          <p-inputnumber
+            id="weightGrams"
+            formControlName="weightGrams"
+            mode="decimal"
+            [locale]="i18n.language()"
+            [maxFractionDigits]="8"
+            [placeholder]="'holdingForm.weightGramsPlaceholder' | translate"
+          />
+          @if (form.controls.weightGrams.invalid && form.controls.weightGrams.touched) {
+            <p-message severity="error">{{
+              'holdingForm.weightGramsInvalid' | translate
+            }}</p-message>
+          }
+        </div>
       }
-    </div>
-  }
 
-  @if (fieldSet().purchasePrice) {
-    <div class="field">
-      <label for="purchasePrice">
-        {{
-          (form.controls.assetType.value === 'ETF'
-            ? 'holdingForm.averagePurchasePrice'
-            : 'holdingForm.purchasePrice'
-          ) | translate
-        }}
-      </label>
-      <p-inputnumber
-        id="purchasePrice"
-        formControlName="purchasePrice"
-        mode="decimal"
-        [maxFractionDigits]="8"
-      />
-      @if (form.controls.purchasePrice.invalid && form.controls.purchasePrice.touched) {
-        <p-message severity="error">{{ 'holdingForm.purchasePriceInvalid' | translate }}</p-message>
-      }
-    </div>
-  }
-
-  @if (fieldSet().weightGrams) {
-    <div class="field">
-      <label for="weightGrams">{{ 'holdingForm.weightGrams' | translate }}</label>
-      <p-inputnumber
-        id="weightGrams"
-        formControlName="weightGrams"
-        mode="decimal"
-        [maxFractionDigits]="8"
-      />
-      @if (form.controls.weightGrams.invalid && form.controls.weightGrams.touched) {
-        <p-message severity="error">{{ 'holdingForm.weightGramsInvalid' | translate }}</p-message>
-      }
-    </div>
-  }
-
-  @if (fieldSet().currentValue) {
-    <div class="field">
-      <label for="currentValue">{{ currentValueLabelKey() | translate }}</label>
-      <p-inputnumber
-        id="currentValue"
-        formControlName="currentValue"
-        mode="decimal"
-        [maxFractionDigits]="8"
-      />
-      @if (form.controls.currentValue.invalid && form.controls.currentValue.touched) {
-        <p-message severity="error">{{ 'holdingForm.currentValueInvalid' | translate }}</p-message>
+      @if (fieldSet().currentValue) {
+        <div class="field">
+          <label for="currentValue" [class.field-label--required]="isRequired('currentValue')">
+            {{ 'holdingForm.currentValue' | translate }}
+          </label>
+          <p-inputnumber
+            id="currentValue"
+            formControlName="currentValue"
+            mode="decimal"
+            [locale]="i18n.language()"
+            [maxFractionDigits]="8"
+            [placeholder]="'holdingForm.currentValuePlaceholder' | translate"
+          />
+          @if (form.controls.currentValue.invalid && form.controls.currentValue.touched) {
+            <p-message severity="error">{{
+              'holdingForm.currentValueInvalid' | translate
+            }}</p-message>
+          }
+        </div>
       }
     </div>
   }
@@ -131,8 +185,9 @@
       <p-datepicker
         id="purchaseDate"
         formControlName="purchaseDate"
-        dateFormat="yy-mm-dd"
+        [dateFormat]="dateFormat()"
         [showIcon]="true"
+        [placeholder]="'holdingForm.purchaseDatePlaceholder' | translate"
       >
         <ng-template #triggericon><app-icon name="calendar" /></ng-template>
       </p-datepicker>
@@ -150,6 +205,8 @@
     <button pButton type="button" severity="secondary" (click)="cancel()">
       {{ 'common.cancel' | translate }}
     </button>
-    <button pButton type="submit" [loading]="submitting()">{{ 'common.save' | translate }}</button>
+    <button pButton type="submit" [disabled]="form.invalid" [loading]="submitting()">
+      {{ 'common.save' | translate }}
+    </button>
   </div>
 </form>

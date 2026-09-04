@@ -92,6 +92,19 @@ export const ASSET_TYPE_LABEL_KEYS: Readonly<Record<AssetType, string>> = {
 };
 
 /**
+ * Translation-dictionary keys for the "name" field's placeholder text, which
+ * shows a realistic example — what counts as a "name" differs a lot by
+ * asset type (a fund name vs. a coin vs. a bank account label).
+ */
+export const ASSET_TYPE_NAME_PLACEHOLDER_KEYS: Readonly<Record<AssetType, string>> = {
+  ETF: 'holdingForm.namePlaceholderEtf',
+  SHARE: 'holdingForm.namePlaceholderShare',
+  PRECIOUS_METAL: 'holdingForm.namePlaceholderPreciousMetal',
+  CRYPTO: 'holdingForm.namePlaceholderCrypto',
+  DEPOSIT_MONEY: 'holdingForm.namePlaceholderDepositMoney',
+};
+
+/**
  * Standard ISIN checksum — kept in sync with
  * `libs/domain/holdings/src/lib/holding-validation.ts`'s `isValidIsin`
  * (same module-boundary reasoning as above). Used only for immediate

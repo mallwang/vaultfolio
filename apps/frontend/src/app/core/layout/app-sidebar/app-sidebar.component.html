@@ -6,7 +6,9 @@
         [routerLink]="['/app', area.path]"
         routerLinkActive="app-nav__item--active"
         ariaCurrentWhenActive="page"
-        [title]="collapsed() ? ('nav.' + area.id | translate) : ''"
+        [pTooltip]="collapsed() ? ('nav.' + area.id | translate) : ''"
+        tooltipPosition="right"
+        appendTo="body"
       >
         <app-icon [name]="area.icon" />
         @if (!collapsed()) {
@@ -21,7 +23,9 @@
     type="button"
     (click)="toggleCollapsed()"
     [attr.aria-label]="(collapsed() ? 'nav.expandSidebar' : 'nav.collapseSidebar') | translate"
-    [title]="(collapsed() ? 'nav.expandSidebar' : 'nav.collapseSidebar') | translate"
+    [pTooltip]="(collapsed() ? 'nav.expandSidebar' : 'nav.collapseSidebar') | translate"
+    tooltipPosition="right"
+    appendTo="body"
   >
     <app-icon [name]="collapsed() ? 'chevron-right' : 'chevron-left'" />
   </button>

@@ -10,6 +10,7 @@ import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
 import { IconComponent } from '../../shared/icon/icon.component';
 import { AccountsService } from './accounts.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
@@ -49,6 +50,7 @@ const ROLE_OPTIONS: RoleOption[] = [
     MessageModule,
     ConfirmDialogModule,
     ToastModule,
+    TooltipModule,
     FormsModule,
     TranslatePipe,
     IconComponent,
@@ -97,6 +99,17 @@ export class AccountsComponent implements OnInit {
     return this.translate.transform(
       account.isLastActiveAdmin ? 'accounts.cannotArchiveLastAdmin' : 'accounts.archiveAccount',
     );
+  }
+
+  /** Reason the role select is disabled, or '' when it isn't — drives the wrapper's tooltip (native `disabled` controls don't fire hover events themselves). */
+  protected roleSelectDisabledReason(account: AccountSummary): string {
+    if (account.isLastActiveAdmin) {
+      return this.translate.transform('accounts.cannotChangeRoleLastAdmin');
+    }
+    if (account.status === 'ARCHIVED') {
+      return this.translate.transform('accounts.cannotChangeRoleArchived');
+    }
+    return '';
   }
 
   protected daysLeft(account: AccountSummary): number | null {
