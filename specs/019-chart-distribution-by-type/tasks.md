@@ -62,19 +62,19 @@ appearing as a label.
 > Write/extend these tests FIRST, ensure the new/changed assertions FAIL against the current
 > per-name-grouping code before implementing.
 
-- [ ] T001 [P] [US1] In `apps/frontend/src/app/holdings/holdings-distribution/holdings-distribution.component.spec.ts`, replace/extend the existing "groups Precious metal/Crypto/Deposit money by name" case with a case asserting that two differently-named holdings of the same type (e.g. Crypto "Bitcoin" `quantity`×`purchasePrice` + "Ethereum" `quantity`×`purchasePrice`) produce exactly one `chartOption` slice whose `value` is the exact Decimal-computed sum of both (research.md #6a).
-- [ ] T002 [P] [US1] In the same spec file, add/extend a case for Deposit money ("Bargeld" + "Savings account", both via `currentValue`) asserting one summed slice, and a case for a single-holding type (e.g. one Precious metal holding, e.g. "Gold") asserting its slice is still labeled by the type, never the holding's `name` (spec.md Acceptance Scenario 4).
-- [ ] T003 [P] [US1] In the same spec file, add/extend a case asserting every produced slice's rendered `name` in `chartOption` resolves through `ASSET_TYPE_LABEL_KEYS`/`TranslatePipe` (e.g. `assetType.CRYPTO` → "Crypto"), never a raw holding `name`, across all five asset types present in one fixture (research.md #6b, spec.md SC-003).
-- [ ] T004 [P] [US1] In the same spec file, add/extend a case asserting a type is omitted entirely when all its holdings lack a computable value (e.g. a Share with no `quantity`/`purchasePrice`), and that `excludedCount` still reflects such holdings unchanged (research.md #6c, spec.md Edge Cases, FR-004/FR-007).
-- [ ] T005 [US1] Run `npm exec nx test frontend -- --testPathPattern=holdings-distribution` and confirm the T001–T004 assertions fail against the current per-name-grouping implementation (pre-implementation red state).
+- [x] T001 [P] [US1] In `apps/frontend/src/app/holdings/holdings-distribution/holdings-distribution.component.spec.ts`, replace/extend the existing "groups Precious metal/Crypto/Deposit money by name" case with a case asserting that two differently-named holdings of the same type (e.g. Crypto "Bitcoin" `quantity`×`purchasePrice` + "Ethereum" `quantity`×`purchasePrice`) produce exactly one `chartOption` slice whose `value` is the exact Decimal-computed sum of both (research.md #6a).
+- [x] T002 [P] [US1] In the same spec file, add/extend a case for Deposit money ("Bargeld" + "Savings account", both via `currentValue`) asserting one summed slice, and a case for a single-holding type (e.g. one Precious metal holding, e.g. "Gold") asserting its slice is still labeled by the type, never the holding's `name` (spec.md Acceptance Scenario 4).
+- [x] T003 [P] [US1] In the same spec file, add/extend a case asserting every produced slice's rendered `name` in `chartOption` resolves through `ASSET_TYPE_LABEL_KEYS`/`TranslatePipe` (e.g. `assetType.CRYPTO` → "Crypto"), never a raw holding `name`, across all five asset types present in one fixture (research.md #6b, spec.md SC-003).
+- [x] T004 [P] [US1] In the same spec file, add/extend a case asserting a type is omitted entirely when all its holdings lack a computable value (e.g. a Share with no `quantity`/`purchasePrice`), and that `excludedCount` still reflects such holdings unchanged (research.md #6c, spec.md Edge Cases, FR-004/FR-007).
+- [x] T005 [US1] Run `npm exec nx test frontend -- --testPathPattern=holdings-distribution` and confirm the T001–T004 assertions fail against the current per-name-grouping implementation (pre-implementation red state).
 
 ### Implementation for User Story 1
 
-- [ ] T006 [US1] In `apps/frontend/src/app/holdings/holdings-distribution/holdings-distribution.component.ts`, simplify the `HoldingsDistributionEntry` interface per data-model.md: drop the `name`/`isTranslationKey` fields, keep `assetType: AssetType` and `value: number` only.
-- [ ] T007 [US1] In the same file, rewrite `recompute()` per data-model.md's grouping algorithm: key the `totals` map directly by `holding.assetType` (drop the `isNamedGroup`/`${assetType}::${name}` branch entirely), summing `computeValue(holding)` as `Decimal` per type, and build `entries` as `{ assetType, value }` (depends on T006).
-- [ ] T008 [US1] In the same file, simplify `chartOption`'s `resolveName` to always resolve the slice name via `this.translate.transform(ASSET_TYPE_LABEL_KEYS[entry.assetType])` (drop the `isTranslationKey` ternary and the now-removed `entry.name`/`entry.isTranslationKey` reads), keeping `ASSET_TYPE_COLORS[entry.assetType]` coloring and all other chart option fields unchanged (depends on T006).
-- [ ] T009 [US1] Update the file-level and `HoldingsDistributionEntry`/component doc comments in the same file (currently describing per-name grouping for Precious metal/Crypto/Deposit money) to describe the new always-by-type grouping, matching data-model.md/research.md.
-- [ ] T010 [US1] Run `npm exec nx test frontend -- --testPathPattern=holdings-distribution` and confirm all tests (including T001–T004) now pass (post-implementation green state).
+- [x] T006 [US1] In `apps/frontend/src/app/holdings/holdings-distribution/holdings-distribution.component.ts`, simplify the `HoldingsDistributionEntry` interface per data-model.md: drop the `name`/`isTranslationKey` fields, keep `assetType: AssetType` and `value: number` only.
+- [x] T007 [US1] In the same file, rewrite `recompute()` per data-model.md's grouping algorithm: key the `totals` map directly by `holding.assetType` (drop the `isNamedGroup`/`${assetType}::${name}` branch entirely), summing `computeValue(holding)` as `Decimal` per type, and build `entries` as `{ assetType, value }` (depends on T006).
+- [x] T008 [US1] In the same file, simplify `chartOption`'s `resolveName` to always resolve the slice name via `this.translate.transform(ASSET_TYPE_LABEL_KEYS[entry.assetType])` (drop the `isTranslationKey` ternary and the now-removed `entry.name`/`entry.isTranslationKey` reads), keeping `ASSET_TYPE_COLORS[entry.assetType]` coloring and all other chart option fields unchanged (depends on T006).
+- [x] T009 [US1] Update the file-level and `HoldingsDistributionEntry`/component doc comments in the same file (currently describing per-name grouping for Precious metal/Crypto/Deposit money) to describe the new always-by-type grouping, matching data-model.md/research.md.
+- [x] T010 [US1] Run `npm exec nx test frontend -- --testPathPattern=holdings-distribution` and confirm all tests (including T001–T004) now pass (post-implementation green state).
 
 **Checkpoint**: User Story 1 — the feature's entire scope — is fully implemented and independently
 testable; the distribution-by-value chart shows at most one slice per `AssetType`.
@@ -83,7 +83,7 @@ testable; the distribution-by-value chart shows at most one slice per `AssetType
 
 ## Phase 4: Polish & Cross-Cutting Concerns
 
-- [ ] T011 [P] Run `npm exec nx lint frontend` and fix any lint issues introduced by T006–T009.
+- [x] T011 [P] Run `npm exec nx lint frontend` and fix any lint issues introduced by T006–T009.
 - [ ] T012 Manually validate against quickstart.md's "Manual validation" steps (add mixed-name/same-type holdings across all five types, confirm slice count/sums/labels, confirm a language switch relabels without changing values, confirm an uncomputable holding stays excluded).
 
 ---

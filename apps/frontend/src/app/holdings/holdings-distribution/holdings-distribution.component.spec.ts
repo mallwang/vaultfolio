@@ -61,7 +61,7 @@ describe('HoldingsDistributionComponent', () => {
     holding({ id: '4', assetType: 'ETF', quantity: null, purchasePrice: null }), // excluded
   ];
 
-  it('builds the pie series data as {name, value} entries grouped by assetType, matching the prior Chart.js parity', () => {
+  it('builds the pie series data as {name, value} entries grouped by assetType only, labeled by type', () => {
     fixture.componentRef.setInput('holdings', holdings);
     fixture.detectChanges();
 
@@ -70,53 +70,12 @@ describe('HoldingsDistributionComponent', () => {
 
     expect(series[0].data).toEqual([
       { name: 'Share', value: 60, itemStyle: { color: ASSET_TYPE_COLORS.SHARE } },
-      { name: 'Gold', value: 25, itemStyle: { color: ASSET_TYPE_COLORS.PRECIOUS_METAL } },
+      { name: 'Precious metal', value: 25, itemStyle: { color: ASSET_TYPE_COLORS.PRECIOUS_METAL } },
     ]);
     expect(fixture.componentInstance['excludedCount']()).toBe(1);
   });
 
-  it('groups Precious metal/Crypto holdings by name, not just type — Gold and Silver as separate slices (research.md #3, FR-010)', () => {
-    fixture.componentRef.setInput('holdings', [
-      holding({ id: '1', assetType: 'PRECIOUS_METAL', name: 'Gold', currentValue: '25' }),
-      holding({ id: '2', assetType: 'PRECIOUS_METAL', name: 'Silver', currentValue: '10' }),
-    ]);
-    fixture.detectChanges();
-
-    const option = fixture.componentInstance['chartOption']();
-    const series = option.series as Array<{ data: Array<{ name: string; value: number }> }>;
-
-    expect(series[0].data).toEqual([
-      { name: 'Gold', value: 25, itemStyle: { color: ASSET_TYPE_COLORS.PRECIOUS_METAL } },
-      { name: 'Silver', value: 10, itemStyle: { color: ASSET_TYPE_COLORS.PRECIOUS_METAL } },
-    ]);
-  });
-
-  it('groups DEPOSIT_MONEY holdings by name, not merged into one unlabeled slice', () => {
-    fixture.componentRef.setInput('holdings', [
-      holding({ id: '1', assetType: 'DEPOSIT_MONEY', name: 'N26 checking', currentValue: '1250' }),
-      holding({
-        id: '2',
-        assetType: 'DEPOSIT_MONEY',
-        name: 'Revolut savings',
-        currentValue: '500',
-      }),
-    ]);
-    fixture.detectChanges();
-
-    const option = fixture.componentInstance['chartOption']();
-    const series = option.series as Array<{ data: Array<{ name: string; value: number }> }>;
-
-    expect(series[0].data).toEqual([
-      { name: 'N26 checking', value: 1250, itemStyle: { color: ASSET_TYPE_COLORS.DEPOSIT_MONEY } },
-      {
-        name: 'Revolut savings',
-        value: 500,
-        itemStyle: { color: ASSET_TYPE_COLORS.DEPOSIT_MONEY },
-      },
-    ]);
-  });
-
-  it('sums two same-named Crypto lots into one slice', () => {
+  it('sums two differently-named Crypto holdings into exactly one type-level slice (research.md #6a)', () => {
     fixture.componentRef.setInput('holdings', [
       holding({
         id: '1',
@@ -128,10 +87,10 @@ describe('HoldingsDistributionComponent', () => {
       holding({
         id: '2',
         assetType: 'CRYPTO',
-        name: 'Bitcoin',
-        quantity: '0.2',
-        purchasePrice: '45000',
-      }), // 9000 -> 13000
+        name: 'Ethereum',
+        quantity: '2',
+        purchasePrice: '2500',
+      }), // 5000 -> 9000
     ]);
     fixture.detectChanges();
 
@@ -139,8 +98,93 @@ describe('HoldingsDistributionComponent', () => {
     const series = option.series as Array<{ data: Array<{ name: string; value: number }> }>;
 
     expect(series[0].data).toEqual([
-      { name: 'Bitcoin', value: 13000, itemStyle: { color: ASSET_TYPE_COLORS.CRYPTO } },
+      { name: 'Crypto', value: 9000, itemStyle: { color: ASSET_TYPE_COLORS.CRYPTO } },
     ]);
+  });
+
+  it('sums two differently-named Deposit money holdings into one type-level slice', () => {
+    fixture.componentRef.setInput('holdings', [
+      holding({ id: '1', assetType: 'DEPOSIT_MONEY', name: 'Bargeld', currentValue: '1250' }),
+      holding({
+        id: '2',
+        assetType: 'DEPOSIT_MONEY',
+        name: 'Savings account',
+        currentValue: '500',
+      }),
+    ]);
+    fixture.detectChanges();
+
+    const option = fixture.componentInstance['chartOption']();
+    const series = option.series as Array<{ data: Array<{ name: string; value: number }> }>;
+
+    expect(series[0].data).toEqual([
+      { name: 'Deposit money', value: 1750, itemStyle: { color: ASSET_TYPE_COLORS.DEPOSIT_MONEY } },
+    ]);
+  });
+
+  it('labels a single-holding type by the type, never the holding name (spec.md Acceptance Scenario 4)', () => {
+    fixture.componentRef.setInput('holdings', [
+      holding({ id: '1', assetType: 'PRECIOUS_METAL', name: 'Gold', currentValue: '25' }),
+    ]);
+    fixture.detectChanges();
+
+    const option = fixture.componentInstance['chartOption']();
+    const series = option.series as Array<{ data: Array<{ name: string; value: number }> }>;
+
+    expect(series[0].data).toEqual([
+      { name: 'Precious metal', value: 25, itemStyle: { color: ASSET_TYPE_COLORS.PRECIOUS_METAL } },
+    ]);
+  });
+
+  it('resolves every slice name through ASSET_TYPE_LABEL_KEYS/TranslatePipe, never a raw holding name, across all five asset types (research.md #6b, spec.md SC-003)', () => {
+    fixture.componentRef.setInput('holdings', [
+      holding({
+        id: '1',
+        assetType: 'ETF',
+        name: 'Vanguard FTSE',
+        quantity: '1',
+        purchasePrice: '100',
+      }),
+      holding({ id: '2', assetType: 'SHARE', name: 'Apple', quantity: '1', purchasePrice: '100' }),
+      holding({ id: '3', assetType: 'PRECIOUS_METAL', name: 'Gold', currentValue: '100' }),
+      holding({
+        id: '4',
+        assetType: 'CRYPTO',
+        name: 'Bitcoin',
+        quantity: '1',
+        purchasePrice: '100',
+      }),
+      holding({ id: '5', assetType: 'DEPOSIT_MONEY', name: 'Bargeld', currentValue: '100' }),
+    ]);
+    fixture.detectChanges();
+
+    const option = fixture.componentInstance['chartOption']();
+    const series = option.series as Array<{ data: Array<{ name: string; value: number }> }>;
+
+    expect(series[0].data.map((d) => d.name)).toEqual([
+      'ETF',
+      'Share',
+      'Precious metal',
+      'Crypto',
+      'Deposit money',
+    ]);
+  });
+
+  it('omits a type entirely when none of its holdings have a computable value, while excludedCount still reflects them (research.md #6c, FR-004/FR-007)', () => {
+    fixture.componentRef.setInput('holdings', [
+      holding({ id: '1', assetType: 'SHARE', quantity: '10', purchasePrice: '5' }), // 50
+      holding({ id: '2', assetType: 'ETF', quantity: null, purchasePrice: null }), // excluded
+      holding({ id: '3', assetType: 'ETF', quantity: '1', purchasePrice: null }), // excluded
+    ]);
+    fixture.detectChanges();
+
+    const option = fixture.componentInstance['chartOption']();
+    const series = option.series as Array<{ data: Array<{ name: string; value: number }> }>;
+
+    expect(series[0].data).toEqual([
+      { name: 'Share', value: 50, itemStyle: { color: ASSET_TYPE_COLORS.SHARE } },
+    ]);
+    expect(fixture.componentInstance['excludedCount']()).toBe(2);
   });
 
   it('renders no <app-echart> and shows the localized empty-state message when nothing is computable', () => {
