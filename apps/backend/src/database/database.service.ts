@@ -15,6 +15,12 @@ import { SUPPORTED_LANGUAGES } from '@vaultfolio/api-contract';
  * The database is a single file at `DATABASE_PATH` (default
  * `./data/vaultfolio.db`), bind-mounted from the host — see
  * specs/004-sqlite-migration/data-model.md.
+ *
+ * There is no productive database in use yet, so `initializeSchema()` below
+ * creates every table at its current, final shape directly (all `CREATE
+ * TABLE IF NOT EXISTS` — safe to run on every boot) rather than accreting a
+ * chain of incremental migrations. If a real deployment ever needs to change
+ * this schema in place, reach for a proper migration at that point.
  */
 @Injectable()
 export class DatabaseService implements OnModuleInit, OnModuleDestroy {
@@ -31,18 +37,14 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       this.db.pragma('journal_mode = WAL');
       this.db.pragma('busy_timeout = 5000');
 
-      this.migrate();
-      await this.migrateAuth();
-      this.migrateAssetTypeRestructure();
-      this.migrateDepositMoney();
-      this.migrateProfile();
-      this.migrateI18n();
+      this.initializeSchema();
+      await this.ensureBootstrapAdmin();
       this.ready = true;
     } catch (error) {
-      // A startup failure (unwritable ./data, migration failure, ...) should
-      // not crash the process — the health check (GET /health) is what
-      // surfaces "database unreachable" to callers, per the Edge Case in
-      // spec.md.
+      // A startup failure (unwritable ./data, schema init failure, ...)
+      // should not crash the process — the health check (GET /health) is
+      // what surfaces "database unreachable" to callers, per the Edge Case
+      // in spec.md.
       this.logger.error('Database initialization failed at startup', error as Error);
       this.ready = false;
     }
@@ -52,10 +54,11 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     this.db?.close();
   }
 
-  /** Creates the placeholder table used only to prove exact-decimal persistence (data-model.md). */
-  private migrate(): void {
+  /** Creates every table/index at its current shape (idempotent — safe on every boot). */
+  private initializeSchema(): void {
     const db = this.requireDb();
 
+    // Placeholder table used only to prove exact-decimal persistence (data-model.md).
     db.exec(`
       CREATE TABLE IF NOT EXISTS example_value (
         id TEXT PRIMARY KEY,
@@ -64,12 +67,13 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       )
     `);
 
-    // Manual Holdings Entry (003-manual-holdings-entry) — see data-model.md's
-    // "Persistence" section for the full rationale behind this shape.
+    // Holdings — asset types cover ETF/SHARE/PRECIOUS_METAL/CRYPTO/DEPOSIT_MONEY
+    // (data-model.md). Each type's required/forbidden columns are enforced by
+    // `holdings_fields_match_asset_type`.
     db.exec(`
       CREATE TABLE IF NOT EXISTS holdings (
         id             TEXT PRIMARY KEY,
-        asset_type     TEXT NOT NULL CHECK (asset_type IN ('ETF', 'SHARE', 'GOLD', 'BITCOIN')),
+        asset_type     TEXT NOT NULL CHECK (asset_type IN ('ETF', 'SHARE', 'PRECIOUS_METAL', 'CRYPTO', 'DEPOSIT_MONEY')),
         management     TEXT NOT NULL CHECK (management <> ''),
         quantity       TEXT NULL CHECK (quantity IS NULL OR CAST(quantity AS REAL) > 0),
         purchase_price TEXT NULL CHECK (purchase_price IS NULL OR CAST(purchase_price AS REAL) > 0),
@@ -77,9 +81,10 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
         isin           TEXT NULL,
         name           TEXT NULL,
         weight_grams   TEXT NULL CHECK (weight_grams IS NULL OR CAST(weight_grams AS REAL) > 0),
-        current_value  TEXT NULL CHECK (current_value IS NULL OR CAST(current_value AS REAL) > 0),
+        current_value  TEXT NULL CHECK (current_value IS NULL OR CAST(current_value AS REAL) >= 0),
         created_at     TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')),
         updated_at     TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')),
+        owner_id       TEXT NULL,
         CONSTRAINT holdings_fields_match_asset_type CHECK (
           (asset_type = 'ETF' AND isin IS NOT NULL AND name IS NOT NULL AND quantity IS NOT NULL
             AND purchase_price IS NOT NULL AND purchase_date IS NULL
@@ -88,12 +93,17 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
           (asset_type = 'SHARE' AND isin IS NOT NULL AND name IS NOT NULL AND quantity IS NOT NULL
             AND purchase_price IS NOT NULL AND weight_grams IS NULL AND current_value IS NULL)
           OR
-          (asset_type = 'GOLD' AND weight_grams IS NOT NULL
-            AND isin IS NULL AND name IS NULL AND quantity IS NULL AND purchase_price IS NULL
+          (asset_type = 'PRECIOUS_METAL' AND name IS NOT NULL AND weight_grams IS NOT NULL
+            AND isin IS NULL AND quantity IS NULL AND purchase_price IS NULL
             AND purchase_date IS NULL)
           OR
-          (asset_type = 'BITCOIN' AND quantity IS NOT NULL AND purchase_price IS NOT NULL
-            AND isin IS NULL AND name IS NULL AND weight_grams IS NULL AND current_value IS NULL)
+          (asset_type = 'CRYPTO' AND name IS NOT NULL AND quantity IS NOT NULL
+            AND purchase_price IS NOT NULL AND isin IS NULL AND weight_grams IS NULL
+            AND current_value IS NULL)
+          OR
+          (asset_type = 'DEPOSIT_MONEY' AND name IS NOT NULL AND current_value IS NOT NULL
+            AND isin IS NULL AND quantity IS NULL AND purchase_price IS NULL
+            AND purchase_date IS NULL AND weight_grams IS NULL)
         )
       )
     `);
@@ -105,30 +115,30 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       CREATE INDEX IF NOT EXISTS holdings_upsert_lookup_idx
         ON holdings (asset_type, management, isin)
     `);
-  }
+    db.exec('CREATE INDEX IF NOT EXISTS holdings_owner_id_idx ON holdings (owner_id)');
 
-  /**
-   * 005-auth-sessions-isolation: `users`/`sessions` tables (data-model.md),
-   * the bootstrap-admin seed (research.md #6), and the `holdings.owner_id`
-   * migration + backfill (research.md #7). Split from `migrate()` because
-   * the bootstrap-admin hash requires `argon2` (async), unlike the rest of
-   * this file's synchronous `better-sqlite3` calls.
-   */
-  private async migrateAuth(): Promise<void> {
-    const db = this.requireDb();
-
+    // Auth/isolation — users, sessions, and per-account profile fields
+    // (data-model.md across 005-auth-sessions-isolation, 006-admin-accounts-
+    // invitations, 008-profile-password-account, 013-multilanguage-support).
+    const allowedLanguageCodes = SUPPORTED_LANGUAGES.map((language) => `'${language.code}'`).join(
+      ', ',
+    );
     db.exec(`
       CREATE TABLE IF NOT EXISTS users (
-        id              TEXT PRIMARY KEY,
-        email           TEXT NOT NULL,
-        display_name    TEXT NOT NULL,
-        password_hash   TEXT NOT NULL,
-        role            TEXT NOT NULL CHECK (role IN ('ADMIN', 'MEMBER')),
-        status          TEXT NOT NULL CHECK (status IN ('ACTIVE', 'ARCHIVED')) DEFAULT 'ACTIVE',
-        failed_attempts INTEGER NOT NULL DEFAULT 0,
-        locked_until    TEXT NULL,
-        created_at      TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')),
-        updated_at      TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now'))
+        id                     TEXT PRIMARY KEY,
+        email                  TEXT NOT NULL,
+        display_name           TEXT NOT NULL,
+        password_hash          TEXT NOT NULL,
+        role                   TEXT NOT NULL CHECK (role IN ('ADMIN', 'MEMBER')),
+        status                 TEXT NOT NULL CHECK (status IN ('ACTIVE', 'ARCHIVED')) DEFAULT 'ACTIVE',
+        failed_attempts        INTEGER NOT NULL DEFAULT 0,
+        locked_until           TEXT NULL,
+        archived_at            TEXT NULL,
+        retention_expires_at   TEXT NULL,
+        pending_email          TEXT NULL,
+        email_language         TEXT NULL CHECK (email_language IS NULL OR email_language IN (${allowedLanguageCodes})),
+        created_at             TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')),
+        updated_at             TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now'))
       )
     `);
     db.exec(`
@@ -146,47 +156,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     `);
     db.exec(`CREATE INDEX IF NOT EXISTS sessions_user_id_idx ON sessions (user_id)`);
 
-    const hasOwnerId = db
-      .prepare("SELECT 1 FROM pragma_table_info('holdings') WHERE name = 'owner_id'")
-      .get();
-
-    if (!hasOwnerId) {
-      db.exec('ALTER TABLE holdings ADD COLUMN owner_id TEXT NULL');
-      const bootstrapAdminId = await this.ensureBootstrapAdmin();
-      db.prepare('UPDATE holdings SET owner_id = ? WHERE owner_id IS NULL').run(bootstrapAdminId);
-    } else {
-      // Table already migrated on a previous boot — still ensure the
-      // bootstrap admin exists (idempotent no-op if `users` is non-empty).
-      await this.ensureBootstrapAdmin();
-    }
-
-    db.exec('CREATE INDEX IF NOT EXISTS holdings_owner_id_idx ON holdings (owner_id)');
-
-    this.migrateAccountsAndInvitations(db);
-    this.migrateSignups(db);
-  }
-
-  /**
-   * 006-admin-accounts-invitations: `users.archived_at`/`retention_expires_at`
-   * (data-model.md's "Change to Entity: User Account") and the new
-   * `invitations` table (data-model.md's "Entity: Invitation"), following the
-   * same `PRAGMA table_info` idempotent-migration pattern as `migrateAuth()`.
-   */
-  private migrateAccountsAndInvitations(db: Database.Database): void {
-    const hasArchivedAt = db
-      .prepare("SELECT 1 FROM pragma_table_info('users') WHERE name = 'archived_at'")
-      .get();
-    if (!hasArchivedAt) {
-      db.exec('ALTER TABLE users ADD COLUMN archived_at TEXT NULL');
-    }
-
-    const hasRetentionExpiresAt = db
-      .prepare("SELECT 1 FROM pragma_table_info('users') WHERE name = 'retention_expires_at'")
-      .get();
-    if (!hasRetentionExpiresAt) {
-      db.exec('ALTER TABLE users ADD COLUMN retention_expires_at TEXT NULL');
-    }
-
+    // 006-admin-accounts-invitations
     db.exec(`
       CREATE TABLE IF NOT EXISTS invitations (
         id           TEXT PRIMARY KEY,
@@ -204,26 +174,21 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     db.exec(
       'CREATE INDEX IF NOT EXISTS invitations_email_idx ON invitations (email COLLATE NOCASE)',
     );
-  }
 
-  /**
-   * 007-self-service-signup: the `signup_requests` and `email_blacklist`
-   * tables (data-model.md, research.md #3) — same `PRAGMA table_info`
-   * idempotent-migration pattern as `migrateAccountsAndInvitations`.
-   */
-  private migrateSignups(db: Database.Database): void {
+    // 007-self-service-signup / 008-profile-password-account
     db.exec(`
       CREATE TABLE IF NOT EXISTS signup_requests (
-        id            TEXT PRIMARY KEY,
-        email         TEXT NOT NULL,
-        password_hash TEXT NOT NULL,
-        token         TEXT NOT NULL,
-        status        TEXT NOT NULL CHECK (status IN ('PENDING','VERIFIED','APPROVED','REJECTED')) DEFAULT 'PENDING',
-        created_at    TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')),
-        expires_at    TEXT NOT NULL,
-        verified_at   TEXT NULL,
-        resolved_at   TEXT NULL,
-        resolved_by   TEXT NULL REFERENCES users(id)
+        id                  TEXT PRIMARY KEY,
+        email               TEXT NOT NULL,
+        password_hash       TEXT NOT NULL,
+        token               TEXT NOT NULL,
+        status              TEXT NOT NULL CHECK (status IN ('PENDING','VERIFIED','APPROVED','REJECTED')) DEFAULT 'PENDING',
+        created_at          TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')),
+        expires_at          TEXT NOT NULL,
+        verified_at         TEXT NULL,
+        resolved_at         TEXT NULL,
+        resolved_by         TEXT NULL REFERENCES users(id),
+        account_deleted_at  TEXT NULL
       )
     `);
     db.exec(
@@ -241,230 +206,8 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
         signup_request_id TEXT NULL REFERENCES signup_requests(id)
       )
     `);
-  }
 
-  /**
-   * 017-restructure-asset-types: rebuilds the `holdings` table so its
-   * `asset_type`/`holdings_fields_match_asset_type` CHECK constraints accept
-   * `PRECIOUS_METAL`/`CRYPTO` instead of `GOLD`/`BITCOIN`, and backfills every
-   * existing `GOLD`/`BITCOIN` row to the renamed type with `name` set to
-   * `"Gold"`/`"Bitcoin"` respectively — every other column unchanged
-   * (research.md #1, FR-007, FR-008). SQLite cannot `ALTER` a `CHECK`
-   * expression in place, so this rebuilds the table under a new name inside
-   * one transaction rather than using the `PRAGMA table_info` column-presence
-   * guard the other migrations in this file use (this migration adds no new
-   * column — the idempotency guard instead checks the stored `CREATE TABLE`
-   * text for the `PRECIOUS_METAL` literal, which only appears there once this
-   * migration has run). Must run after `migrateAuth()`, since it preserves
-   * the `owner_id` column that migration adds.
-   */
-  private migrateAssetTypeRestructure(): void {
-    const db = this.requireDb();
-
-    const table = db
-      .prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'holdings'")
-      .get() as { sql: string } | undefined;
-
-    if (table?.sql.includes('PRECIOUS_METAL')) {
-      // Already migrated on a previous boot — the indexes below already
-      // exist too, but recreating them is a harmless no-op (FR-008).
-      db.exec(`
-        CREATE INDEX IF NOT EXISTS holdings_upsert_lookup_idx
-          ON holdings (asset_type, management, isin)
-      `);
-      db.exec('CREATE INDEX IF NOT EXISTS holdings_owner_id_idx ON holdings (owner_id)');
-      this.logger.log('Asset type restructure migration already applied, skipped.');
-      return;
-    }
-
-    const rowCount = (
-      db.prepare('SELECT COUNT(*) AS count FROM holdings').get() as { count: number }
-    ).count;
-
-    const rebuild = db.transaction(() => {
-      db.exec(`
-        CREATE TABLE holdings_new (
-          id             TEXT PRIMARY KEY,
-          asset_type     TEXT NOT NULL CHECK (asset_type IN ('ETF', 'SHARE', 'PRECIOUS_METAL', 'CRYPTO')),
-          management     TEXT NOT NULL CHECK (management <> ''),
-          quantity       TEXT NULL CHECK (quantity IS NULL OR CAST(quantity AS REAL) > 0),
-          purchase_price TEXT NULL CHECK (purchase_price IS NULL OR CAST(purchase_price AS REAL) > 0),
-          purchase_date  TEXT NULL,
-          isin           TEXT NULL,
-          name           TEXT NULL,
-          weight_grams   TEXT NULL CHECK (weight_grams IS NULL OR CAST(weight_grams AS REAL) > 0),
-          current_value  TEXT NULL CHECK (current_value IS NULL OR CAST(current_value AS REAL) > 0),
-          created_at     TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')),
-          updated_at     TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')),
-          owner_id       TEXT NULL,
-          CONSTRAINT holdings_fields_match_asset_type CHECK (
-            (asset_type = 'ETF' AND isin IS NOT NULL AND name IS NOT NULL AND quantity IS NOT NULL
-              AND purchase_price IS NOT NULL AND purchase_date IS NULL
-              AND weight_grams IS NULL AND current_value IS NULL)
-            OR
-            (asset_type = 'SHARE' AND isin IS NOT NULL AND name IS NOT NULL AND quantity IS NOT NULL
-              AND purchase_price IS NOT NULL AND weight_grams IS NULL AND current_value IS NULL)
-            OR
-            (asset_type = 'PRECIOUS_METAL' AND name IS NOT NULL AND weight_grams IS NOT NULL
-              AND isin IS NULL AND quantity IS NULL AND purchase_price IS NULL
-              AND purchase_date IS NULL)
-            OR
-            (asset_type = 'CRYPTO' AND name IS NOT NULL AND quantity IS NOT NULL
-              AND purchase_price IS NOT NULL AND isin IS NULL AND weight_grams IS NULL
-              AND current_value IS NULL)
-          )
-        )
-      `);
-
-      db.exec(`
-        INSERT INTO holdings_new
-        SELECT
-          id,
-          CASE asset_type WHEN 'GOLD' THEN 'PRECIOUS_METAL' WHEN 'BITCOIN' THEN 'CRYPTO' ELSE asset_type END,
-          management,
-          quantity,
-          purchase_price,
-          purchase_date,
-          isin,
-          CASE asset_type WHEN 'GOLD' THEN 'Gold' WHEN 'BITCOIN' THEN 'Bitcoin' ELSE name END,
-          weight_grams,
-          current_value,
-          created_at,
-          updated_at,
-          owner_id
-        FROM holdings
-      `);
-
-      db.exec('DROP TABLE holdings');
-      db.exec('ALTER TABLE holdings_new RENAME TO holdings');
-      db.exec(`
-        CREATE INDEX IF NOT EXISTS holdings_upsert_lookup_idx
-          ON holdings (asset_type, management, isin)
-      `);
-      db.exec('CREATE INDEX IF NOT EXISTS holdings_owner_id_idx ON holdings (owner_id)');
-    });
-
-    rebuild();
-    this.logger.log(`Asset type restructure migration applied (${rowCount} rows migrated).`);
-  }
-
-  /**
-   * 018-deposit-money: rebuilds the `holdings` table once more to widen the
-   * `asset_type` CHECK to accept `'DEPOSIT_MONEY'`, add its
-   * `holdings_fields_match_asset_type` clause, and relax `current_value`'s
-   * CHECK from `> 0` to `>= 0` (data-model.md — the widened floor applies to
-   * every type that already uses `current_value`, i.e. also `PRECIOUS_METAL`).
-   * No data backfill needed — no prior literal is renamed, this only adds a
-   * new allowed value and widens an existing constraint. Must run after
-   * `migrateAssetTypeRestructure()`, since it preserves the `owner_id` column
-   * that migration's rebuild introduces. Idempotency guard: the stored
-   * `CREATE TABLE` text contains `'DEPOSIT_MONEY'`, mirroring
-   * `migrateAssetTypeRestructure()`'s own guard.
-   */
-  private migrateDepositMoney(): void {
-    const db = this.requireDb();
-
-    const table = db
-      .prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'holdings'")
-      .get() as { sql: string } | undefined;
-
-    if (table?.sql.includes('DEPOSIT_MONEY')) {
-      this.logger.log('Deposit money migration already applied, skipped.');
-      return;
-    }
-
-    const rowCount = (
-      db.prepare('SELECT COUNT(*) AS count FROM holdings').get() as { count: number }
-    ).count;
-
-    const rebuild = db.transaction(() => {
-      db.exec(`
-        CREATE TABLE holdings_new (
-          id             TEXT PRIMARY KEY,
-          asset_type     TEXT NOT NULL CHECK (asset_type IN ('ETF', 'SHARE', 'PRECIOUS_METAL', 'CRYPTO', 'DEPOSIT_MONEY')),
-          management     TEXT NOT NULL CHECK (management <> ''),
-          quantity       TEXT NULL CHECK (quantity IS NULL OR CAST(quantity AS REAL) > 0),
-          purchase_price TEXT NULL CHECK (purchase_price IS NULL OR CAST(purchase_price AS REAL) > 0),
-          purchase_date  TEXT NULL,
-          isin           TEXT NULL,
-          name           TEXT NULL,
-          weight_grams   TEXT NULL CHECK (weight_grams IS NULL OR CAST(weight_grams AS REAL) > 0),
-          current_value  TEXT NULL CHECK (current_value IS NULL OR CAST(current_value AS REAL) >= 0),
-          created_at     TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')),
-          updated_at     TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')),
-          owner_id       TEXT NULL,
-          CONSTRAINT holdings_fields_match_asset_type CHECK (
-            (asset_type = 'ETF' AND isin IS NOT NULL AND name IS NOT NULL AND quantity IS NOT NULL
-              AND purchase_price IS NOT NULL AND purchase_date IS NULL
-              AND weight_grams IS NULL AND current_value IS NULL)
-            OR
-            (asset_type = 'SHARE' AND isin IS NOT NULL AND name IS NOT NULL AND quantity IS NOT NULL
-              AND purchase_price IS NOT NULL AND weight_grams IS NULL AND current_value IS NULL)
-            OR
-            (asset_type = 'PRECIOUS_METAL' AND name IS NOT NULL AND weight_grams IS NOT NULL
-              AND isin IS NULL AND quantity IS NULL AND purchase_price IS NULL
-              AND purchase_date IS NULL)
-            OR
-            (asset_type = 'CRYPTO' AND name IS NOT NULL AND quantity IS NOT NULL
-              AND purchase_price IS NOT NULL AND isin IS NULL AND weight_grams IS NULL
-              AND current_value IS NULL)
-            OR
-            (asset_type = 'DEPOSIT_MONEY' AND name IS NOT NULL AND current_value IS NOT NULL
-              AND isin IS NULL AND quantity IS NULL AND purchase_price IS NULL
-              AND purchase_date IS NULL AND weight_grams IS NULL)
-          )
-        )
-      `);
-
-      db.exec(`
-        INSERT INTO holdings_new
-        SELECT
-          id,
-          asset_type,
-          management,
-          quantity,
-          purchase_price,
-          purchase_date,
-          isin,
-          name,
-          weight_grams,
-          current_value,
-          created_at,
-          updated_at,
-          owner_id
-        FROM holdings
-      `);
-
-      db.exec('DROP TABLE holdings');
-      db.exec('ALTER TABLE holdings_new RENAME TO holdings');
-      db.exec(`
-        CREATE INDEX IF NOT EXISTS holdings_upsert_lookup_idx
-          ON holdings (asset_type, management, isin)
-      `);
-      db.exec('CREATE INDEX IF NOT EXISTS holdings_owner_id_idx ON holdings (owner_id)');
-    });
-
-    rebuild();
-    this.logger.log(`Deposit money migration applied (${rowCount} rows migrated).`);
-  }
-
-  /**
-   * 008-profile-password-account: `users.pending_email` (data-model.md's
-   * "Change to Entity: User Account") and the new `account_action_tokens`
-   * table (data-model.md's "Entity: Account Action Token"), following the
-   * same `PRAGMA table_info` idempotent-migration pattern as
-   * `migrateAccountsAndInvitations`/`migrateSignups`.
-   */
-  private migrateProfile(): void {
-    const db = this.requireDb();
-
-    const hasPendingEmail = db
-      .prepare("SELECT 1 FROM pragma_table_info('users') WHERE name = 'pending_email'")
-      .get();
-    if (!hasPendingEmail) {
-      db.exec('ALTER TABLE users ADD COLUMN pending_email TEXT NULL');
-    }
-
+    // 008-profile-password-account
     db.exec(`
       CREATE TABLE IF NOT EXISTS account_action_tokens (
         id          TEXT PRIMARY KEY,
@@ -484,45 +227,6 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     db.exec(
       'CREATE INDEX IF NOT EXISTS account_action_tokens_user_purpose_idx ON account_action_tokens (user_id, purpose)',
     );
-
-    // `signup_requests.account_deleted_at` (008): the account an APPROVED
-    // sign-up request produced can later be deleted (self-delete or
-    // retention sweep) independently of this row — `status` stays the
-    // one-way audit trail of the *request*, and this column records that
-    // follow-up fact separately so the admin sign-ups list can show both
-    // ("Approved" + "Account deleted") instead of a stale "Approved" with no
-    // indication the account is gone.
-    const hasAccountDeletedAt = db
-      .prepare(
-        "SELECT 1 FROM pragma_table_info('signup_requests') WHERE name = 'account_deleted_at'",
-      )
-      .get();
-    if (!hasAccountDeletedAt) {
-      db.exec('ALTER TABLE signup_requests ADD COLUMN account_deleted_at TEXT NULL');
-    }
-  }
-
-  /**
-   * 013-multilanguage-support: `users.email_language` (research.md #4) —
-   * same idempotent `PRAGMA table_info` pattern as `migrateProfile()`. The
-   * `CHECK` constraint's `IN (...)` list is generated from
-   * `SUPPORTED_LANGUAGES`' codes at migration time (SQLite's `ALTER TABLE
-   * ADD COLUMN` can't reference an app-level constant directly), keeping
-   * the DB constraint and the shared catalog from drifting apart.
-   */
-  private migrateI18n(): void {
-    const db = this.requireDb();
-
-    const hasEmailLanguage = db
-      .prepare("SELECT 1 FROM pragma_table_info('users') WHERE name = 'email_language'")
-      .get();
-    if (!hasEmailLanguage) {
-      const allowedCodes = SUPPORTED_LANGUAGES.map((language) => `'${language.code}'`).join(', ');
-      db.exec(
-        `ALTER TABLE users ADD COLUMN email_language TEXT NULL
-           CHECK (email_language IS NULL OR email_language IN (${allowedCodes}))`,
-      );
-    }
   }
 
   /**
