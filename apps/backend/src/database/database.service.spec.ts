@@ -258,3 +258,126 @@ describe('DatabaseService — auth/isolation migration', () => {
     await database.onModuleDestroy();
   });
 });
+
+/**
+ * Migration test for 017-restructure-asset-types (research.md #1, FR-007,
+ * FR-008): the `holdings` table rebuild that renames `GOLD`/`BITCOIN` to
+ * `PRECIOUS_METAL`/`CRYPTO`, backfills `name`, and is idempotent on a second
+ * boot.
+ */
+describe('DatabaseService — asset type restructure migration', () => {
+  let tempDir: string;
+
+  beforeEach(() => {
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'vaultfolio-db-asset-type-'));
+    process.env.DATABASE_PATH = path.join(tempDir, 'test.db');
+    process.env.BOOTSTRAP_ADMIN_EMAIL = 'admin@example.com';
+    process.env.BOOTSTRAP_ADMIN_PASSWORD = 'a-valid-8-char-password';
+  });
+
+  afterEach(() => {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+    delete process.env.DATABASE_PATH;
+    delete process.env.BOOTSTRAP_ADMIN_EMAIL;
+    delete process.env.BOOTSTRAP_ADMIN_PASSWORD;
+  });
+
+  it('migrates pre-existing GOLD/BITCOIN rows to PRECIOUS_METAL/CRYPTO with name set, preserving every other column, and is idempotent on a second run', async () => {
+    // Simulate a pre-017 database: a `holdings` table (with the old CHECK
+    // constraints and owner_id already present, as it would be after
+    // 005-auth-sessions-isolation) seeded with a GOLD and a BITCOIN row —
+    // created directly (bypassing DatabaseService) so the migration truly
+    // sees them for the first time on the next onModuleInit().
+    const raw = new Database(process.env.DATABASE_PATH as string);
+    raw.exec(`
+      CREATE TABLE holdings (
+        id             TEXT PRIMARY KEY,
+        asset_type     TEXT NOT NULL CHECK (asset_type IN ('ETF', 'SHARE', 'GOLD', 'BITCOIN')),
+        management     TEXT NOT NULL CHECK (management <> ''),
+        quantity       TEXT NULL CHECK (quantity IS NULL OR CAST(quantity AS REAL) > 0),
+        purchase_price TEXT NULL CHECK (purchase_price IS NULL OR CAST(purchase_price AS REAL) > 0),
+        purchase_date  TEXT NULL,
+        isin           TEXT NULL,
+        name           TEXT NULL,
+        weight_grams   TEXT NULL CHECK (weight_grams IS NULL OR CAST(weight_grams AS REAL) > 0),
+        current_value  TEXT NULL CHECK (current_value IS NULL OR CAST(current_value AS REAL) > 0),
+        created_at     TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')),
+        updated_at     TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')),
+        owner_id       TEXT NULL
+      )
+    `);
+    raw
+      .prepare(
+        `INSERT INTO holdings
+           (id, asset_type, management, weight_grams, current_value, owner_id, created_at, updated_at)
+         VALUES ('gold-1', 'GOLD', 'Home safe', '31.1', '2450.00', 'owner-1',
+                 '2026-08-01T09:00:00.000Z', '2026-08-01T09:00:00.000Z')`,
+      )
+      .run();
+    raw
+      .prepare(
+        `INSERT INTO holdings
+           (id, asset_type, management, quantity, purchase_price, purchase_date, owner_id, created_at, updated_at)
+         VALUES ('btc-1', 'BITCOIN', 'Private', '0.25', '42000.00', '2026-03-01', 'owner-1',
+                 '2026-07-15T10:00:00.000Z', '2026-07-15T10:00:00.000Z')`,
+      )
+      .run();
+    raw.close();
+
+    const first = new DatabaseService();
+    await first.onModuleInit();
+
+    const rowsAfterFirst = await first.query<{
+      id: string;
+      asset_type: string;
+      management: string;
+      quantity: string | null;
+      purchase_price: string | null;
+      purchase_date: string | null;
+      isin: string | null;
+      name: string | null;
+      weight_grams: string | null;
+      current_value: string | null;
+      owner_id: string | null;
+      created_at: string;
+      updated_at: string;
+    }>('SELECT * FROM holdings ORDER BY id ASC');
+
+    const gold = rowsAfterFirst.find((row) => row.id === 'gold-1');
+    const bitcoin = rowsAfterFirst.find((row) => row.id === 'btc-1');
+
+    expect(gold).toMatchObject({
+      asset_type: 'PRECIOUS_METAL',
+      name: 'Gold',
+      management: 'Home safe',
+      weight_grams: '31.1',
+      current_value: '2450.00',
+      owner_id: 'owner-1',
+      created_at: '2026-08-01T09:00:00.000Z',
+      updated_at: '2026-08-01T09:00:00.000Z',
+    });
+    expect(bitcoin).toMatchObject({
+      asset_type: 'CRYPTO',
+      name: 'Bitcoin',
+      management: 'Private',
+      quantity: '0.25',
+      purchase_price: '42000.00',
+      purchase_date: '2026-03-01',
+      owner_id: 'owner-1',
+      created_at: '2026-07-15T10:00:00.000Z',
+      updated_at: '2026-07-15T10:00:00.000Z',
+    });
+
+    await first.onModuleDestroy();
+
+    // Second boot against the same on-disk DB: idempotency guard must find
+    // the migration already applied and produce zero further changes.
+    const second = new DatabaseService();
+    await second.onModuleInit();
+
+    const rowsAfterSecond = await second.query('SELECT * FROM holdings ORDER BY id ASC');
+    expect(rowsAfterSecond).toEqual(rowsAfterFirst);
+
+    await second.onModuleDestroy();
+  });
+});

@@ -64,6 +64,7 @@ export const en: TranslationDictionary = {
       "This area will show your holdings' total value, allocation, and performance once portfolio data is available.",
   },
   holdingsDistribution: {
+    title: 'Distribution by value',
     emptyState: 'Add a holding with a known value to see the distribution by value.',
   },
   imports: {
@@ -82,8 +83,6 @@ export const en: TranslationDictionary = {
     columnQuantity: 'Quantity / weight',
     columnPrice: 'Price / value',
     columnPurchaseDate: 'Purchase date',
-    assetGold: 'Gold',
-    assetBitcoin: 'Bitcoin',
     editHolding: 'Edit holding',
     deleteHolding: 'Delete holding',
     emptyStateTitle: 'No holdings yet',

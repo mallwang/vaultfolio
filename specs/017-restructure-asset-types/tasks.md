@@ -35,7 +35,7 @@ Nx monorepo: `apps/backend/src/`, `apps/frontend/src/app/`, `libs/domain/holding
 **Purpose**: No new project scaffolding needed — this feature amends existing libs/apps only
 (plan.md Structure Decision: no new Nx apps/libs).
 
-- [ ] T001 Run `grep -rln "GOLD\|BITCOIN" apps/ libs/ --include="*.ts" --include="*.html"` (excluding `dist`/`out-tsc`) and confirm the result matches exactly the file inventory in [research.md](./research.md) #4, so later tasks in this file have no missed files
+- [x] T001 Run `grep -rln "GOLD\|BITCOIN" apps/ libs/ --include="*.ts" --include="*.html"` (excluding `dist`/`out-tsc`) and confirm the result matches exactly the file inventory in [research.md](./research.md) #4, so later tasks in this file have no missed files
 
 **Checkpoint**: Inventory confirmed — proceed to Foundational phase.
 
@@ -52,35 +52,35 @@ tested until this phase is done.
 
 ### Domain library (`libs/domain/holdings`) — Principle I
 
-- [ ] T002 [P] Rename `GOLD`→`PRECIOUS_METAL`, `BITCOIN`→`CRYPTO` in `ASSET_TYPES`/`AssetType` union and add `name` to `ASSET_TYPE_FIELDS['PRECIOUS_METAL'].required`/`['CRYPTO'].required` in `libs/domain/holdings/src/lib/asset-type.ts` (data-model.md AssetType table, FR-001–FR-004)
-- [ ] T003 [P] Update `computeValue()`'s `'GOLD'` check to `'PRECIOUS_METAL'` in `libs/domain/holdings/src/lib/holding.ts`
-- [ ] T004 [US1][US2] Add `name` (non-blank, trimmed) as a required-field-loop entry for `PRECIOUS_METAL` and `CRYPTO` in `libs/domain/holdings/src/lib/holding-validation.ts`, producing `FieldError` `"name is required for {assetType}."` on blank input (data-model.md Validation rule changes, FR-009, SC-004)
-- [ ] T005 [US1] Change the `GOLD` branch in `holding-merge.ts`'s `decideMerge()` to a `PRECIOUS_METAL` branch that also compares `holding.name === submission.name` alongside `management`, and rename the `BITCOIN` branch to `CRYPTO` (unconditional `{ kind: 'create' }`, unchanged) in `libs/domain/holdings/src/lib/holding-merge.ts` (data-model.md Merge/upsert rule changes, FR-005, FR-006)
-- [ ] T006 [P] Update `libs/domain/holdings/src/lib/holding-merge.spec.ts` for the renamed types and the new `(name, management)` Precious metal match/no-match cases (Gold vs. Gold merges; Gold vs. Silver does not), with exact-decimal assertions per Principle III
-- [ ] T007 [P] Update `libs/domain/holdings/src/lib/holding-validation.spec.ts` for the renamed types, the new required `name` field on Precious metal/Crypto, and the blank-name rejection message
+- [x] T002 [P] Rename `GOLD`→`PRECIOUS_METAL`, `BITCOIN`→`CRYPTO` in `ASSET_TYPES`/`AssetType` union and add `name` to `ASSET_TYPE_FIELDS['PRECIOUS_METAL'].required`/`['CRYPTO'].required` in `libs/domain/holdings/src/lib/asset-type.ts` (data-model.md AssetType table, FR-001–FR-004)
+- [x] T003 [P] Update `computeValue()`'s `'GOLD'` check to `'PRECIOUS_METAL'` in `libs/domain/holdings/src/lib/holding.ts`
+- [x] T004 [US1][US2] Add `name` (non-blank, trimmed) as a required-field-loop entry for `PRECIOUS_METAL` and `CRYPTO` in `libs/domain/holdings/src/lib/holding-validation.ts`, producing `FieldError` `"name is required for {assetType}."` on blank input (data-model.md Validation rule changes, FR-009, SC-004)
+- [x] T005 [US1] Change the `GOLD` branch in `holding-merge.ts`'s `decideMerge()` to a `PRECIOUS_METAL` branch that also compares `holding.name === submission.name` alongside `management`, and rename the `BITCOIN` branch to `CRYPTO` (unconditional `{ kind: 'create' }`, unchanged) in `libs/domain/holdings/src/lib/holding-merge.ts` (data-model.md Merge/upsert rule changes, FR-005, FR-006)
+- [x] T006 [P] Update `libs/domain/holdings/src/lib/holding-merge.spec.ts` for the renamed types and the new `(name, management)` Precious metal match/no-match cases (Gold vs. Gold merges; Gold vs. Silver does not), with exact-decimal assertions per Principle III
+- [x] T007 [P] Update `libs/domain/holdings/src/lib/holding-validation.spec.ts` for the renamed types, the new required `name` field on Precious metal/Crypto, and the blank-name rejection message
 
 ### Shared API contract (`libs/api-contract`)
 
-- [ ] T008 Rename `AssetType` union member values, `CreateGoldHoldingRequest`→`CreatePreciousMetalHoldingRequest` (+ `name: string`), `CreateBitcoinHoldingRequest`→`CreateCryptoHoldingRequest` (+ `name: string`), and update the `CreateHoldingRequest`/`UpdateHoldingRequest` discriminated unions in `libs/api-contract/src/lib/holdings.ts` (data-model.md Shared API contract types)
+- [x] T008 Rename `AssetType` union member values, `CreateGoldHoldingRequest`→`CreatePreciousMetalHoldingRequest` (+ `name: string`), `CreateBitcoinHoldingRequest`→`CreateCryptoHoldingRequest` (+ `name: string`), and update the `CreateHoldingRequest`/`UpdateHoldingRequest` discriminated unions in `libs/api-contract/src/lib/holdings.ts` (data-model.md Shared API contract types)
 
 ### Backend — migration (Principle IV)
 
-- [ ] T009 Implement `migrateAssetTypeRestructure()` in `apps/backend/src/database/database.service.ts`: idempotency-guard on the stored `holdings` `CREATE TABLE` text containing `'PRECIOUS_METAL'`, then inside one `db.transaction()` — create `holdings_new` with the widened `asset_type`/`holdings_fields_match_asset_type` CHECKs, backfill via the deterministic `CASE`-based `INSERT INTO holdings_new SELECT ...` (research.md #1), drop/rename, recreate `holdings_upsert_lookup_idx` and `holdings_owner_id_idx`, and log the outcome (rows migrated, or "already migrated, skipped") per the existing `DatabaseService` logging pattern (FR-007, FR-008)
-- [ ] T010 [US3] Add a `database.service.spec.ts` case that seeds pre-migration `GOLD`/`BITCOIN` fixture rows into a real SQLite file, runs the migration, and asserts: rows now show `PRECIOUS_METAL`/`CRYPTO` with `name` `"Gold"`/`"Bitcoin"`, every other column (management, quantity, weight_grams, current_value, owner_id, created_at, updated_at) unchanged, and running the migration a second time produces zero further changes (idempotency) in `apps/backend/src/database/database.service.spec.ts` (FR-007, FR-008, SC-002, SC-003)
+- [x] T009 Implement `migrateAssetTypeRestructure()` in `apps/backend/src/database/database.service.ts`: idempotency-guard on the stored `holdings` `CREATE TABLE` text containing `'PRECIOUS_METAL'`, then inside one `db.transaction()` — create `holdings_new` with the widened `asset_type`/`holdings_fields_match_asset_type` CHECKs, backfill via the deterministic `CASE`-based `INSERT INTO holdings_new SELECT ...` (research.md #1), drop/rename, recreate `holdings_upsert_lookup_idx` and `holdings_owner_id_idx`, and log the outcome (rows migrated, or "already migrated, skipped") per the existing `DatabaseService` logging pattern (FR-007, FR-008)
+- [x] T010 [US3] Add a `database.service.spec.ts` case that seeds pre-migration `GOLD`/`BITCOIN` fixture rows into a real SQLite file, runs the migration, and asserts: rows now show `PRECIOUS_METAL`/`CRYPTO` with `name` `"Gold"`/`"Bitcoin"`, every other column (management, quantity, weight_grams, current_value, owner_id, created_at, updated_at) unchanged, and running the migration a second time produces zero further changes (idempotency) in `apps/backend/src/database/database.service.spec.ts` (FR-007, FR-008, SC-002, SC-003)
 
 ### Backend — repository/service/controller
 
-- [ ] T011 Generalize `HoldingsRepository.findUpsertMatch()`'s SQL to a three-branch match (`ETF` on `isin = $3`, `PRECIOUS_METAL` on `name = $3`, no lookup for `SHARE`/`CRYPTO`) in `apps/backend/src/holdings/holdings.repository.ts` (research.md #2, FR-005)
-- [ ] T012 [P] Update `apps/backend/src/holdings/holdings.repository.spec.ts` for the renamed types and the new Precious metal `(name, management)` lookup branch
-- [ ] T013 Change `HoldingsService.create()`'s upsert-lookup ternary from `value.assetType === 'ETF' ? value.isin : null` to also pass `name` for `PRECIOUS_METAL` (`value.assetType === 'ETF' ? value.isin : value.assetType === 'PRECIOUS_METAL' ? value.name : null`) in `apps/backend/src/holdings/holdings.service.ts` (research.md #2, FR-005)
-- [ ] T014 [P] Update `apps/backend/src/holdings/holdings.controller.spec.ts` for the renamed types and new required `name` field
-- [ ] T015 [P] Update the `GOLD` fixture row in the delete-cascade test to `PRECIOUS_METAL` with a `name` value, matching the new `holdings_fields_match_asset_type` CHECK, in `apps/backend/src/auth/users.repository.spec.ts` (research.md #4)
+- [x] T011 Generalize `HoldingsRepository.findUpsertMatch()`'s SQL to a three-branch match (`ETF` on `isin = $3`, `PRECIOUS_METAL` on `name = $3`, no lookup for `SHARE`/`CRYPTO`) in `apps/backend/src/holdings/holdings.repository.ts` (research.md #2, FR-005)
+- [x] T012 [P] Update `apps/backend/src/holdings/holdings.repository.spec.ts` for the renamed types and the new Precious metal `(name, management)` lookup branch
+- [x] T013 Change `HoldingsService.create()`'s upsert-lookup ternary from `value.assetType === 'ETF' ? value.isin : null` to also pass `name` for `PRECIOUS_METAL` (`value.assetType === 'ETF' ? value.isin : value.assetType === 'PRECIOUS_METAL' ? value.name : null`) in `apps/backend/src/holdings/holdings.service.ts` (research.md #2, FR-005)
+- [x] T014 [P] Update `apps/backend/src/holdings/holdings.controller.spec.ts` for the renamed types and new required `name` field
+- [x] T015 [P] Update the `GOLD` fixture row in the delete-cascade test to `PRECIOUS_METAL` with a `name` value, matching the new `holdings_fields_match_asset_type` CHECK, in `apps/backend/src/auth/users.repository.spec.ts` (research.md #4)
 
 ### Frontend — shared field config and translations
 
-- [ ] T016 [P] Rename asset type entries and field sets from `GOLD`/`BITCOIN` to `PRECIOUS_METAL`/`CRYPTO`, adding `name` to each type's required fields, in `apps/frontend/src/app/holdings/asset-type-fields.ts`
-- [ ] T017 [P] Update asset type labels, the reused name-field label, and empty-state copy for the renamed types in `apps/frontend/src/app/core/i18n/translations/en.ts`
-- [ ] T018 [P] Update the same asset type labels, name-field label, and empty-state copy (German) in `apps/frontend/src/app/core/i18n/translations/de.ts`
+- [x] T016 [P] Rename asset type entries and field sets from `GOLD`/`BITCOIN` to `PRECIOUS_METAL`/`CRYPTO`, adding `name` to each type's required fields, in `apps/frontend/src/app/holdings/asset-type-fields.ts`
+- [x] T017 [P] Update asset type labels, the reused name-field label, and empty-state copy for the renamed types in `apps/frontend/src/app/core/i18n/translations/en.ts`
+- [x] T018 [P] Update the same asset type labels, name-field label, and empty-state copy (German) in `apps/frontend/src/app/core/i18n/translations/de.ts`
 
 **Checkpoint**: Rename, required `name` field, merge-key change, and startup migration are all in
 place and covered by tests. All three user stories can now be exercised end-to-end.
@@ -98,11 +98,11 @@ it, and see it listed as a silver holding distinct from a gold one.
 
 ### Implementation for User Story 1
 
-- [ ] T019 [US1] Change the type selector control from a `p-select` dropdown to a set of selectable buttons/cards (ETF / Share / Precious metal / Crypto, all visible at once) in the add-holding dialog in `apps/frontend/src/app/holdings/holding-form/holding-form.component.ts` and `holding-form.component.html`, keeping the edit-holding dialog's locked-type display unchanged (FR-012, design.md's approved mockup)
-- [ ] T020 [US1] Ensure the holding form renders a `name` input for Precious metal (alongside the existing weight-in-grams field) reusing the existing ETF/Share name-field control, with the same trimmed non-blank validation message wired to `holding-form.component.html`/`.ts` in `apps/frontend/src/app/holdings/holding-form/`
-- [ ] T021 [US1] Update `apps/frontend/src/app/holdings/holdings.component.html` to display each Precious metal holding by its entered `name` (e.g. "Silver") wherever the list currently shows a type-derived label (FR-010)
-- [ ] T022 [US1] Update `apps/frontend/src/app/holdings/holding-form/holding-form.component.spec.ts` for the button/card type selector, the new Precious metal `name` field, and its required-field validation
-- [ ] T023 [US1] Update `apps/frontend/src/app/holdings/holdings.component.spec.ts` for Precious metal rows displaying by `name`
+- [x] T019 [US1] Change the type selector control from a `p-select` dropdown to a set of selectable buttons/cards (ETF / Share / Precious metal / Crypto, all visible at once) in the add-holding dialog in `apps/frontend/src/app/holdings/holding-form/holding-form.component.ts` and `holding-form.component.html`, keeping the edit-holding dialog's locked-type display unchanged (FR-012, design.md's approved mockup)
+- [x] T020 [US1] Ensure the holding form renders a `name` input for Precious metal (alongside the existing weight-in-grams field) reusing the existing ETF/Share name-field control, with the same trimmed non-blank validation message wired to `holding-form.component.html`/`.ts` in `apps/frontend/src/app/holdings/holding-form/`
+- [x] T021 [US1] Update `apps/frontend/src/app/holdings/holdings.component.html` to display each Precious metal holding by its entered `name` (e.g. "Silver") wherever the list currently shows a type-derived label (FR-010)
+- [x] T022 [US1] Update `apps/frontend/src/app/holdings/holding-form/holding-form.component.spec.ts` for the button/card type selector, the new Precious metal `name` field, and its required-field validation
+- [x] T023 [US1] Update `apps/frontend/src/app/holdings/holdings.component.spec.ts` for Precious metal rows displaying by `name`
 
 **Checkpoint**: User Story 1 is fully functional and independently testable — add "Gold" and
 "Silver" precious metal holdings under the same Management, confirm two separate rows; add "Gold"
@@ -121,10 +121,10 @@ purchase price, save it, and see it listed as its own lot distinct from a Bitcoi
 
 ### Implementation for User Story 2
 
-- [ ] T024 [US2] Ensure the holding form renders a `name` input for Crypto (alongside the existing quantity/purchase price/optional purchase date fields), reusing the same name-field control and validation message pattern as US1's Precious metal wiring, in `apps/frontend/src/app/holdings/holding-form/holding-form.component.ts`/`.html`
-- [ ] T025 [US2] Update `apps/frontend/src/app/holdings/holdings.component.html` to display each Crypto holding by its entered `name` (e.g. "Ethereum") wherever the list currently shows a type-derived label (FR-010)
-- [ ] T026 [US2] Extend `holding-form.component.spec.ts` for the Crypto `name` field, including the empty-name rejection case (Acceptance Scenario 2) in `apps/frontend/src/app/holdings/holding-form/holding-form.component.spec.ts`
-- [ ] T027 [US2] Extend `holdings.component.spec.ts` for Crypto rows displaying by `name`, including two same-named lots appearing as two separate rows in `apps/frontend/src/app/holdings/holdings.component.spec.ts`
+- [x] T024 [US2] Ensure the holding form renders a `name` input for Crypto (alongside the existing quantity/purchase price/optional purchase date fields), reusing the same name-field control and validation message pattern as US1's Precious metal wiring, in `apps/frontend/src/app/holdings/holding-form/holding-form.component.ts`/`.html`
+- [x] T025 [US2] Update `apps/frontend/src/app/holdings/holdings.component.html` to display each Crypto holding by its entered `name` (e.g. "Ethereum") wherever the list currently shows a type-derived label (FR-010)
+- [x] T026 [US2] Extend `holding-form.component.spec.ts` for the Crypto `name` field, including the empty-name rejection case (Acceptance Scenario 2) in `apps/frontend/src/app/holdings/holding-form/holding-form.component.spec.ts`
+- [x] T027 [US2] Extend `holdings.component.spec.ts` for Crypto rows displaying by `name`, including two same-named lots appearing as two separate rows in `apps/frontend/src/app/holdings/holdings.component.spec.ts`
 
 **Checkpoint**: User Stories 1 AND 2 both work independently — add "Ethereum" crypto, confirm a
 second "Ethereum" submission adds a second row (no merge); attempt an empty crypto name and confirm
@@ -149,14 +149,14 @@ change, and confirm those holdings now appear as precious metal / crypto holding
 
 ### Tests for User Story 3 ⚠️
 
-- [ ] T028 [US3] Update `apps/backend/src/tests/holdings.e2e-spec.ts` for the renamed types, the new required `name` field on Precious metal/Crypto, the `(name, management)` upsert contract test (two `PRECIOUS_METAL` submissions, same `management` + different `name` → two `201`s; same `management` + same `name` → `201` then `200`), and a `POST /holdings` with `"assetType": "GOLD"` asserting `400` (contracts/holdings-api-asset-types.md, FR-005, FR-011)
-- [ ] T029 [P] [US3] Update `apps/backend/src/tests/holdings-persistence.e2e-spec.ts` for the renamed types
+- [x] T028 [US3] Update `apps/backend/src/tests/holdings.e2e-spec.ts` for the renamed types, the new required `name` field on Precious metal/Crypto, the `(name, management)` upsert contract test (two `PRECIOUS_METAL` submissions, same `management` + different `name` → two `201`s; same `management` + same `name` → `201` then `200`), and a `POST /holdings` with `"assetType": "GOLD"` asserting `400` (contracts/holdings-api-asset-types.md, FR-005, FR-011)
+- [x] T029 [P] [US3] Update `apps/backend/src/tests/holdings-persistence.e2e-spec.ts` for the renamed types
 
 ### Implementation for User Story 3
 
-- [ ] T030 [US3] Add `<app-holdings-distribution>` to the Holdings page (in addition to its existing Dashboard placement) in `apps/frontend/src/app/holdings/holdings.component.ts`/`.html` (FR-013)
-- [ ] T031 [US3] Change `HoldingsDistributionComponent.recompute()`'s grouping `Map` key from `holding.assetType` alone to `` `${holding.assetType}::${holding.name}` `` for `PRECIOUS_METAL`/`CRYPTO` holdings (ETF/Share unchanged), using each group's `holding.name` as the chart entry's label, in `apps/frontend/src/app/holdings/holdings-distribution/holdings-distribution.component.ts` (research.md #3, FR-010)
-- [ ] T032 [P] [US3] Update `apps/frontend/src/app/holdings/holdings-distribution/holdings-distribution.component.spec.ts` for per-name grouping of Precious metal/Crypto holdings (e.g. "Gold" and "Silver" as separate slices; two same-named Crypto lots summing into one slice)
+- [x] T030 [US3] Add `<app-holdings-distribution>` to the Holdings page (in addition to its existing Dashboard placement) in `apps/frontend/src/app/holdings/holdings.component.ts`/`.html` (FR-013)
+- [x] T031 [US3] Change `HoldingsDistributionComponent.recompute()`'s grouping `Map` key from `holding.assetType` alone to `` `${holding.assetType}::${holding.name}` `` for `PRECIOUS_METAL`/`CRYPTO` holdings (ETF/Share unchanged), using each group's `holding.name` as the chart entry's label, in `apps/frontend/src/app/holdings/holdings-distribution/holdings-distribution.component.ts` (research.md #3, FR-010)
+- [x] T032 [P] [US3] Update `apps/frontend/src/app/holdings/holdings-distribution/holdings-distribution.component.spec.ts` for per-name grouping of Precious metal/Crypto holdings (e.g. "Gold" and "Silver" as separate slices; two same-named Crypto lots summing into one slice)
 
 **Checkpoint**: All three user stories are independently functional. Full quickstart.md manual
 validation (checks #1–#10) can now be run end-to-end.
@@ -167,9 +167,9 @@ validation (checks #1–#10) can now be run end-to-end.
 
 **Purpose**: Final validation across all stories.
 
-- [ ] T033 [P] Run `npx nx test domain-holdings` and confirm all domain unit tests pass (quickstart.md Automated validation)
-- [ ] T034 [P] Run `npx nx test backend` and confirm all backend unit + integration tests, including the migration test and updated e2e specs, pass (quickstart.md Automated validation)
-- [ ] T035 [P] Run `npx nx test frontend` and confirm all frontend component tests pass (quickstart.md Automated validation)
+- [x] T033 [P] Run `npx nx test domain-holdings` and confirm all domain unit tests pass (quickstart.md Automated validation)
+- [x] T034 [P] Run `npx nx test backend` and confirm all backend unit + integration tests, including the migration test and updated e2e specs, pass (quickstart.md Automated validation)
+- [x] T035 [P] Run `npx nx test frontend` and confirm all frontend component tests pass (quickstart.md Automated validation)
 - [ ] T036 Walk through quickstart.md's Manual / exploratory validation checks #1–#10 end-to-end against a running local stack and confirm each passes
 
 ---

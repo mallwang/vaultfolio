@@ -52,4 +52,8 @@ export const ICON_NAME_MAP: Record<string, string> = {
   ban: 'block',
   wallet: 'account_balance_wallet',
   'trending-up': 'trending_up',
+  // Asset-type selector icons (017-restructure-asset-types, design.md/mockup.html).
+  building: 'apartment',
+  diamond: 'diamond',
+  'currency-bitcoin': 'currency_bitcoin',
 };

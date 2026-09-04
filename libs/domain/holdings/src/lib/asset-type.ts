@@ -5,9 +5,9 @@
  * same literals via `libs/api-contract` without a vendor-specific runtime
  * dependency (FR-001).
  */
-export type AssetType = 'ETF' | 'SHARE' | 'GOLD' | 'BITCOIN';
+export type AssetType = 'ETF' | 'SHARE' | 'PRECIOUS_METAL' | 'CRYPTO';
 
-export const ASSET_TYPES: readonly AssetType[] = ['ETF', 'SHARE', 'GOLD', 'BITCOIN'];
+export const ASSET_TYPES: readonly AssetType[] = ['ETF', 'SHARE', 'PRECIOUS_METAL', 'CRYPTO'];
 
 /** Every field that can appear on a Holding, across all asset types. */
 export type HoldingField =
@@ -27,7 +27,7 @@ export interface AssetTypeFieldMetadata {
  * (FR-008, Edge Cases: switching type must discard fields that don't apply).
  *
  * Notably: ETF has no `purchaseDate` field at all (not merely optional) —
- * FR-005. Gold has no `isin`/`name`/`purchasePrice`/`purchaseDate` — FR-006.
+ * FR-005. Precious metal has no `isin`/`purchasePrice`/`purchaseDate` — FR-006.
  */
 export const ASSET_TYPE_FIELDS: Readonly<Record<AssetType, AssetTypeFieldMetadata>> = {
   ETF: {
@@ -38,12 +38,12 @@ export const ASSET_TYPE_FIELDS: Readonly<Record<AssetType, AssetTypeFieldMetadat
     required: ['isin', 'name', 'quantity', 'purchasePrice'],
     optional: ['purchaseDate'],
   },
-  GOLD: {
-    required: ['weightGrams'],
+  PRECIOUS_METAL: {
+    required: ['name', 'weightGrams'],
     optional: ['currentValue'],
   },
-  BITCOIN: {
-    required: ['quantity', 'purchasePrice'],
+  CRYPTO: {
+    required: ['name', 'quantity', 'purchasePrice'],
     optional: ['purchaseDate'],
   },
 };

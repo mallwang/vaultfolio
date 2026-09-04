@@ -11,7 +11,7 @@
  * clause).
  */
 
-export type AssetType = 'ETF' | 'SHARE' | 'GOLD' | 'BITCOIN';
+export type AssetType = 'ETF' | 'SHARE' | 'PRECIOUS_METAL' | 'CRYPTO';
 
 /** The full shape returned by GET/POST/PUT — same shape as a list item. */
 export interface HoldingResponse {
@@ -49,17 +49,19 @@ interface CreateShareHoldingRequest {
   purchaseDate?: string;
 }
 
-interface CreateGoldHoldingRequest {
-  assetType: 'GOLD';
+interface CreatePreciousMetalHoldingRequest {
+  assetType: 'PRECIOUS_METAL';
   management: string;
+  name: string;
   weightGrams: string;
   /** Optional — used only by the distribution view (FR-012a). */
   currentValue?: string;
 }
 
-interface CreateBitcoinHoldingRequest {
-  assetType: 'BITCOIN';
+interface CreateCryptoHoldingRequest {
+  assetType: 'CRYPTO';
   management: string;
+  name: string;
   quantity: string;
   purchasePrice: string;
   /** Optional — omit entirely, not "". */
@@ -70,8 +72,8 @@ interface CreateBitcoinHoldingRequest {
 export type CreateHoldingRequest =
   | CreateEtfHoldingRequest
   | CreateShareHoldingRequest
-  | CreateGoldHoldingRequest
-  | CreateBitcoinHoldingRequest;
+  | CreatePreciousMetalHoldingRequest
+  | CreateCryptoHoldingRequest;
 
 /**
  * PUT /holdings/:id request body — same shape as the matching `POST` body,
@@ -80,8 +82,8 @@ export type CreateHoldingRequest =
 export type UpdateHoldingRequest =
   | Omit<CreateEtfHoldingRequest, 'assetType'>
   | Omit<CreateShareHoldingRequest, 'assetType'>
-  | Omit<CreateGoldHoldingRequest, 'assetType'>
-  | Omit<CreateBitcoinHoldingRequest, 'assetType'>;
+  | Omit<CreatePreciousMetalHoldingRequest, 'assetType'>
+  | Omit<CreateCryptoHoldingRequest, 'assetType'>;
 
 /** Structured 400 body shape shared by POST/PUT validation failures. */
 export interface HoldingValidationErrorResponse {

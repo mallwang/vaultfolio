@@ -59,6 +59,7 @@ export const de: TranslationDictionary = {
       'Hier werden Gesamtwert, Verteilung und Wertentwicklung Ihrer Bestände angezeigt, sobald Portfoliodaten verfügbar sind.',
   },
   holdingsDistribution: {
+    title: 'Verteilung nach Wert',
     emptyState:
       'Fügen Sie einen Bestand mit bekanntem Wert hinzu, um die Verteilung nach Wert zu sehen.',
   },
@@ -78,8 +79,6 @@ export const de: TranslationDictionary = {
     columnQuantity: 'Menge / Gewicht',
     columnPrice: 'Preis / Wert',
     columnPurchaseDate: 'Kaufdatum',
-    assetGold: 'Gold',
-    assetBitcoin: 'Bitcoin',
     editHolding: 'Bestand bearbeiten',
     deleteHolding: 'Bestand löschen',
     emptyStateTitle: 'Noch keine Bestände',

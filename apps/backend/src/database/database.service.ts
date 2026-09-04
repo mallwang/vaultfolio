@@ -33,6 +33,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
 
       this.migrate();
       await this.migrateAuth();
+      this.migrateAssetTypeRestructure();
       this.migrateProfile();
       this.migrateI18n();
       this.ready = true;
@@ -239,6 +240,111 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
         signup_request_id TEXT NULL REFERENCES signup_requests(id)
       )
     `);
+  }
+
+  /**
+   * 017-restructure-asset-types: rebuilds the `holdings` table so its
+   * `asset_type`/`holdings_fields_match_asset_type` CHECK constraints accept
+   * `PRECIOUS_METAL`/`CRYPTO` instead of `GOLD`/`BITCOIN`, and backfills every
+   * existing `GOLD`/`BITCOIN` row to the renamed type with `name` set to
+   * `"Gold"`/`"Bitcoin"` respectively — every other column unchanged
+   * (research.md #1, FR-007, FR-008). SQLite cannot `ALTER` a `CHECK`
+   * expression in place, so this rebuilds the table under a new name inside
+   * one transaction rather than using the `PRAGMA table_info` column-presence
+   * guard the other migrations in this file use (this migration adds no new
+   * column — the idempotency guard instead checks the stored `CREATE TABLE`
+   * text for the `PRECIOUS_METAL` literal, which only appears there once this
+   * migration has run). Must run after `migrateAuth()`, since it preserves
+   * the `owner_id` column that migration adds.
+   */
+  private migrateAssetTypeRestructure(): void {
+    const db = this.requireDb();
+
+    const table = db
+      .prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'holdings'")
+      .get() as { sql: string } | undefined;
+
+    if (table?.sql.includes('PRECIOUS_METAL')) {
+      // Already migrated on a previous boot — the indexes below already
+      // exist too, but recreating them is a harmless no-op (FR-008).
+      db.exec(`
+        CREATE INDEX IF NOT EXISTS holdings_upsert_lookup_idx
+          ON holdings (asset_type, management, isin)
+      `);
+      db.exec('CREATE INDEX IF NOT EXISTS holdings_owner_id_idx ON holdings (owner_id)');
+      this.logger.log('Asset type restructure migration already applied, skipped.');
+      return;
+    }
+
+    const rowCount = (
+      db.prepare('SELECT COUNT(*) AS count FROM holdings').get() as { count: number }
+    ).count;
+
+    const rebuild = db.transaction(() => {
+      db.exec(`
+        CREATE TABLE holdings_new (
+          id             TEXT PRIMARY KEY,
+          asset_type     TEXT NOT NULL CHECK (asset_type IN ('ETF', 'SHARE', 'PRECIOUS_METAL', 'CRYPTO')),
+          management     TEXT NOT NULL CHECK (management <> ''),
+          quantity       TEXT NULL CHECK (quantity IS NULL OR CAST(quantity AS REAL) > 0),
+          purchase_price TEXT NULL CHECK (purchase_price IS NULL OR CAST(purchase_price AS REAL) > 0),
+          purchase_date  TEXT NULL,
+          isin           TEXT NULL,
+          name           TEXT NULL,
+          weight_grams   TEXT NULL CHECK (weight_grams IS NULL OR CAST(weight_grams AS REAL) > 0),
+          current_value  TEXT NULL CHECK (current_value IS NULL OR CAST(current_value AS REAL) > 0),
+          created_at     TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')),
+          updated_at     TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')),
+          owner_id       TEXT NULL,
+          CONSTRAINT holdings_fields_match_asset_type CHECK (
+            (asset_type = 'ETF' AND isin IS NOT NULL AND name IS NOT NULL AND quantity IS NOT NULL
+              AND purchase_price IS NOT NULL AND purchase_date IS NULL
+              AND weight_grams IS NULL AND current_value IS NULL)
+            OR
+            (asset_type = 'SHARE' AND isin IS NOT NULL AND name IS NOT NULL AND quantity IS NOT NULL
+              AND purchase_price IS NOT NULL AND weight_grams IS NULL AND current_value IS NULL)
+            OR
+            (asset_type = 'PRECIOUS_METAL' AND name IS NOT NULL AND weight_grams IS NOT NULL
+              AND isin IS NULL AND quantity IS NULL AND purchase_price IS NULL
+              AND purchase_date IS NULL)
+            OR
+            (asset_type = 'CRYPTO' AND name IS NOT NULL AND quantity IS NOT NULL
+              AND purchase_price IS NOT NULL AND isin IS NULL AND weight_grams IS NULL
+              AND current_value IS NULL)
+          )
+        )
+      `);
+
+      db.exec(`
+        INSERT INTO holdings_new
+        SELECT
+          id,
+          CASE asset_type WHEN 'GOLD' THEN 'PRECIOUS_METAL' WHEN 'BITCOIN' THEN 'CRYPTO' ELSE asset_type END,
+          management,
+          quantity,
+          purchase_price,
+          purchase_date,
+          isin,
+          CASE asset_type WHEN 'GOLD' THEN 'Gold' WHEN 'BITCOIN' THEN 'Bitcoin' ELSE name END,
+          weight_grams,
+          current_value,
+          created_at,
+          updated_at,
+          owner_id
+        FROM holdings
+      `);
+
+      db.exec('DROP TABLE holdings');
+      db.exec('ALTER TABLE holdings_new RENAME TO holdings');
+      db.exec(`
+        CREATE INDEX IF NOT EXISTS holdings_upsert_lookup_idx
+          ON holdings (asset_type, management, isin)
+      `);
+      db.exec('CREATE INDEX IF NOT EXISTS holdings_owner_id_idx ON holdings (owner_id)');
+    });
+
+    rebuild();
+    this.logger.log(`Asset type restructure migration applied (${rowCount} rows migrated).`);
   }
 
   /**

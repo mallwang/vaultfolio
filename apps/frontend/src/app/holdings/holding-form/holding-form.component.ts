@@ -27,7 +27,6 @@ import { DatePickerModule } from 'primeng/datepicker';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
-import { SelectModule } from 'primeng/select';
 import { IconComponent } from '../../shared/icon/icon.component';
 import {
   ASSET_TYPES,
@@ -99,7 +98,6 @@ function toIsoDateOnly(value: Date | null): string | undefined {
   selector: 'app-holding-form',
   imports: [
     ReactiveFormsModule,
-    SelectModule,
     InputTextModule,
     InputNumberModule,
     DatePickerModule,
@@ -120,9 +118,18 @@ export class HoldingFormComponent implements OnChanges {
   private readonly fb = inject(FormBuilder);
   private readonly holdingsService = inject(HoldingsService);
 
+  /** Icon shown on each type-selector button/card (FR-012, design.md's approved mockup). */
+  private static readonly ASSET_TYPE_ICONS: Readonly<Record<AssetType, string>> = {
+    ETF: 'chart-line',
+    SHARE: 'building',
+    PRECIOUS_METAL: 'diamond',
+    CRYPTO: 'currency-bitcoin',
+  };
+
   protected readonly assetTypeOptions = ASSET_TYPES.map((value) => ({
     value,
     label: ASSET_TYPE_LABELS[value],
+    icon: HoldingFormComponent.ASSET_TYPE_ICONS[value],
   }));
   protected readonly fieldSet = signal<AssetTypeFieldSet>(ASSET_TYPE_FIELD_SETS['ETF']);
   protected readonly submitError = signal<string | null>(null);
@@ -276,6 +283,22 @@ export class HoldingFormComponent implements OnChanges {
 
   protected cancel(): void {
     this.cancelled.emit();
+  }
+
+  /** FR-012: button/card type selector — clicking a card selects that asset type (add mode only). */
+  protected selectAssetType(assetType: AssetType): void {
+    if (this.isEditMode) {
+      return;
+    }
+    this.form.controls.assetType.setValue(assetType);
+  }
+
+  protected labelFor(assetType: AssetType): string {
+    return ASSET_TYPE_LABELS[assetType];
+  }
+
+  protected iconFor(assetType: AssetType): string {
+    return HoldingFormComponent.ASSET_TYPE_ICONS[assetType];
   }
 
   private toRequestBody(raw: {

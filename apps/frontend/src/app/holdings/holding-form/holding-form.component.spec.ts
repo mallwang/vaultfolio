@@ -38,18 +38,19 @@ describe('HoldingFormComponent', () => {
     expect(text).not.toContain('Weight');
   });
 
-  it('swaps the visible fields when the asset type changes to Gold', () => {
-    component['form'].controls.assetType.setValue('GOLD');
+  it('swaps the visible fields when the asset type changes to Precious metal', () => {
+    component['form'].controls.assetType.setValue('PRECIOUS_METAL');
     fixture.detectChanges();
 
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
     expect(text).toContain('Weight');
+    expect(text).toContain('Name');
     expect(text).not.toContain('ISIN');
   });
 
   it('resets fields that no longer apply when switching asset type', () => {
     component['form'].controls.isin.setValue('IE00B4L5Y983');
-    component['form'].controls.assetType.setValue('GOLD');
+    component['form'].controls.assetType.setValue('PRECIOUS_METAL');
 
     expect(component['form'].controls.isin.value).toBeNull();
   });
@@ -71,7 +72,7 @@ describe('HoldingFormComponent', () => {
   });
 
   it('blocks submit when the form is invalid, without calling the service', () => {
-    component['form'].controls.assetType.setValue('BITCOIN');
+    component['form'].controls.assetType.setValue('CRYPTO');
     component['form'].controls.management.setValue('');
     fixture.detectChanges();
 
@@ -81,12 +82,58 @@ describe('HoldingFormComponent', () => {
     expect(component['form'].controls.management.touched).toBe(true);
   });
 
-  it('submits a valid form and emits the created holding on success', () => {
+  it('blocks submit for Precious metal with a blank name and shows the required-field message (FR-009)', () => {
     component['form'].setValue({
-      assetType: 'BITCOIN',
+      assetType: 'PRECIOUS_METAL',
+      management: 'Home safe',
+      isin: null,
+      name: '',
+      quantity: null,
+      purchasePrice: null,
+      purchaseDate: null,
+      weightGrams: 31.1,
+      currentValue: null,
+    });
+    fixture.detectChanges();
+
+    component['submit']();
+    fixture.detectChanges();
+
+    httpMock.expectNone(() => true);
+    expect(component['form'].controls.name.touched).toBe(true);
+    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(text).toContain('Name is required.');
+  });
+
+  it('blocks submit for Crypto with a blank name and shows the required-field message (Acceptance Scenario 2)', () => {
+    component['form'].setValue({
+      assetType: 'CRYPTO',
       management: 'Private',
       isin: null,
-      name: null,
+      name: '',
+      quantity: 6.4,
+      purchasePrice: 3150,
+      purchaseDate: null,
+      weightGrams: null,
+      currentValue: null,
+    });
+    fixture.detectChanges();
+
+    component['submit']();
+    fixture.detectChanges();
+
+    httpMock.expectNone(() => true);
+    expect(component['form'].controls.name.touched).toBe(true);
+    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(text).toContain('Name is required.');
+  });
+
+  it('submits a valid form and emits the created holding on success', () => {
+    component['form'].setValue({
+      assetType: 'CRYPTO',
+      management: 'Private',
+      isin: null,
+      name: 'Bitcoin',
       quantity: 0.25,
       purchasePrice: 42000,
       purchaseDate: null,
@@ -100,17 +147,21 @@ describe('HoldingFormComponent', () => {
 
     const req = httpMock.expectOne('/api/holdings');
     expect(req.request.method).toBe('POST');
-    expect(req.request.body).toMatchObject({ assetType: 'BITCOIN', management: 'Private' });
+    expect(req.request.body).toMatchObject({
+      assetType: 'CRYPTO',
+      management: 'Private',
+      name: 'Bitcoin',
+    });
 
     const response: HoldingResponse = {
       id: 'new-id',
-      assetType: 'BITCOIN',
+      assetType: 'CRYPTO',
       management: 'Private',
       quantity: '0.25',
       purchasePrice: '42000',
       purchaseDate: null,
       isin: null,
-      name: null,
+      name: 'Bitcoin',
       weightGrams: null,
       currentValue: null,
       createdAt: '2026-08-28T09:00:00.000Z',
@@ -121,16 +172,34 @@ describe('HoldingFormComponent', () => {
     expect(emitted).toEqual(response);
   });
 
+  describe('asset-type button/card selector (FR-012)', () => {
+    it('renders a button per asset type, all visible at once, and selecting one updates the form', () => {
+      const buttons = (fixture.nativeElement as HTMLElement).querySelectorAll(
+        '.type-select .type-option',
+      );
+      expect(buttons).toHaveLength(4);
+
+      const preciousMetalButton = Array.from(buttons).find((button) =>
+        button.textContent?.includes('Precious metal'),
+      ) as HTMLButtonElement;
+      preciousMetalButton.click();
+      fixture.detectChanges();
+
+      expect(component['form'].controls.assetType.value).toBe('PRECIOUS_METAL');
+      expect(preciousMetalButton.getAttribute('aria-pressed')).toBe('true');
+    });
+  });
+
   describe('edit mode', () => {
     const existing: HoldingResponse = {
       id: 'existing-id',
-      assetType: 'BITCOIN',
+      assetType: 'CRYPTO',
       management: 'Private',
       quantity: '0.5',
       purchasePrice: '40000',
       purchaseDate: null,
       isin: null,
-      name: null,
+      name: 'Bitcoin',
       weightGrams: null,
       currentValue: null,
       createdAt: '2026-08-01T09:00:00.000Z',
@@ -145,13 +214,23 @@ describe('HoldingFormComponent', () => {
     it('pre-fills the form with the holding’s values', () => {
       expect(component['form'].controls.management.value).toBe('Private');
       expect(component['form'].controls.quantity.value).toBe(0.5);
+      expect(component['form'].controls.name.value).toBe('Bitcoin');
     });
 
     it('locks the asset type control', () => {
       expect(component['form'].controls.assetType.disabled).toBe(true);
     });
 
-    it('shows only the holding’s own type fields (no ISIN/weight for Bitcoin)', () => {
+    it('shows the locked type as text, not the button/card selector', () => {
+      const buttons = (fixture.nativeElement as HTMLElement).querySelectorAll(
+        '.type-select .type-option[aria-pressed]',
+      );
+      expect(buttons).toHaveLength(0);
+      const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+      expect(text).toContain('Crypto');
+    });
+
+    it('shows only the holding’s own type fields (no ISIN/weight for Crypto)', () => {
       const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
       expect(text).not.toContain('ISIN');
       expect(text).not.toContain('Weight');

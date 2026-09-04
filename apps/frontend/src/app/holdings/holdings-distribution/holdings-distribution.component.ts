@@ -21,9 +21,11 @@ interface HoldingsDistributionEntry {
  * FR-012a: each holding's share of total portfolio value, computed
  * client-side from the already-fetched `GET /holdings` list (research.md
  * #6) — no dedicated backend endpoint. Value is `quantity × purchasePrice`
- * for Share/Bitcoin/ETF, `currentValue` for Gold; holdings with no
+ * for Share/Crypto/ETF, `currentValue` for Precious metal; holdings with no
  * computable value are excluded from the percentage base entirely, never
- * counted as zero.
+ * counted as zero. Precious metal/Crypto holdings are grouped per-name
+ * (research.md #3, FR-010) — "Gold" and "Silver" are separate slices, two
+ * same-named Crypto lots sum into one.
  */
 @Component({
   selector: 'app-holdings-distribution',
@@ -74,7 +76,7 @@ export class HoldingsDistributionComponent implements OnChanges {
   }
 
   private recompute(): void {
-    const totalsByType = new Map<string, Decimal>();
+    const totals = new Map<string, { label: string; total: Decimal }>();
     let excluded = 0;
 
     for (const holding of this.holdings) {
@@ -83,27 +85,33 @@ export class HoldingsDistributionComponent implements OnChanges {
         excluded += 1;
         continue;
       }
-      const running = totalsByType.get(holding.assetType) ?? new Decimal(0);
-      totalsByType.set(holding.assetType, running.plus(value));
+      const isNamedGroup = holding.assetType === 'PRECIOUS_METAL' || holding.assetType === 'CRYPTO';
+      const key = isNamedGroup ? `${holding.assetType}::${holding.name}` : holding.assetType;
+      const label = isNamedGroup ? (holding.name as string) : ASSET_TYPE_LABELS[holding.assetType];
+      const existing = totals.get(key);
+      totals.set(key, {
+        label,
+        total: (existing?.total ?? new Decimal(0)).plus(value),
+      });
     }
 
     this.excludedCount.set(excluded);
 
-    if (totalsByType.size === 0) {
+    if (totals.size === 0) {
       this.entries.set(null);
       return;
     }
 
     this.entries.set(
-      [...totalsByType.entries()].map(([assetType, total]) => ({
-        name: ASSET_TYPE_LABELS[assetType as keyof typeof ASSET_TYPE_LABELS],
+      [...totals.values()].map(({ label, total }) => ({
+        name: label,
         value: total.toNumber(),
       })),
     );
   }
 
   private static computeValue(holding: HoldingResponse): Decimal | null {
-    if (holding.assetType === 'GOLD') {
+    if (holding.assetType === 'PRECIOUS_METAL') {
       return holding.currentValue != null ? new Decimal(holding.currentValue) : null;
     }
     if (holding.quantity != null && holding.purchasePrice != null) {

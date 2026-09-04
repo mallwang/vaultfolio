@@ -10,14 +10,14 @@ import type { AssetType } from '@vaultfolio/api-contract';
  * purely a UI-layer concern (which controls to show); `holding-validation.ts`
  * remains the single source of truth for what the server actually accepts.
  */
-export const ASSET_TYPES: readonly AssetType[] = ['ETF', 'SHARE', 'GOLD', 'BITCOIN'];
+export const ASSET_TYPES: readonly AssetType[] = ['ETF', 'SHARE', 'PRECIOUS_METAL', 'CRYPTO'];
 
 export interface AssetTypeFieldSet {
   isin: boolean;
   name: boolean;
   quantity: boolean;
   purchasePrice: boolean;
-  /** ETF/GOLD never show a purchase date field at all (FR-005, FR-006). */
+  /** ETF/PRECIOUS_METAL never show a purchase date field at all (FR-005, FR-006). */
   purchaseDate: 'hidden' | 'optional';
   weightGrams: boolean;
   currentValue: boolean;
@@ -42,18 +42,18 @@ export const ASSET_TYPE_FIELD_SETS: Readonly<Record<AssetType, AssetTypeFieldSet
     weightGrams: false,
     currentValue: false,
   },
-  GOLD: {
+  PRECIOUS_METAL: {
     isin: false,
-    name: false,
+    name: true,
     quantity: false,
     purchasePrice: false,
     purchaseDate: 'hidden',
     weightGrams: true,
     currentValue: true,
   },
-  BITCOIN: {
+  CRYPTO: {
     isin: false,
-    name: false,
+    name: true,
     quantity: true,
     purchasePrice: true,
     purchaseDate: 'optional',
@@ -65,8 +65,8 @@ export const ASSET_TYPE_FIELD_SETS: Readonly<Record<AssetType, AssetTypeFieldSet
 export const ASSET_TYPE_LABELS: Readonly<Record<AssetType, string>> = {
   ETF: 'ETF',
   SHARE: 'Share',
-  GOLD: 'Gold',
-  BITCOIN: 'Bitcoin',
+  PRECIOUS_METAL: 'Precious metal',
+  CRYPTO: 'Crypto',
 };
 
 /**
