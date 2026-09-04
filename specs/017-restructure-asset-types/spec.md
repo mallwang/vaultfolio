@@ -8,6 +8,8 @@
 
 **Input**: User description: "Restructure holding asset types: rename GOLD to PRECIOUS_METAL and BITCOIN to CRYPTO, and add a required `name` field to both (reusing the existing `name` field already used by ETF/SHARE) so users can freely enter the specific asset name (e.g. \"Gold\", \"Silver\", \"Platinum\" for precious metal; \"Bitcoin\", \"Ethereum\" for crypto). This amends the existing 003-manual-holdings-entry feature's asset type model, including a data migration for existing GOLD/BITCOIN rows to PRECIOUS_METAL/CRYPTO."
 
+**Design**: [design.md](./design.md) — reviewed mockup and approved layout for the add/edit dialog and holdings list/distribution changes below.
+
 ## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Record a precious metal holding by name (Priority: P1)
@@ -78,6 +80,8 @@ A user who already recorded gold and Bitcoin holdings before this change ships m
 - **FR-009**: The system MUST validate a submitted Precious metal or Crypto name the same way it already validates the ETF/Share name field (non-empty after trimming whitespace), rejecting an empty or whitespace-only name with a clear message.
 - **FR-010**: The system MUST display each Precious metal and Crypto holding using its entered name (e.g. "Silver", "Ethereum") everywhere the holdings list, edit form, and asset-distribution view currently display a holding's identifying label.
 - **FR-011**: Existing API clients and stored data that reference asset type "Gold" or "Bitcoin" MUST no longer be accepted for new writes once this change ships — new holdings MUST be created only as "Precious metal" or "Crypto".
+- **FR-012**: The add-holding dialog MUST present the asset-type choice as a set of selectable options (one per type, all visible at once), not as a dropdown — restoring the 003-manual-holdings-entry design.md's originally-approved type selector, which the shipped implementation deviated from. The edit-holding dialog continues to show the holding's own type locked, as today.
+- **FR-013**: The "Distribution by value" panel MUST also appear on the Holdings page itself (in addition to its current placement on the Dashboard), grouped and labeled per FR-010 — restoring the 003-manual-holdings-entry design.md's originally-approved placement, which the shipped implementation moved to the Dashboard only.
 
 ### Key Entities
 
@@ -100,3 +104,4 @@ A user who already recorded gold and Bitcoin holdings before this change ships m
 - No historical audit trail of the pre-migration asset type value is required to be retained; the migration overwrites the type/name in place.
 - This is a single-user-facing-language change in terms of scope (no new asset-type-specific fields beyond name) — the underlying storage rename is an implementation concern for the planning phase, not specified further here.
 - Existing translations (English/German) for asset type labels and field names will be updated to match the new type names and the new "name" field label; the specific translated strings are a planning/implementation detail.
+- FR-012 and FR-013 correct two visual deviations from 003-manual-holdings-entry's approved design (a dropdown instead of a type-selector control; the distribution panel shipped on the Dashboard only) that surfaced during this feature's UX mockup review — see design.md. They are scoped to this feature because the type selector and distribution grouping are both touched by the Precious metal/Crypto rename anyway; no other Holdings-page behavior changes.
