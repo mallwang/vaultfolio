@@ -98,6 +98,12 @@ export const en: TranslationDictionary = {
     alreadyDeletedDetail: 'This holding was already removed.',
     deleteError: 'Unable to delete this holding.',
   },
+  assetType: {
+    ETF: 'ETF',
+    SHARE: 'Share',
+    PRECIOUS_METAL: 'Precious metal',
+    CRYPTO: 'Crypto',
+  },
   holdingForm: {
     assetType: 'Asset type',
     management: 'Management',

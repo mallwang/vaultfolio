@@ -1,6 +1,9 @@
 @if (hasData()) {
   <div class="distribution">
-    <app-echart [option]="chartOption()" [loading]="false" />
+    <div class="distribution__chart">
+      <app-echart [option]="chartOption()" [loading]="false" />
+      <span class="distribution__center-label">{{ centerLabel() }}</span>
+    </div>
     @if (excludedCount() > 0) {
       <p class="distribution__note">
         {{ excludedCount() }} holding{{ excludedCount() === 1 ? '' : 's' }} excluded — no value

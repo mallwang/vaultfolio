@@ -31,7 +31,7 @@ import { IconComponent } from '../../shared/icon/icon.component';
 import {
   ASSET_TYPES,
   ASSET_TYPE_FIELD_SETS,
-  ASSET_TYPE_LABELS,
+  ASSET_TYPE_LABEL_KEYS,
   isValidIsin,
   type AssetTypeFieldSet,
 } from '../asset-type-fields';
@@ -106,6 +106,7 @@ function toIsoDateOnly(value: Date | null): string | undefined {
     TranslatePipe,
     IconComponent,
   ],
+  providers: [TranslatePipe],
   templateUrl: './holding-form.component.html',
   styleUrl: './holding-form.component.css',
 })
@@ -117,6 +118,7 @@ export class HoldingFormComponent implements OnChanges {
 
   private readonly fb = inject(FormBuilder);
   private readonly holdingsService = inject(HoldingsService);
+  private readonly translate = inject(TranslatePipe);
 
   /** Icon shown on each type-selector button/card (FR-012, design.md's approved mockup). */
   private static readonly ASSET_TYPE_ICONS: Readonly<Record<AssetType, string>> = {
@@ -128,7 +130,6 @@ export class HoldingFormComponent implements OnChanges {
 
   protected readonly assetTypeOptions = ASSET_TYPES.map((value) => ({
     value,
-    label: ASSET_TYPE_LABELS[value],
     icon: HoldingFormComponent.ASSET_TYPE_ICONS[value],
   }));
   protected readonly fieldSet = signal<AssetTypeFieldSet>(ASSET_TYPE_FIELD_SETS['ETF']);
@@ -294,7 +295,7 @@ export class HoldingFormComponent implements OnChanges {
   }
 
   protected labelFor(assetType: AssetType): string {
-    return ASSET_TYPE_LABELS[assetType];
+    return this.translate.transform(ASSET_TYPE_LABEL_KEYS[assetType]);
   }
 
   protected iconFor(assetType: AssetType): string {

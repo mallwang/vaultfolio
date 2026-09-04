@@ -19,7 +19,7 @@
             (click)="selectAssetType(option.value)"
           >
             <app-icon [name]="option.icon" />
-            {{ option.label }}
+            {{ labelFor(option.value) }}
           </button>
         }
       </div>

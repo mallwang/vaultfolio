@@ -11,7 +11,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
 import { IconComponent } from '../shared/icon/icon.component';
-import { ASSET_TYPE_LABELS } from './asset-type-fields';
+import { ASSET_TYPE_LABEL_KEYS } from './asset-type-fields';
 import { HoldingFormComponent } from './holding-form/holding-form.component';
 import { HoldingsDistributionComponent } from './holdings-distribution/holdings-distribution.component';
 import { HoldingsService } from './holdings.service';
@@ -62,10 +62,8 @@ export class HoldingsComponent implements OnInit {
   protected readonly dialogVisible = signal(false);
   protected readonly editingHolding = signal<HoldingResponse | null>(null);
 
-  protected readonly assetTypeLabels = ASSET_TYPE_LABELS;
-
   protected labelFor(assetType: AssetType): string {
-    return ASSET_TYPE_LABELS[assetType];
+    return this.translate.transform(ASSET_TYPE_LABEL_KEYS[assetType]);
   }
 
   ngOnInit(): void {
@@ -119,7 +117,7 @@ export class HoldingsComponent implements OnInit {
     this.confirmationService.confirm({
       target: event.target as EventTarget,
       message: template
-        .replace('{{assetType}}', this.assetTypeLabels[holding.assetType])
+        .replace('{{assetType}}', this.labelFor(holding.assetType))
         .replace('{{management}}', holding.management),
       header: this.translate.transform('holdings.deleteConfirmHeader'),
       acceptButtonProps: { severity: 'danger', label: this.translate.transform('holdings.delete') },

@@ -94,6 +94,12 @@ export const de: TranslationDictionary = {
     alreadyDeletedDetail: 'Dieser Bestand wurde bereits entfernt.',
     deleteError: 'Dieser Bestand konnte nicht gelöscht werden.',
   },
+  assetType: {
+    ETF: 'ETF',
+    SHARE: 'Aktie',
+    PRECIOUS_METAL: 'Edelmetall',
+    CRYPTO: 'Krypto',
+  },
   holdingForm: {
     assetType: 'Anlageart',
     management: 'Verwaltung',

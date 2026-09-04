@@ -58,15 +58,12 @@ describe('/holdings — per-user isolation (005-auth-sessions-isolation)', () =>
       .then((res) => {
         cookieA = (res.headers['set-cookie'] as unknown as string[])[0].split(';')[0];
       });
-    await request(app.getHttpServer())
-      .post('/holdings')
-      .set('Cookie', cookieA)
-      .send({
-        assetType: 'PRECIOUS_METAL',
-        management: 'Legacy vault',
-        name: 'Gold',
-        weightGrams: '5',
-      });
+    await request(app.getHttpServer()).post('/holdings').set('Cookie', cookieA).send({
+      assetType: 'PRECIOUS_METAL',
+      management: 'Legacy vault',
+      name: 'Gold',
+      weightGrams: '5',
+    });
 
     // Second account, inserted directly — quickstart.md Scenario B step 1
     // ("for this feature alone, a second row may be inserted directly for

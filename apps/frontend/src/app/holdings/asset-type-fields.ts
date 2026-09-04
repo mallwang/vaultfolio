@@ -62,11 +62,17 @@ export const ASSET_TYPE_FIELD_SETS: Readonly<Record<AssetType, AssetTypeFieldSet
   },
 };
 
-export const ASSET_TYPE_LABELS: Readonly<Record<AssetType, string>> = {
-  ETF: 'ETF',
-  SHARE: 'Share',
-  PRECIOUS_METAL: 'Precious metal',
-  CRYPTO: 'Crypto',
+/**
+ * Translation-dictionary keys (`core/i18n/translations/{en,de}.ts`'s
+ * `assetType` section) for each asset type's display label — resolve
+ * through `TranslatePipe`/`I18nService` rather than using these as literal
+ * UI text, so the label follows the active language (FR-003).
+ */
+export const ASSET_TYPE_LABEL_KEYS: Readonly<Record<AssetType, string>> = {
+  ETF: 'assetType.ETF',
+  SHARE: 'assetType.SHARE',
+  PRECIOUS_METAL: 'assetType.PRECIOUS_METAL',
+  CRYPTO: 'assetType.CRYPTO',
 };
 
 /**
