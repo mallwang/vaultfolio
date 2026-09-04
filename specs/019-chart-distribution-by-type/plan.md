@@ -1,109 +1,108 @@
-# Implementation Plan: [FEATURE]
+# Implementation Plan: Distribution Chart Grouped by Asset Type
 
-**Branch**: `[###-feature-name]` | **Date**: [DATE] | **Spec**: [link]
+**Branch**: `019-chart-distribution-by-type` | **Date**: 2026-09-04 | **Spec**: [spec.md](./spec.md)
 
-**Input**: Feature specification from `/specs/[###-feature-name]/spec.md`
+**Input**: Feature specification from `/specs/019-chart-distribution-by-type/spec.md`
 
 **Note**: This template is filled in by the `/speckit-plan` command; its definition describes the execution workflow.
 
 ## Summary
 
-[Extract from feature spec: primary requirement + technical approach from research]
+Change the existing holdings-distribution-by-value pie chart to group every holding by its
+`AssetType` only (never by the holding's own `name`), so it always shows at most one slice per
+type (ETF, Share, Precious metal, Crypto, Deposit money) labeled with the type's existing
+localized `assetType.*` translation, with each slice's value the sum of that type's holdings'
+already-computed values. This is a pure frontend, single-component change: the aggregation
+already runs client-side in `HoldingsDistributionComponent.recompute()`, so the fix is to drop the
+per-name grouping branch (currently used for Precious metal/Crypto/Deposit money) and always key
+by `assetType`, simplifying the entry shape accordingly. No backend, API, or domain-library change
+is needed.
 
 ## Technical Context
 
-<!--
-  ACTION REQUIRED: Replace the content in this section with the technical details
-  for the project. The structure here is presented in advisory capacity to guide
-  the iteration process.
--->
+**Language/Version**: TypeScript (Node.js LTS runtime for the backend; unaffected by this feature)
 
-**Language/Version**: TypeScript (Node.js LTS runtime for the backend)
+**Primary Dependencies**: Angular (frontend), Apache ECharts (charting, per constitution Stack
+Decision) — both already in place; no new dependency introduced.
 
-**Primary Dependencies**: NestJS (backend), Angular (frontend), Nx (monorepo tooling) — per the
-constitution's Stack Decision. Note any feature-specific additions here (e.g., a charting library,
-a market-data client) beyond this baseline.
+**Storage**: N/A for this feature — no persisted data model changes; the chart consumes the
+already-fetched `GET /holdings` response client-side (unchanged endpoint/contract).
 
-**Storage**: PostgreSQL, accessed via the backend only (Principle II)
+**Testing**: Jest via Nx (Vitest-style `vi.mock`/`describe` as already used in
+`holdings-distribution.component.spec.ts`); existing unit tests for this component are updated/
+extended to assert per-type grouping.
 
-**Testing**: Jest (Nx default for both NestJS and Angular projects); contract/integration tests per
-Principle IV
+**Target Platform**: Modern evergreen browsers (Angular frontend); no backend/deployment impact.
 
-**Target Platform**: Linux server (backend + PostgreSQL containers), modern evergreen browsers
-(Angular frontend)
+**Project Type**: web-service + frontend, Nx monorepo — this feature touches only the `frontend`
+Nx project.
 
-**Project Type**: web-service + frontend, Nx monorepo (see Project Structure below)
+**Performance Goals**: N/A — grouping runs over an already-fetched, small (per-user) holdings list
+client-side; no new performance-sensitive path introduced.
 
-**Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps or NEEDS CLARIFICATION]
+**Constraints**: Must not change the `GET /holdings` API contract, per-holding value computation
+(FR-003), or excluded-holdings behavior (FR-004) — only the grouping key and slice label logic in
+`HoldingsDistributionComponent`.
 
-**Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]
-
-**Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
+**Scale/Scope**: Single Angular component (`apps/frontend/src/app/holdings/holdings-distribution/`)
+and its spec file; at most 5 slices per chart (one per `AssetType`).
 
 ## Constitution Check
 
 _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-[Gates determined based on constitution file]
+- **I. Library-First**: No new domain/finance logic is introduced — grouping-by-type is
+  presentation aggregation over values already computed by the existing per-holding value logic
+  (`HoldingsDistributionComponent.computeValue`, unchanged). This mirrors the existing precedent
+  (the component already aggregates client-side today) and stays a component-local concern, not a
+  library boundary. **PASS**.
+- **II. API-First Interface**: No API contract change — the component continues to consume the
+  existing `GET /holdings` response and reshapes it entirely client-side. **PASS**.
+- **III. Test Coverage**: The change touches values (summed monetary totals per type); existing
+  and updated component tests MUST assert exact expected sums per type (Decimal-based, as today),
+  not approximate values. **PASS (planned)**.
+- **IV. Integration Testing**: No new service/module boundary or shared schema is introduced —
+  this is an intra-component presentation change, so no new integration test is required beyond
+  the existing component-level tests. **PASS**.
+- **V. Observability, Versioning & Simplicity**: Change is a simplification (removes the
+  per-name/per-type branching, always groups by type) — no new abstraction, service, or dependency
+  added. **PASS**.
+
+No violations — Complexity Tracking section is not needed.
 
 ## Project Structure
 
 ### Documentation (this feature)
 
 ```text
-specs/[###-feature]/
+specs/019-chart-distribution-by-type/
 ├── plan.md              # This file (/speckit-plan command output)
 ├── research.md          # Phase 0 output (/speckit-plan command)
 ├── data-model.md        # Phase 1 output (/speckit-plan command)
 ├── quickstart.md        # Phase 1 output (/speckit-plan command)
-├── contracts/           # Phase 1 output (/speckit-plan command)
 └── tasks.md             # Phase 2 output (/speckit-tasks command - NOT created by /speckit-plan)
 ```
 
+No `contracts/` directory: this feature exposes no new/changed external interface (no API,
+CLI, or file-format contract) — see Phase 1 §2 rationale in research.md.
+
 ### Source Code (repository root)
 
-<!--
-  ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
-  for this feature. Delete unused options and expand the chosen structure with
-  real paths (e.g., apps/admin, packages/something). The delivered plan must
-  not include Option labels.
--->
-
 ```text
-# DEFAULT: Nx monorepo (frontend + backend), per the constitution's Stack Decision
 apps/
-├── backend/                  # NestJS
-│   ├── src/
-│   │   ├── modules/          # feature modules (controllers, DTOs, wiring)
-│   │   └── main.ts
-│   └── src/tests/            # e2e/integration tests for this app
-└── frontend/                 # Angular
-    ├── src/
-    │   ├── app/               # components, pages, routing
-    │   └── main.ts
-    └── src/tests/
-
-libs/
-├── domain/[domain-name]/     # standalone finance/domain logic (Principle I),
-│                             # framework-independent, unit-tested in isolation
-├── api-contract/             # shared DTOs/types between backend and frontend
-└── [market-data-provider]/   # external market-data integration, isolated per
-                              # Product Scope's External Market Data rules
-
-# [REMOVE IF UNUSED] Only if this feature also needs a standalone project outside
-# the monorepo's normal app/lib shape (rare — justify in Complexity Tracking):
-src/
-tests/
+└── frontend/                                    # Angular
+    └── src/app/holdings/holdings-distribution/
+        ├── holdings-distribution.component.ts        # aggregation + chart option (this feature's change)
+        ├── holdings-distribution.component.html       # unchanged (center-label overlay, excluded-count note)
+        ├── holdings-distribution.component.css        # unchanged
+        └── holdings-distribution.component.spec.ts    # updated/extended unit tests
 ```
 
-**Structure Decision**: [Document the selected Nx apps/libs for this feature —
-which existing libs it extends, which new libs (if any) it introduces, and why]
+**Structure Decision**: This feature extends only the existing `frontend` Nx app, specifically the
+existing `HoldingsDistributionComponent` under `apps/frontend/src/app/holdings/holdings-distribution/`.
+No existing lib is modified and no new Nx app or lib is introduced — the change is fully contained
+within this presentation component, consistent with Constitution Check above.
 
 ## Complexity Tracking
 
-> **Fill ONLY if Constitution Check has violations that must be justified**
-
-| Violation                  | Why Needed         | Simpler Alternative Rejected Because |
-| -------------------------- | ------------------ | ------------------------------------ |
-| [e.g., 4th project]        | [current need]     | [why 3 projects insufficient]        |
-| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient]  |
+> Not applicable — no Constitution Check violations.
