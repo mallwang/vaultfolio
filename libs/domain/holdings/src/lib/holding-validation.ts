@@ -98,8 +98,16 @@ function parsePositiveDecimal(
     errors.push({ field, message: `${field} must be a valid number.` });
     return null;
   }
-  if (!decimal.isFinite() || decimal.lessThanOrEqualTo(0)) {
-    errors.push({ field, message: `${field} must be a positive number.` });
+  // currentValue's floor is 0 (an emptied deposit-money balance is valid);
+  // every other decimal field (quantity, purchasePrice, weightGrams) keeps
+  // the strict > 0 floor.
+  const minimum = field === 'currentValue' ? 0 : undefined;
+  if (!decimal.isFinite() || (minimum === 0 ? decimal.lessThan(0) : decimal.lessThanOrEqualTo(0))) {
+    const message =
+      field === 'currentValue'
+        ? `${field} must be a non-negative number.`
+        : `${field} must be a positive number.`;
+    errors.push({ field, message });
     return null;
   }
   return decimal;
@@ -157,7 +165,12 @@ export function validateHoldingSubmission(submission: HoldingSubmission): Valida
       if (isBlank(submission[field])) {
         errors.push({ field, message: `${field} is required for ${assetType}.` });
       }
-    } else if (field === 'quantity' || field === 'purchasePrice' || field === 'weightGrams') {
+    } else if (
+      field === 'quantity' ||
+      field === 'purchasePrice' ||
+      field === 'weightGrams' ||
+      field === 'currentValue'
+    ) {
       if (parsed[field] == null && isBlank(submission[field])) {
         errors.push({ field, message: `${field} is required for ${assetType}.` });
       }

@@ -41,6 +41,13 @@ const validBitcoin: HoldingSubmission = {
   purchasePrice: '42000.00',
 };
 
+const validDeposit: HoldingSubmission = {
+  assetType: 'DEPOSIT_MONEY',
+  management: 'N26',
+  name: 'N26 checking',
+  currentValue: '1250.00',
+};
+
 describe('isValidIsin', () => {
   it('accepts well-formed ISINs with a correct check digit', () => {
     expect(isValidIsin('IE00B4L5Y983')).toBe(true);
@@ -62,14 +69,14 @@ describe('isValidIsin', () => {
 
 describe('validateHoldingSubmission — universal rules', () => {
   it('accepts a valid submission of each asset type', () => {
-    for (const submission of [validEtf, validShare, validGold, validBitcoin]) {
+    for (const submission of [validEtf, validShare, validGold, validBitcoin, validDeposit]) {
       const result = validateHoldingSubmission(submission);
       expect(result.valid).toBe(true);
     }
   });
 
   it('rejects an empty Management value for every asset type', () => {
-    for (const submission of [validEtf, validShare, validGold, validBitcoin]) {
+    for (const submission of [validEtf, validShare, validGold, validBitcoin, validDeposit]) {
       const result = validateHoldingSubmission({ ...submission, management: '' });
       expect(result.valid).toBe(false);
       if (!result.valid) {
@@ -85,6 +92,41 @@ describe('validateHoldingSubmission — universal rules', () => {
 });
 
 describe('validateHoldingSubmission — positivity rules', () => {
+  it('accepts a zero currentValue for DEPOSIT_MONEY and PRECIOUS_METAL', () => {
+    for (const submission of [
+      { ...validDeposit, currentValue: '0' },
+      { ...validGold, currentValue: '0' },
+    ]) {
+      const result = validateHoldingSubmission(submission);
+      expect(result.valid).toBe(true);
+      if (result.valid) {
+        expect(result.value.currentValue?.equals(new Decimal('0'))).toBe(true);
+      }
+    }
+  });
+
+  it('rejects a negative currentValue for DEPOSIT_MONEY and PRECIOUS_METAL', () => {
+    for (const submission of [
+      { ...validDeposit, currentValue: '-0.01' },
+      { ...validGold, currentValue: '-100' },
+    ]) {
+      const result = validateHoldingSubmission(submission);
+      expect(result.valid).toBe(false);
+      if (!result.valid) {
+        expect(result.fieldErrors).toContainEqual(
+          expect.objectContaining({ field: 'currentValue' }),
+        );
+      }
+    }
+  });
+
+  it('leaves currentValue > 0 unaffected for DEPOSIT_MONEY and PRECIOUS_METAL', () => {
+    for (const submission of [validDeposit, { ...validGold, currentValue: '500' }]) {
+      const result = validateHoldingSubmission(submission);
+      expect(result.valid).toBe(true);
+    }
+  });
+
   it('rejects zero or negative quantity', () => {
     for (const quantity of ['0', '-1', '-0.01']) {
       const result = validateHoldingSubmission({ ...validShare, quantity });
@@ -273,6 +315,60 @@ describe('validateHoldingSubmission — per-type required fields', () => {
     expect(silver.valid).toBe(true);
     const ethereum = validateHoldingSubmission({ ...validBitcoin, name: 'Ethereum' });
     expect(ethereum.valid).toBe(true);
+  });
+
+  it('rejects Deposit money missing name', () => {
+    const { name: _name, ...withoutName } = validDeposit;
+    const result = validateHoldingSubmission(withoutName as HoldingSubmission);
+    expect(result.valid).toBe(false);
+    if (!result.valid) {
+      expect(result.fieldErrors).toContainEqual(expect.objectContaining({ field: 'name' }));
+    }
+  });
+
+  it('rejects Deposit money missing currentValue', () => {
+    const { currentValue: _currentValue, ...withoutCurrentValue } = validDeposit;
+    const result = validateHoldingSubmission(withoutCurrentValue as HoldingSubmission);
+    expect(result.valid).toBe(false);
+    if (!result.valid) {
+      expect(result.fieldErrors).toContainEqual(expect.objectContaining({ field: 'currentValue' }));
+    }
+  });
+
+  it('rejects Deposit money with a blank/whitespace-only name', () => {
+    for (const name of ['', '   ']) {
+      const result = validateHoldingSubmission({ ...validDeposit, name });
+      expect(result.valid).toBe(false);
+      if (!result.valid) {
+        expect(result.fieldErrors).toContainEqual({
+          field: 'name',
+          message: 'name is required for DEPOSIT_MONEY.',
+        });
+      }
+    }
+  });
+
+  it('rejects Deposit money with extraneous fields (isin/quantity/purchasePrice/purchaseDate/weightGrams)', () => {
+    const extraneous: Partial<HoldingSubmission>[] = [
+      { isin: 'US0378331005' },
+      { quantity: '1' },
+      { purchasePrice: '1' },
+      { purchaseDate: '2020-01-01' },
+      { weightGrams: '1' },
+    ];
+    for (const extra of extraneous) {
+      const result = validateHoldingSubmission({ ...validDeposit, ...extra } as HoldingSubmission);
+      expect(result.valid).toBe(false);
+      if (!result.valid) {
+        const field = Object.keys(extra)[0];
+        expect(result.fieldErrors).toContainEqual(expect.objectContaining({ field }));
+      }
+    }
+  });
+
+  it('accepts a valid Deposit money submission', () => {
+    const result = validateHoldingSubmission(validDeposit);
+    expect(result.valid).toBe(true);
   });
 });
 

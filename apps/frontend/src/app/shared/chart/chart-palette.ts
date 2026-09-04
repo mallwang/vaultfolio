@@ -57,4 +57,5 @@ export const ASSET_TYPE_COLORS: Readonly<Record<AssetType, string>> = {
   SHARE: '#2563eb', // blue
   PRECIOUS_METAL: '#ffd700', // gold
   CRYPTO: '#7c3aed', // purple
+  DEPOSIT_MONEY: '#0d9488', // teal
 };

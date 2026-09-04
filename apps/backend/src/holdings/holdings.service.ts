@@ -47,7 +47,11 @@ export class HoldingsService {
     const value = validation.value;
 
     let candidate: Holding | null = null;
-    if (value.assetType === 'ETF' || value.assetType === 'PRECIOUS_METAL') {
+    if (
+      value.assetType === 'ETF' ||
+      value.assetType === 'PRECIOUS_METAL' ||
+      value.assetType === 'DEPOSIT_MONEY'
+    ) {
       candidate = await this.repository.findUpsertMatch(
         value.assetType,
         value.management,

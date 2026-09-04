@@ -99,6 +99,7 @@ export const de: TranslationDictionary = {
     SHARE: 'Aktie',
     PRECIOUS_METAL: 'Edelmetall',
     CRYPTO: 'Krypto',
+    DEPOSIT_MONEY: 'Giralgeld',
   },
   holdingForm: {
     assetType: 'Anlageart',
@@ -117,7 +118,8 @@ export const de: TranslationDictionary = {
     weightGrams: 'Gewicht (Gramm)',
     weightGramsInvalid: 'Gewicht muss eine positive Zahl sein.',
     currentValue: 'Aktueller Wert (optional)',
-    currentValueInvalid: 'Aktueller Wert muss eine positive Zahl sein.',
+    currentValueRequired: 'Aktueller Wert',
+    currentValueInvalid: 'Aktueller Wert darf nicht negativ sein.',
     purchaseDate: 'Kaufdatum (optional)',
     purchaseDateInvalid: 'Kaufdatum darf nicht in der Zukunft liegen.',
   },

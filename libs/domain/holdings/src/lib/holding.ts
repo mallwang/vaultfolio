@@ -72,7 +72,7 @@ export class Holding implements HoldingProps {
    * percentage base entirely, never counted as zero (research.md #6).
    */
   computeValue(): Decimal | null {
-    if (this.assetType === 'PRECIOUS_METAL') {
+    if (this.assetType === 'PRECIOUS_METAL' || this.assetType === 'DEPOSIT_MONEY') {
       return this.currentValue;
     }
     if (this.quantity && this.purchasePrice) {

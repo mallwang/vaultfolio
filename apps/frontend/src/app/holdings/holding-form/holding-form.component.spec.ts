@@ -48,6 +48,20 @@ describe('HoldingFormComponent', () => {
     expect(text).not.toContain('ISIN');
   });
 
+  it('shows only name/institution/current-value fields for Deposit money, hiding quantity/price/ISIN/purchase-date/weight', () => {
+    component['form'].controls.assetType.setValue('DEPOSIT_MONEY');
+    fixture.detectChanges();
+
+    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(text).toContain('Name');
+    expect(text).toContain('Current value');
+    expect(text).not.toContain('ISIN');
+    expect(text).not.toContain('Quantity');
+    expect(text).not.toContain('Purchase price');
+    expect(text).not.toContain('Purchase date');
+    expect(text).not.toContain('Weight');
+  });
+
   it('resets fields that no longer apply when switching asset type', () => {
     component['form'].controls.isin.setValue('IE00B4L5Y983');
     component['form'].controls.assetType.setValue('PRECIOUS_METAL');
@@ -177,7 +191,7 @@ describe('HoldingFormComponent', () => {
       const buttons = (fixture.nativeElement as HTMLElement).querySelectorAll(
         '.type-select .type-option',
       );
-      expect(buttons).toHaveLength(4);
+      expect(buttons).toHaveLength(5);
 
       const preciousMetalButton = Array.from(buttons).find((button) =>
         button.textContent?.includes('Precious metal'),

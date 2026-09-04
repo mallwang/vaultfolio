@@ -91,6 +91,31 @@ describe('HoldingsDistributionComponent', () => {
     ]);
   });
 
+  it('groups DEPOSIT_MONEY holdings by name, not merged into one unlabeled slice', () => {
+    fixture.componentRef.setInput('holdings', [
+      holding({ id: '1', assetType: 'DEPOSIT_MONEY', name: 'N26 checking', currentValue: '1250' }),
+      holding({
+        id: '2',
+        assetType: 'DEPOSIT_MONEY',
+        name: 'Revolut savings',
+        currentValue: '500',
+      }),
+    ]);
+    fixture.detectChanges();
+
+    const option = fixture.componentInstance['chartOption']();
+    const series = option.series as Array<{ data: Array<{ name: string; value: number }> }>;
+
+    expect(series[0].data).toEqual([
+      { name: 'N26 checking', value: 1250, itemStyle: { color: ASSET_TYPE_COLORS.DEPOSIT_MONEY } },
+      {
+        name: 'Revolut savings',
+        value: 500,
+        itemStyle: { color: ASSET_TYPE_COLORS.DEPOSIT_MONEY },
+      },
+    ]);
+  });
+
   it('sums two same-named Crypto lots into one slice', () => {
     fixture.componentRef.setInput('holdings', [
       holding({

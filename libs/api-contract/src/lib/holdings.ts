@@ -11,7 +11,7 @@
  * clause).
  */
 
-export type AssetType = 'ETF' | 'SHARE' | 'PRECIOUS_METAL' | 'CRYPTO';
+export type AssetType = 'ETF' | 'SHARE' | 'PRECIOUS_METAL' | 'CRYPTO' | 'DEPOSIT_MONEY';
 
 /** The full shape returned by GET/POST/PUT — same shape as a list item. */
 export interface HoldingResponse {
@@ -68,12 +68,20 @@ interface CreateCryptoHoldingRequest {
   purchaseDate?: string;
 }
 
+interface CreateDepositMoneyHoldingRequest {
+  assetType: 'DEPOSIT_MONEY';
+  management: string;
+  name: string;
+  currentValue: string;
+}
+
 /** POST /holdings request body — shape depends on `assetType` (FR-001–FR-007). */
 export type CreateHoldingRequest =
   | CreateEtfHoldingRequest
   | CreateShareHoldingRequest
   | CreatePreciousMetalHoldingRequest
-  | CreateCryptoHoldingRequest;
+  | CreateCryptoHoldingRequest
+  | CreateDepositMoneyHoldingRequest;
 
 /**
  * PUT /holdings/:id request body — same shape as the matching `POST` body,
@@ -83,7 +91,8 @@ export type UpdateHoldingRequest =
   | Omit<CreateEtfHoldingRequest, 'assetType'>
   | Omit<CreateShareHoldingRequest, 'assetType'>
   | Omit<CreatePreciousMetalHoldingRequest, 'assetType'>
-  | Omit<CreateCryptoHoldingRequest, 'assetType'>;
+  | Omit<CreateCryptoHoldingRequest, 'assetType'>
+  | Omit<CreateDepositMoneyHoldingRequest, 'assetType'>;
 
 /** Structured 400 body shape shared by POST/PUT validation failures. */
 export interface HoldingValidationErrorResponse {
