@@ -1,0 +1,2064 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Vaultfolio Holdings — layout review (017-restructure-asset-types)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        color-scheme: light;
+
+        /* App tokens — mirror apps/frontend's real PrimeNG "Aura" preset defaults
+           (default primary = emerald) and current component CSS var usage
+           (--p-content-background, --p-text-color, etc.), matching
+           specs/003-manual-holdings-entry/mockup.html so this reads as a revision
+           of the same screen, not a new product. */
+        --p-primary-color: #10b981;
+        --p-primary-600: #059669;
+        --p-primary-contrast-color: #ffffff;
+        --p-content-background: #ffffff;
+        --p-content-hover-background: #f4f6f7;
+        --p-content-border-color: #e2e8f0;
+        --p-highlight-background: #d1fae5;
+        --p-text-color: #1e2732;
+        --p-text-muted-color: #64748b;
+        --p-form-field-background: #ffffff;
+        --p-form-field-border-color: #cbd5e1;
+        --p-danger-color: #ef4444;
+        --p-danger-background: #fef2f2;
+        --p-preciousmetal: #b8860b;
+        --p-preciousmetal-soft: #fdf3d9;
+        --p-crypto: #f7931a;
+        --p-crypto-soft: #fef1e2;
+        --p-share: #2563eb;
+        --p-share-soft: #dbeafe;
+        --p-page-background: #f6f7f9;
+        --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
+
+        /* Review-tool-only tokens */
+        --review-bg: #f3f2ee;
+        --review-ink: #2c2a25;
+        --review-muted: #7a7669;
+        --review-line: #ddd9d0;
+        --review-accent: #b45f2c;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      .icon {
+        width: 1em;
+        height: 1em;
+        display: inline-block;
+        vertical-align: -0.15em;
+        flex: 0 0 auto;
+      }
+
+      body {
+        margin: 0;
+        background: var(--review-bg);
+        color: var(--review-ink);
+        font-family: var(--font-ui);
+        -webkit-font-smoothing: antialiased;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        text-wrap: balance;
+      }
+
+      /* ============ Review-tool chrome ============ */
+
+      .review-header {
+        padding: 1.5rem 2rem 1rem;
+        border-bottom: 1px solid var(--review-line);
+      }
+      .review-eyebrow {
+        font-size: 0.72rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--review-accent);
+        font-weight: 700;
+        margin: 0 0 0.25rem;
+      }
+      .review-header h1 {
+        margin: 0 0 0.35rem;
+        font-size: 1.35rem;
+        font-weight: 800;
+      }
+      .review-header p {
+        margin: 0;
+        color: var(--review-muted);
+        font-size: 0.9rem;
+        max-width: 74ch;
+        line-height: 1.5;
+      }
+      .review-header p + p {
+        margin-top: 0.5rem;
+      }
+      .review-header .changed {
+        color: var(--review-accent);
+        font-weight: 700;
+      }
+
+      .review-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.25rem;
+        align-items: center;
+        padding: 0.85rem 2rem;
+        background: #fff;
+        border-bottom: 1px solid var(--review-line);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+      .control-group {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .control-group span.label {
+        font-size: 0.72rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--review-muted);
+        font-weight: 700;
+      }
+
+      .segmented {
+        display: inline-flex;
+        border: 1px solid var(--review-line);
+        border-radius: 8px;
+        overflow: hidden;
+        flex-wrap: wrap;
+      }
+      .segmented button {
+        appearance: none;
+        border: none;
+        background: #fff;
+        color: var(--review-ink);
+        font: inherit;
+        font-size: 0.83rem;
+        font-weight: 600;
+        padding: 0.4rem 0.75rem;
+        cursor: pointer;
+        border-right: 1px solid var(--review-line);
+      }
+      .segmented button:last-child {
+        border-right: none;
+      }
+      .segmented button:hover {
+        background: #f1efe9;
+      }
+      .segmented button:focus-visible {
+        outline: 2px solid var(--review-accent);
+        outline-offset: -2px;
+      }
+      .segmented button[aria-pressed='true'] {
+        background: var(--review-accent);
+        color: #fff;
+      }
+
+      .review-stage {
+        padding: 2rem;
+        display: flex;
+        justify-content: center;
+      }
+
+      .stage-frame {
+        width: 100%;
+        max-width: 1180px;
+        background: #d9d4c8;
+        border-radius: 14px;
+        padding: 1.25rem;
+        transition: max-width 0.2s ease;
+      }
+      .stage-frame[data-viewport='mobile'] {
+        max-width: 400px;
+      }
+
+      .stage-frame-label {
+        font-size: 0.72rem;
+        color: var(--review-muted);
+        text-align: center;
+        margin: 0 0 0.5rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .canvas {
+        background: var(--p-page-background);
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+        color: var(--p-text-color);
+        position: relative;
+      }
+
+      .review-footer {
+        padding: 0 2rem 2rem;
+        max-width: 1180px;
+        margin: 0 auto;
+        font-size: 0.85rem;
+        color: var(--review-muted);
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+      }
+      .review-footer code {
+        background: #fff;
+        border: 1px solid var(--review-line);
+        border-radius: 4px;
+        padding: 0.1em 0.4em;
+        font-size: 0.8em;
+      }
+      .review-footer h3 {
+        margin: 0.5rem 0 0;
+        font-size: 0.8rem;
+        color: var(--review-ink);
+      }
+      .review-footer ul {
+        margin: 0.25rem 0 0.5rem;
+        padding-left: 1.1rem;
+      }
+
+      /* ============ state-visibility mechanism ============ */
+
+      [data-screen] [data-show] {
+        display: none;
+      }
+      [data-screen='list'] [data-show~='list'],
+      [data-screen='list-empty'] [data-show~='list-empty'],
+      [data-screen='add'] [data-show~='add'],
+      [data-screen='add-invalid'] [data-show~='add-invalid'],
+      [data-screen='edit-crypto'] [data-show~='edit-crypto'],
+      [data-screen='delete'] [data-show~='delete'] {
+        display: block;
+      }
+      [data-screen='list'] [data-show~='list'].flex-show,
+      [data-screen='list-empty'] [data-show~='list-empty'].flex-show,
+      [data-screen='add'] [data-show~='add'].flex-show,
+      [data-screen='add-invalid'] [data-show~='add-invalid'].flex-show,
+      [data-screen='edit-crypto'] [data-show~='edit-crypto'].flex-show,
+      [data-screen='delete'] [data-show~='delete'].flex-show {
+        display: flex;
+      }
+
+      /* ============ app shell (matches apps/frontend's real app-shell/app-sidebar/app-header) ============ */
+
+      .app-shell {
+        display: grid;
+        grid-template-columns: 232px 1fr;
+        min-height: 620px;
+        font-family: var(--font-ui);
+      }
+      .stage-frame[data-viewport='mobile'] .app-shell {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr;
+      }
+
+      .app-sidebar {
+        background: var(--p-content-background);
+        border-right: 1px solid var(--p-content-border-color);
+        display: flex;
+        flex-direction: column;
+        padding: 1.1rem 0.85rem;
+        gap: 1.5rem;
+      }
+      .stage-frame[data-viewport='mobile'] .app-sidebar {
+        border-right: none;
+        border-bottom: 1px solid var(--p-content-border-color);
+        flex-direction: row;
+        align-items: center;
+        padding: 0.65rem 0.85rem;
+        gap: 0.75rem;
+        overflow-x: auto;
+      }
+
+      .app-brand {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        padding: 0 0.4rem;
+      }
+      .stage-frame[data-viewport='mobile'] .app-brand {
+        padding: 0;
+        flex: 0 0 auto;
+      }
+      .app-brand__mark {
+        width: 26px;
+        height: 26px;
+        border-radius: 7px;
+        background: linear-gradient(135deg, var(--p-primary-color), var(--p-primary-600));
+        flex: 0 0 auto;
+      }
+      .app-brand__name {
+        font-weight: 800;
+        font-size: 0.98rem;
+        letter-spacing: -0.01em;
+      }
+      .stage-frame[data-viewport='mobile'] .app-brand__name {
+        display: none;
+      }
+
+      .app-nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+      }
+      .stage-frame[data-viewport='mobile'] .app-nav {
+        flex-direction: row;
+        gap: 0.3rem;
+      }
+
+      .app-nav__item {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        padding: 0.55rem 0.6rem;
+        border-radius: 8px;
+        font-size: 0.86rem;
+        font-weight: 600;
+        color: var(--p-text-muted-color);
+        position: relative;
+        text-decoration: none;
+      }
+      .stage-frame[data-viewport='mobile'] .app-nav__item {
+        flex-direction: column;
+        gap: 0.2rem;
+        width: auto;
+        min-width: 64px;
+        padding: 0.45rem 0.4rem;
+        font-size: 0.68rem;
+        text-align: center;
+        border-radius: 10px;
+      }
+      .app-nav__item .icon {
+        font-size: 1.05rem;
+      }
+      .app-nav__item--active {
+        background: var(--p-highlight-background);
+        color: var(--p-primary-color);
+      }
+      .app-nav__item--active::before {
+        content: '';
+        position: absolute;
+        left: -0.85rem;
+        top: 0.35rem;
+        bottom: 0.35rem;
+        width: 3px;
+        border-radius: 2px;
+        background: var(--p-primary-color);
+      }
+      .stage-frame[data-viewport='mobile'] .app-nav__item--active::before {
+        display: none;
+      }
+
+      .app-main {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+      }
+
+      .app-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--p-content-border-color);
+      }
+      .app-header__crumb {
+        font-size: 0.75rem;
+        color: var(--p-text-muted-color);
+        margin: 0 0 0.15rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+      }
+      .app-header__title {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 800;
+      }
+      .app-header__meta {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+        color: var(--p-text-muted-color);
+      }
+      .avatar {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: var(--p-highlight-background);
+        color: var(--p-primary-600);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+      }
+
+      .app-content {
+        padding: 1.5rem;
+        flex: 1;
+      }
+      .stage-frame[data-viewport='mobile'] .app-content {
+        padding: 1.1rem;
+      }
+
+      /* ============ Distribution panel (FR-012a / 017's FR-010) ============ */
+
+      .distribution-panel {
+        display: flex;
+        gap: 1.75rem;
+        align-items: center;
+        background: var(--p-content-background);
+        border: 1px solid var(--p-content-border-color);
+        border-radius: 12px;
+        padding: 1.1rem 1.35rem;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+      }
+      .stage-frame[data-viewport='mobile'] .distribution-panel {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .distribution-panel__heading {
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+        flex: 1 1 100%;
+        margin-bottom: -0.35rem;
+      }
+      .distribution-panel__heading h3 {
+        margin: 0;
+        font-size: 0.86rem;
+        font-weight: 700;
+      }
+      .distribution-panel__heading p {
+        margin: 0;
+        font-size: 0.78rem;
+        color: var(--p-text-muted-color);
+      }
+
+      .donut {
+        --donut-gradient: conic-gradient(
+          var(--p-primary-color) 0% 5.6%,
+          var(--p-share) 5.6% 6.8%,
+          var(--p-preciousmetal) 6.8% 9.4%,
+          #d8a531 9.4% 13.2%,
+          var(--p-crypto) 13.2% 78%,
+          #6f42c1 78% 100%
+        );
+        width: 128px;
+        height: 128px;
+        border-radius: 50%;
+        background: var(--donut-gradient);
+        flex: 0 0 auto;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .donut::after {
+        content: '';
+        position: absolute;
+        inset: 20px;
+        border-radius: 50%;
+        background: var(--p-content-background);
+      }
+      .donut__center {
+        position: relative;
+        z-index: 1;
+        text-align: center;
+        line-height: 1.15;
+      }
+      .donut__center .value {
+        display: block;
+        font-family: var(--font-mono);
+        font-weight: 700;
+        font-size: 0.82rem;
+      }
+      .donut__center .label {
+        display: block;
+        font-size: 0.62rem;
+        color: var(--p-text-muted-color);
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+      }
+
+      .distribution-legend {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(170px, 1fr));
+        gap: 0.5rem 1.5rem;
+        flex: 1 1 320px;
+      }
+      .stage-frame[data-viewport='mobile'] .distribution-legend {
+        grid-template-columns: 1fr;
+      }
+      .distribution-legend li {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.82rem;
+      }
+      .legend-swatch {
+        width: 0.7rem;
+        height: 0.7rem;
+        border-radius: 3px;
+        flex: 0 0 auto;
+      }
+      .legend-swatch--etf {
+        background: var(--p-primary-color);
+      }
+      .legend-swatch--share {
+        background: var(--p-share);
+      }
+      .legend-swatch--preciousmetal-a {
+        background: var(--p-preciousmetal);
+      }
+      .legend-swatch--preciousmetal-b {
+        background: #d8a531;
+      }
+      .legend-swatch--crypto-a {
+        background: var(--p-crypto);
+      }
+      .legend-swatch--crypto-b {
+        background: #6f42c1;
+      }
+      .distribution-legend .pct {
+        margin-left: auto;
+        font-family: var(--font-mono);
+        font-variant-numeric: tabular-nums;
+        font-weight: 700;
+      }
+      .distribution-legend .muted-name {
+        color: var(--p-text-muted-color);
+      }
+      .distribution-excluded {
+        flex: 1 1 100%;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.76rem;
+        color: var(--p-text-muted-color);
+        border-top: 1px dashed var(--p-content-border-color);
+        padding-top: 0.6rem;
+        margin-top: 0.2rem;
+      }
+
+      /* ============ Holdings list ============ */
+
+      .holdings-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+      }
+      .holdings-toolbar h2 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 700;
+      }
+      .holdings-toolbar p {
+        margin: 0.15rem 0 0;
+        font-size: 0.82rem;
+        color: var(--p-text-muted-color);
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        border: none;
+        border-radius: 8px;
+        font: inherit;
+        font-size: 0.85rem;
+        font-weight: 700;
+        padding: 0.55rem 1rem;
+        cursor: pointer;
+      }
+      .btn--primary {
+        background: var(--p-primary-color);
+        color: var(--p-primary-contrast-color);
+      }
+      .btn--primary:hover {
+        background: var(--p-primary-600);
+      }
+      .btn--text {
+        background: none;
+        color: var(--p-text-muted-color);
+      }
+      .btn--text:hover {
+        background: var(--p-content-hover-background);
+        color: var(--p-text-color);
+      }
+      .btn--danger {
+        background: var(--p-danger-color);
+        color: #fff;
+      }
+
+      .holdings-table-wrap {
+        background: var(--p-content-background);
+        border: 1px solid var(--p-content-border-color);
+        border-radius: 12px;
+        overflow: auto;
+      }
+      table.holdings-table {
+        width: 100%;
+        min-width: 760px;
+        border-collapse: collapse;
+      }
+      table.holdings-table th {
+        text-align: left;
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        color: var(--p-text-muted-color);
+        padding: 0.7rem 1rem;
+        background: var(--p-content-hover-background);
+        border-bottom: 1px solid var(--p-content-border-color);
+        font-weight: 700;
+      }
+      table.holdings-table td {
+        padding: 0.85rem 1rem;
+        font-size: 0.86rem;
+        border-bottom: 1px solid var(--p-content-border-color);
+        vertical-align: middle;
+      }
+      table.holdings-table tbody tr:last-child td {
+        border-bottom: none;
+      }
+      table.holdings-table tbody tr:hover {
+        background: var(--p-content-hover-background);
+      }
+      td.num {
+        font-family: var(--font-mono);
+        font-variant-numeric: tabular-nums;
+      }
+      td.num.no-date,
+      td.num.no-value {
+        color: var(--p-text-muted-color);
+      }
+      td.management {
+        font-size: 0.82rem;
+        color: var(--p-text-color);
+      }
+      td.identifier .name {
+        font-weight: 600;
+        color: var(--p-text-color);
+      }
+      td.identifier .sub {
+        font-size: 0.76rem;
+        color: var(--p-text-muted-color);
+        font-family: var(--font-mono);
+      }
+      td.actions {
+        text-align: right;
+        white-space: nowrap;
+      }
+
+      .type-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.25rem 0.55rem;
+        border-radius: 999px;
+        font-size: 0.74rem;
+        font-weight: 700;
+      }
+      .type-pill--etf {
+        background: var(--p-highlight-background);
+        color: var(--p-primary-600);
+      }
+      .type-pill--share {
+        background: var(--p-share-soft);
+        color: var(--p-share);
+      }
+      .type-pill--preciousmetal {
+        background: var(--p-preciousmetal-soft);
+        color: var(--p-preciousmetal);
+      }
+      .type-pill--crypto {
+        background: var(--p-crypto-soft);
+        color: var(--p-crypto);
+      }
+
+      .icon-btn {
+        appearance: none;
+        border: 1px solid var(--p-content-border-color);
+        background: var(--p-content-background);
+        color: var(--p-text-muted-color);
+        width: 30px;
+        height: 30px;
+        border-radius: 7px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: 0.35rem;
+      }
+      .icon-btn:hover {
+        background: var(--p-content-hover-background);
+        color: var(--p-text-color);
+      }
+      .icon-btn--danger:hover {
+        background: var(--p-danger-background);
+        color: var(--p-danger-color);
+        border-color: #fecaca;
+      }
+
+      .lot-note {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+        margin-top: 0.85rem;
+        padding: 0.6rem 0.85rem;
+        border-radius: 8px;
+        background: var(--p-highlight-background);
+        color: var(--p-primary-600);
+        font-size: 0.8rem;
+        line-height: 1.45;
+      }
+      .lot-note .icon {
+        font-size: 0.95rem;
+        margin-top: 0.15rem;
+      }
+      .lot-note strong {
+        font-weight: 700;
+      }
+
+      .empty-state {
+        border: 1px dashed var(--p-content-border-color);
+        border-radius: 12px;
+        padding: 3rem 1.5rem;
+        text-align: center;
+        color: var(--p-text-muted-color);
+        background: var(--p-content-background);
+      }
+      .empty-state .icon {
+        font-size: 2.4rem;
+        width: 1em;
+        height: 1em;
+        color: var(--p-primary-color);
+        display: block;
+        margin: 0 auto 0.85rem;
+      }
+      .empty-state h2 {
+        margin: 0 0 0.35rem;
+        font-size: 1.05rem;
+        color: var(--p-text-color);
+      }
+      .empty-state p {
+        margin: 0 0 1.1rem;
+        font-size: 0.85rem;
+        max-width: 40ch;
+        margin-inline: auto;
+      }
+
+      /* ============ Add-holding dialog ============ */
+
+      .dialog-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(15, 23, 32, 0.45);
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        padding: 2.25rem 1rem;
+        overflow-y: auto;
+      }
+      .stage-frame[data-viewport='mobile'] .dialog-overlay {
+        padding: 0.75rem;
+        align-items: stretch;
+      }
+
+      .dialog {
+        background: var(--p-content-background);
+        border-radius: 14px;
+        width: 100%;
+        max-width: 480px;
+        box-shadow: 0 20px 45px rgba(15, 23, 32, 0.25);
+      }
+      .dialog__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1.1rem 1.35rem;
+        border-bottom: 1px solid var(--p-content-border-color);
+      }
+      .dialog__header h2 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 800;
+      }
+      .dialog__close {
+        appearance: none;
+        border: none;
+        background: none;
+        color: var(--p-text-muted-color);
+        cursor: pointer;
+        font-size: 1rem;
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+      }
+      .dialog__close:hover {
+        background: var(--p-content-hover-background);
+      }
+      .dialog__body {
+        padding: 1.35rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.1rem;
+      }
+      .dialog__footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.6rem;
+        padding: 1rem 1.35rem;
+        border-top: 1px solid var(--p-content-border-color);
+      }
+
+      .field-group label {
+        display: block;
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--p-text-color);
+        margin-bottom: 0.35rem;
+      }
+      .field-group .hint {
+        font-size: 0.75rem;
+        color: var(--p-text-muted-color);
+        margin-top: 0.3rem;
+      }
+      .optional-tag {
+        font-weight: 600;
+        text-transform: none;
+        color: var(--p-text-muted-color);
+        font-size: 0.72rem;
+        margin-left: 0.3rem;
+      }
+      .field-group input,
+      .field-group select {
+        width: 100%;
+        font: inherit;
+        font-size: 0.88rem;
+        padding: 0.55rem 0.7rem;
+        border: 1px solid var(--p-form-field-border-color);
+        border-radius: 8px;
+        background: var(--p-form-field-background);
+        color: var(--p-text-color);
+      }
+      .field-group input:focus,
+      .field-group select:focus {
+        outline: 2px solid var(--p-primary-color);
+        outline-offset: 1px;
+        border-color: var(--p-primary-color);
+      }
+      .field-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.85rem;
+      }
+      .stage-frame[data-viewport='mobile'] .field-row {
+        grid-template-columns: 1fr;
+      }
+
+      .type-select {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.5rem;
+      }
+      .stage-frame[data-viewport='mobile'] .type-select {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .type-option {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.6rem 0.4rem;
+        border: 1.5px solid var(--p-content-border-color);
+        border-radius: 10px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--p-text-muted-color);
+        cursor: pointer;
+        background: var(--p-content-background);
+        text-align: center;
+        line-height: 1.2;
+      }
+      .type-option .icon {
+        font-size: 1.15rem;
+      }
+      .type-option:hover {
+        border-color: var(--p-primary-color);
+      }
+      .type-option[aria-pressed='true'] {
+        border-color: var(--p-primary-color);
+        background: var(--p-highlight-background);
+        color: var(--p-primary-600);
+      }
+      .type-select:has(.type-option--locked) {
+        grid-template-columns: 1fr;
+      }
+      .type-option--locked {
+        flex-direction: row;
+        justify-content: center;
+        cursor: default;
+      }
+
+      .management-field {
+        padding-bottom: 0.15rem;
+        border-bottom: 1px dashed var(--p-content-border-color);
+      }
+      .management-field .hint {
+        margin-top: 0.35rem;
+      }
+
+      /* !important here: these divs also carry data-show="add" (so they hide during the
+         "Add — invalid" state), and that generic state-visibility rule ties in CSS specificity
+         with the .is-active rule below — without !important, the tie is broken by source order
+         and every fieldset (not just the selected type's) ends up visible. */
+      [data-fieldset] {
+        display: none !important;
+        flex-direction: column;
+        gap: 0.85rem;
+      }
+      [data-fieldset].is-active {
+        display: flex !important;
+      }
+
+      .field-error {
+        border-color: var(--p-danger-color) !important;
+      }
+      .error-msg {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: 0.75rem;
+        color: var(--p-danger-color);
+        margin-top: 0.35rem;
+        font-weight: 600;
+      }
+      .error-msg .icon {
+        font-size: 0.8rem;
+      }
+      .form-alert {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.6rem;
+        background: var(--p-danger-background);
+        color: #991b1b;
+        border: 1px solid #fecaca;
+        border-radius: 8px;
+        padding: 0.7rem 0.85rem;
+        font-size: 0.82rem;
+        line-height: 1.4;
+      }
+      .form-alert .icon {
+        font-size: 1rem;
+        margin-top: 0.1rem;
+      }
+
+      /* ============ Delete confirm ============ */
+
+      .confirm-dialog {
+        max-width: 380px;
+        text-align: center;
+      }
+      .confirm-dialog .dialog__body {
+        align-items: center;
+        padding: 1.5rem 1.5rem 0.5rem;
+      }
+      .confirm-dialog .confirm-icon {
+        font-size: 2rem;
+        color: var(--p-danger-color);
+        background: var(--p-danger-background);
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .confirm-dialog h2 {
+        margin: 0.9rem 0 0.35rem;
+        font-size: 1rem;
+      }
+      .confirm-dialog p {
+        margin: 0;
+        font-size: 0.85rem;
+        color: var(--p-text-muted-color);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Inline icon sprite — stands in for PrimeIcons (pi-*) classes used in the real app,
+         since the artifact CSP only admits stylesheets from Google Fonts. -->
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <defs>
+        <symbol id="icon-th-large" viewBox="0 0 24 24">
+          <g fill="none" stroke="currentColor" stroke-width="1.8">
+            <rect x="3" y="3" width="8" height="8" rx="1.5" />
+            <rect x="13" y="3" width="8" height="8" rx="1.5" />
+            <rect x="3" y="13" width="8" height="8" rx="1.5" />
+            <rect x="13" y="13" width="8" height="8" rx="1.5" />
+          </g>
+        </symbol>
+        <symbol id="icon-wallet" viewBox="0 0 24 24">
+          <g fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M3 7a2 2 0 0 1 2-2h13a1 1 0 0 1 1 1v2" />
+            <path d="M3 7v11a2 2 0 0 0 2 2h14a1 1 0 0 0 1-1v-9a1 1 0 0 0-1-1H6a2 2 0 0 1-2-2Z" />
+            <circle cx="17" cy="14" r="1.4" fill="currentColor" stroke="none" />
+          </g>
+        </symbol>
+        <symbol id="icon-upload" viewBox="0 0 24 24">
+          <g fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M12 4v11" />
+            <path d="M7 9l5-5 5 5" />
+            <path d="M4 19h16" />
+          </g>
+        </symbol>
+        <symbol id="icon-cog" viewBox="0 0 24 24">
+          <g fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="12" cy="12" r="3" />
+            <path
+              d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.04 1.56V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 8.96 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.04H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 8.96a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 8.96 4.6a1.7 1.7 0 0 0 1.04-1.56V3a2 2 0 1 1 4 0v.09A1.7 1.7 0 0 0 15.04 4.6a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87 1.7 1.7 0 0 0 1.56 1.04H21a2 2 0 1 1 0 4h-.09A1.7 1.7 0 0 0 19.4 15z"
+            />
+          </g>
+        </symbol>
+        <symbol id="icon-chart-line" viewBox="0 0 24 24">
+          <g fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M4 19h16" />
+            <path d="M4 19V5" />
+            <path d="M6 15l4-5 3 3 5-7" />
+          </g>
+        </symbol>
+        <symbol id="icon-building" viewBox="0 0 24 24">
+          <g fill="none" stroke="currentColor" stroke-width="1.8">
+            <rect x="5" y="3" width="10" height="18" rx="1" />
+            <path d="M15 8h4v13h-4" />
+            <path d="M8 7h1M11 7h1M8 11h1M11 11h1M8 15h1M11 15h1" />
+          </g>
+        </symbol>
+        <symbol id="icon-circle-fill" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="8" fill="currentColor" />
+        </symbol>
+        <!-- Generic "token" icon for Crypto — deliberately not the Bitcoin ₿ glyph, since a
+             Crypto holding is now free-text-named (Bitcoin, Ethereum, …) and the old bitcoin-only
+             icon would mislabel any non-Bitcoin lot. -->
+        <symbol id="icon-coin" viewBox="0 0 24 24">
+          <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 7.2l4.2 2.4v4.8L12 16.8l-4.2-2.4V9.6Z" />
+          </g>
+        </symbol>
+        <symbol id="icon-plus" viewBox="0 0 24 24">
+          <g fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 5v14" />
+            <path d="M5 12h14" />
+          </g>
+        </symbol>
+        <symbol id="icon-pencil" viewBox="0 0 24 24">
+          <g fill="none" stroke="currentColor" stroke-width="1.8">
+            <path
+              d="M4 20l.8-3.6L16.6 4.6a1.5 1.5 0 0 1 2.1 0l.7.7a1.5 1.5 0 0 1 0 2.1L7.6 19.2Z"
+            />
+            <path d="M14.5 6.7l2.8 2.8" />
+          </g>
+        </symbol>
+        <symbol id="icon-trash" viewBox="0 0 24 24">
+          <g fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M4 7h16" />
+            <path d="M9 7V4.8A.8.8 0 0 1 9.8 4h4.4a.8.8 0 0 1 .8.8V7" />
+            <path d="M6 7l1 12.2A1.8 1.8 0 0 0 8.8 21h6.4a1.8 1.8 0 0 0 1.8-1.8L18 7" />
+            <path d="M10 11v6M14 11v6" />
+          </g>
+        </symbol>
+        <symbol id="icon-info-circle" viewBox="0 0 24 24">
+          <g fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 11v5.5" />
+            <circle cx="12" cy="8" r="0.9" fill="currentColor" stroke="none" />
+          </g>
+        </symbol>
+        <symbol id="icon-exclamation-triangle" viewBox="0 0 24 24">
+          <g fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M12 3.5 22 20.5H2Z" stroke-linejoin="round" />
+            <path d="M12 9.5v5" />
+            <circle cx="12" cy="17.3" r="0.9" fill="currentColor" stroke="none" />
+          </g>
+        </symbol>
+        <symbol id="icon-times-circle" viewBox="0 0 24 24">
+          <g fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M9 9l6 6M15 9l-6 6" />
+          </g>
+        </symbol>
+        <symbol id="icon-times" viewBox="0 0 24 24">
+          <g fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 5l14 14M19 5L5 19" />
+          </g>
+        </symbol>
+      </defs>
+    </svg>
+
+    <header class="review-header">
+      <p class="review-eyebrow">Non-functional review mockup</p>
+      <h1>Vaultfolio Holdings — layout review (017-restructure-asset-types)</h1>
+      <p>
+        Renames <span class="changed">Gold → Precious metal</span> and
+        <span class="changed">Bitcoin → Crypto</span>, and adds a
+        <span class="changed">required Name field</span> to both — reusing the same Name field
+        ETF/Share already have — so a holding can be "Silver" or "Ethereum", not just "Gold" or
+        "Bitcoin". Precious metal keeps its existing update-in-place merge behavior, now keyed by
+        <strong>name + Management</strong> instead of Management alone; Crypto keeps its existing
+        per-lot (never-merge) behavior. This revises
+        <code>specs/003-manual-holdings-entry/mockup.html</code> — layout/chrome are unchanged
+        except where called out below.
+      </p>
+      <p>
+        Try the asset-type selector inside "Add holding" — it swaps the field set live. The
+        distribution panel's legend now lists Precious metal and Crypto holdings
+        <span class="changed">individually by name</span> (FR-010) rather than one summed slice per
+        type — see the footer note on what this implies for the chart's grouping logic. Toggle
+        viewport to check the dialogs and table on narrow widths.
+      </p>
+    </header>
+
+    <div class="review-controls">
+      <div class="control-group">
+        <span class="label">Viewport</span>
+        <div class="segmented" id="viewport-toggle">
+          <button type="button" data-viewport="desktop" aria-pressed="true">Desktop</button>
+          <button type="button" data-viewport="mobile" aria-pressed="false">Mobile</button>
+        </div>
+      </div>
+      <div class="control-group">
+        <span class="label">State</span>
+        <div class="segmented" id="screen-toggle">
+          <button type="button" data-screen="list" aria-pressed="true">List</button>
+          <button type="button" data-screen="list-empty" aria-pressed="false">List — empty</button>
+          <button type="button" data-screen="add" aria-pressed="false">Add holding</button>
+          <button type="button" data-screen="add-invalid" aria-pressed="false">
+            Add — invalid
+          </button>
+          <button type="button" data-screen="edit-crypto" aria-pressed="false">
+            Edit — Crypto
+          </button>
+          <button type="button" data-screen="delete" aria-pressed="false">Delete confirm</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="review-stage">
+      <div class="stage-frame" id="stage-frame" data-viewport="desktop">
+        <p class="stage-frame-label" id="stage-frame-label">Desktop — sidebar nav + content</p>
+        <div class="canvas" data-screen="list" id="canvas">
+          <div class="app-shell">
+            <nav class="app-sidebar" aria-label="Primary">
+              <div class="app-brand">
+                <span class="app-brand__mark" aria-hidden="true"></span>
+                <span class="app-brand__name">Vaultfolio</span>
+              </div>
+              <div class="app-nav">
+                <a class="app-nav__item"
+                  ><svg class="icon" aria-hidden="true"><use href="#icon-th-large"></use></svg
+                  ><span>Dashboard</span></a
+                >
+                <a class="app-nav__item app-nav__item--active" aria-current="page"
+                  ><svg class="icon" aria-hidden="true"><use href="#icon-wallet"></use></svg
+                  ><span>Holdings</span></a
+                >
+                <a class="app-nav__item"
+                  ><svg class="icon" aria-hidden="true"><use href="#icon-upload"></use></svg
+                  ><span>Imports</span></a
+                >
+                <a class="app-nav__item"
+                  ><svg class="icon" aria-hidden="true"><use href="#icon-cog"></use></svg
+                  ><span>Settings</span></a
+                >
+              </div>
+            </nav>
+
+            <div class="app-main">
+              <div class="app-header">
+                <div>
+                  <p class="app-header__crumb">Vaultfolio</p>
+                  <h1 class="app-header__title">Holdings</h1>
+                </div>
+                <div class="app-header__meta">
+                  <span>markus.allwang</span>
+                  <span class="avatar">MA</span>
+                </div>
+              </div>
+
+              <div class="app-content">
+                <!-- Populated list -->
+                <section data-show="list">
+                  <!-- Distribution-by-value panel — now grouped by holding name for Precious
+                       metal/Crypto (FR-010), not summed per type. -->
+                  <div class="distribution-panel">
+                    <div class="distribution-panel__heading">
+                      <h3>Distribution by value</h3>
+                      <p>
+                        Share of total portfolio value. Precious metal and Crypto holdings are
+                        broken out individually by name, the same way ETF/Share already are —
+                        holdings with no known value are excluded from the percentages below.
+                      </p>
+                    </div>
+                    <div class="donut" role="img" aria-label="Portfolio value distribution chart">
+                      <div class="donut__center">
+                        <span class="value">€82,315</span>
+                        <span class="label">total</span>
+                      </div>
+                    </div>
+                    <ul class="distribution-legend">
+                      <li>
+                        <span class="legend-swatch legend-swatch--etf" aria-hidden="true"></span>
+                        <span>ETF</span><span class="pct">5.6%</span>
+                      </li>
+                      <li>
+                        <span class="legend-swatch legend-swatch--share" aria-hidden="true"></span>
+                        <span>Share</span><span class="pct">1.3%</span>
+                      </li>
+                      <li>
+                        <span
+                          class="legend-swatch legend-swatch--preciousmetal-a"
+                          aria-hidden="true"
+                        ></span>
+                        <span>Gold</span><span class="pct">3.0%</span>
+                      </li>
+                      <li>
+                        <span
+                          class="legend-swatch legend-swatch--preciousmetal-b"
+                          aria-hidden="true"
+                        ></span>
+                        <span>Silver</span><span class="pct">1.0%</span>
+                      </li>
+                      <li>
+                        <span
+                          class="legend-swatch legend-swatch--crypto-a"
+                          aria-hidden="true"
+                        ></span>
+                        <span>Bitcoin</span><span class="pct">64.6%</span>
+                      </li>
+                      <li>
+                        <span
+                          class="legend-swatch legend-swatch--crypto-b"
+                          aria-hidden="true"
+                        ></span>
+                        <span>Ethereum</span><span class="pct">24.5%</span>
+                      </li>
+                    </ul>
+                    <p class="distribution-excluded">
+                      <svg class="icon" aria-hidden="true">
+                        <use href="#icon-info-circle"></use>
+                      </svg>
+                      1 Precious metal holding (Bank Safe, Silver, 15.5 g) has no current value
+                      entered and is excluded from these percentages — not counted as zero.
+                    </p>
+                  </div>
+
+                  <div class="holdings-toolbar">
+                    <div>
+                      <h2>9 holdings</h2>
+                      <p>All amounts shown in EUR, your base currency.</p>
+                    </div>
+                    <button type="button" class="btn btn--primary" data-open-add>
+                      <svg class="icon" aria-hidden="true"><use href="#icon-plus"></use></svg>
+                      Add holding
+                    </button>
+                  </div>
+
+                  <div class="holdings-table-wrap">
+                    <table class="holdings-table">
+                      <thead>
+                        <tr>
+                          <th>Type</th>
+                          <th>Asset</th>
+                          <th>Management</th>
+                          <th>Quantity / weight</th>
+                          <th>Price / value</th>
+                          <th>Purchase date</th>
+                          <th></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>
+                            <span class="type-pill type-pill--etf"
+                              ><svg class="icon" aria-hidden="true">
+                                <use href="#icon-chart-line"></use></svg
+                              >ETF</span
+                            >
+                          </td>
+                          <td class="identifier">
+                            <div class="name">Vanguard FTSE All-World</div>
+                            <div class="sub">IE00BK5BQT80</div>
+                          </td>
+                          <td class="management">Roboadvisor</td>
+                          <td class="num">17.500</td>
+                          <td class="num">€99.20 avg</td>
+                          <td class="num no-date" title="ETF holdings don't track a purchase date">
+                            —
+                          </td>
+                          <td class="actions">
+                            <button class="icon-btn" title="Edit">
+                              <svg class="icon" aria-hidden="true">
+                                <use href="#icon-pencil"></use>
+                              </svg>
+                            </button>
+                            <button
+                              class="icon-btn icon-btn--danger"
+                              title="Delete"
+                              data-open-delete
+                            >
+                              <svg class="icon" aria-hidden="true">
+                                <use href="#icon-trash"></use>
+                              </svg>
+                            </button>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                            <span class="type-pill type-pill--share"
+                              ><svg class="icon" aria-hidden="true">
+                                <use href="#icon-building"></use></svg
+                              >Share</span
+                            >
+                          </td>
+                          <td class="identifier">
+                            <div class="name">Apple Inc.</div>
+                            <div class="sub">US0378331005</div>
+                          </td>
+                          <td class="management">Private</td>
+                          <td class="num">3.000</td>
+                          <td class="num">€165.00</td>
+                          <td class="num">2024-08-01</td>
+                          <td class="actions">
+                            <button class="icon-btn" title="Edit">
+                              <svg class="icon" aria-hidden="true">
+                                <use href="#icon-pencil"></use>
+                              </svg>
+                            </button>
+                            <button
+                              class="icon-btn icon-btn--danger"
+                              title="Delete"
+                              data-open-delete
+                            >
+                              <svg class="icon" aria-hidden="true">
+                                <use href="#icon-trash"></use>
+                              </svg>
+                            </button>
+                          </td>
+                        </tr>
+                        <!-- Precious metal — "Gold", migrated from the old Gold type (User Story 3) -->
+                        <tr>
+                          <td>
+                            <span class="type-pill type-pill--preciousmetal"
+                              ><svg class="icon" aria-hidden="true">
+                                <use href="#icon-circle-fill"></use></svg
+                              >Precious metal</span
+                            >
+                          </td>
+                          <td class="identifier">
+                            <div class="name">Gold</div>
+                            <div class="sub">&nbsp;</div>
+                          </td>
+                          <td class="management">Private</td>
+                          <td class="num">31.1 g</td>
+                          <td class="num">€2,450.00</td>
+                          <td
+                            class="num no-date"
+                            title="Precious metal holdings don't track a purchase date"
+                          >
+                            —
+                          </td>
+                          <td class="actions">
+                            <button class="icon-btn" title="Edit">
+                              <svg class="icon" aria-hidden="true">
+                                <use href="#icon-pencil"></use>
+                              </svg>
+                            </button>
+                            <button
+                              class="icon-btn icon-btn--danger"
+                              title="Delete"
+                              data-open-delete
+                            >
+                              <svg class="icon" aria-hidden="true">
+                                <use href="#icon-trash"></use>
+                              </svg>
+                            </button>
+                          </td>
+                        </tr>
+                        <!-- Precious metal — "Silver", the new non-gold value this feature unlocks
+                             (User Story 1) -->
+                        <tr>
+                          <td>
+                            <span class="type-pill type-pill--preciousmetal"
+                              ><svg class="icon" aria-hidden="true">
+                                <use href="#icon-circle-fill"></use></svg
+                              >Precious metal</span
+                            >
+                          </td>
+                          <td class="identifier">
+                            <div class="name">Silver</div>
+                            <div class="sub">&nbsp;</div>
+                          </td>
+                          <td class="management">Bank Safe</td>
+                          <td class="num">15.5 g</td>
+                          <td
+                            class="num no-value"
+                            title="No current value entered — excluded from distribution"
+                          >
+                            —
+                          </td>
+                          <td
+                            class="num no-date"
+                            title="Precious metal holdings don't track a purchase date"
+                          >
+                            —
+                          </td>
+                          <td class="actions">
+                            <button class="icon-btn" title="Edit">
+                              <svg class="icon" aria-hidden="true">
+                                <use href="#icon-pencil"></use>
+                              </svg>
+                            </button>
+                            <button
+                              class="icon-btn icon-btn--danger"
+                              title="Delete"
+                              data-open-delete
+                            >
+                              <svg class="icon" aria-hidden="true">
+                                <use href="#icon-trash"></use>
+                              </svg>
+                            </button>
+                          </td>
+                        </tr>
+                        <!-- Crypto — "Bitcoin", migrated from the old Bitcoin type, two lots that
+                             still never merge (User Story 3) -->
+                        <tr>
+                          <td>
+                            <span class="type-pill type-pill--crypto"
+                              ><svg class="icon" aria-hidden="true">
+                                <use href="#icon-coin"></use></svg
+                              >Crypto</span
+                            >
+                          </td>
+                          <td class="identifier">
+                            <div class="name">Bitcoin</div>
+                            <div class="sub">&nbsp;</div>
+                          </td>
+                          <td class="management">Private</td>
+                          <td class="num">0.750</td>
+                          <td class="num">€38,200.00</td>
+                          <td class="num">2025-06-20</td>
+                          <td class="actions">
+                            <button class="icon-btn" title="Edit">
+                              <svg class="icon" aria-hidden="true">
+                                <use href="#icon-pencil"></use>
+                              </svg>
+                            </button>
+                            <button
+                              class="icon-btn icon-btn--danger"
+                              title="Delete"
+                              data-open-delete
+                            >
+                              <svg class="icon" aria-hidden="true">
+                                <use href="#icon-trash"></use>
+                              </svg>
+                            </button>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                            <span class="type-pill type-pill--crypto"
+                              ><svg class="icon" aria-hidden="true">
+                                <use href="#icon-coin"></use></svg
+                              >Crypto</span
+                            >
+                          </td>
+                          <td class="identifier">
+                            <div class="name">Bitcoin</div>
+                            <div class="sub">&nbsp;</div>
+                          </td>
+                          <td class="management">Private</td>
+                          <td class="num">0.120</td>
+                          <td class="num">€41,050.00</td>
+                          <td class="num no-date" title="No purchase date recorded">—</td>
+                          <td class="actions">
+                            <button class="icon-btn" title="Edit" data-open-edit-crypto>
+                              <svg class="icon" aria-hidden="true">
+                                <use href="#icon-pencil"></use>
+                              </svg>
+                            </button>
+                            <button
+                              class="icon-btn icon-btn--danger"
+                              title="Delete"
+                              data-open-delete
+                            >
+                              <svg class="icon" aria-hidden="true">
+                                <use href="#icon-trash"></use>
+                              </svg>
+                            </button>
+                          </td>
+                        </tr>
+                        <!-- Crypto — "Ethereum", the new non-Bitcoin value this feature unlocks
+                             (User Story 2) -->
+                        <tr>
+                          <td>
+                            <span class="type-pill type-pill--crypto"
+                              ><svg class="icon" aria-hidden="true">
+                                <use href="#icon-coin"></use></svg
+                              >Crypto</span
+                            >
+                          </td>
+                          <td class="identifier">
+                            <div class="name">Ethereum</div>
+                            <div class="sub">&nbsp;</div>
+                          </td>
+                          <td class="management">Private</td>
+                          <td class="num">6.400</td>
+                          <td class="num">€3,150.00</td>
+                          <td class="num">2025-11-02</td>
+                          <td class="actions">
+                            <button class="icon-btn" title="Edit">
+                              <svg class="icon" aria-hidden="true">
+                                <use href="#icon-pencil"></use>
+                              </svg>
+                            </button>
+                            <button
+                              class="icon-btn icon-btn--danger"
+                              title="Delete"
+                              data-open-delete
+                            >
+                              <svg class="icon" aria-hidden="true">
+                                <use href="#icon-trash"></use>
+                              </svg>
+                            </button>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div class="lot-note">
+                    <svg class="icon" aria-hidden="true"><use href="#icon-info-circle"></use></svg>
+                    <span>
+                      <strong>ETF and Precious metal</strong> show one row per identity + Management
+                      combination — for Precious metal, identity is now the
+                      <strong>name</strong> (e.g. "Gold" vs. "Silver" above), not just "being
+                      Precious metal": adding another "Gold" under Private would update that row in
+                      place, but adding "Platinum" under Private creates a third, separate row.
+                      <strong>Share and Crypto</strong> always add a new, independent lot — the two
+                      Bitcoin rows above are both under "Private" and still never merge, and neither
+                      would a second Ethereum submission.
+                    </span>
+                  </div>
+                </section>
+
+                <!-- Empty state -->
+                <section data-show="list-empty">
+                  <div class="holdings-toolbar">
+                    <div>
+                      <h2>Holdings</h2>
+                      <p>All amounts shown in EUR, your base currency.</p>
+                    </div>
+                  </div>
+                  <div class="empty-state">
+                    <svg class="icon" aria-hidden="true"><use href="#icon-wallet"></use></svg>
+                    <h2>No holdings yet</h2>
+                    <p>
+                      Add the ETFs, shares, precious metals, or crypto you own to start tracking
+                      your portfolio.
+                    </p>
+                    <button type="button" class="btn btn--primary" data-open-add>
+                      <svg class="icon" aria-hidden="true"><use href="#icon-plus"></use></svg>
+                      Add your first holding
+                    </button>
+                  </div>
+                </section>
+              </div>
+            </div>
+          </div>
+
+          <!-- Add-holding dialog -->
+          <div class="dialog-overlay" data-show="add add-invalid">
+            <div class="dialog">
+              <div class="dialog__header">
+                <h2>Add holding</h2>
+                <button type="button" class="dialog__close" aria-label="Close" data-close-dialog>
+                  <svg class="icon" aria-hidden="true"><use href="#icon-times"></use></svg>
+                </button>
+              </div>
+              <div class="dialog__body">
+                <div class="field-group" data-show="add">
+                  <label>Asset type</label>
+                  <div class="type-select" id="type-select">
+                    <button type="button" class="type-option" data-type="etf" aria-pressed="true">
+                      <svg class="icon" aria-hidden="true"><use href="#icon-chart-line"></use></svg
+                      >ETF
+                    </button>
+                    <button
+                      type="button"
+                      class="type-option"
+                      data-type="share"
+                      aria-pressed="false"
+                    >
+                      <svg class="icon" aria-hidden="true"><use href="#icon-building"></use></svg
+                      >Share
+                    </button>
+                    <button
+                      type="button"
+                      class="type-option"
+                      data-type="preciousmetal"
+                      aria-pressed="false"
+                    >
+                      <svg class="icon" aria-hidden="true"><use href="#icon-circle-fill"></use></svg
+                      >Precious metal
+                    </button>
+                    <button
+                      type="button"
+                      class="type-option"
+                      data-type="crypto"
+                      aria-pressed="false"
+                    >
+                      <svg class="icon" aria-hidden="true"><use href="#icon-coin"></use></svg>Crypto
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Static "invalid" state: Crypto selected, submitted with errors — incl. the
+                     empty-name rejection from this feature's Edge Cases / Acceptance Scenario 2 -->
+                <div class="field-group" data-show="add-invalid">
+                  <label>Asset type</label>
+                  <div class="type-select">
+                    <button type="button" class="type-option" aria-pressed="false">
+                      <svg class="icon" aria-hidden="true"><use href="#icon-chart-line"></use></svg
+                      >ETF
+                    </button>
+                    <button type="button" class="type-option" aria-pressed="false">
+                      <svg class="icon" aria-hidden="true"><use href="#icon-building"></use></svg
+                      >Share
+                    </button>
+                    <button type="button" class="type-option" aria-pressed="false">
+                      <svg class="icon" aria-hidden="true"><use href="#icon-circle-fill"></use></svg
+                      >Precious metal
+                    </button>
+                    <button type="button" class="type-option" aria-pressed="true">
+                      <svg class="icon" aria-hidden="true"><use href="#icon-coin"></use></svg>Crypto
+                    </button>
+                  </div>
+                </div>
+
+                <div class="form-alert" data-show="add-invalid">
+                  <svg class="icon" aria-hidden="true">
+                    <use href="#icon-exclamation-triangle"></use>
+                  </svg>
+                  <span>4 fields need attention before this holding can be saved.</span>
+                </div>
+
+                <!-- Management — universal field, required for every asset type -->
+                <div class="field-group management-field" data-show="add">
+                  <label for="mgmt">Management</label>
+                  <input
+                    id="mgmt"
+                    type="text"
+                    placeholder="e.g. Private, Roboadvisor, a bank name"
+                    value="Roboadvisor"
+                  />
+                  <p class="hint">
+                    Who holds or manages this asset. Free text — typed once, reused.
+                  </p>
+                </div>
+                <div class="field-group management-field" data-show="add-invalid">
+                  <label for="mgmt-x">Management</label>
+                  <input
+                    id="mgmt-x"
+                    type="text"
+                    placeholder="e.g. Private, Roboadvisor, a bank name"
+                    value=""
+                    class="field-error"
+                  />
+                  <p class="error-msg">
+                    <svg class="icon" aria-hidden="true"><use href="#icon-times-circle"></use></svg
+                    >Management is required
+                  </p>
+                </div>
+
+                <!-- Interactive fieldsets for the "add" state — each type's complete field set. -->
+                <div data-fieldset="etf" class="is-active" data-show="add">
+                  <div class="field-group">
+                    <label for="isin">ISIN</label>
+                    <input id="isin" type="text" value="IE00BK5BQT80" />
+                  </div>
+                  <div class="field-group">
+                    <label for="name">Name</label>
+                    <input id="name" type="text" value="Vanguard FTSE All-World" />
+                  </div>
+                  <div class="field-row">
+                    <div class="field-group">
+                      <label for="qty-etf">Quantity</label>
+                      <input id="qty-etf" type="number" value="17.5" />
+                    </div>
+                    <div class="field-group">
+                      <label for="price-etf">Average purchase price (€)</label>
+                      <input id="price-etf" type="number" value="99.20" />
+                    </div>
+                  </div>
+                  <p class="hint" style="margin: -0.5rem 0 0">
+                    No purchase date for ETF — adding this ISIN again under the same Management
+                    replaces the quantity/average price above instead of adding a new row.
+                  </p>
+                </div>
+                <div data-fieldset="share" data-show="add">
+                  <div class="field-group">
+                    <label for="isin-s">ISIN</label>
+                    <input id="isin-s" type="text" placeholder="e.g. US0378331005" />
+                  </div>
+                  <div class="field-group">
+                    <label for="name-s">Name</label>
+                    <input id="name-s" type="text" placeholder="e.g. Apple Inc." />
+                  </div>
+                  <div class="field-row">
+                    <div class="field-group">
+                      <label for="qty-s">Quantity</label>
+                      <input id="qty-s" type="number" placeholder="e.g. 10" />
+                    </div>
+                    <div class="field-group">
+                      <label for="price-s">Purchase price (€)</label>
+                      <input id="price-s" type="number" placeholder="e.g. 150.00" />
+                    </div>
+                  </div>
+                  <div class="field-group">
+                    <label for="date-s"
+                      >Purchase date <span class="optional-tag">Optional</span></label
+                    >
+                    <input id="date-s" type="date" />
+                    <p class="hint">
+                      Leave blank if you just want to record what you currently hold.
+                    </p>
+                  </div>
+                </div>
+                <!-- Precious metal — this feature's new required Name field, ahead of the
+                     existing weight/current-value fields (User Story 1, FR-003) -->
+                <div data-fieldset="preciousmetal" data-show="add">
+                  <div class="field-group">
+                    <label for="name-pm">Name</label>
+                    <input id="name-pm" type="text" placeholder="e.g. Gold, Silver, Platinum" />
+                    <p class="hint">Any precious metal — not restricted to a fixed list.</p>
+                  </div>
+                  <div class="field-group">
+                    <label for="weight">Weight (grams)</label>
+                    <input id="weight" type="number" placeholder="e.g. 31.1" />
+                    <p class="hint">
+                      Grams only — convert other units (e.g. troy ounces) before entering.
+                    </p>
+                  </div>
+                  <div class="field-group">
+                    <label for="current-value"
+                      >Current value (€) <span class="optional-tag">Optional</span></label
+                    >
+                    <input id="current-value" type="number" placeholder="e.g. 2450.00" />
+                    <p class="hint">
+                      Used only for the distribution chart below — not a purchase price. Leave blank
+                      if unknown; the holding still saves.
+                    </p>
+                  </div>
+                  <p class="hint" style="margin: -0.5rem 0 0">
+                    No ISIN or purchase date for Precious metal. Adding the same name again under
+                    the same Management replaces the weight/value above instead of adding a new row
+                    — a different name (e.g. "Silver" vs. "Gold") always creates a separate row,
+                    even under the same Management.
+                  </p>
+                </div>
+                <!-- Crypto — this feature's new required Name field, ahead of the existing
+                     quantity/price/date fields (User Story 2, FR-003) -->
+                <div data-fieldset="crypto" data-show="add">
+                  <div class="field-group">
+                    <label for="name-c">Name</label>
+                    <input id="name-c" type="text" placeholder="e.g. Bitcoin, Ethereum" />
+                    <p class="hint">Any cryptocurrency — not restricted to a fixed list.</p>
+                  </div>
+                  <div class="field-row">
+                    <div class="field-group">
+                      <label for="qty-btc">Quantity</label>
+                      <input id="qty-btc" type="number" placeholder="e.g. 0.25" />
+                    </div>
+                    <div class="field-group">
+                      <label for="price-btc">Purchase price (€)</label>
+                      <input id="price-btc" type="number" placeholder="e.g. 42000.00" />
+                    </div>
+                  </div>
+                  <div class="field-group">
+                    <label for="date-btc"
+                      >Purchase date <span class="optional-tag">Optional</span></label
+                    >
+                    <input id="date-btc" type="date" />
+                    <p class="hint">
+                      No ISIN or weight needed. Every submission is a new, independent lot, even if
+                      the name matches an existing one.
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Static invalid fields — Crypto: empty name, negative quantity, future date,
+                     missing Management (above) -->
+                <div class="field-group" data-show="add-invalid">
+                  <label for="name-x">Name </label>
+                  <input id="name-x" type="text" value="" class="field-error" />
+                  <p class="error-msg">
+                    <svg class="icon" aria-hidden="true"><use href="#icon-times-circle"></use></svg
+                    >Name is required
+                  </p>
+                </div>
+                <div class="field-row" data-show="add-invalid">
+                  <div class="field-group">
+                    <label for="qty-x">Quantity</label>
+                    <input id="qty-x" type="number" value="-0.2" class="field-error" />
+                    <p class="error-msg">
+                      <svg class="icon" aria-hidden="true">
+                        <use href="#icon-times-circle"></use></svg
+                      >Quantity must be greater than 0
+                    </p>
+                  </div>
+                  <div class="field-group">
+                    <label for="price-x">Purchase price (€)</label>
+                    <input id="price-x" type="number" value="41050.00" />
+                  </div>
+                </div>
+                <div class="field-group" data-show="add-invalid">
+                  <label for="date-x"
+                    >Purchase date <span class="optional-tag">Optional</span></label
+                  >
+                  <input id="date-x" type="date" value="2026-12-01" class="field-error" />
+                  <p class="error-msg">
+                    <svg class="icon" aria-hidden="true"><use href="#icon-times-circle"></use></svg
+                    >Purchase date cannot be in the future — leave it blank if you don't have one
+                  </p>
+                </div>
+              </div>
+              <div class="dialog__footer">
+                <button type="button" class="btn btn--text" data-close-dialog>Cancel</button>
+                <button type="button" class="btn btn--primary">Save holding</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Edit-holding dialog, scoped to a Crypto lot (User Story 3) — the asset type is
+               fixed on edit, so no type selector is shown, but Name is now editable alongside
+               Management/quantity/price/date, unlike the old Bitcoin-only edit form which had no
+               Name field at all. -->
+          <div class="dialog-overlay" data-show="edit-crypto">
+            <div class="dialog">
+              <div class="dialog__header">
+                <h2>Edit holding</h2>
+                <button type="button" class="dialog__close" aria-label="Close" data-close-dialog>
+                  <svg class="icon" aria-hidden="true"><use href="#icon-times"></use></svg>
+                </button>
+              </div>
+              <div class="dialog__body">
+                <div class="field-group">
+                  <label>Asset type</label>
+                  <div class="type-select">
+                    <div class="type-option type-option--locked" aria-pressed="true">
+                      <svg class="icon" aria-hidden="true"><use href="#icon-coin"></use></svg>Crypto
+                    </div>
+                  </div>
+                  <p class="hint">Asset type can't be changed after a holding is created.</p>
+                </div>
+
+                <div class="field-group">
+                  <label for="name-eb">Name</label>
+                  <input id="name-eb" type="text" value="Bitcoin" />
+                </div>
+
+                <div class="field-group management-field">
+                  <label for="mgmt-eb">Management</label>
+                  <input id="mgmt-eb" type="text" value="Private" />
+                </div>
+
+                <div class="field-row">
+                  <div class="field-group">
+                    <label for="qty-eb">Quantity</label>
+                    <input id="qty-eb" type="number" value="0.120" />
+                  </div>
+                  <div class="field-group">
+                    <label for="price-eb">Purchase price (€)</label>
+                    <input id="price-eb" type="number" value="41050.00" />
+                  </div>
+                </div>
+                <div class="field-group">
+                  <label for="date-eb"
+                    >Purchase date <span class="optional-tag">Optional</span></label
+                  >
+                  <input id="date-eb" type="date" value="" />
+                  <p class="hint">
+                    Left blank when this lot was added — no weight/current-value fields appear
+                    either, since those only apply to Precious metal.
+                  </p>
+                </div>
+              </div>
+              <div class="dialog__footer">
+                <button type="button" class="btn btn--text" data-close-dialog>Cancel</button>
+                <button type="button" class="btn btn--primary">Save changes</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Delete confirmation -->
+          <div class="dialog-overlay" data-show="delete">
+            <div class="dialog confirm-dialog">
+              <div class="dialog__body">
+                <svg class="icon confirm-icon" aria-hidden="true">
+                  <use href="#icon-trash"></use>
+                </svg>
+                <h2>Delete this holding?</h2>
+                <p>Vanguard FTSE All-World · Roboadvisor · 17.500 units. This can't be undone.</p>
+              </div>
+              <div class="dialog__footer" style="justify-content: center">
+                <button type="button" class="btn btn--text" data-close-dialog>Cancel</button>
+                <button type="button" class="btn btn--danger">Delete holding</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="review-footer">
+      <p>
+        Layout only — colors/tokens mirror <code>apps/frontend</code>'s real PrimeNG Aura preset,
+        matching <code>specs/003-manual-holdings-entry/mockup.html</code>. Real components
+        (<code>p-select</code>, <code>p-dialog</code>, <code>p-inputnumber</code>,
+        <code>p-datepicker</code>, <code>p-confirmdialog</code>, <code>p-chart</code>) will replace
+        this static markup.
+      </p>
+      <h3>Open question for planning</h3>
+      <ul>
+        <li>
+          The distribution chart's current implementation
+          (<code>holdings-distribution.component.ts</code>) sums holdings
+          <strong>by asset type</strong> into one slice each (all ETFs together, all
+          Gold/precious-metal together, etc.) — it does not already group by name for any type. This
+          mockup's legend shows the FR-010-required per-name breakout for Precious metal and Crypto
+          (Gold vs. Silver, Bitcoin vs. Ethereum as separate slices/percentages); achieving that
+          requires changing the chart's grouping key for these two types specifically (grouping by
+          name, or by name + Management to match the list's identity), which
+          <code>/speckit-plan</code> should decide and document — ETF/Share grouping is unchanged
+          and out of scope here.
+        </li>
+      </ul>
+      <h3>Out of scope for this mockup</h3>
+      <ul>
+        <li>
+          Editing ETF/Share/Precious-metal holdings — same pattern as "Edit — Crypto" (locked asset
+          type, that type's fields incl. the new Name field and Management) but not separately
+          mocked for every type.
+        </li>
+        <li>
+          Loading states, network errors, and the "already deleted elsewhere" edge case — resilience
+          behavior, not layout.
+        </li>
+        <li>
+          The one-time data migration itself (User Story 3) — a backend/startup concern, nothing to
+          lay out on screen; its effect is what the "Gold"/"Bitcoin" rows above already look like
+          after migration.
+        </li>
+        <li>
+          Real form validation logic, persistence, routing, and the real Chart.js-backed
+          <code>p-chart</code> rendering (the donut here is a static CSS conic-gradient stand-in) —
+          every state here is static or client-side-only (the type selector).
+        </li>
+      </ul>
+    </footer>
+
+    <script>
+      const canvas = document.getElementById('canvas');
+      const stageFrame = document.getElementById('stage-frame');
+      const stageLabel = document.getElementById('stage-frame-label');
+
+      document.getElementById('viewport-toggle').addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-viewport]');
+        if (!btn) return;
+        const value = btn.getAttribute('data-viewport');
+        stageFrame.setAttribute('data-viewport', value);
+        stageLabel.textContent =
+          value === 'mobile'
+            ? 'Mobile — collapsed top nav + content'
+            : 'Desktop — sidebar nav + content';
+        [...document.getElementById('viewport-toggle').querySelectorAll('button')].forEach((b) =>
+          b.setAttribute('aria-pressed', String(b === btn)),
+        );
+      });
+
+      document.getElementById('screen-toggle').addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-screen]');
+        if (!btn) return;
+        canvas.setAttribute('data-screen', btn.getAttribute('data-screen'));
+        [...document.getElementById('screen-toggle').querySelectorAll('button')].forEach((b) =>
+          b.setAttribute('aria-pressed', String(b === btn)),
+        );
+      });
+
+      // Open/close the add/edit/delete dialogs from within the "list" state.
+      canvas.addEventListener('click', (e) => {
+        if (e.target.closest('[data-open-add]')) {
+          canvas.setAttribute('data-screen', 'add');
+          syncScreenToggle('add');
+        } else if (e.target.closest('[data-open-edit-crypto]')) {
+          canvas.setAttribute('data-screen', 'edit-crypto');
+          syncScreenToggle('edit-crypto');
+        } else if (e.target.closest('[data-open-delete]')) {
+          canvas.setAttribute('data-screen', 'delete');
+          syncScreenToggle('delete');
+        } else if (e.target.closest('[data-close-dialog]')) {
+          canvas.setAttribute('data-screen', 'list');
+          syncScreenToggle('list');
+        }
+      });
+
+      function syncScreenToggle(value) {
+        [...document.getElementById('screen-toggle').querySelectorAll('button')].forEach((b) =>
+          b.setAttribute('aria-pressed', String(b.getAttribute('data-screen') === value)),
+        );
+      }
+
+      // Interactive asset-type selector inside the "Add holding" dialog.
+      const typeSelect = document.getElementById('type-select');
+      typeSelect.addEventListener('click', (e) => {
+        const btn = e.target.closest('.type-option');
+        if (!btn) return;
+        const type = btn.getAttribute('data-type');
+        [...typeSelect.querySelectorAll('.type-option')].forEach((b) =>
+          b.setAttribute('aria-pressed', String(b === btn)),
+        );
+        document.querySelectorAll('[data-fieldset]').forEach((fs) => {
+          fs.classList.toggle('is-active', fs.getAttribute('data-fieldset') === type);
+        });
+      });
+    </script>
+  </body>
+</html>

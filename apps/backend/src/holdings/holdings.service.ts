@@ -33,7 +33,7 @@ export class HoldingsService {
   }
 
   /**
-   * FR-001–FR-011a: creates a new holding, or — for ETF/Gold whose
+   * FR-001–FR-011a: creates a new holding, or — for ETF/Precious metal whose
    * `(identifier, management)` matches an existing row — replaces that row
    * in place instead. `ownerId` scopes both the upsert lookup and the write
    * (005-auth-sessions-isolation, FR-009).
@@ -47,11 +47,11 @@ export class HoldingsService {
     const value = validation.value;
 
     let candidate: Holding | null = null;
-    if (value.assetType === 'ETF' || value.assetType === 'GOLD') {
+    if (value.assetType === 'ETF' || value.assetType === 'PRECIOUS_METAL') {
       candidate = await this.repository.findUpsertMatch(
         value.assetType,
         value.management,
-        value.assetType === 'ETF' ? value.isin : null,
+        value.assetType === 'ETF' ? value.isin : value.name,
         ownerId,
       );
     }

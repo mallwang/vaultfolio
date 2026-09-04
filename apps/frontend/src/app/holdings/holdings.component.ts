@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import type { AssetType, HoldingResponse } from '@vaultfolio/api-contract';
 import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DialogModule } from 'primeng/dialog';
@@ -10,8 +11,9 @@ import { InputTextModule } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
 import { IconComponent } from '../shared/icon/icon.component';
-import { ASSET_TYPE_LABELS } from './asset-type-fields';
+import { ASSET_TYPE_LABEL_KEYS } from './asset-type-fields';
 import { HoldingFormComponent } from './holding-form/holding-form.component';
+import { HoldingsDistributionComponent } from './holdings-distribution/holdings-distribution.component';
 import { HoldingsService } from './holdings.service';
 import { TranslatePipe } from '../core/i18n/translate.pipe';
 import { LocaleNumberPipe } from '../core/i18n/locale-number.pipe';
@@ -19,16 +21,17 @@ import { LocaleDatePipe } from '../core/i18n/locale-date.pipe';
 
 /**
  * Holdings area (FR-001–FR-016, User Stories 1–4): the holdings list and the
- * add/edit/delete flows, per design.md. The value-distribution view (FR-012a)
- * has moved to the dashboard's "Allocation" card
- * (dashboard/dashboard.component.ts) — it consumes the same
- * `app-holdings-distribution` component.
+ * add/edit/delete flows, per design.md. The value-distribution view
+ * (FR-012a) also appears here (FR-013) — restored alongside its existing
+ * Dashboard placement (dashboard/dashboard.component.ts) — both consume the
+ * same `app-holdings-distribution` component.
  */
 @Component({
   selector: 'app-holdings',
   imports: [
     TableModule,
     ButtonModule,
+    CardModule,
     DialogModule,
     ConfirmDialogModule,
     ToastModule,
@@ -36,6 +39,7 @@ import { LocaleDatePipe } from '../core/i18n/locale-date.pipe';
     InputIconModule,
     InputTextModule,
     HoldingFormComponent,
+    HoldingsDistributionComponent,
     TranslatePipe,
     LocaleNumberPipe,
     LocaleDatePipe,
@@ -58,10 +62,8 @@ export class HoldingsComponent implements OnInit {
   protected readonly dialogVisible = signal(false);
   protected readonly editingHolding = signal<HoldingResponse | null>(null);
 
-  protected readonly assetTypeLabels = ASSET_TYPE_LABELS;
-
   protected labelFor(assetType: AssetType): string {
-    return ASSET_TYPE_LABELS[assetType];
+    return this.translate.transform(ASSET_TYPE_LABEL_KEYS[assetType]);
   }
 
   ngOnInit(): void {
@@ -115,7 +117,7 @@ export class HoldingsComponent implements OnInit {
     this.confirmationService.confirm({
       target: event.target as EventTarget,
       message: template
-        .replace('{{assetType}}', this.assetTypeLabels[holding.assetType])
+        .replace('{{assetType}}', this.labelFor(holding.assetType))
         .replace('{{management}}', holding.management),
       header: this.translate.transform('holdings.deleteConfirmHeader'),
       acceptButtonProps: { severity: 'danger', label: this.translate.transform('holdings.delete') },

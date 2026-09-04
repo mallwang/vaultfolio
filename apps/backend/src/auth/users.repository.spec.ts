@@ -191,8 +191,8 @@ describe('UsersRepository', () => {
       new Date(Date.now() + 60_000).toISOString(),
     ]);
     await database.query(
-      `INSERT INTO holdings (id, asset_type, management, weight_grams, owner_id)
-       VALUES ($1, 'GOLD', 'Self-managed', '10', $2)`,
+      `INSERT INTO holdings (id, asset_type, management, name, weight_grams, owner_id)
+       VALUES ($1, 'PRECIOUS_METAL', 'Self-managed', 'Gold', '10', $2)`,
       ['holding-delete-cascade', user.id],
     );
 

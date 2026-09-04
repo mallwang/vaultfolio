@@ -46,11 +46,11 @@ describe('HoldingsRepository — exact-decimal round-trip (SQLite TEXT storage)'
     ValidatedHolding,
     'quantity' | 'purchasePrice' | 'weightGrams' | 'currentValue'
   > = {
-    assetType: 'GOLD',
+    assetType: 'PRECIOUS_METAL',
     management: 'Home safe',
     purchaseDate: null,
     isin: null,
-    name: null,
+    name: 'Gold',
   };
 
   it('round-trips weightGrams and currentValue with 8 decimal places byte-for-byte', async () => {
@@ -78,16 +78,16 @@ describe('HoldingsRepository — exact-decimal round-trip (SQLite TEXT storage)'
     expect(reloaded?.currentValue?.toString()).toBe(currentValue);
   });
 
-  it('round-trips quantity and purchasePrice with 8 decimal places byte-for-byte (Bitcoin)', async () => {
+  it('round-trips quantity and purchasePrice with 8 decimal places byte-for-byte (Crypto)', async () => {
     const quantity = '0.12345678';
     const purchasePrice = '42000.87654321';
 
     const value: ValidatedHolding = {
-      assetType: 'BITCOIN',
+      assetType: 'CRYPTO',
       management: 'Private',
       purchaseDate: null,
       isin: null,
-      name: null,
+      name: 'Bitcoin',
       quantity: new Decimal(quantity),
       purchasePrice: new Decimal(purchasePrice),
       weightGrams: null,
@@ -101,5 +101,78 @@ describe('HoldingsRepository — exact-decimal round-trip (SQLite TEXT storage)'
     const reloaded = await repository.findById(inserted.id, ownerId);
     expect(reloaded?.quantity?.toString()).toBe(quantity);
     expect(reloaded?.purchasePrice?.toString()).toBe(purchasePrice);
+  });
+});
+
+/**
+ * Precious metal upsert-lookup tests (research.md #2, FR-005): the
+ * `(assetType, name, management)` branch `findUpsertMatch()` gained when
+ * `PRECIOUS_METAL` replaced `GOLD`'s `(management)`-alone lookup.
+ */
+describe('HoldingsRepository — findUpsertMatch (Precious metal)', () => {
+  let database: DatabaseService;
+  let repository: HoldingsRepository;
+  let tempDir: string;
+  const ownerId = 'test-owner-id-2';
+
+  beforeAll(async () => {
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'vaultfolio-holdings-repo-upsert-'));
+    process.env.DATABASE_PATH = path.join(tempDir, 'test.db');
+    process.env.BOOTSTRAP_ADMIN_EMAIL = 'admin@example.com';
+    process.env.BOOTSTRAP_ADMIN_PASSWORD = 'a-valid-8-char-password';
+
+    database = new DatabaseService();
+    await database.onModuleInit();
+    await database.query(
+      `INSERT INTO users (id, email, display_name, password_hash, role) VALUES ($1, 'owner2@example.com', 'Owner', 'x', 'MEMBER')`,
+      [ownerId],
+    );
+    repository = new HoldingsRepository(database);
+  });
+
+  afterAll(async () => {
+    await database.onModuleDestroy();
+    fs.rmSync(tempDir, { recursive: true, force: true });
+    delete process.env.DATABASE_PATH;
+    delete process.env.BOOTSTRAP_ADMIN_EMAIL;
+    delete process.env.BOOTSTRAP_ADMIN_PASSWORD;
+  });
+
+  it('matches an existing Precious metal row on (name, management)', async () => {
+    const gold: ValidatedHolding = {
+      assetType: 'PRECIOUS_METAL',
+      management: 'Private',
+      purchaseDate: null,
+      isin: null,
+      name: 'Gold',
+      quantity: null,
+      purchasePrice: null,
+      weightGrams: new Decimal('31.1'),
+      currentValue: null,
+    };
+    const inserted = await repository.insert(gold, ownerId);
+
+    const match = await repository.findUpsertMatch('PRECIOUS_METAL', 'Private', 'Gold', ownerId);
+    expect(match?.id).toBe(inserted.id);
+  });
+
+  it('does not match a different name under the same management (Gold vs. Silver)', async () => {
+    await repository.insert(
+      {
+        assetType: 'PRECIOUS_METAL',
+        management: 'Bank',
+        purchaseDate: null,
+        isin: null,
+        name: 'Gold',
+        quantity: null,
+        purchasePrice: null,
+        weightGrams: new Decimal('10'),
+        currentValue: null,
+      },
+      ownerId,
+    );
+
+    const match = await repository.findUpsertMatch('PRECIOUS_METAL', 'Bank', 'Silver', ownerId);
+    expect(match).toBeNull();
   });
 });

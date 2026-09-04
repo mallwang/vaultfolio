@@ -29,8 +29,9 @@ describe('Holdings persistence across app module restart (SC-002)', () => {
   const ADMIN_PASSWORD = 'a-valid-8-char-password';
 
   const validGold: CreateHoldingRequest = {
-    assetType: 'GOLD',
+    assetType: 'PRECIOUS_METAL',
     management: 'Home safe',
+    name: 'Gold',
     weightGrams: '12.34567891',
   };
 
@@ -89,8 +90,9 @@ describe('Holdings persistence across app module restart (SC-002)', () => {
       expect(response.status).toBe(200);
       expect(response.body).toHaveLength(1);
       expect(response.body[0]).toMatchObject({
-        assetType: 'GOLD',
+        assetType: 'PRECIOUS_METAL',
         management: 'Home safe',
+        name: 'Gold',
         weightGrams: '12.34567891',
       });
     } finally {

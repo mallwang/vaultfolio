@@ -29,8 +29,9 @@ describe('/holdings — per-user isolation (005-auth-sessions-isolation)', () =>
   const MEMBER_PASSWORD = 'another-8-char-password';
 
   const validGold: CreateHoldingRequest = {
-    assetType: 'GOLD',
+    assetType: 'PRECIOUS_METAL',
     management: 'Home safe',
+    name: 'Gold',
     weightGrams: '10',
   };
 
@@ -57,10 +58,12 @@ describe('/holdings — per-user isolation (005-auth-sessions-isolation)', () =>
       .then((res) => {
         cookieA = (res.headers['set-cookie'] as unknown as string[])[0].split(';')[0];
       });
-    await request(app.getHttpServer())
-      .post('/holdings')
-      .set('Cookie', cookieA)
-      .send({ assetType: 'GOLD', management: 'Legacy vault', weightGrams: '5' });
+    await request(app.getHttpServer()).post('/holdings').set('Cookie', cookieA).send({
+      assetType: 'PRECIOUS_METAL',
+      management: 'Legacy vault',
+      name: 'Gold',
+      weightGrams: '5',
+    });
 
     // Second account, inserted directly — quickstart.md Scenario B step 1
     // ("for this feature alone, a second row may be inserted directly for
@@ -134,7 +137,12 @@ describe('/holdings — per-user isolation (005-auth-sessions-isolation)', () =>
     const bHolding = await request(app.getHttpServer())
       .post('/holdings')
       .set('Cookie', cookieB)
-      .send({ assetType: 'GOLD', management: "B's safe", weightGrams: '20' });
+      .send({
+        assetType: 'PRECIOUS_METAL',
+        management: "B's safe",
+        name: 'Gold',
+        weightGrams: '20',
+      });
 
     await request(app.getHttpServer())
       .put(`/holdings/${aHolding.body.id}`)
@@ -175,7 +183,12 @@ describe('/holdings — per-user isolation (005-auth-sessions-isolation)', () =>
     const bHolding = await request(app.getHttpServer())
       .post('/holdings')
       .set('Cookie', cookieB)
-      .send({ assetType: 'GOLD', management: "B's private", weightGrams: '1' });
+      .send({
+        assetType: 'PRECIOUS_METAL',
+        management: "B's private",
+        name: 'Gold',
+        weightGrams: '1',
+      });
 
     const response = await request(app.getHttpServer())
       .put(`/holdings/${bHolding.body.id}`)

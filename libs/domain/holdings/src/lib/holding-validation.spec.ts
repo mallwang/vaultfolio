@@ -27,14 +27,16 @@ const validShare: HoldingSubmission = {
 };
 
 const validGold: HoldingSubmission = {
-  assetType: 'GOLD',
+  assetType: 'PRECIOUS_METAL',
   management: 'Private',
+  name: 'Gold',
   weightGrams: '31.1',
 };
 
 const validBitcoin: HoldingSubmission = {
-  assetType: 'BITCOIN',
+  assetType: 'CRYPTO',
   management: 'Private',
+  name: 'Bitcoin',
   quantity: '0.25',
   purchasePrice: '42000.00',
 };
@@ -179,7 +181,7 @@ describe('validateHoldingSubmission — per-type required fields', () => {
     }
   });
 
-  it('rejects Gold missing weightGrams', () => {
+  it('rejects Precious metal missing weightGrams', () => {
     const { weightGrams: _weightGrams, ...withoutWeight } = validGold;
     const result = validateHoldingSubmission(withoutWeight as HoldingSubmission);
     expect(result.valid).toBe(false);
@@ -188,11 +190,10 @@ describe('validateHoldingSubmission — per-type required fields', () => {
     }
   });
 
-  it('rejects Gold with extraneous fields for the wrong type (isin/name/purchasePrice)', () => {
+  it('rejects Precious metal with extraneous fields for the wrong type (isin/purchasePrice)', () => {
     const result = validateHoldingSubmission({
       ...validGold,
       isin: 'US0378331005',
-      name: 'Not applicable to Gold',
       purchasePrice: '10',
     } as HoldingSubmission);
     expect(result.valid).toBe(false);
@@ -201,7 +202,7 @@ describe('validateHoldingSubmission — per-type required fields', () => {
     }
   });
 
-  it('rejects Bitcoin missing quantity/purchasePrice', () => {
+  it('rejects Crypto missing quantity/purchasePrice', () => {
     const { quantity: _quantity, ...withoutQuantity } = validBitcoin;
     const result = validateHoldingSubmission(withoutQuantity as HoldingSubmission);
     expect(result.valid).toBe(false);
@@ -210,7 +211,7 @@ describe('validateHoldingSubmission — per-type required fields', () => {
     }
   });
 
-  it('rejects Bitcoin with extraneous fields for the wrong type (isin/weightGrams)', () => {
+  it('rejects Crypto with extraneous fields for the wrong type (isin/weightGrams)', () => {
     const result = validateHoldingSubmission({
       ...validBitcoin,
       isin: 'US0378331005',
@@ -226,6 +227,52 @@ describe('validateHoldingSubmission — per-type required fields', () => {
     if (!result.valid) {
       expect(result.fieldErrors).toContainEqual(expect.objectContaining({ field: 'name' }));
     }
+  });
+
+  it('rejects Precious metal with a blank/whitespace-only name (FR-009, SC-004)', () => {
+    for (const name of ['', '   ']) {
+      const result = validateHoldingSubmission({ ...validGold, name });
+      expect(result.valid).toBe(false);
+      if (!result.valid) {
+        expect(result.fieldErrors).toContainEqual({
+          field: 'name',
+          message: 'name is required for PRECIOUS_METAL.',
+        });
+      }
+    }
+  });
+
+  it('rejects Crypto with a blank/whitespace-only name (FR-009, SC-004)', () => {
+    for (const name of ['', '   ']) {
+      const result = validateHoldingSubmission({ ...validBitcoin, name });
+      expect(result.valid).toBe(false);
+      if (!result.valid) {
+        expect(result.fieldErrors).toContainEqual({
+          field: 'name',
+          message: 'name is required for CRYPTO.',
+        });
+      }
+    }
+  });
+
+  it('rejects the old GOLD/BITCOIN asset-type values with a field error on assetType (FR-011)', () => {
+    for (const assetType of ['GOLD', 'BITCOIN']) {
+      const result = validateHoldingSubmission({
+        assetType: assetType as HoldingSubmission['assetType'],
+        management: 'Private',
+      });
+      expect(result.valid).toBe(false);
+      if (!result.valid) {
+        expect(result.fieldErrors).toContainEqual(expect.objectContaining({ field: 'assetType' }));
+      }
+    }
+  });
+
+  it('accepts free-text names for Precious metal/Crypto, not just Gold/Bitcoin', () => {
+    const silver = validateHoldingSubmission({ ...validGold, name: 'Silver' });
+    expect(silver.valid).toBe(true);
+    const ethereum = validateHoldingSubmission({ ...validBitcoin, name: 'Ethereum' });
+    expect(ethereum.valid).toBe(true);
   });
 });
 

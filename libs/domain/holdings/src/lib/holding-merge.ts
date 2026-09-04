@@ -10,18 +10,19 @@ export type MergeDecision = { kind: 'create' } | { kind: 'update'; existingId: s
  * (Principle I) — mirrored by the repository's own upsert-lookup query
  * (research.md #4) so "what counts as the same asset" lives in one place.
  *
- * - SHARE/BITCOIN: always a new row, regardless of any match.
+ * - SHARE/CRYPTO: always a new row, regardless of any match.
  * - ETF: matches an existing row on `(isin, management)`.
- * - GOLD: matches an existing row on `(management)` alone — "the fact of
- *   being Gold" is the asset identifier, per spec.md's Clarifications.
+ * - PRECIOUS_METAL: matches an existing row on `(name, management)` — "Gold"
+ *   and "Silver" under the same Management never match each other (FR-005).
  * - A match under a *different* management value never counts as the same
- *   asset — Management is part of the identity key for both ETF and Gold.
+ *   asset — Management is part of the identity key for both ETF and
+ *   Precious metal.
  */
 export function decideMerge(
   submission: ValidatedHolding,
   existing: readonly Holding[],
 ): MergeDecision {
-  if (submission.assetType === 'SHARE' || submission.assetType === 'BITCOIN') {
+  if (submission.assetType === 'SHARE' || submission.assetType === 'CRYPTO') {
     return { kind: 'create' };
   }
 
@@ -35,8 +36,8 @@ export function decideMerge(
     if (submission.assetType === 'ETF') {
       return holding.isin === submission.isin;
     }
-    // GOLD: management match alone is sufficient.
-    return true;
+    // PRECIOUS_METAL: management match alone is not sufficient — name must match too.
+    return holding.name === submission.name;
   });
 
   return match ? { kind: 'update', existingId: match.id } : { kind: 'create' };

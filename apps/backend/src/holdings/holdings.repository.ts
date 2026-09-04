@@ -7,9 +7,9 @@ import type { HoldingRow } from './holdings.mapper';
 
 /**
  * Raw `better-sqlite3` queries for the `holdings` table — no ORM (Principle
- * V, matching `DatabaseService`'s established pattern). Owns the ETF/Gold
- * upsert-lookup query (`holdings_upsert_lookup_idx`) as well as plain
- * insert/update/delete, per research.md #4.
+ * V, matching `DatabaseService`'s established pattern). Owns the
+ * ETF/Precious-metal upsert-lookup query (`holdings_upsert_lookup_idx`) as
+ * well as plain insert/update/delete, per research.md #2.
  *
  * Every method takes an `ownerId` and scopes its query with
  * `AND owner_id = $N` (005-auth-sessions-isolation, data-model.md's "Query
@@ -40,27 +40,29 @@ export class HoldingsRepository {
   }
 
   /**
-   * The ETF/Gold "same asset" lookup (FR-011a): ETF matches on
-   * `(asset_type, isin, management)`; Gold matches on `(asset_type,
-   * management)` alone — pass `isin: null` for Gold. Scoped to `ownerId` so
-   * one user's holding can never be silently "matched" and overwritten by
-   * another user's submission.
+   * The ETF/Precious-metal "same asset" lookup (FR-005): ETF matches on
+   * `(asset_type, isin, management)`; Precious metal matches on `(asset_type,
+   * name, management)` — pass the matching identifier column's value via
+   * `identifier` for either type (research.md #2). Never called for
+   * SHARE/CRYPTO, which always insert. Scoped to `ownerId` so one user's
+   * holding can never be silently "matched" and overwritten by another
+   * user's submission.
    */
   async findUpsertMatch(
     assetType: AssetType,
     management: string,
-    isin: string | null,
+    identifier: string | null,
     ownerId: string,
   ): Promise<Holding | null> {
     const rows =
-      isin === null
+      assetType === 'ETF'
         ? await this.database.query<HoldingRow>(
-            'SELECT * FROM holdings WHERE asset_type = $1 AND management = $2 AND isin IS NULL AND owner_id = $3',
-            [assetType, management, ownerId],
+            'SELECT * FROM holdings WHERE asset_type = $1 AND management = $2 AND isin = $3 AND owner_id = $4',
+            [assetType, management, identifier, ownerId],
           )
         : await this.database.query<HoldingRow>(
-            'SELECT * FROM holdings WHERE asset_type = $1 AND management = $2 AND isin = $3 AND owner_id = $4',
-            [assetType, management, isin, ownerId],
+            'SELECT * FROM holdings WHERE asset_type = $1 AND management = $2 AND name = $3 AND owner_id = $4',
+            [assetType, management, identifier, ownerId],
           );
     return rows[0] ? rowToHolding(rows[0]) : null;
   }

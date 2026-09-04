@@ -56,7 +56,7 @@ describe('HoldingsDistributionComponent', () => {
   const holdings: HoldingResponse[] = [
     holding({ id: '1', assetType: 'SHARE', quantity: '10', purchasePrice: '5' }), // 50
     holding({ id: '2', assetType: 'SHARE', quantity: '2', purchasePrice: '5' }), // 10 -> 60 total SHARE
-    holding({ id: '3', assetType: 'GOLD', currentValue: '25' }), // 25
+    holding({ id: '3', assetType: 'PRECIOUS_METAL', name: 'Gold', currentValue: '25' }), // 25
     holding({ id: '4', assetType: 'ETF', quantity: null, purchasePrice: null }), // excluded
   ];
 
@@ -72,6 +72,47 @@ describe('HoldingsDistributionComponent', () => {
       { name: 'Gold', value: 25 },
     ]);
     expect(fixture.componentInstance['excludedCount']()).toBe(1);
+  });
+
+  it('groups Precious metal/Crypto holdings by name, not just type — Gold and Silver as separate slices (research.md #3, FR-010)', () => {
+    fixture.componentRef.setInput('holdings', [
+      holding({ id: '1', assetType: 'PRECIOUS_METAL', name: 'Gold', currentValue: '25' }),
+      holding({ id: '2', assetType: 'PRECIOUS_METAL', name: 'Silver', currentValue: '10' }),
+    ]);
+    fixture.detectChanges();
+
+    const option = fixture.componentInstance['chartOption']();
+    const series = option.series as Array<{ data: Array<{ name: string; value: number }> }>;
+
+    expect(series[0].data).toEqual([
+      { name: 'Gold', value: 25 },
+      { name: 'Silver', value: 10 },
+    ]);
+  });
+
+  it('sums two same-named Crypto lots into one slice', () => {
+    fixture.componentRef.setInput('holdings', [
+      holding({
+        id: '1',
+        assetType: 'CRYPTO',
+        name: 'Bitcoin',
+        quantity: '0.1',
+        purchasePrice: '40000',
+      }), // 4000
+      holding({
+        id: '2',
+        assetType: 'CRYPTO',
+        name: 'Bitcoin',
+        quantity: '0.2',
+        purchasePrice: '45000',
+      }), // 9000 -> 13000
+    ]);
+    fixture.detectChanges();
+
+    const option = fixture.componentInstance['chartOption']();
+    const series = option.series as Array<{ data: Array<{ name: string; value: number }> }>;
+
+    expect(series[0].data).toEqual([{ name: 'Bitcoin', value: 13000 }]);
   });
 
   it('renders no <app-echart> and shows the localized empty-state message when nothing is computable', () => {

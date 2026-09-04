@@ -3,6 +3,10 @@
   <ng-template #icon><app-icon name="warning" /></ng-template>
 </p-confirmdialog>
 
+<p-card [header]="'holdingsDistribution.title' | translate" class="distribution-card">
+  <app-holdings-distribution [holdings]="holdings()" />
+</p-card>
+
 <section class="holdings-panel">
   <div class="holdings-panel__header">
     <h2>
@@ -74,14 +78,7 @@
       <ng-template #body let-holding>
         <tr>
           <td>{{ labelFor(holding.assetType) }}</td>
-          <td>
-            {{
-              holding.name ??
-                (holding.assetType === 'GOLD'
-                  ? ('holdings.assetGold' | translate)
-                  : ('holdings.assetBitcoin' | translate))
-            }}
-          </td>
+          <td>{{ holding.name }}</td>
           <td>{{ holding.management }}</td>
           <td>{{ holding.quantity ?? holding.weightGrams | localeNumber }}</td>
           <td>{{ holding.purchasePrice ?? holding.currentValue | localeNumber }}</td>

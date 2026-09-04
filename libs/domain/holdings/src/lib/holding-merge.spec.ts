@@ -5,10 +5,10 @@ import type { ValidatedHolding } from './holding-validation.js';
 
 /**
  * Exercises data-model.md's merge/upsert rule (FR-011/FR-011a): ETF upsert by
- * `(isin, management)`, Gold upsert by `(management)`, Share/Bitcoin always a
- * new lot, and a different Management value always creating a separate row.
- * Written first per Principle III — confirmed failing (no `holding-merge.ts`
- * implementation yet) before T009.
+ * `(isin, management)`, Precious metal upsert by `(name, management)`,
+ * Share/Crypto always a new lot, and a different Management value always
+ * creating a separate row. Written first per Principle III — confirmed
+ * failing (no `holding-merge.ts` implementation yet) before T009.
  */
 
 function makeExisting(overrides: Partial<Holding & { id: string }>): Holding {
@@ -64,23 +64,23 @@ describe('decideMerge — ETF', () => {
   });
 });
 
-describe('decideMerge — Gold', () => {
-  it('updates the existing row when management matches (no isin identifier)', () => {
+describe('decideMerge — Precious metal', () => {
+  it('updates the existing row when name+management match (Gold vs. Gold)', () => {
     const existing = makeExisting({
-      assetType: 'GOLD',
+      assetType: 'PRECIOUS_METAL',
       management: 'Private',
       isin: null,
-      name: null,
+      name: 'Gold',
       quantity: null,
       purchasePrice: null,
       weightGrams: new Decimal('10'),
     });
     const decision = decideMerge(
       submission({
-        assetType: 'GOLD',
+        assetType: 'PRECIOUS_METAL',
         management: 'Private',
         isin: null,
-        name: null,
+        name: 'Gold',
         quantity: null,
         purchasePrice: null,
         weightGrams: new Decimal('31.1'),
@@ -90,22 +90,47 @@ describe('decideMerge — Gold', () => {
     expect(decision).toEqual({ kind: 'update', existingId: 'existing-id' });
   });
 
-  it('creates a separate Gold row for a different management', () => {
+  it('does not match when name differs under the same management (Gold vs. Silver)', () => {
     const existing = makeExisting({
-      assetType: 'GOLD',
+      assetType: 'PRECIOUS_METAL',
       management: 'Private',
       isin: null,
-      name: null,
+      name: 'Gold',
       quantity: null,
       purchasePrice: null,
       weightGrams: new Decimal('10'),
     });
     const decision = decideMerge(
       submission({
-        assetType: 'GOLD',
+        assetType: 'PRECIOUS_METAL',
+        management: 'Private',
+        isin: null,
+        name: 'Silver',
+        quantity: null,
+        purchasePrice: null,
+        weightGrams: new Decimal('500'),
+      }),
+      [existing],
+    );
+    expect(decision).toEqual({ kind: 'create' });
+  });
+
+  it('creates a separate Precious metal row for a different management', () => {
+    const existing = makeExisting({
+      assetType: 'PRECIOUS_METAL',
+      management: 'Private',
+      isin: null,
+      name: 'Gold',
+      quantity: null,
+      purchasePrice: null,
+      weightGrams: new Decimal('10'),
+    });
+    const decision = decideMerge(
+      submission({
+        assetType: 'PRECIOUS_METAL',
         management: 'Bank',
         isin: null,
-        name: null,
+        name: 'Gold',
         quantity: null,
         purchasePrice: null,
         weightGrams: new Decimal('5'),
@@ -116,7 +141,7 @@ describe('decideMerge — Gold', () => {
   });
 });
 
-describe('decideMerge — Share/Bitcoin', () => {
+describe('decideMerge — Share/Crypto', () => {
   it('always creates a new row for Share, even with an identical isin+management match', () => {
     const existing = makeExisting({ assetType: 'SHARE', management: 'Private' });
     const decision = decideMerge(submission({ assetType: 'SHARE', management: 'Private' }), [
@@ -125,21 +150,21 @@ describe('decideMerge — Share/Bitcoin', () => {
     expect(decision).toEqual({ kind: 'create' });
   });
 
-  it('always creates a new row for Bitcoin, even under the same management', () => {
+  it('always creates a new row for Crypto, even under the same management and name', () => {
     const existing = makeExisting({
-      assetType: 'BITCOIN',
+      assetType: 'CRYPTO',
       management: 'Private',
       isin: null,
-      name: null,
+      name: 'Bitcoin',
       quantity: new Decimal('0.1'),
       purchasePrice: new Decimal('40000'),
     });
     const decision = decideMerge(
       submission({
-        assetType: 'BITCOIN',
+        assetType: 'CRYPTO',
         management: 'Private',
         isin: null,
-        name: null,
+        name: 'Bitcoin',
         quantity: new Decimal('0.2'),
         purchasePrice: new Decimal('45000'),
       }),

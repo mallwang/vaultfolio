@@ -2,7 +2,7 @@ import { Component, Input, OnChanges, computed, inject, signal } from '@angular/
 import Decimal from 'decimal.js';
 import type { EChartsOption } from 'echarts';
 import type { HoldingResponse } from '@vaultfolio/api-contract';
-import { ASSET_TYPE_LABELS } from '../asset-type-fields';
+import { ASSET_TYPE_LABEL_KEYS } from '../asset-type-fields';
 import { EchartComponent } from '../../shared/chart/echart.component';
 import { resolveChartPalette } from '../../shared/chart/chart-palette';
 import { ThemeService } from '../../core/theme/theme.service';
@@ -11,8 +11,14 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
 
 /** data-model.md "Holdings Distribution Chart Data" — replaces the previous Chart.js `DoughnutChartData` shape. */
 interface HoldingsDistributionEntry {
-  /** Localized asset-type label (ASSET_TYPE_LABELS). */
+  /**
+   * Either a fixed display name (Precious metal/Crypto holdings, grouped by
+   * their own `name`) or an `assetType.*` translation key (every other
+   * group) — resolved to the localized label in `chartOption`, not here, so
+   * a language switch relabels the chart without recomputing the totals.
+   */
   name: string;
+  isTranslationKey: boolean;
   /** Decimal total, converted via `.toNumber()` at the presentation boundary only. */
   value: number;
 }
@@ -21,13 +27,16 @@ interface HoldingsDistributionEntry {
  * FR-012a: each holding's share of total portfolio value, computed
  * client-side from the already-fetched `GET /holdings` list (research.md
  * #6) — no dedicated backend endpoint. Value is `quantity × purchasePrice`
- * for Share/Bitcoin/ETF, `currentValue` for Gold; holdings with no
+ * for Share/Crypto/ETF, `currentValue` for Precious metal; holdings with no
  * computable value are excluded from the percentage base entirely, never
- * counted as zero.
+ * counted as zero. Precious metal/Crypto holdings are grouped per-name
+ * (research.md #3, FR-010) — "Gold" and "Silver" are separate slices, two
+ * same-named Crypto lots sum into one.
  */
 @Component({
   selector: 'app-holdings-distribution',
   imports: [EchartComponent, TranslatePipe],
+  providers: [TranslatePipe],
   templateUrl: './holdings-distribution.component.html',
   styleUrl: './holdings-distribution.component.css',
 })
@@ -36,6 +45,7 @@ export class HoldingsDistributionComponent implements OnChanges {
 
   private readonly themeService = inject(ThemeService);
   private readonly i18n = inject(I18nService);
+  private readonly translate = inject(TranslatePipe);
 
   private readonly entries = signal<HoldingsDistributionEntry[] | null>(null);
   protected readonly excludedCount = signal(0);
@@ -45,7 +55,14 @@ export class HoldingsDistributionComponent implements OnChanges {
     const entries = this.entries() ?? [];
     const palette = resolveChartPalette(this.themeService.theme());
     const locale = this.i18n.language();
-    const fmt = new Intl.NumberFormat(locale, { maximumFractionDigits: 2 });
+    const fmt = new Intl.NumberFormat(locale, {
+      style: 'currency',
+      currency: 'EUR',
+      maximumFractionDigits: 2,
+    });
+    const resolveName = (entry: HoldingsDistributionEntry): string =>
+      entry.isTranslationKey ? this.translate.transform(entry.name) : entry.name;
+    const pieCenter: [string, string] = ['50%', '42%'];
     return {
       color: palette.seriesColors,
       legend: { orient: 'horizontal', bottom: 0, left: 'center' },
@@ -60,13 +77,33 @@ export class HoldingsDistributionComponent implements OnChanges {
         {
           type: 'pie',
           radius: ['40%', '65%'],
-          center: ['50%', '42%'],
+          center: pieCenter,
           padAngle: 2,
           itemStyle: { borderRadius: 9 },
-          data: entries.map(({ name, value }) => ({ name, value })),
+          data: entries.map((entry) => ({ name: resolveName(entry), value: entry.value })),
         },
       ],
     };
+  });
+
+  /**
+   * Rendered as an HTML overlay (holdings-distribution.component.html)
+   * rather than an ECharts `graphic` element — echarts' graphic-component
+   * positioning always anchors a text element's own bounding box at
+   * (left, top) and ignores `align`/`verticalAlign` when doing so
+   * (component/graphic/GraphicView.js `_relocate`), so it cannot be
+   * centered on a point that way. A CSS-centered overlay is exact and
+   * far simpler.
+   */
+  protected readonly centerLabel = computed<string>(() => {
+    const entries = this.entries() ?? [];
+    const total = entries.reduce((sum, entry) => sum + entry.value, 0);
+    const locale = this.i18n.language();
+    return new Intl.NumberFormat(locale, {
+      style: 'currency',
+      currency: 'EUR',
+      maximumFractionDigits: 0,
+    }).format(total);
   });
 
   ngOnChanges(): void {
@@ -74,7 +111,7 @@ export class HoldingsDistributionComponent implements OnChanges {
   }
 
   private recompute(): void {
-    const totalsByType = new Map<string, Decimal>();
+    const totals = new Map<string, { name: string; isTranslationKey: boolean; total: Decimal }>();
     let excluded = 0;
 
     for (const holding of this.holdings) {
@@ -83,27 +120,37 @@ export class HoldingsDistributionComponent implements OnChanges {
         excluded += 1;
         continue;
       }
-      const running = totalsByType.get(holding.assetType) ?? new Decimal(0);
-      totalsByType.set(holding.assetType, running.plus(value));
+      const isNamedGroup = holding.assetType === 'PRECIOUS_METAL' || holding.assetType === 'CRYPTO';
+      const key = isNamedGroup ? `${holding.assetType}::${holding.name}` : holding.assetType;
+      const name = isNamedGroup
+        ? (holding.name as string)
+        : ASSET_TYPE_LABEL_KEYS[holding.assetType];
+      const existing = totals.get(key);
+      totals.set(key, {
+        name,
+        isTranslationKey: !isNamedGroup,
+        total: (existing?.total ?? new Decimal(0)).plus(value),
+      });
     }
 
     this.excludedCount.set(excluded);
 
-    if (totalsByType.size === 0) {
+    if (totals.size === 0) {
       this.entries.set(null);
       return;
     }
 
     this.entries.set(
-      [...totalsByType.entries()].map(([assetType, total]) => ({
-        name: ASSET_TYPE_LABELS[assetType as keyof typeof ASSET_TYPE_LABELS],
+      [...totals.values()].map(({ name, isTranslationKey, total }) => ({
+        name,
+        isTranslationKey,
         value: total.toNumber(),
       })),
     );
   }
 
   private static computeValue(holding: HoldingResponse): Decimal | null {
-    if (holding.assetType === 'GOLD') {
+    if (holding.assetType === 'PRECIOUS_METAL') {
       return holding.currentValue != null ? new Decimal(holding.currentValue) : null;
     }
     if (holding.quantity != null && holding.purchasePrice != null) {

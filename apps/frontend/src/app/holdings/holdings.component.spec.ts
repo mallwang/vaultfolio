@@ -4,6 +4,27 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import type { HoldingResponse } from '@vaultfolio/api-contract';
 import { HoldingsComponent } from './holdings.component';
 
+// The Holdings page now also renders the holdings distribution chart
+// (<app-echart>, FR-013), which calls into real ECharts — jsdom has no
+// canvas 2D context (no `canvas` package installed), so this test double
+// keeps the render path fast and environment-independent, same as
+// dashboard.component.spec.ts.
+vi.mock('echarts', () => ({
+  init: vi.fn(() => ({
+    setOption: vi.fn(),
+    showLoading: vi.fn(),
+    hideLoading: vi.fn(),
+    resize: vi.fn(),
+    dispose: vi.fn(),
+  })),
+}));
+
+class FakeResizeObserver {
+  observe = vi.fn();
+  disconnect = vi.fn();
+  unobserve = vi.fn();
+}
+
 const etf: HoldingResponse = {
   id: 'etf-1',
   assetType: 'ETF',
@@ -21,10 +42,10 @@ const etf: HoldingResponse = {
 
 const goldNoValue: HoldingResponse = {
   id: 'gold-1',
-  assetType: 'GOLD',
+  assetType: 'PRECIOUS_METAL',
   management: 'Private',
   isin: null,
-  name: null,
+  name: 'Gold',
   quantity: null,
   purchasePrice: null,
   purchaseDate: null,
@@ -34,11 +55,28 @@ const goldNoValue: HoldingResponse = {
   updatedAt: '2026-08-10T09:00:00.000Z',
 };
 
+const silverNoValue: HoldingResponse = {
+  id: 'silver-1',
+  assetType: 'PRECIOUS_METAL',
+  management: 'Private',
+  isin: null,
+  name: 'Silver',
+  quantity: null,
+  purchasePrice: null,
+  purchaseDate: null,
+  weightGrams: '500',
+  currentValue: null,
+  createdAt: '2026-08-11T09:00:00.000Z',
+  updatedAt: '2026-08-11T09:00:00.000Z',
+};
+
 describe('HoldingsComponent', () => {
   let fixture: ComponentFixture<HoldingsComponent>;
   let httpMock: HttpTestingController;
 
   beforeEach(async () => {
+    vi.stubGlobal('ResizeObserver', FakeResizeObserver);
+
     await TestBed.configureTestingModule({
       imports: [HoldingsComponent],
       providers: [provideHttpClient(), provideHttpClientTesting()],
@@ -49,6 +87,7 @@ describe('HoldingsComponent', () => {
 
   afterEach(() => {
     httpMock.verify();
+    vi.unstubAllGlobals();
   });
 
   function flushList(holdings: HoldingResponse[]): void {
@@ -65,6 +104,45 @@ describe('HoldingsComponent', () => {
     expect(text).toContain('iShares Core MSCI World');
     expect(text).toContain('Roboadvisor');
     expect(text).toContain('Gold');
+  });
+
+  it('displays each Precious metal holding by its entered name, distinguishing Gold from Silver (FR-010)', () => {
+    flushList([goldNoValue, silverNoValue]);
+
+    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(text).toContain('Gold');
+    expect(text).toContain('Silver');
+  });
+
+  it('displays Crypto holdings by their entered name, with two same-named lots as two separate rows (FR-006, FR-010)', () => {
+    const bitcoinLotOne: HoldingResponse = {
+      id: 'btc-1',
+      assetType: 'CRYPTO',
+      management: 'Private',
+      isin: null,
+      name: 'Bitcoin',
+      quantity: '0.1',
+      purchasePrice: '40000',
+      purchaseDate: null,
+      weightGrams: null,
+      currentValue: null,
+      createdAt: '2026-08-12T09:00:00.000Z',
+      updatedAt: '2026-08-12T09:00:00.000Z',
+    };
+    const bitcoinLotTwo: HoldingResponse = {
+      ...bitcoinLotOne,
+      id: 'btc-2',
+      quantity: '0.2',
+      purchasePrice: '45000',
+      createdAt: '2026-08-13T09:00:00.000Z',
+      updatedAt: '2026-08-13T09:00:00.000Z',
+    };
+    flushList([bitcoinLotOne, bitcoinLotTwo]);
+
+    const rows = (fixture.nativeElement as HTMLElement).querySelectorAll('tbody tr');
+    expect(rows).toHaveLength(2);
+    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(text).toContain('Bitcoin');
   });
 
   it('shows a "—" indicator for a holding missing price/date', () => {

@@ -1,5 +1,5 @@
 import Decimal from 'decimal.js';
-import { ASSET_TYPE_FIELDS, type AssetType, type HoldingField } from './asset-type.js';
+import { ASSET_TYPE_FIELDS, isAssetType, type AssetType, type HoldingField } from './asset-type.js';
 
 /**
  * Raw create/update payload as it arrives at the domain boundary — decimal
@@ -120,6 +120,21 @@ function isFieldApplicable(assetType: AssetType, field: HoldingField): boolean {
 export function validateHoldingSubmission(submission: HoldingSubmission): ValidationResult {
   const errors: FieldError[] = [];
   const { assetType } = submission;
+
+  // A client-supplied assetType is only a compile-time AssetType at the
+  // TypeScript boundary — at runtime (e.g. a stale client sending the
+  // pre-017 'GOLD'/'BITCOIN' literals) it may be any string. Reject early
+  // rather than let `ASSET_TYPE_FIELDS[assetType]` come back `undefined` and
+  // crash every check below (FR-011).
+  if (!isAssetType(assetType)) {
+    return {
+      valid: false,
+      fieldErrors: [
+        { field: 'assetType', message: `${String(assetType)} is not a recognized asset type.` },
+      ],
+    };
+  }
+
   const metadata = ASSET_TYPE_FIELDS[assetType];
 
   if (isBlank(submission.management)) {

@@ -7,12 +7,31 @@
   margin: 0 auto;
 }
 
+.distribution__chart {
+  position: relative;
+  width: 100%;
+}
+
 /* app-echart fills its parent (shared css); give it a concrete height here
    since .distribution itself only sizes to its content. */
-.distribution app-echart {
+.distribution__chart app-echart {
   display: block;
   width: 100%;
   height: 18rem;
+}
+
+/* Matches the pie series' own `center` (chartOption's `pieCenter`) — an
+   HTML overlay rather than an ECharts `graphic` element, since echarts'
+   graphic-component positioning ignores text align when placed via
+   left/top (see the component's `centerLabel` doc comment). */
+.distribution__center-label {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  transform: translate(-50%, -50%);
+  font-weight: bold;
+  color: var(--p-text-color);
+  pointer-events: none;
 }
 
 .distribution__note,
