@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import type { HoldingResponse } from '@vaultfolio/api-contract';
 import { HoldingsDistributionComponent } from './holdings-distribution.component';
+import { ASSET_TYPE_COLORS } from '../../shared/chart/chart-palette';
 
 vi.mock('echarts', () => ({
   init: vi.fn(() => ({
@@ -68,8 +69,8 @@ describe('HoldingsDistributionComponent', () => {
     const series = option.series as Array<{ data: Array<{ name: string; value: number }> }>;
 
     expect(series[0].data).toEqual([
-      { name: 'Share', value: 60 },
-      { name: 'Gold', value: 25 },
+      { name: 'Share', value: 60, itemStyle: { color: ASSET_TYPE_COLORS.SHARE } },
+      { name: 'Gold', value: 25, itemStyle: { color: ASSET_TYPE_COLORS.PRECIOUS_METAL } },
     ]);
     expect(fixture.componentInstance['excludedCount']()).toBe(1);
   });
@@ -85,8 +86,8 @@ describe('HoldingsDistributionComponent', () => {
     const series = option.series as Array<{ data: Array<{ name: string; value: number }> }>;
 
     expect(series[0].data).toEqual([
-      { name: 'Gold', value: 25 },
-      { name: 'Silver', value: 10 },
+      { name: 'Gold', value: 25, itemStyle: { color: ASSET_TYPE_COLORS.PRECIOUS_METAL } },
+      { name: 'Silver', value: 10, itemStyle: { color: ASSET_TYPE_COLORS.PRECIOUS_METAL } },
     ]);
   });
 
@@ -112,7 +113,9 @@ describe('HoldingsDistributionComponent', () => {
     const option = fixture.componentInstance['chartOption']();
     const series = option.series as Array<{ data: Array<{ name: string; value: number }> }>;
 
-    expect(series[0].data).toEqual([{ name: 'Bitcoin', value: 13000 }]);
+    expect(series[0].data).toEqual([
+      { name: 'Bitcoin', value: 13000, itemStyle: { color: ASSET_TYPE_COLORS.CRYPTO } },
+    ]);
   });
 
   it('renders no <app-echart> and shows the localized empty-state message when nothing is computable', () => {

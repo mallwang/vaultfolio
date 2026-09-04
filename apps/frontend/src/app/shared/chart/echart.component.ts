@@ -104,6 +104,12 @@ export class EchartComponent implements AfterViewInit, OnChanges, OnDestroy {
     return {
       color: palette.seriesColors,
       textStyle: { color: palette.textColor },
+      // Legend text has its own fixed-gray default (ECharts' `LegendModel`
+      // sets `textStyle.color` itself rather than falling back to the root
+      // `textStyle` above), so it doesn't pick up the theme unless set
+      // explicitly here — same reason the pie's pointer labels needed
+      // their own color (holdings-distribution.component.ts).
+      legend: { textStyle: { color: palette.textColor } },
       tooltip: {
         backgroundColor: palette.backgroundColor,
         textStyle: { color: palette.textColor },
