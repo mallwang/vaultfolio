@@ -14,6 +14,7 @@ import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { DOMAIN_REGISTRY } from '@vaultfolio/frontend-domain-access';
 import { IconComponent, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
+import { CurrentUserStore } from '../../auth/current-user.store';
 import { AccountsService } from './accounts.service';
 
 type UserRole = AccountSummary['role'];
@@ -63,6 +64,7 @@ const ROLE_OPTIONS: RoleOption[] = [
 })
 export class AccountsComponent implements OnInit {
   private readonly accountsService = inject(AccountsService);
+  private readonly currentUserStore = inject(CurrentUserStore);
   private readonly confirmationService = inject(ConfirmationService);
   private readonly messageService = inject(MessageService);
   private readonly destroyRef = inject(DestroyRef);
@@ -105,8 +107,11 @@ export class AccountsComponent implements OnInit {
     );
   }
 
-  /** Reason the role select is disabled, or '' when it isn't — drives the wrapper's tooltip (native `disabled` controls don't fire hover events themselves). */
+  /** Reason the role select is disabled, or '' when it isn't — drives both the `[disabled]` binding and the wrapper's tooltip (native `disabled` controls don't fire hover events themselves), so the two can never disagree. */
   protected roleSelectDisabledReason(account: AccountSummary): string {
+    if (account.id === this.currentUserStore.current()?.id) {
+      return this.translate.transform('accounts.cannotChangeOwnRole');
+    }
     if (account.isLastActiveAdmin) {
       return this.translate.transform('accounts.cannotChangeRoleLastAdmin');
     }
@@ -114,6 +119,10 @@ export class AccountsComponent implements OnInit {
       return this.translate.transform('accounts.cannotChangeRoleArchived');
     }
     return '';
+  }
+
+  protected roleSelectDisabled(account: AccountSummary): boolean {
+    return this.roleSelectDisabledReason(account) !== '';
   }
 
   /** Reason the domain-scopes multiselect is disabled, or '' when it isn't — drives the wrapper's tooltip, mirroring `roleSelectDisabledReason`. */
@@ -149,7 +158,19 @@ export class AccountsComponent implements OnInit {
         });
       },
       error: (error: unknown) => {
-        this.handleLifecycleError(account, error, 'change that role');
+        const httpError = error as { status?: number; error?: { error?: string } };
+        if (httpError.status === 403 && httpError.error?.error === 'forbidden') {
+          // Defense-in-depth: the select is disabled for the signed-in
+          // user's own row, but a stale UI (e.g. a second tab) could still
+          // reach the server, which enforces this regardless (020).
+          this.refresh();
+          this.messageService.add({
+            severity: 'warn',
+            summary: this.translate.transform('accounts.cannotChangeOwnRole'),
+          });
+          return;
+        }
+        this.handleLifecycleError(account, error, 'role');
       },
     });
   }
@@ -214,7 +235,7 @@ export class AccountsComponent implements OnInit {
           });
           return;
         }
-        this.handleLifecycleError(account, error, 'archive this account');
+        this.handleLifecycleError(account, error, 'archive');
       },
     });
   }
@@ -246,18 +267,33 @@ export class AccountsComponent implements OnInit {
     });
   }
 
-  private handleLifecycleError(account: AccountSummary, error: unknown, action: string): void {
+  private handleLifecycleError(
+    account: AccountSummary,
+    error: unknown,
+    kind: 'role' | 'archive',
+  ): void {
     const httpError = error as { status?: number; error?: { error?: string } };
     this.refresh();
     if (httpError.status === 409 && httpError.error?.error === 'last_admin') {
       this.lastAdminBlockedFor.set(account.displayName);
       this.messageService.add({
         severity: 'warn',
-        summary: "Can't " + action,
-        detail: `${account.displayName} is the only active administrator.`,
+        summary: this.translate.transform(
+          kind === 'role'
+            ? 'accounts.cannotChangeRoleLastAdmin'
+            : 'accounts.cannotArchiveLastAdmin',
+        ),
+        detail: this.translate
+          .transform('accounts.lastAdminBlocked')
+          .replace('{{name}}', account.displayName),
       });
       return;
     }
-    this.messageService.add({ severity: 'error', summary: `Unable to ${action}.` });
+    this.messageService.add({
+      severity: 'error',
+      summary: this.translate.transform(
+        kind === 'role' ? 'accounts.changeRoleError' : 'accounts.archiveError',
+      ),
+    });
   }
 }

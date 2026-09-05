@@ -45,7 +45,7 @@
                   optionLabel="label"
                   optionValue="value"
                   [ngModel]="account.role"
-                  [disabled]="account.isLastActiveAdmin || account.status === 'ARCHIVED'"
+                  [disabled]="roleSelectDisabled(account)"
                   (onChange)="onRoleChange(account, $event.value)"
                   appendTo="body"
                 >

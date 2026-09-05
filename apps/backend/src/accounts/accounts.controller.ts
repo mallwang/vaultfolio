@@ -64,6 +64,10 @@ export class AccountsController {
   ): Promise<AccountSummary | AccountsErrorResponse> {
     const result = await this.accounts.changeRole(currentUser.id, id, body?.role);
 
+    if (result.kind === 'forbidden') {
+      res.status(HttpStatus.FORBIDDEN);
+      return FORBIDDEN;
+    }
     if (result.kind === 'not_found') {
       res.status(HttpStatus.NOT_FOUND);
       return NOT_FOUND;

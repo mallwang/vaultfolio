@@ -40,7 +40,10 @@ function toSummary(user: User, activeAdminCount: number): AccountSummary {
 }
 
 export type ChangeRoleResult =
-  { kind: 'success'; account: AccountSummary } | { kind: 'not_found' } | { kind: 'last_admin' };
+  | { kind: 'success'; account: AccountSummary }
+  | { kind: 'not_found' }
+  | { kind: 'last_admin' }
+  | { kind: 'forbidden' };
 
 export type ChangeDomainScopesResult =
   { kind: 'success'; account: AccountSummary } | { kind: 'not_found' } | { kind: 'invalid_domain' };
@@ -82,6 +85,15 @@ export class AccountsService {
   }
 
   async changeRole(actorId: string, id: string, role: UserRole): Promise<ChangeRoleResult> {
+    if (actorId === id) {
+      // An admin must not be able to change their own role — self-promotion
+      // and self-demotion both bypass the "another admin agreed" intent
+      // behind this endpoint. Changing your own account stays scoped to
+      // deleteSelf (020).
+      this.logger.log({ actor: actorId, target: id, event: 'change_role', outcome: 'forbidden' });
+      return { kind: 'forbidden' };
+    }
+
     const user = await this.users.findById(id);
     if (!user) {
       return { kind: 'not_found' };
