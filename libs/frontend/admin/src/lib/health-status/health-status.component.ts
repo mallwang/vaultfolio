@@ -4,7 +4,7 @@ import type { HealthStatus } from '@vaultfolio/api-contract';
 import { CardModule } from 'primeng/card';
 import { MessageModule } from 'primeng/message';
 import { TagModule } from 'primeng/tag';
-import { IconComponent, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
+import { IconComponent, LocaleDateTimePipe, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
 
 /**
  * Minimal page that calls GET /health and renders the result — proves the
@@ -26,7 +26,7 @@ import { IconComponent, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
  */
 @Component({
   selector: 'app-health-status',
-  imports: [CardModule, TagModule, MessageModule, TranslatePipe, IconComponent],
+  imports: [CardModule, TagModule, MessageModule, TranslatePipe, LocaleDateTimePipe, IconComponent],
   providers: [TranslatePipe],
   template: `
     <p-card [header]="'healthStatus.title' | translate">
@@ -34,15 +34,27 @@ import { IconComponent, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
         <div class="health-status__row">
           <p-tag
             [severity]="result.status === 'ok' ? 'success' : 'danger'"
-            [value]="('healthStatus.backend' | translate) + ': ' + result.status"
+            [value]="
+              ('healthStatus.backend' | translate) +
+              ': ' +
+              (result.status === 'ok'
+                ? ('healthStatus.statusOk' | translate)
+                : ('healthStatus.statusDegraded' | translate))
+            "
           />
           <p-tag
-            [severity]="result.status === 'ok' ? 'success' : 'danger'"
-            [value]="('healthStatus.database' | translate) + ': ' + result.database"
+            [severity]="result.database === 'connected' ? 'success' : 'danger'"
+            [value]="
+              ('healthStatus.database' | translate) +
+              ': ' +
+              (result.database === 'connected'
+                ? ('healthStatus.databaseConnected' | translate)
+                : ('healthStatus.databaseUnreachable' | translate))
+            "
           />
         </div>
         <p class="health-status__timestamp">
-          {{ 'healthStatus.checkedAt' | translate }} {{ result.timestamp }}
+          {{ 'healthStatus.checkedAt' | translate }} {{ result.timestamp | localeDateTime }}
         </p>
       } @else if (error()) {
         <p-message severity="error">

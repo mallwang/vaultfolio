@@ -2,6 +2,7 @@ export { I18nService } from './lib/i18n/i18n.service';
 export { TranslatePipe } from './lib/i18n/translate.pipe';
 export { LocaleNumberPipe } from './lib/i18n/locale-number.pipe';
 export { LocaleDatePipe } from './lib/i18n/locale-date.pipe';
+export { LocaleDateTimePipe } from './lib/i18n/locale-date-time.pipe';
 export { en } from './lib/i18n/translations/en';
 export type { TranslationDictionary } from './lib/i18n/translations/en';
 export { de } from './lib/i18n/translations/de';

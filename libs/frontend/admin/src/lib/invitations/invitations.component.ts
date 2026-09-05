@@ -1,4 +1,3 @@
-import { DatePipe } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import type { InvitationSummary } from '@vaultfolio/api-contract';
 import { ButtonModule } from 'primeng/button';
@@ -8,7 +7,7 @@ import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
-import { IconComponent, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
+import { IconComponent, LocaleDatePipe, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
 import { InviteDialogComponent } from './invite-dialog/invite-dialog.component';
 import { InvitationsService } from './invitations.service';
 
@@ -44,7 +43,7 @@ const STATUS_LABEL_KEY: Record<InvitationStatus, string> = {
 @Component({
   selector: 'app-invitations',
   imports: [
-    DatePipe,
+    LocaleDatePipe,
     TableModule,
     ButtonModule,
     TagModule,
@@ -99,7 +98,7 @@ const STATUS_LABEL_KEY: Record<InvitationStatus, string> = {
                     | translate
                 }}
               </td>
-              <td>{{ invitation.createdAt | date: 'mediumDate' }}</td>
+              <td>{{ invitation.createdAt | localeDate }}</td>
               <td>
                 <p-tag
                   [severity]="statusSeverity(invitation.status)"

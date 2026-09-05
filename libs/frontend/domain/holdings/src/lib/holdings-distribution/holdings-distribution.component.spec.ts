@@ -2,7 +2,10 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import type { HoldingResponse } from '@vaultfolio/api-contract';
-import { HoldingsDistributionComponent } from './holdings-distribution.component';
+import {
+  HoldingsDistributionComponent,
+  contrastTextColor,
+} from './holdings-distribution.component';
 import { ASSET_TYPE_COLORS } from '@vaultfolio/frontend-shared-ui';
 
 vi.mock('echarts', () => ({
@@ -79,8 +82,18 @@ describe('HoldingsDistributionComponent', () => {
     const series = option.series as Array<{ data: Array<{ name: string; value: number }> }>;
 
     expect(series[0].data).toEqual([
-      { name: 'Share', value: 60, itemStyle: { color: ASSET_TYPE_COLORS.SHARE } },
-      { name: 'Precious metal', value: 25, itemStyle: { color: ASSET_TYPE_COLORS.PRECIOUS_METAL } },
+      {
+        name: 'Share',
+        value: 60,
+        itemStyle: { color: ASSET_TYPE_COLORS.SHARE },
+        label: { color: contrastTextColor(ASSET_TYPE_COLORS.SHARE) },
+      },
+      {
+        name: 'Precious metal',
+        value: 25,
+        itemStyle: { color: ASSET_TYPE_COLORS.PRECIOUS_METAL },
+        label: { color: contrastTextColor(ASSET_TYPE_COLORS.PRECIOUS_METAL) },
+      },
     ]);
     expect(fixture.componentInstance['excludedCount']()).toBe(1);
   });
@@ -108,7 +121,12 @@ describe('HoldingsDistributionComponent', () => {
     const series = option.series as Array<{ data: Array<{ name: string; value: number }> }>;
 
     expect(series[0].data).toEqual([
-      { name: 'Crypto', value: 9000, itemStyle: { color: ASSET_TYPE_COLORS.CRYPTO } },
+      {
+        name: 'Crypto',
+        value: 9000,
+        itemStyle: { color: ASSET_TYPE_COLORS.CRYPTO },
+        label: { color: contrastTextColor(ASSET_TYPE_COLORS.CRYPTO) },
+      },
     ]);
   });
 
@@ -128,7 +146,12 @@ describe('HoldingsDistributionComponent', () => {
     const series = option.series as Array<{ data: Array<{ name: string; value: number }> }>;
 
     expect(series[0].data).toEqual([
-      { name: 'Deposit money', value: 1750, itemStyle: { color: ASSET_TYPE_COLORS.DEPOSIT_MONEY } },
+      {
+        name: 'Deposit money',
+        value: 1750,
+        itemStyle: { color: ASSET_TYPE_COLORS.DEPOSIT_MONEY },
+        label: { color: contrastTextColor(ASSET_TYPE_COLORS.DEPOSIT_MONEY) },
+      },
     ]);
   });
 
@@ -142,7 +165,12 @@ describe('HoldingsDistributionComponent', () => {
     const series = option.series as Array<{ data: Array<{ name: string; value: number }> }>;
 
     expect(series[0].data).toEqual([
-      { name: 'Precious metal', value: 25, itemStyle: { color: ASSET_TYPE_COLORS.PRECIOUS_METAL } },
+      {
+        name: 'Precious metal',
+        value: 25,
+        itemStyle: { color: ASSET_TYPE_COLORS.PRECIOUS_METAL },
+        label: { color: contrastTextColor(ASSET_TYPE_COLORS.PRECIOUS_METAL) },
+      },
     ]);
   });
 
@@ -192,7 +220,12 @@ describe('HoldingsDistributionComponent', () => {
     const series = option.series as Array<{ data: Array<{ name: string; value: number }> }>;
 
     expect(series[0].data).toEqual([
-      { name: 'Share', value: 50, itemStyle: { color: ASSET_TYPE_COLORS.SHARE } },
+      {
+        name: 'Share',
+        value: 50,
+        itemStyle: { color: ASSET_TYPE_COLORS.SHARE },
+        label: { color: contrastTextColor(ASSET_TYPE_COLORS.SHARE) },
+      },
     ]);
     expect(fixture.componentInstance['excludedCount']()).toBe(2);
   });
@@ -223,7 +256,12 @@ describe('HoldingsDistributionComponent', () => {
     const option = fixture.componentInstance['chartOption']();
     const series = option.series as Array<{ data: Array<{ name: string; value: number }> }>;
     expect(series[0].data).toEqual([
-      { name: 'Share', value: 50, itemStyle: { color: ASSET_TYPE_COLORS.SHARE } },
+      {
+        name: 'Share',
+        value: 50,
+        itemStyle: { color: ASSET_TYPE_COLORS.SHARE },
+        label: { color: contrastTextColor(ASSET_TYPE_COLORS.SHARE) },
+      },
     ]);
   });
 

@@ -337,6 +337,10 @@ export const en: TranslationDictionary = {
     checkedAt: 'Checked at',
     checking: 'Checking backend health…',
     error: 'Unable to reach the backend health check.',
+    statusOk: 'ok',
+    statusDegraded: 'degraded',
+    databaseConnected: 'connected',
+    databaseUnreachable: 'unreachable',
   },
   // Placeholder domains (022-add-domain-placeholders, FR-003): each renders
   // only its name and this "not yet available" copy — no other UI surface.

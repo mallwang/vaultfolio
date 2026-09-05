@@ -1,4 +1,3 @@
-import { DatePipe } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import type { SignupSummary } from '@vaultfolio/api-contract';
 import { ButtonModule } from 'primeng/button';
@@ -8,7 +7,7 @@ import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
-import { IconComponent, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
+import { IconComponent, LocaleDatePipe, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
 import { AccountsService } from '../accounts/accounts.service';
 import { RejectDialogComponent } from './reject-dialog/reject-dialog.component';
 import { SignupsAdminService } from './signups.service';
@@ -41,7 +40,7 @@ const STATUS_LABEL_KEY: Record<SignupStatus, string> = {
 @Component({
   selector: 'app-signups',
   imports: [
-    DatePipe,
+    LocaleDatePipe,
     TableModule,
     ButtonModule,
     TagModule,
@@ -82,7 +81,7 @@ const STATUS_LABEL_KEY: Record<SignupStatus, string> = {
           <ng-template #body let-signup>
             <tr>
               <td>{{ signup.email }}</td>
-              <td>{{ signup.createdAt | date: 'mediumDate' }}</td>
+              <td>{{ signup.createdAt | localeDate }}</td>
               <td>
                 <p-tag
                   [severity]="statusSeverity(signup.status)"
@@ -92,7 +91,7 @@ const STATUS_LABEL_KEY: Record<SignupStatus, string> = {
                 @if (signup.accountDeletedAt) {
                   <div class="status-followup">
                     {{ 'signups.accountDeleted' | translate }}
-                    {{ signup.accountDeletedAt | date: 'mediumDate' }}
+                    {{ signup.accountDeletedAt | localeDate }}
                   </div>
                 }
               </td>

@@ -6,12 +6,12 @@ import { ButtonModule } from 'primeng/button';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { MessageModule } from 'primeng/message';
-import { MultiSelectModule } from 'primeng/multiselect';
 import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
+import type { DomainDescriptor } from '@vaultfolio/frontend-domain-access';
 import { CURRENT_USER_SOURCE, DOMAIN_REGISTRY } from '@vaultfolio/frontend-domain-access';
 import { IconComponent, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
 import { AccountsService } from './accounts.service';
@@ -55,7 +55,6 @@ const ROLE_OPTIONS: RoleOption[] = [
     FormsModule,
     TranslatePipe,
     IconComponent,
-    MultiSelectModule,
   ],
   providers: [ConfirmationService, MessageService, TranslatePipe],
   template: `
@@ -129,11 +128,11 @@ const ROLE_OPTIONS: RoleOption[] = [
                   tooltipPosition="top"
                   appendTo="body"
                 >
-                  <p-multiselect
+                  <p-select
                     [options]="domainRegistry"
                     optionLabel="labelKey"
                     optionValue="id"
-                    display="chip"
+                    [multiple]="true"
                     [ngModel]="account.role === 'ADMIN' ? [] : account.domainScopes"
                     [disabled]="account.role === 'ADMIN' || account.status === 'ARCHIVED'"
                     [placeholder]="
@@ -145,15 +144,29 @@ const ROLE_OPTIONS: RoleOption[] = [
                     (onChange)="onDomainScopesChange(account, $event.value)"
                   >
                     <ng-template #dropdownicon><app-icon name="chevron-down" /></ng-template>
-                    <ng-template let-domain #item>{{ domain.labelKey | translate }}</ng-template>
-                    <ng-template let-selected #selecteditems>
-                      @for (domain of selected; track domain.id) {
-                        <span class="p-multiselect-chip-item">{{
-                          domain.labelKey | translate
-                        }}</span>
+                    <ng-template let-domain #item>
+                      <div class="domain-option">
+                        <app-icon [name]="domain.icon" />
+                        <span>{{ domain.labelKey | translate }}</span>
+                      </div>
+                    </ng-template>
+                    <ng-template #selectedItem>
+                      @if (account.role !== 'ADMIN' && account.domainScopes?.length) {
+                        <div class="domain-chips">
+                          @for (domainId of account.domainScopes; track domainId) {
+                            <span
+                              class="domain-chip"
+                              [pTooltip]="domainDescriptor(domainId)?.labelKey | translate"
+                              tooltipPosition="top"
+                              appendTo="body"
+                            >
+                              <app-icon [name]="domainDescriptor(domainId)?.icon ?? 'briefcase'" />
+                            </span>
+                          }
+                        </div>
                       }
                     </ng-template>
-                  </p-multiselect>
+                  </p-select>
                 </span>
               </td>
               <td>
@@ -239,6 +252,27 @@ const ROLE_OPTIONS: RoleOption[] = [
       gap: 0.5rem;
       flex-wrap: nowrap;
       white-space: nowrap;
+    }
+
+    .domain-option {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .domain-chips {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.25rem;
+    }
+
+    .domain-chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.75rem;
+      height: 1.75rem;
     }
 
     .row-actions {
@@ -338,6 +372,11 @@ export class AccountsComponent implements OnInit {
       return this.translate.transform('accounts.domainScopesDisabledArchived');
     }
     return '';
+  }
+
+  /** Looks up a domain registry entry by id — backs the domain-scopes select's icon chips. */
+  protected domainDescriptor(domainId: string): DomainDescriptor | undefined {
+    return this.domainRegistry.find((domain) => domain.id === domainId);
   }
 
   protected daysLeft(account: AccountSummary): number | null {
