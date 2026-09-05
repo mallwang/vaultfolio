@@ -1,31 +1,45 @@
 <!--
 Sync Impact Report
-- Version change: 3.1.0 → 3.2.0 (MINOR: new Stack Decision entry adds a materially new,
-  binding constraint — ECharts as the sole charting library, PrimeNG Chart/Chart.js prohibited —
-  without redefining or removing any existing principle or constraint)
+- Version change: 3.3.0 → 3.4.0 (MINOR: Product Scope materially expanded — a new domain-scoped
+  in-scope carve-out added and an existing Out of Scope exclusion narrowed to accommodate it —
+  without removing or redefining any Core Principle)
 - Modified principles: none
-- Added sections: none (new bullet added to existing "Stack Decision" subsection)
+- Added sections: none
 - Removed sections: none
 - Modified sections:
-  - Technology & Architecture Constraints → Stack Decision: added a "Charting library" entry
-    naming Apache ECharts as the required, sole charting library for the frontend, and
-    prohibiting PrimeNG's Chart component (and its underlying Chart.js dependency) anywhere in
-    the application UI.
-- Rationale for this amendment: driven by feature 016-echarts-chart-migration — the project is
-  standardizing on one consistent charting library across the app instead of relying on PrimeNG's
-  bundled Chart.js-based component, and this decision needs to be binding for all future feature
-  work, not just the one feature that introduces it.
+  - Product Scope: added an intro framing Vaultfolio as a multi-domain personal finance app
+    (Holdings built; Retirement, Insurances, Haushaltsplaner, Historic Wealth Development, Account
+    Overview planned/placeholder, per 022-add-domain-placeholders) and noting scope rules are
+    per-domain unless stated otherwise.
+  - Product Scope → In Scope: reworded existing bullets as explicitly Holdings-domain-scoped;
+    added a bullet putting day-to-day expense/budget tracking in scope for the Haushaltsplaner
+    domain specifically.
+  - Product Scope → Out of Scope: narrowed the day-to-day expense/budget tracking exclusion to
+    the Holdings domain and non-domain-scoped shell features (it no longer blanket-prohibits the
+    whole product), since that exclusion conflicted with the already-decided Haushaltsplaner
+    domain (a household/budget planner, per the microfrontend-architecture assessment's intake.md)
+    ; extended the no-bank/brokerage-API-integration rule to explicitly cover Account Overview,
+    since that domain aggregates account data across banks/neobrokers/depots.
+- Rationale for this amendment: features 020-022 committed Vaultfolio to a multi-domain pivot,
+  including a Haushaltsplaner (household/budget planner) domain, without reconciling it against
+  the constitution's existing blanket ban on budget-tracking features — an oversight in the prior
+  assess/decide workflow (.specify/assessments/microfrontend-architecture/) that left the
+  constitution and the accepted domain roadmap in direct conflict. This amendment resolves that
+  conflict deliberately rather than leaving it latent until Haushaltsplaner is specified.
 - Templates requiring updates:
   - .specify/templates/constitution-template.md ✅ no change needed (generic placeholder
-    template, no charting-specific language to update)
-  - .specify/templates/plan-template.md ✅ no change needed (no charting-specific language)
-  - .specify/templates/tasks-template.md ✅ no change needed (no charting-specific language)
+    template, no product-scope-specific language to update)
+  - .specify/templates/plan-template.md ✅ no change needed
+  - .specify/templates/tasks-template.md ✅ no change needed
   - .specify/templates/spec-template.md ✅ no change needed (spec stays technology-agnostic)
 - Follow-up TODOs:
   - TODO(MARKET_DATA_PROVIDER): Specific market-data API vendor (prices, ETF composition) not yet
     chosen. Resolve during the /speckit-plan run for the first feature that needs live market data;
     isolate behind a dedicated module per Principle I and the Product Scope's External Market Data
     rules so the vendor stays swappable.
+  - Consider whether Account Overview's "planned cash flow" (per the intake) implies any
+    forecasting/projection logic that would need its own Core Principle or Stack Decision entry —
+    unresolved until that domain is actually specified via /speckit-specify.
 -->
 
 # Vaultfolio Constitution
@@ -116,26 +130,42 @@ Simplicity keeps that audit trail short and keeps the system easy to reason abou
 
 ## Product Scope
 
+Vaultfolio is a multi-domain personal finance app, organized as an app-shell plus independent
+domains per the Frontend domain libraries Stack Decision below. **Holdings** (investment tracking)
+is the first fully-built domain; **Retirement**, **Insurances**, **Haushaltsplaner** (household/
+budget planning), **Historic Wealth Development**, and **Account Overview** are planned domains
+(registered today as placeholders — see 022-add-domain-placeholders). The scope rules below apply
+per domain as noted; a rule scoped to "the Holdings domain" does not extend to other domains unless
+stated.
+
 ### In Scope
 
-- Tracking investment holdings: ETFs, individual shares/stocks, gold and other precious metals,
-  and similar investment vehicles.
-- Manual entry and management of holdings and transactions (buys, sells, quantities, cost basis)
-  via the UI.
-- Bulk import of holdings/transactions via CSV or JSON files.
-- A portfolio overview that aggregates allocation across holdings — including looking through ETF
-  composition to underlying constituent weights — so overweight positions and duplicate/
-  overlapping exposure across different holdings (e.g., the same share held both directly and
-  inside two different ETFs) can be identified.
+- Holdings domain: tracking investment holdings — ETFs, individual shares/stocks, gold and other
+  precious metals, and similar investment vehicles.
+- Holdings domain: manual entry and management of holdings and transactions (buys, sells,
+  quantities, cost basis) via the UI.
+- Holdings domain: bulk import of holdings/transactions via CSV or JSON files.
+- Holdings domain: a portfolio overview that aggregates allocation across holdings — including
+  looking through ETF composition to underlying constituent weights — so overweight positions and
+  duplicate/overlapping exposure across different holdings (e.g., the same share held both
+  directly and inside two different ETFs) can be identified.
+- Haushaltsplaner domain: day-to-day expense/budget tracking — income, spending categories, bills,
+  recurring payments, and monthly budget planning. This is the express purpose of this domain, once
+  specified; it is a deliberate exception to the general exclusion below, confined to this domain.
 
 ### Out of Scope
 
-- Day-to-day expense or budget tracking (income, spending categories, bills, recurring payments).
-  This is explicitly not a goal of the product and MUST NOT be added as a feature.
+- Day-to-day expense or budget tracking (income, spending categories, bills, recurring payments)
+  **within the Holdings domain**, or as a standalone, non-domain-scoped feature of the app-shell.
+  This remains explicitly not a goal of Holdings and MUST NOT be added to it — it belongs
+  exclusively to the Haushaltsplaner domain (see In Scope above) so the two domains' data and
+  concerns stay separated per the Frontend domain libraries Stack Decision.
 - Any integration with personal banking or brokerage account APIs to read the user's account or
-  transaction data. All personal holdings/transaction data MUST originate from manual UI entry or
-  explicit CSV/JSON import — it MUST NOT be pulled automatically from a linked bank or brokerage
-  account.
+  transaction data. All personal holdings/transaction and expense/budget data MUST originate from
+  manual UI entry or explicit CSV/JSON import — it MUST NOT be pulled automatically from a linked
+  bank or brokerage account. This applies across all domains, including Account Overview: it MAY
+  aggregate manually entered or imported balances across accounts, but MUST NOT itself integrate
+  with a bank/brokerage API to fetch them live.
 
 ### External Market Data (Permitted)
 
@@ -202,6 +232,25 @@ provider is unreachable, since a user's recorded holdings are the source of trut
   All charts MUST be rendered via ECharts; PrimeNG's Chart component (and its underlying Chart.js
   dependency) MUST NOT be used anywhere in the application UI — new and existing chart usage alike
   MUST be migrated to ECharts, with no partial/mixed charting libraries left in place.
+- **Frontend domain libraries**: Every frontend domain (e.g., holdings, retirement, insurances,
+  household planning, historic wealth development, account overview) MUST be its own standalone
+  Nx library under `libs/frontend/domain/<name>`, tagged `scope:frontend-domain`, independently
+  testable per Principle I. Domain boundaries MUST be enforced by Nx project tags via
+  `@nx/enforce-module-boundaries`, not by discipline alone:
+  - `scope:frontend` (the app-shell) MAY depend only on `scope:shared`, `scope:frontend-domain`,
+    and `scope:frontend-admin`.
+  - `scope:frontend-domain` and `scope:frontend-admin` MAY depend only on `scope:shared` — a
+    domain library MUST NOT import another domain library, and MUST NOT import the app-shell.
+  - `scope:shared` MAY depend only on `scope:shared`.
+    Entitlement checks (which domains a given account can access) MUST live in the single
+    `scope:shared` `libs/frontend/domain-access` library, not be duplicated per domain; that library
+    MUST NOT depend on any `scope:frontend-domain` library, so the shared entitlement mechanism
+    never couples back to a specific domain. Admin/Verwaltung MUST remain its own role-gated module
+    (`libs/frontend/admin`, tagged `scope:frontend-admin`), separate from the domain-entitlement
+    model used for product domains. The Dashboard and Settings areas MUST expose a per-domain
+    contribution mechanism (a registry a domain library registers against) so a domain can offer its
+    own dashboard widget and/or settings tab, filtered by domain entitlement, without the shell
+    hard-coding per-domain imports or domain libraries depending on each other.
 
 ## Development Workflow & Quality Gates
 
@@ -229,4 +278,4 @@ alignment with the Core Principles; unresolved violations MUST be justified in t
 Complexity Tracking section or the plan MUST be revised to comply. Reviewers MUST treat this
 constitution as authoritative over informal team conventions.
 
-**Version**: 3.2.0 | **Ratified**: 2026-08-13 | **Last Amended**: 2026-09-01
+**Version**: 3.4.0 | **Ratified**: 2026-08-13 | **Last Amended**: 2026-09-05

@@ -4,32 +4,70 @@
   <img src="logo.png" alt="Vaultfolio" width="120" />
 </p>
 
-A personal investment tracking web application — frontend, backend, and database, packaged and
-hosted as Docker containers.
+A personal finance web application — frontend, backend, and database, packaged and hosted as
+Docker containers.
 
-Vaultfolio tracks _what you've invested_ (ETFs, shares, gold, and other holdings), not day-to-day
-spending. It does not connect to any bank or brokerage APIs — all data is entered manually through
-the UI, with CSV/JSON import as a convenience for bulk entry.
+Vaultfolio is organized around independent domains (see
+[Frontend domain-library architecture](#frontend-domain-library-architecture)). **Holdings** —
+tracking _what you've invested_ (ETFs, shares, gold, and other holdings) — is the first, fully
+built domain; it does not connect to any bank or brokerage APIs, all data is entered manually
+through the UI, with CSV/JSON import as a convenience for bulk entry. Planned domains extend this
+beyond investing into a broader personal finance app: Retirement, Insurances, Haushaltsplaner
+(household/budget planning — day-to-day spending vs. income), Historic Wealth Development, and
+Account Overview (see [constitution](.specify/memory/constitution.md#product-scope) for the
+per-domain scope rules — e.g., no domain connects to a bank/brokerage API directly, even Account
+Overview).
 
 ## Status
 
 The tech stack scaffold is in place (Nx monorepo, NestJS backend, Angular frontend, SQLite,
 Docker Compose orchestration) per the project [constitution](.specify/memory/constitution.md).
-Holdings tracking (manual entry, CRUD) exists; broader capabilities (imports, valuation) are still
-to come.
+Holdings tracking (manual entry, CRUD, CSV/JSON import, distribution-by-type chart) is built out;
+the frontend has grown into a multi-domain app shell — authentication/sessions, admin (accounts,
+invitations, sign-ups), self-service signup, profile/password/preferences settings, multi-language
+UI, theme switching, and a dashboard — with holdings as the first of several planned domains
+(retirement, insurances, household planning, historic wealth development, account overview exist
+today as placeholders). Broader capabilities (live market data, valuation) are still to come.
 
 ## Tech stack
 
 - **Monorepo**: [Nx](https://nx.dev), TypeScript throughout
-- **Backend**: [NestJS](https://nestjs.com) (`apps/backend`) — exposes `GET /health` and the
-  `/holdings` API
-- **Frontend**: [Angular](https://angular.dev) (`apps/frontend`) — renders the health-check page
-  and the holdings UI
+- **Backend**: [NestJS](https://nestjs.com) (`apps/backend`) — exposes `GET /health`, auth/session,
+  accounts/invitations, and the `/holdings` API
+- **Frontend**: [Angular](https://angular.dev) (`apps/frontend`) — an app-shell (routing, layout,
+  navigation, auth/session, dashboard, settings) that composes independent domain libraries; see
+  [Frontend domain-library architecture](#frontend-domain-library-architecture) below
 - **Database**: SQLite, embedded directly in the backend process as a single file (no separate
   database container/service), bind-mounted from the host's `./data` directory
 - **Shared libraries**: `libs/api-contract` (types shared between backend/frontend),
-  `libs/domain/holdings` (holdings validation/merge logic, Library-First),
-  `libs/market-data` (reserved, empty — see `TODO(MARKET_DATA_PROVIDER)`)
+  `libs/domain/holdings` (backend-side holdings validation/merge logic, Library-First),
+  `libs/market-data` (reserved, empty — see `TODO(MARKET_DATA_PROVIDER)`),
+  `libs/notifications` (localized email notifications)
+
+## Frontend domain-library architecture
+
+The frontend is split into an app-shell plus independent domain libraries under
+`libs/frontend/domain/<name>` (holdings today; retirement, insurances, household planning
+(`haushaltsplaner`), historic wealth development, and account overview exist as placeholders ready
+to be built out). This structure — and the Nx project-tag boundaries that enforce it — is a binding
+architectural decision recorded in the [constitution](.specify/memory/constitution.md#stack-decision)
+(specs [020-domain-library-architecture](specs/020-domain-library-architecture/spec.md) and
+[021-frontend-extension-points](specs/021-frontend-extension-points/spec.md)):
+
+- `libs/frontend/domain/<name>` (tag `scope:frontend-domain`) — one per domain; MUST NOT import
+  another domain library, only `scope:shared` libraries.
+- `libs/frontend/domain-access` (tag `scope:shared`) — the single place entitlement checks (which
+  domains an account can access) live; MUST NOT depend on any domain library.
+- `libs/frontend/admin` (tag `scope:frontend-admin`) — Admin/Verwaltung, role-gated separately
+  from the domain-entitlement model.
+- `libs/frontend/shared-ui` (tag `scope:shared`) — components/pipes/i18n shared across the shell
+  and domains (e.g., locale-aware number/date formatting).
+- `apps/frontend` (tag `scope:frontend`, the app-shell) — routing, layout/navigation, and the
+  Dashboard/Settings extension registries a domain library contributes a widget or settings tab to
+  without the shell hard-coding per-domain imports.
+
+These boundaries are enforced at lint time via `@nx/enforce-module-boundaries`
+([eslint.config.mjs](eslint.config.mjs)), not just by convention.
 
 ## Running the full stack locally
 
