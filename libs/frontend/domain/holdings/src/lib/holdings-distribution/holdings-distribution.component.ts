@@ -1,9 +1,9 @@
 import { Component, Input, OnChanges, OnInit, computed, inject, signal } from '@angular/core';
-import Decimal from 'decimal.js';
 import type { EChartsOption } from 'echarts';
 import type { AssetType, HoldingResponse } from '@vaultfolio/api-contract';
 import { ASSET_TYPE_LABEL_KEYS } from '../asset-type-fields';
 import { HoldingsService } from '../holdings.service';
+import { groupHoldingsByKey } from '../holdings-valuation';
 import {
   EchartComponent,
   ASSET_TYPE_COLORS,
@@ -102,11 +102,16 @@ interface HoldingsDistributionEntry {
     }
 
     /* app-echart fills its parent (shared css); give it a concrete height here
-       since .distribution itself only sizes to its content. */
+       since .distribution itself only sizes to its content. The custom
+       property (inherited, so it crosses this component's style
+       encapsulation boundary) lets HoldingsComponent's denser 6-tile row
+       shrink this tile along with the others without affecting this
+       component's other consumer, the Dashboard widget, which keeps the
+       18rem default — see HoldingsTypeBreakdownComponent's identical rule. */
     .distribution__chart app-echart {
       display: block;
       width: 100%;
-      height: 18rem;
+      height: var(--holdings-chart-height, 18rem);
     }
 
     /* Matches the pie series' own \`center\` (chartOption's \`pieCenter\`) — an
@@ -119,6 +124,12 @@ interface HoldingsDistributionEntry {
       top: 42%;
       transform: translate(-50%, -50%);
       font-weight: bold;
+      /* Matches HoldingsTypeBreakdownComponent's own \`__center-label\` size:
+         every tile in the holdings-page grid shares the same width and
+         height (var(--holdings-chart-height)), so this chart's donut hole
+         is no bigger than theirs — the default (ambient) font size used to
+         overflow it. */
+      font-size: 0.75rem;
       color: var(--p-text-color);
       pointer-events: none;
     }
@@ -156,7 +167,13 @@ export class HoldingsDistributionComponent implements OnChanges, OnInit {
       this.translate.transform(ASSET_TYPE_LABEL_KEYS[entry.assetType]);
     const pieCenter: [string, string] = ['50%', '42%'];
     return {
-      legend: { orient: 'horizontal', bottom: 0, left: 'center' },
+      // `EchartComponent`'s shared theming fragment merges in its own
+      // `legend: { textStyle }` on every theme change (to keep legend text
+      // readable for charts that DO show one) — since that's a merge, not a
+      // replace, it would otherwise resurrect a default-visible legend here
+      // even though this option has no `legend` key of its own. Explicit
+      // `show: false` survives that merge.
+      legend: { show: false },
       tooltip: {
         trigger: 'item',
         formatter: (params: unknown) => {
@@ -181,8 +198,10 @@ export class HoldingsDistributionComponent implements OnChanges, OnInit {
           // fill (a single series-level color can't stay legible against
           // both the light gold "precious metal" slice and the darker
           // ones) — plain, no text border/glow. One decimal place keeps
-          // the label short enough to fit even the narrowest segment.
-          label: { position: 'inside', formatter: '{d}%', fontWeight: 'bold' },
+          // the label short enough to fit even the narrowest segment. A
+          // smaller-than-default fontSize keeps the label legible inside
+          // even the narrowest slices instead of overflowing them.
+          label: { position: 'inside', formatter: '{d}%', fontWeight: 'bold', fontSize: 10 },
           labelLine: { show: false },
           percentPrecision: 1,
           data: entries.map((entry) => {
@@ -243,41 +262,20 @@ export class HoldingsDistributionComponent implements OnChanges, OnInit {
   }
 
   private recompute(): void {
-    const totals = new Map<AssetType, Decimal>();
-    let excluded = 0;
+    const result = groupHoldingsByKey(this.holdings, (h) => h.assetType);
 
-    for (const holding of this.holdings) {
-      const value = HoldingsDistributionComponent.computeValue(holding);
-      if (value == null) {
-        excluded += 1;
-        continue;
-      }
-      const key = holding.assetType;
-      totals.set(key, (totals.get(key) ?? new Decimal(0)).plus(value));
-    }
+    this.excludedCount.set(result.excludedCount);
 
-    this.excludedCount.set(excluded);
-
-    if (totals.size === 0) {
+    if (result.entries.length === 0) {
       this.entries.set(null);
       return;
     }
 
     this.entries.set(
-      [...totals.entries()].map(([assetType, total]) => ({
-        assetType,
-        value: total.toNumber(),
+      result.entries.map((entry) => ({
+        assetType: entry.key,
+        value: entry.value.toNumber(),
       })),
     );
-  }
-
-  private static computeValue(holding: HoldingResponse): Decimal | null {
-    if (holding.assetType === 'PRECIOUS_METAL' || holding.assetType === 'DEPOSIT_MONEY') {
-      return holding.currentValue != null ? new Decimal(holding.currentValue) : null;
-    }
-    if (holding.quantity != null && holding.purchasePrice != null) {
-      return new Decimal(holding.quantity).times(holding.purchasePrice);
-    }
-    return null;
   }
 }
