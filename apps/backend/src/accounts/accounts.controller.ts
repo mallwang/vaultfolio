@@ -14,6 +14,7 @@ import type { Response } from 'express';
 import type {
   AccountsErrorResponse,
   AccountSummary,
+  ChangeDomainScopesRequest,
   ChangeRoleRequest,
 } from '@vaultfolio/api-contract';
 import { Roles } from '../auth/roles.decorator';
@@ -33,6 +34,10 @@ const ALREADY_ARCHIVED: AccountsErrorResponse = {
 const RETENTION_EXPIRED: AccountsErrorResponse = {
   error: 'retention_expired',
   message: "This account's retention window has passed.",
+};
+const INVALID_DOMAIN: AccountsErrorResponse = {
+  error: 'invalid_domain',
+  message: 'One or more domain ids are not recognized.',
 };
 const FORBIDDEN: AccountsErrorResponse = {
   error: 'forbidden',
@@ -66,6 +71,26 @@ export class AccountsController {
     if (result.kind === 'last_admin') {
       res.status(HttpStatus.CONFLICT);
       return LAST_ADMIN;
+    }
+    return result.account;
+  }
+
+  @Patch(':id/domain-scopes')
+  async changeDomainScopes(
+    @CurrentUser() currentUser: RequestUser,
+    @Param('id') id: string,
+    @Body() body: ChangeDomainScopesRequest,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<AccountSummary | AccountsErrorResponse> {
+    const result = await this.accounts.changeDomainScopes(currentUser.id, id, body?.domainScopes);
+
+    if (result.kind === 'not_found') {
+      res.status(HttpStatus.NOT_FOUND);
+      return NOT_FOUND;
+    }
+    if (result.kind === 'invalid_domain') {
+      res.status(HttpStatus.BAD_REQUEST);
+      return INVALID_DOMAIN;
     }
     return result.account;
   }

@@ -12,6 +12,7 @@ const user: SessionUser = {
   email: 'alex@example.com',
   displayName: 'Alex Example',
   role: 'MEMBER',
+  domainScopes: [],
 };
 
 describe('App', () => {

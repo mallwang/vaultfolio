@@ -6,14 +6,15 @@ import { ButtonModule } from 'primeng/button';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { MessageModule } from 'primeng/message';
+import { MultiSelectModule } from 'primeng/multiselect';
 import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
-import { IconComponent } from '../../shared/icon/icon.component';
+import { DOMAIN_REGISTRY } from '@vaultfolio/frontend-domain-access';
+import { IconComponent, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
 import { AccountsService } from './accounts.service';
-import { TranslatePipe } from '../../core/i18n/translate.pipe';
 
 type UserRole = AccountSummary['role'];
 
@@ -54,6 +55,7 @@ const ROLE_OPTIONS: RoleOption[] = [
     FormsModule,
     TranslatePipe,
     IconComponent,
+    MultiSelectModule,
   ],
   providers: [ConfirmationService, MessageService, TranslatePipe],
   templateUrl: './accounts.component.html',
@@ -72,6 +74,8 @@ export class AccountsComponent implements OnInit {
   protected readonly lastAdminBlockedFor = signal<string | null>(null);
 
   protected readonly roleOptions = ROLE_OPTIONS;
+  /** Drives the domain-scopes multi-select (T030, contracts/domain-access.md). */
+  protected readonly domainRegistry = DOMAIN_REGISTRY;
 
   ngOnInit(): void {
     this.refresh();
@@ -135,6 +139,31 @@ export class AccountsComponent implements OnInit {
       },
       error: (error: unknown) => {
         this.handleLifecycleError(account, error, 'change that role');
+      },
+    });
+  }
+
+  /** Translation key for a domain id's nav label, for the multi-select's chip display. */
+  protected domainLabelKey(domainId: string): string {
+    return this.domainRegistry.find((domain) => domain.id === domainId)?.labelKey ?? domainId;
+  }
+
+  /** `PATCH /accounts/:id/domain-scopes` (020, FR-004): mirrors `onRoleChange`'s refetch-on-success pattern. */
+  protected onDomainScopesChange(account: AccountSummary, domainScopes: string[]): void {
+    this.accountsService.updateDomainScopes(account.id, { domainScopes }).subscribe({
+      next: () => {
+        this.refresh();
+        this.messageService.add({
+          severity: 'success',
+          summary: this.translate.transform('accounts.domainScopesUpdated'),
+        });
+      },
+      error: () => {
+        this.refresh();
+        this.messageService.add({
+          severity: 'error',
+          summary: this.translate.transform('accounts.domainScopesUpdateError'),
+        });
       },
     });
   }

@@ -278,6 +278,52 @@ describe('/accounts', () => {
     });
   });
 
+  describe('PATCH /accounts/:id/domain-scopes', () => {
+    it('persists valid domain ids and returns them on the updated account: 200', async () => {
+      const cookie = await signIn(ADMIN_EMAIL, ADMIN_PASSWORD);
+      const member = await createMember('domain-scopes-valid@example.com');
+
+      const response = await request(app.getHttpServer())
+        .patch(`/accounts/${member.id}/domain-scopes`)
+        .set('Cookie', cookie)
+        .send({ domainScopes: ['holdings'] });
+
+      expect(response.status).toBe(200);
+      expect(response.body.domainScopes).toEqual(['holdings']);
+    });
+
+    it('rejects an unknown domain id: 400 invalid_domain, leaving the account unchanged', async () => {
+      const cookie = await signIn(ADMIN_EMAIL, ADMIN_PASSWORD);
+      const member = await createMember('domain-scopes-invalid@example.com');
+
+      const response = await request(app.getHttpServer())
+        .patch(`/accounts/${member.id}/domain-scopes`)
+        .set('Cookie', cookie)
+        .send({ domainScopes: ['not-a-real-domain'] });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        error: 'invalid_domain',
+        message: 'One or more domain ids are not recognized.',
+      });
+
+      const unchanged = await users.findById(member.id);
+      expect(unchanged?.domainScopes).toEqual(['holdings']);
+    });
+
+    it('returns 404 for a nonexistent account', async () => {
+      const cookie = await signIn(ADMIN_EMAIL, ADMIN_PASSWORD);
+
+      const response = await request(app.getHttpServer())
+        .patch('/accounts/nonexistent-id/domain-scopes')
+        .set('Cookie', cookie)
+        .send({ domainScopes: ['holdings'] });
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({ error: 'not_found', message: 'Account not found.' });
+    });
+  });
+
   describe('non-admin access', () => {
     it('returns 403 for a MEMBER on every /accounts route', async () => {
       await createMember('plain-member@example.com');

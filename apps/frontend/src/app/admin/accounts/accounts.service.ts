@@ -1,7 +1,11 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Subject, type Observable } from 'rxjs';
-import type { AccountSummary, ChangeRoleRequest } from '@vaultfolio/api-contract';
+import type {
+  AccountSummary,
+  ChangeDomainScopesRequest,
+  ChangeRoleRequest,
+} from '@vaultfolio/api-contract';
 
 /**
  * `HttpClient` wrapper for `/api/accounts/*` (contracts/accounts-api.md),
@@ -33,6 +37,10 @@ export class AccountsService {
 
   changeRole(id: string, body: ChangeRoleRequest): Observable<AccountSummary> {
     return this.http.patch<AccountSummary>(`${this.baseUrl}/${id}/role`, body);
+  }
+
+  updateDomainScopes(id: string, body: ChangeDomainScopesRequest): Observable<AccountSummary> {
+    return this.http.patch<AccountSummary>(`${this.baseUrl}/${id}/domain-scopes`, body);
   }
 
   archive(id: string): Observable<AccountSummary> {

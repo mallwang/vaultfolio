@@ -7,14 +7,14 @@ import type { SessionUser } from '@vaultfolio/api-contract';
 import { AppHeaderComponent } from './app-header.component';
 import { CurrentUserStore } from '../../../auth/current-user.store';
 import { FakeCurrentUserStore } from '../../../auth/testing/current-user-store.testing';
-import { ThemeService } from '../../theme/theme.service';
-import { I18nService } from '../../i18n/i18n.service';
+import { ThemeService, I18nService } from '@vaultfolio/frontend-shared-ui';
 
 const user: SessionUser = {
   id: 'user-1',
   email: 'alex@example.com',
   displayName: 'Alex Example',
   role: 'ADMIN',
+  domainScopes: [],
 };
 
 describe('AppHeaderComponent (integration)', () => {

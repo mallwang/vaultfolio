@@ -64,19 +64,25 @@ describe('DashboardComponent', () => {
     vi.unstubAllGlobals();
   });
 
-  it('renders the holdings distribution view in the allocation card', () => {
+  it('renders the holdings distribution view in the allocation card', async () => {
     fixture.detectChanges();
     httpMock.expectOne('/api/holdings').flush([etf]);
     fixture.detectChanges();
+    // Flushes past the @defer block's dynamic import of
+    // HoldingsDistributionComponent, and that component's own EchartComponent
+    // awaiting its dynamic `import('echarts')` (020) — see
+    // echart.component.spec.ts's identical note.
+    await new Promise((resolve) => setTimeout(resolve, 0));
 
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
     expect(text).not.toContain('Add a holding with a known value');
   });
 
-  it('falls back to the distribution empty state when holdings fail to load', () => {
+  it('falls back to the distribution empty state when holdings fail to load', async () => {
     fixture.detectChanges();
     httpMock.expectOne('/api/holdings').flush(null, { status: 500, statusText: 'Server Error' });
     fixture.detectChanges();
+    await new Promise((resolve) => setTimeout(resolve, 0));
 
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
     expect(text).toContain('Add a holding with a known value');

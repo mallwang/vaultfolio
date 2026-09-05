@@ -24,6 +24,7 @@
           <th scope="col">{{ 'accounts.columnName' | translate }}</th>
           <th scope="col">{{ 'accounts.columnEmail' | translate }}</th>
           <th scope="col">{{ 'accounts.columnRole' | translate }}</th>
+          <th scope="col">{{ 'accounts.columnDomains' | translate }}</th>
           <th scope="col">{{ 'accounts.columnStatus' | translate }}</th>
           <th scope="col"></th>
         </tr>
@@ -59,6 +60,29 @@
                 />
               }
             </div>
+          </td>
+          <td>
+            <p-multiselect
+              [options]="domainRegistry"
+              optionLabel="labelKey"
+              optionValue="id"
+              display="chip"
+              [ngModel]="account.domainScopes"
+              [disabled]="account.status === 'ARCHIVED'"
+              [placeholder]="'accounts.noDomains' | translate"
+              appendTo="body"
+              (onChange)="onDomainScopesChange(account, $event.value)"
+            >
+              <ng-template #dropdownicon><app-icon name="chevron-down" /></ng-template>
+              <ng-template let-domain #item>{{ domain.labelKey | translate }}</ng-template>
+              <ng-template let-selected #selecteditems>
+                @for (domainId of selected; track domainId) {
+                  <span class="p-multiselect-chip-item">{{
+                    domainLabelKey(domainId) | translate
+                  }}</span>
+                }
+              </ng-template>
+            </p-multiselect>
           </td>
           <td>
             @if (account.status === 'ACTIVE') {
@@ -115,7 +139,7 @@
       </ng-template>
       <ng-template #emptymessage>
         <tr>
-          <td colspan="5">
+          <td colspan="6">
             <div class="empty-state">{{ 'accounts.emptyState' | translate }}</div>
           </td>
         </tr>

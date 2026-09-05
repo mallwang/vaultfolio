@@ -8,10 +8,9 @@ import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
-import { IconComponent } from '../../shared/icon/icon.component';
+import { IconComponent, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
 import { InviteDialogComponent } from './invite-dialog/invite-dialog.component';
 import { InvitationsService } from './invitations.service';
-import { TranslatePipe } from '../../core/i18n/translate.pipe';
 
 type InvitationStatus = InvitationSummary['status'];
 

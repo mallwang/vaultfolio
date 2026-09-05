@@ -6,7 +6,7 @@ import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
-import { IconComponent } from '../../shared/icon/icon.component';
+import { IconComponent } from '@vaultfolio/frontend-shared-ui';
 import { InvitationsService } from '../../admin/invitations/invitations.service';
 
 const ROLE_LABEL: Record<'ADMIN' | 'MEMBER', string> = {

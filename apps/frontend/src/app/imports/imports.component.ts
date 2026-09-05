@@ -1,7 +1,6 @@
 import { Component } from '@angular/core';
 import { CardModule } from 'primeng/card';
-import { IconComponent } from '../shared/icon/icon.component';
-import { TranslatePipe } from '../core/i18n/translate.pipe';
+import { IconComponent, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
 
 /**
  * Imports placeholder area (FR-005): a dropzone-style empty state signaling

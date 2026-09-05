@@ -8,11 +8,10 @@ import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
-import { IconComponent } from '../../shared/icon/icon.component';
+import { IconComponent, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
 import { AccountsService } from '../accounts/accounts.service';
 import { RejectDialogComponent } from './reject-dialog/reject-dialog.component';
 import { SignupsAdminService } from './signups.service';
-import { TranslatePipe } from '../../core/i18n/translate.pipe';
 
 type SignupStatus = SignupSummary['status'];
 

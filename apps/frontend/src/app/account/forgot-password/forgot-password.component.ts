@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
-import { IconComponent } from '../../shared/icon/icon.component';
+import { IconComponent } from '@vaultfolio/frontend-shared-ui';
 import { ProfileService } from '../../settings/profile/profile.service';
 
 /**

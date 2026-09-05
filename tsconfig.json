@@ -29,6 +29,15 @@
     },
     {
       "path": "./libs/notifications"
+    },
+    {
+      "path": "./libs/frontend/domain/holdings"
+    },
+    {
+      "path": "./libs/frontend/domain-access"
+    },
+    {
+      "path": "./libs/frontend/shared-ui"
     }
   ],
   "compilerOptions": {}

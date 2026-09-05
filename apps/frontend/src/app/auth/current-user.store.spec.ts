@@ -6,6 +6,7 @@ const user: SessionUser = {
   email: 'alex@example.com',
   displayName: 'Alex',
   role: 'MEMBER',
+  domainScopes: [],
 };
 
 describe('CurrentUserStore', () => {

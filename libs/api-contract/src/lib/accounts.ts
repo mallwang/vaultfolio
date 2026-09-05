@@ -13,13 +13,25 @@ export interface AccountSummary {
   archivedAt: string | null;
   retentionExpiresAt: string | null;
   isLastActiveAdmin: boolean;
+  /** Domain ids this account is entitled to, independent of `role` (020, FR-004/FR-007). */
+  domainScopes: string[];
 }
 
 export interface ChangeRoleRequest {
   role: 'ADMIN' | 'MEMBER';
 }
 
+export interface ChangeDomainScopesRequest {
+  domainScopes: string[];
+}
+
 export interface AccountsErrorResponse {
-  error: 'not_found' | 'last_admin' | 'already_archived' | 'retention_expired' | 'forbidden';
+  error:
+    | 'not_found'
+    | 'last_admin'
+    | 'already_archived'
+    | 'retention_expired'
+    | 'forbidden'
+    | 'invalid_domain';
   message: string;
 }

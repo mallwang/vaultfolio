@@ -4,8 +4,7 @@ import type { HealthStatus } from '@vaultfolio/api-contract';
 import { CardModule } from 'primeng/card';
 import { MessageModule } from 'primeng/message';
 import { TagModule } from 'primeng/tag';
-import { IconComponent } from '../../shared/icon/icon.component';
-import { TranslatePipe } from '../../core/i18n/translate.pipe';
+import { IconComponent, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
 
 /**
  * Minimal page that calls GET /health and renders the result — proves the

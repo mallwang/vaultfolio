@@ -27,6 +27,7 @@ describe('adminGuard', () => {
       email: 'admin@example.com',
       displayName: 'Admin',
       role: 'ADMIN',
+      domainScopes: [],
     } satisfies SessionUser);
 
     expect(runGuard()).toBe(true);
@@ -38,6 +39,7 @@ describe('adminGuard', () => {
       email: 'member@example.com',
       displayName: 'Member',
       role: 'MEMBER',
+      domainScopes: [],
     } satisfies SessionUser);
 
     const result = runGuard();

@@ -6,7 +6,7 @@ import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
-import { IconComponent } from '../shared/icon/icon.component';
+import { IconComponent } from '@vaultfolio/frontend-shared-ui';
 import { SignupService } from './signup.service';
 
 /** Mirrors `libs/domain/auth/password-policy.ts` (spec 005) — a client-side

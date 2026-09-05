@@ -3,7 +3,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import type { ProfileSummary } from '@vaultfolio/api-contract';
 import { PreferencesComponent } from './preferences.component';
-import { I18nService } from '../../core/i18n/i18n.service';
+import { I18nService } from '@vaultfolio/frontend-shared-ui';
 
 const baseProfile: ProfileSummary = {
   id: 'user-1',

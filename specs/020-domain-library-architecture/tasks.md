@@ -41,15 +41,15 @@ Nx monorepo (per plan.md's Project Structure):
 **Purpose**: Bring the two new libraries into existence as empty, correctly-tagged, correctly-resolvable
 Nx projects before any real code moves into them.
 
-- [ ] T001 Add `libs/frontend/*` and `libs/frontend/domain/*` to the `workspaces` array in
+- [x] T001 Add `libs/frontend/*` and `libs/frontend/domain/*` to the `workspaces` array in
       package.json (plan.md's Structure Decision)
-- [ ] T002 [P] Scaffold `libs/frontend/domain/holdings` as an Nx TS project: `package.json` (name
+- [x] T002 [P] Scaffold `libs/frontend/domain/holdings` as an Nx TS project: `package.json` (name
       `@vaultfolio/frontend-domain-holdings`, `"nx": { "tags": ["scope:frontend-domain"] }`,
       `"exports"` restricted to `"."` and `"./package.json"` per
       [contracts/module-boundaries.md](contracts/module-boundaries.md) guarantee 5),
       `tsconfig.json`, `tsconfig.lib.json`, `tsconfig.spec.json`, `jest.config.cts` (mirror
       `libs/domain/example`'s files), and an empty `src/index.ts`
-- [ ] T003 [P] Scaffold `libs/frontend/domain-access` as an Nx TS project the same way: `package.json`
+- [x] T003 [P] Scaffold `libs/frontend/domain-access` as an Nx TS project the same way: `package.json`
       (name `@vaultfolio/frontend-domain-access`, tag `scope:shared`, same restricted `"exports"`),
       `tsconfig.json`, `tsconfig.lib.json`, `tsconfig.spec.json`, `jest.config.cts`, empty `src/index.ts`
 
@@ -64,27 +64,27 @@ verifies against this rule or consumes this mechanism.
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T004 Add the `scope:frontend-domain` `depConstraints` entries to the
+- [x] T004 Add the `scope:frontend-domain` `depConstraints` entries to the
       `@nx/enforce-module-boundaries` block in eslint.config.mjs: a new rule for `sourceTag:
 'scope:frontend-domain'` with `onlyDependOnLibsWithTags: ['scope:shared']` (deliberately excluding
       `scope:frontend-domain` itself), and add `'scope:frontend-domain'` to the existing
       `scope:frontend` rule's `onlyDependOnLibsWithTags` array (
       [contracts/module-boundaries.md](contracts/module-boundaries.md))
-- [ ] T005 [P] Add a nullable `domain_scopes TEXT` column to the `CREATE TABLE IF NOT EXISTS users`
+- [x] T005 [P] Add a nullable `domain_scopes TEXT` column to the `CREATE TABLE IF NOT EXISTS users`
       statement in apps/backend/src/database/database.service.ts, defaulted so existing rows read as
       `'["holdings"]'` (FR-009, data-model.md)
-- [ ] T006 [P] Add `domainScopes: string[]` to the `User`/`UserRow` interfaces in
+- [x] T006 [P] Add `domainScopes: string[]` to the `User`/`UserRow` interfaces in
       apps/backend/src/auth/users.repository.ts, wire it through `rowToUser()`, and add an
       `updateDomainScopes(id: string, domainScopes: string[]): Promise<User | null>` method
       (mirrors `updateRole`)
-- [ ] T007 [P] Add `domainScopes: string[]` to the `SessionUser` interface in
+- [x] T007 [P] Add `domainScopes: string[]` to the `SessionUser` interface in
       libs/api-contract/src/lib/auth.ts
-- [ ] T008 [P] Add `domainScopes: string[]` to the `AccountSummary` interface in
+- [x] T008 [P] Add `domainScopes: string[]` to the `AccountSummary` interface in
       libs/api-contract/src/lib/accounts.ts
-- [ ] T009 Update `toSessionUser()` in apps/backend/src/auth/auth.service.ts to populate
+- [x] T009 Update `toSessionUser()` in apps/backend/src/auth/auth.service.ts to populate
       `domainScopes` from the user row (decode `domain_scopes` JSON; malformed/absent → `[]`, fail
       closed per data-model.md's Validation rules)
-- [ ] T010 Implement `libs/frontend/domain-access/src/lib/domain-registry.ts` (`DomainDescriptor`
+- [x] T010 Implement `libs/frontend/domain-access/src/lib/domain-registry.ts` (`DomainDescriptor`
       interface + `DOMAIN_REGISTRY: DomainDescriptor[]` with one `holdings` entry: `{ id:
 'holdings', labelKey: 'nav.holdings', path: 'holdings', icon: 'briefcase' }`),
       `libs/frontend/domain-access/src/lib/is-domain-entitled.ts` (`isDomainEntitled(user:
@@ -94,7 +94,7 @@ SessionUser | null, domainId: string): boolean` — `false` for `null`, `true` f
 CanActivateFn`, modeled on `apps/frontend/src/app/auth/admin.guard.ts`, redirecting to
       `/app/dashboard` when not entitled); export all three from `src/index.ts`
       ([contracts/domain-access.md](contracts/domain-access.md))
-- [ ] T011 [P] Unit tests for `isDomainEntitled()` in
+- [x] T011 [P] Unit tests for `isDomainEntitled()` in
       libs/frontend/domain-access/src/lib/is-domain-entitled.spec.ts covering: `user === null` →
       `false`; `role === 'ADMIN'` with empty `domainScopes` → `true`; `domainId` present in
       `domainScopes` → `true`; `domainId` absent → `false`
@@ -115,7 +115,7 @@ remove the throwaway library afterward.
 
 ### Implementation for User Story 1
 
-- [ ] T012 [US1] Run `npx nx run-many -t lint` and confirm the workspace still passes clean with the
+- [x] T012 [US1] Run `npx nx run-many -t lint` and confirm the workspace still passes clean with the
       T004 `depConstraints` additions in place (no existing project violates the new rules)
 - [ ] T013 [US1] Per [quickstart.md](quickstart.md) #1: scaffold a throwaway `scope:frontend-domain`
       library, add an import of a non-exported file from
@@ -141,28 +141,28 @@ view the distribution-by-type chart) after the retrofit and confirm behavior is 
 
 ### Implementation for User Story 2
 
-- [ ] T015 [US2] Move `apps/frontend/src/app/holdings/holdings.component.{ts,html,css,spec.ts}`,
+- [x] T015 [US2] Move `apps/frontend/src/app/holdings/holdings.component.{ts,html,css,spec.ts}`,
       `asset-type-fields.ts`, `holdings.service.ts`, `holding-form/**`, and
       `holdings-distribution/**` into `libs/frontend/domain/holdings/src/lib/`, preserving their
       relative folder structure
-- [ ] T016 [US2] Fix up the moved files' relative imports (e.g. `../../shared/icon/...`,
+- [x] T016 [US2] Fix up the moved files' relative imports (e.g. `../../shared/icon/...`,
       `../../core/i18n/translate.pipe`, `../../auth/current-user.store`) so they resolve correctly
       from the new library location; imports of `@vaultfolio/api-contract` and other package-scoped
       libraries are unaffected
-- [ ] T017 [US2] Create `libs/frontend/domain/holdings/src/index.ts` exporting the public entry
+- [x] T017 [US2] Create `libs/frontend/domain/holdings/src/index.ts` exporting the public entry
       point (`HoldingsComponent`, and any types the app-shell route needs), matching the `"exports"`
       restriction from T002
-- [ ] T018 [US2] Update the `holdings` route in apps/frontend/src/app/app.routes.ts to
+- [x] T018 [US2] Update the `holdings` route in apps/frontend/src/app/app.routes.ts to
       `loadComponent: () => import('@vaultfolio/frontend-domain-holdings').then((m) =>
 m.HoldingsComponent)` and add `canActivate: [domainGuard('holdings')]` (importing `domainGuard`
       from `@vaultfolio/frontend-domain-access`), per FR-005
-- [ ] T019 [US2] Add `domainId: 'holdings'` to the `holdings` entry in
+- [x] T019 [US2] Add `domainId: 'holdings'` to the `holdings` entry in
       apps/frontend/src/app/core/layout/application-areas.ts, and add the optional `domainId?:
 string` field to the `ApplicationArea` interface
-- [ ] T020 [US2] Delete the now-empty `apps/frontend/src/app/holdings/` directory
-- [ ] T021 [US2] Run `npx nx test frontend-domain-holdings` (or the project name the `@nx/js`
+- [x] T020 [US2] Delete the now-empty `apps/frontend/src/app/holdings/` directory
+- [x] T021 [US2] Run `npx nx test frontend-domain-holdings` (or the project name the `@nx/js`
       inference assigns) and confirm every moved holdings unit/component test passes unchanged
-- [ ] T022 [US2] Run `npx nx lint frontend-domain-holdings` and `npx nx lint frontend` and confirm
+- [x] T022 [US2] Run `npx nx lint frontend-domain-holdings` and `npx nx lint frontend` and confirm
       both pass (the real domain library satisfies the boundary it now sits behind — Acceptance
       Scenario 3, US1)
 - [ ] T023 [US2] Per [quickstart.md](quickstart.md) #2: manually verify, signed in as an existing
@@ -186,26 +186,26 @@ both the navigation entry and the route guard's behavior change together, for ho
 
 ### Implementation for User Story 3
 
-- [ ] T024 [US3] Update the `areas` computed in
+- [x] T024 [US3] Update the `areas` computed in
       apps/frontend/src/app/core/layout/app-sidebar/app-sidebar.component.ts to also filter out an
       area when it has a `domainId` and `isDomainEntitled(currentUserStore.current(),
 area.domainId)` is `false`, alongside the existing `roles` filter (FR-006)
-- [ ] T025 [US3] Add `PATCH /accounts/:id/domain-scopes` to
+- [x] T025 [US3] Add `PATCH /accounts/:id/domain-scopes` to
       apps/backend/src/accounts/accounts.controller.ts, mirroring the existing `:id/role` route
       (`@Roles('ADMIN')`, same `NOT_FOUND`/response-shape conventions)
-- [ ] T026 [US3] Add `changeDomainScopes(actorId: string, id: string, domainScopes: string[])` to
+- [x] T026 [US3] Add `changeDomainScopes(actorId: string, id: string, domainScopes: string[])` to
       apps/backend/src/accounts/accounts.service.ts: reject any id not present in the known domain-id
       set (mirroring `DOMAIN_REGISTRY`'s ids, per data-model.md's Validation rules), otherwise call
       `users.updateDomainScopes()` and return the updated `AccountSummary`
-- [ ] T027 [P] [US3] Add `ChangeDomainScopesRequest { domainScopes: string[] }` and an
+- [x] T027 [P] [US3] Add `ChangeDomainScopesRequest { domainScopes: string[] }` and an
       `invalid_domain` variant on `AccountsErrorResponse` in libs/api-contract/src/lib/accounts.ts
-- [ ] T028 [P] [US3] Add an integration test for `PATCH /accounts/:id/domain-scopes` in
+- [x] T028 [P] [US3] Add an integration test for `PATCH /accounts/:id/domain-scopes` in
       apps/backend/src/accounts/accounts.controller.spec.ts covering: success (valid domain ids
       persisted and returned), and rejection of an unknown domain id (Principle IV)
-- [ ] T029 [US3] Add an `updateDomainScopes(id: string, body: ChangeDomainScopesRequest):
+- [x] T029 [US3] Add an `updateDomainScopes(id: string, body: ChangeDomainScopesRequest):
 Observable<AccountSummary>` method to apps/frontend/src/app/admin/accounts/accounts.service.ts,
       calling `PATCH ${baseUrl}/${id}/domain-scopes`
-- [ ] T030 [US3] Extend apps/frontend/src/app/admin/accounts/accounts.component.ts and
+- [x] T030 [US3] Extend apps/frontend/src/app/admin/accounts/accounts.component.ts and
       accounts.component.html with a multi-select control (driven by `DOMAIN_REGISTRY` from
       `@vaultfolio/frontend-domain-access`) for each account's domain scopes, calling
       `updateDomainScopes()` on change and refetching the list on success (matching the existing
@@ -225,11 +225,11 @@ never diverge for the same user/domain pair.
 
 **Purpose**: Confirm the structure generalizes and nothing regressed workspace-wide.
 
-- [ ] T032 [P] Confirm by inspection (SC-004, [quickstart.md](quickstart.md) #4) that adding a next
+- [x] T032 [P] Confirm by inspection (SC-004, [quickstart.md](quickstart.md) #4) that adding a next
       domain requires only: one new `libs/frontend/domain/<name>` library, one new
       `DOMAIN_REGISTRY` entry, and one new route using `domainGuard('<name>')` — no change to
       holdings' code, tests, or deploy path
-- [ ] T033 Run `npx nx run-many -t lint test build` across the whole workspace and confirm no
+- [x] T033 Run `npx nx run-many -t lint test build` across the whole workspace and confirm no
       regressions (SC-002, SC-005)
 - [ ] T034 Execute the full [quickstart.md](quickstart.md) validation end-to-end as a final sign-off
 

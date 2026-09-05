@@ -7,11 +7,9 @@ import { SelectModule } from 'primeng/select';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
-import { IconComponent } from '../../shared/icon/icon.component';
+import { IconComponent, I18nService, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
 import { SUPPORTED_LANGUAGES } from '@vaultfolio/api-contract';
 import type { LanguageCode } from '@vaultfolio/api-contract';
-import { I18nService } from '../../core/i18n/i18n.service';
-import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { ProfileService } from '../profile/profile.service';
 
 /** `null` represents "Use default" (design.md) — the unset state (research.md #3). */

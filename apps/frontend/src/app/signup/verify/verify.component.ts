@@ -2,7 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
-import { IconComponent } from '../../shared/icon/icon.component';
+import { IconComponent } from '@vaultfolio/frontend-shared-ui';
 import { SignupService } from '../signup.service';
 
 type ViewState = 'loading' | 'verified' | 'invalid';

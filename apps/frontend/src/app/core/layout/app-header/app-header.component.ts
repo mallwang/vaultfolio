@@ -5,16 +5,18 @@ import { NavigationEnd, Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
 import { TooltipModule } from 'primeng/tooltip';
-import { IconComponent } from '../../../shared/icon/icon.component';
+import {
+  IconComponent,
+  ThemeService,
+  I18nService,
+  TranslatePipe,
+} from '@vaultfolio/frontend-shared-ui';
 import { SUPPORTED_LANGUAGES } from '@vaultfolio/api-contract';
 import type { LanguageCode } from '@vaultfolio/api-contract';
 import { filter, map, startWith } from 'rxjs';
 import { APPLICATION_AREAS } from '../application-areas';
 import { AuthService } from '../../../auth/auth.service';
 import { CurrentUserStore } from '../../../auth/current-user.store';
-import { ThemeService } from '../../theme/theme.service';
-import { I18nService } from '../../i18n/i18n.service';
-import { TranslatePipe } from '../../i18n/translate.pipe';
 
 /**
  * design.md's "Header language switcher" — CSS class per language, not part

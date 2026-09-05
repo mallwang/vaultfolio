@@ -24,6 +24,7 @@ function makeUser(overrides: Partial<User> = {}): User {
     retentionExpiresAt: null,
     pendingEmail: null,
     emailLanguage: null,
+    domainScopes: ['holdings'],
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
     ...overrides,

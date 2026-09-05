@@ -1,0 +1,16 @@
+{
+  "name": "@vaultfolio/frontend-shared-ui",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "library",
+  "sourceRoot": "libs/frontend/shared-ui/src",
+  "tags": ["scope:shared"],
+  "targets": {
+    "test": {
+      "executor": "@angular/build:unit-test",
+      "options": {
+        "buildTarget": "frontend:build:development",
+        "watch": false
+      }
+    }
+  }
+}

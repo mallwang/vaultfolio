@@ -23,7 +23,13 @@ export type SignInResult =
 
 /** Maps a persisted `User` row to the `SessionUser` DTO (FR-010: never leaks password_hash/counters). */
 export function toSessionUser(user: User): SessionUser {
-  return { id: user.id, email: user.email, displayName: user.displayName, role: user.role };
+  return {
+    id: user.id,
+    email: user.email,
+    displayName: user.displayName,
+    role: user.role,
+    domainScopes: user.domainScopes,
+  };
 }
 
 /**

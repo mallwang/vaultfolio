@@ -2,9 +2,9 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { TooltipModule } from 'primeng/tooltip';
 import { CurrentUserStore } from '../../../auth/current-user.store';
-import { IconComponent } from '../../../shared/icon/icon.component';
+import { IconComponent, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
+import { isDomainEntitled } from '@vaultfolio/frontend-domain-access';
 import { APPLICATION_AREAS } from '../application-areas';
-import { TranslatePipe } from '../../i18n/translate.pipe';
 
 /**
  * Persistent nav shell (FR-003, FR-009): a desktop sidebar nav list, and a
@@ -25,8 +25,16 @@ export class AppSidebarComponent {
   private readonly currentUserStore = inject(CurrentUserStore);
 
   protected readonly areas = computed(() => {
-    const role = this.currentUserStore.current()?.role;
-    return APPLICATION_AREAS.filter((area) => !area.roles || (role && area.roles.includes(role)));
+    const user = this.currentUserStore.current();
+    const role = user?.role;
+    return APPLICATION_AREAS.filter((area) => {
+      const roleAllowed = !area.roles || (role && area.roles.includes(role));
+      // FR-006 (020): a domain-gated area is hidden the same way a
+      // role-gated one already is — both filters compose, so an area with
+      // both `roles` and `domainId` needs to pass each check.
+      const domainAllowed = !area.domainId || isDomainEntitled(user, area.domainId);
+      return roleAllowed && domainAllowed;
+    });
   });
 
   protected readonly collapsed = signal(

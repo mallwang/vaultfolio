@@ -7,6 +7,15 @@ import type { User, UserRole } from '../auth/users.repository';
 
 const DEFAULT_RETENTION_DAYS = 30;
 
+/**
+ * Backend-side mirror of `DOMAIN_REGISTRY`'s ids
+ * (`@vaultfolio/frontend-domain-access`) — deliberately duplicated rather
+ * than shared cross-tier (the registry is an Angular-aware `scope:shared`
+ * library the backend may not depend on). Update this alongside adding a
+ * domain to `DOMAIN_REGISTRY` (020, contracts/domain-access.md).
+ */
+const KNOWN_DOMAIN_IDS: ReadonlySet<string> = new Set(['holdings']);
+
 function retentionDays(): number {
   const days = Number(process.env.ACCOUNT_RETENTION_DAYS);
   return Number.isFinite(days) && days > 0 ? days : DEFAULT_RETENTION_DAYS;
@@ -26,11 +35,15 @@ function toSummary(user: User, activeAdminCount: number): AccountSummary {
     archivedAt: user.archivedAt,
     retentionExpiresAt: user.retentionExpiresAt,
     isLastActiveAdmin: user.status === 'ACTIVE' && user.role === 'ADMIN' && activeAdminCount === 1,
+    domainScopes: user.domainScopes,
   };
 }
 
 export type ChangeRoleResult =
   { kind: 'success'; account: AccountSummary } | { kind: 'not_found' } | { kind: 'last_admin' };
+
+export type ChangeDomainScopesResult =
+  { kind: 'success'; account: AccountSummary } | { kind: 'not_found' } | { kind: 'invalid_domain' };
 
 export type ArchiveResult =
   | { kind: 'success'; account: AccountSummary }
@@ -96,6 +109,37 @@ export class AccountsService {
 
     const activeAdminCount = await this.users.countActiveAdmins();
     this.logger.log({ actor: actorId, target: id, event: 'change_role', outcome: 'success' });
+    return { kind: 'success', account: toSummary(updated, activeAdminCount) };
+  }
+
+  /** `PATCH /accounts/:id/domain-scopes` (020, FR-004/contracts/domain-access.md). */
+  async changeDomainScopes(
+    actorId: string,
+    id: string,
+    domainScopes: string[],
+  ): Promise<ChangeDomainScopesResult> {
+    if (!Array.isArray(domainScopes) || domainScopes.some((d) => !KNOWN_DOMAIN_IDS.has(d))) {
+      this.logger.log({
+        actor: actorId,
+        target: id,
+        event: 'change_domain_scopes',
+        outcome: 'invalid_domain',
+      });
+      return { kind: 'invalid_domain' };
+    }
+
+    const updated = await this.users.updateDomainScopes(id, domainScopes);
+    if (!updated) {
+      return { kind: 'not_found' };
+    }
+
+    const activeAdminCount = await this.users.countActiveAdmins();
+    this.logger.log({
+      actor: actorId,
+      target: id,
+      event: 'change_domain_scopes',
+      outcome: 'success',
+    });
     return { kind: 'success', account: toSummary(updated, activeAdminCount) };
   }
 

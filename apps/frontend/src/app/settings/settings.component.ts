@@ -3,7 +3,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter, map, startWith } from 'rxjs';
 import { TabsModule } from 'primeng/tabs';
-import { TranslatePipe } from '../core/i18n/translate.pipe';
+import { TranslatePipe } from '@vaultfolio/frontend-shared-ui';
 
 /**
  * Settings area (012-restructure-admin-nav): a "Profile" sub-tab (008 —

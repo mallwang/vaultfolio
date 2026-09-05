@@ -137,6 +137,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
         retention_expires_at   TEXT NULL,
         pending_email          TEXT NULL,
         email_language         TEXT NULL CHECK (email_language IS NULL OR email_language IN (${allowedLanguageCodes})),
+        domain_scopes          TEXT NULL DEFAULT '["holdings"]',
         created_at             TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')),
         updated_at             TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now'))
       )

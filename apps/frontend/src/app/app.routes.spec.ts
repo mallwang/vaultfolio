@@ -4,6 +4,7 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import type { SessionUser } from '@vaultfolio/api-contract';
+import { CURRENT_USER_SOURCE } from '@vaultfolio/frontend-domain-access';
 import { routes } from './app.routes';
 import { CurrentUserStore } from './auth/current-user.store';
 import { FakeCurrentUserStore } from './auth/testing/current-user-store.testing';
@@ -13,6 +14,9 @@ const user: SessionUser = {
   email: 'alex@example.com',
   displayName: 'Alex Example',
   role: 'MEMBER',
+  // FR-009: existing users are backfilled with holdings access — this fixture
+  // represents that default, unaffected majority (020).
+  domainScopes: ['holdings'],
 };
 
 const admin: SessionUser = {
@@ -20,6 +24,7 @@ const admin: SessionUser = {
   email: 'admin@example.com',
   displayName: 'Admin Example',
   role: 'ADMIN',
+  domainScopes: [],
 };
 
 /**
@@ -40,6 +45,7 @@ describe('app.routes', () => {
         provideHttpClientTesting(),
         provideRouter(routes),
         { provide: CurrentUserStore, useValue: fakeCurrentUser },
+        { provide: CURRENT_USER_SOURCE, useExisting: CurrentUserStore },
       ],
     });
     router = TestBed.inject(Router);
