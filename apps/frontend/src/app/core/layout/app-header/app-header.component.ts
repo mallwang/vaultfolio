@@ -76,7 +76,7 @@ export class AppHeaderComponent {
   protected readonly activeAreaTitleKey = computed(() => {
     const url = this.currentUrl();
     const area = APPLICATION_AREAS.find((candidate) => url.startsWith(`/app/${candidate.path}`));
-    return area ? `nav.${area.id}` : 'header.brand';
+    return area ? area.labelKey : 'header.brand';
   });
 
   protected readonly isAuthenticated = computed(

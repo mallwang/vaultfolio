@@ -300,6 +300,33 @@ describe('/accounts', () => {
       expect(response.body.domainScopes).toEqual(['holdings']);
     });
 
+    // 022-add-domain-placeholders (FR-008): KNOWN_DOMAIN_IDS now accepts each
+    // of the five new placeholder domains, previously rejected as
+    // invalid_domain. One shared sign-in for all five — POST /auth/sign-in
+    // is throttled (20/min) and this file shares one app instance across
+    // every test in it.
+    it('accepts each of the five new domain ids: 200', async () => {
+      const cookie = await signIn(ADMIN_EMAIL, ADMIN_PASSWORD);
+      const newDomainIds = [
+        'retirement',
+        'insurances',
+        'haushaltsplaner',
+        'historic-wealth-development',
+        'account-overview',
+      ];
+
+      for (const domainId of newDomainIds) {
+        const member = await createMember(`domain-scopes-new-${domainId}@example.com`);
+        const response = await request(app.getHttpServer())
+          .patch(`/accounts/${member.id}/domain-scopes`)
+          .set('Cookie', cookie)
+          .send({ domainScopes: [domainId] });
+
+        expect(response.status).toBe(200);
+        expect(response.body.domainScopes).toEqual([domainId]);
+      }
+    });
+
     it('rejects an unknown domain id: 400 invalid_domain, leaving the account unchanged', async () => {
       const cookie = await signIn(ADMIN_EMAIL, ADMIN_PASSWORD);
       const member = await createMember('domain-scopes-invalid@example.com');

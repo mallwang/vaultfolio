@@ -42,6 +42,16 @@ const unentitledUser: SessionUser = {
   domainScopes: [],
 };
 
+// 022-add-domain-placeholders, US2 (FR-005): entitled to a new placeholder
+// domain and nothing else — Dashboard has no widget to show for it.
+const newDomainOnlyUser: SessionUser = {
+  id: 'user-3',
+  email: 'new-domain-only@example.com',
+  displayName: 'New Domain Only',
+  role: 'MEMBER',
+  domainScopes: ['retirement'],
+};
+
 describe('DashboardComponent', () => {
   let fixture: ComponentFixture<DashboardComponent>;
   let httpMock: HttpTestingController;
@@ -123,6 +133,17 @@ describe('DashboardComponent', () => {
     // Each widget gets its own p-card (one per DASHBOARD_WIDGET_CONTRIBUTIONS
     // entry the user is entitled to) rather than a permanent "Allocation"
     // card — with no widget visible, no such card renders at all.
+    expect(el.querySelector('app-dynamic-outlet')).toBeNull();
+  });
+
+  it('renders only non-domain-specific content for a user entitled to a new placeholder domain and no other domain (FR-005)', () => {
+    fakeCurrentUser.setAuthenticated(newDomainOnlyUser);
+    fixture.detectChanges();
+
+    const el = fixture.nativeElement as HTMLElement;
+    const text = el.textContent ?? '';
+    expect(text).toContain('Total value');
+    expect(text).toContain("Today's change");
     expect(el.querySelector('app-dynamic-outlet')).toBeNull();
   });
 });

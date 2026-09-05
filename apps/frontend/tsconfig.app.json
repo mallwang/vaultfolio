@@ -17,6 +17,21 @@
       "path": "../../libs/frontend/admin/tsconfig.lib.json"
     },
     {
+      "path": "../../libs/frontend/domain/account-overview/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/frontend/domain/historic-wealth-development/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/frontend/domain/haushaltsplaner/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/frontend/domain/insurances/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/frontend/domain/retirement/tsconfig.lib.json"
+    },
+    {
       "path": "../../libs/frontend/domain/holdings/tsconfig.lib.json"
     },
     {

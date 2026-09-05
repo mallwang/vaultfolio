@@ -77,3 +77,77 @@ describe('AccountsService — isLastActiveAdmin computation', () => {
     expect(summary.isLastActiveAdmin).toBe(false);
   });
 });
+
+/**
+ * 022-add-domain-placeholders, US3 (FR-010): granting or revoking one of the
+ * five new placeholder domain scopes must not add or remove any other id
+ * already present on the account.
+ */
+describe('AccountsService#changeDomainScopes — per-domain independence', () => {
+  function makeUser(overrides: Partial<User>): User {
+    return {
+      id: 'u1',
+      email: 'user@example.com',
+      displayName: 'User',
+      passwordHash: 'hash',
+      role: 'MEMBER',
+      status: 'ACTIVE',
+      failedAttempts: 0,
+      lockedUntil: null,
+      archivedAt: null,
+      retentionExpiresAt: null,
+      pendingEmail: null,
+      emailLanguage: null,
+      domainScopes: ['holdings'],
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+      ...overrides,
+    };
+  }
+
+  function service(user: User) {
+    const usersRepo = {
+      findById: jest.fn().mockImplementation(() => Promise.resolve(user)),
+      countActiveAdmins: jest.fn().mockResolvedValue(1),
+      // Mutates the same `user` object in place, so the reference captured
+      // by the caller (destructured once) reflects the update — a fresh
+      // object per call would leave that reference stale.
+      updateDomainScopes: jest.fn().mockImplementation((_id: string, domainScopes: string[]) => {
+        user.domainScopes = domainScopes;
+        return Promise.resolve(user);
+      }),
+    };
+    const sessionsRepo = {};
+    return { svc: new AccountsService(usersRepo as never, sessionsRepo as never), user };
+  }
+
+  it.each([
+    'retirement',
+    'insurances',
+    'haushaltsplaner',
+    'historic-wealth-development',
+    'account-overview',
+  ])('granting %s keeps the existing "holdings" scope intact', async (domainId) => {
+    const { svc, user } = service(makeUser({ domainScopes: ['holdings'] }));
+
+    const result = await svc.changeDomainScopes('actor-1', 'u1', ['holdings', domainId]);
+
+    expect(result.kind).toBe('success');
+    expect(user.domainScopes).toEqual(['holdings', domainId]);
+  });
+
+  it.each([
+    'retirement',
+    'insurances',
+    'haushaltsplaner',
+    'historic-wealth-development',
+    'account-overview',
+  ])('revoking %s leaves other existing scopes untouched', async (domainId) => {
+    const { svc, user } = service(makeUser({ domainScopes: ['holdings', domainId] }));
+
+    const result = await svc.changeDomainScopes('actor-1', 'u1', ['holdings']);
+
+    expect(result.kind).toBe('success');
+    expect(user.domainScopes).toEqual(['holdings']);
+  });
+});

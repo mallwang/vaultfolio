@@ -26,6 +26,11 @@ export const de: TranslationDictionary = {
     dashboard: 'Übersicht',
     holdings: 'Bestände',
     imports: 'Importe',
+    retirement: 'Altersvorsorge',
+    insurances: 'Versicherungen',
+    haushaltsplaner: 'Haushaltsplaner',
+    historicWealthDevelopment: 'Vermögensentwicklung',
+    accountOverview: 'Kontoübersicht',
     settings: 'Einstellungen',
     admin: 'Verwaltung',
     accounts: 'Konten',
@@ -334,5 +339,27 @@ export const de: TranslationDictionary = {
     checkedAt: 'Geprüft um',
     checking: 'Backend-Status wird geprüft…',
     error: 'Der Backend-Statuscheck konnte nicht erreicht werden.',
+  },
+  // Placeholder-Domänen (022-add-domain-placeholders, FR-003): jede zeigt nur
+  // ihren Namen und diesen "noch nicht verfügbar"-Text — keine weitere UI.
+  retirementPlaceholder: {
+    title: 'Altersvorsorge',
+    body: 'Altersvorsorge ist noch nicht verfügbar. Dieser Bereich wird in einem zukünftigen Update ausgebaut.',
+  },
+  insurancesPlaceholder: {
+    title: 'Versicherungen',
+    body: 'Versicherungen sind noch nicht verfügbar. Dieser Bereich wird in einem zukünftigen Update ausgebaut.',
+  },
+  haushaltsplanerPlaceholder: {
+    title: 'Haushaltsplaner',
+    body: 'Der Haushaltsplaner ist noch nicht verfügbar. Dieser Bereich wird in einem zukünftigen Update ausgebaut.',
+  },
+  historicWealthDevelopmentPlaceholder: {
+    title: 'Vermögensentwicklung',
+    body: 'Die Vermögensentwicklung ist noch nicht verfügbar. Dieser Bereich wird in einem zukünftigen Update ausgebaut.',
+  },
+  accountOverviewPlaceholder: {
+    title: 'Kontoübersicht',
+    body: 'Die Kontoübersicht ist noch nicht verfügbar. Dieser Bereich wird in einem zukünftigen Update ausgebaut.',
   },
 };

@@ -14,7 +14,14 @@ const DEFAULT_RETENTION_DAYS = 30;
  * library the backend may not depend on). Update this alongside adding a
  * domain to `DOMAIN_REGISTRY` (020, contracts/domain-access.md).
  */
-const KNOWN_DOMAIN_IDS: ReadonlySet<string> = new Set(['holdings']);
+const KNOWN_DOMAIN_IDS: ReadonlySet<string> = new Set([
+  'holdings',
+  'retirement',
+  'insurances',
+  'haushaltsplaner',
+  'historic-wealth-development',
+  'account-overview',
+]);
 
 function retentionDays(): number {
   const days = Number(process.env.ACCOUNT_RETENTION_DAYS);

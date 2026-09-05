@@ -47,6 +47,16 @@ const unentitledUser: SessionUser = {
   domainScopes: [],
 };
 
+// 022-add-domain-placeholders, US2 (FR-005): entitled to a new placeholder
+// domain and nothing else — Settings has no tab to show for it.
+const newDomainOnlyUser: SessionUser = {
+  id: 'user-3',
+  email: 'new-domain-only@example.com',
+  displayName: 'New Domain Only',
+  role: 'MEMBER',
+  domainScopes: ['retirement'],
+};
+
 describe('SettingsComponent', () => {
   let fixture: ComponentFixture<SettingsComponent>;
   let fakeCurrentUser: FakeCurrentUserStore;
@@ -97,6 +107,16 @@ describe('SettingsComponent', () => {
     fakeCurrentUser.setAuthenticated(entitledUser);
     fixture.detectChanges();
 
+    expect(fixture.componentInstance['visibleTabs']()).toEqual([]);
+  });
+
+  it('shows only Profile and Preferences for a user entitled to a new placeholder domain and no other domain (FR-005)', () => {
+    fakeCurrentUser.setAuthenticated(newDomainOnlyUser);
+    fixture.detectChanges();
+
+    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(text).toContain('Profile');
+    expect(text).toContain('Preferences');
     expect(fixture.componentInstance['visibleTabs']()).toEqual([]);
   });
 });

@@ -6,13 +6,13 @@
         [routerLink]="['/app', area.path]"
         routerLinkActive="app-nav__item--active"
         ariaCurrentWhenActive="page"
-        [pTooltip]="collapsed() ? ('nav.' + area.id | translate) : ''"
+        [pTooltip]="collapsed() ? (area.labelKey | translate) : ''"
         tooltipPosition="right"
         appendTo="body"
       >
         <app-icon [name]="area.icon" />
         @if (!collapsed()) {
-          <span>{{ 'nav.' + area.id | translate }}</span>
+          <span>{{ area.labelKey | translate }}</span>
         }
       </a>
     }
