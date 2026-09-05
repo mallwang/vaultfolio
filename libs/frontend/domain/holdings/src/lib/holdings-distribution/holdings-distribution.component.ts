@@ -7,11 +7,23 @@ import { HoldingsService } from '../holdings.service';
 import {
   EchartComponent,
   ASSET_TYPE_COLORS,
-  resolveChartPalette,
-  ThemeService,
   I18nService,
   TranslatePipe,
 } from '@vaultfolio/frontend-shared-ui';
+
+/**
+ * Picks black or white for a segment's inside label based on the fill
+ * color's perceived brightness (YIQ formula), so plain text — no
+ * border/glow — stays legible against every fixed `ASSET_TYPE_COLORS`
+ * value, including the light gold "precious metal" slice.
+ */
+export function contrastTextColor(hexColor: string): string {
+  const r = Number.parseInt(hexColor.slice(1, 3), 16);
+  const g = Number.parseInt(hexColor.slice(3, 5), 16);
+  const b = Number.parseInt(hexColor.slice(5, 7), 16);
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+  return brightness > 150 ? '#1f2937' : '#ffffff';
+}
 
 /** data-model.md "Holdings Distribution Chart Entry (revised)" — one aggregate per `AssetType`. */
 interface HoldingsDistributionEntry {
@@ -122,7 +134,6 @@ export class HoldingsDistributionComponent implements OnChanges, OnInit {
   @Input() holdings: HoldingResponse[] = [];
 
   private readonly holdingsService = inject(HoldingsService);
-  private readonly themeService = inject(ThemeService);
   private readonly i18n = inject(I18nService);
   private readonly translate = inject(TranslatePipe);
 
@@ -136,12 +147,6 @@ export class HoldingsDistributionComponent implements OnChanges, OnInit {
   protected readonly chartOption = computed<EChartsOption>(() => {
     const entries = this.entries() ?? [];
     const locale = this.i18n.language();
-    // The pie's outer "pointer" labels/lines have their own `label`/
-    // `labelLine` style, independent of `EchartComponent`'s global
-    // `textStyle` fragment (which only themes component text — legend,
-    // tooltip, axes) — left unset, ECharts falls back to a fixed dark-gray
-    // default that's nearly invisible on the dark card background.
-    const palette = resolveChartPalette(this.themeService.theme());
     const fmt = new Intl.NumberFormat(locale, {
       style: 'currency',
       currency: 'EUR',
@@ -168,14 +173,27 @@ export class HoldingsDistributionComponent implements OnChanges, OnInit {
           itemStyle: { borderRadius: 9 },
           // Name is redundant with the legend and would otherwise get
           // clipped for longer localized asset-type labels in this small a
-          // chart — percentage only avoids that entirely.
-          label: { color: palette.textColor, formatter: '{d}%' },
-          labelLine: { lineStyle: { color: palette.textColor } },
-          data: entries.map((entry) => ({
-            name: resolveName(entry),
-            value: entry.value,
-            itemStyle: { color: ASSET_TYPE_COLORS[entry.assetType] },
-          })),
+          // chart — percentage only avoids that entirely. Placed inside
+          // each segment (vs. the previous outside label + pointer line)
+          // so there's no separate `labelLine` to configure or clip. Each
+          // data point overrides `label.color` below with whichever of
+          // black/white contrasts with its own fixed `ASSET_TYPE_COLORS`
+          // fill (a single series-level color can't stay legible against
+          // both the light gold "precious metal" slice and the darker
+          // ones) — plain, no text border/glow. One decimal place keeps
+          // the label short enough to fit even the narrowest segment.
+          label: { position: 'inside', formatter: '{d}%', fontWeight: 'bold' },
+          labelLine: { show: false },
+          percentPrecision: 1,
+          data: entries.map((entry) => {
+            const color = ASSET_TYPE_COLORS[entry.assetType];
+            return {
+              name: resolveName(entry),
+              value: entry.value,
+              itemStyle: { color },
+              label: { color: contrastTextColor(color) },
+            };
+          }),
         },
       ],
     };

@@ -339,6 +339,10 @@ export const de: TranslationDictionary = {
     checkedAt: 'Geprüft um',
     checking: 'Backend-Status wird geprüft…',
     error: 'Der Backend-Statuscheck konnte nicht erreicht werden.',
+    statusOk: 'ok',
+    statusDegraded: 'eingeschränkt',
+    databaseConnected: 'verbunden',
+    databaseUnreachable: 'nicht erreichbar',
   },
   // Placeholder-Domänen (022-add-domain-placeholders, FR-003): jede zeigt nur
   // ihren Namen und diesen "noch nicht verfügbar"-Text — keine weitere UI.
