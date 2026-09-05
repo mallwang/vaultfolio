@@ -4,6 +4,7 @@ import type { Request } from 'express';
 export interface RequestUser {
   id: string;
   role: 'ADMIN' | 'MEMBER';
+  domainScopes: string[];
 }
 
 /** Reads `request.user`, attached by `AuthGuard` on every authenticated request. */

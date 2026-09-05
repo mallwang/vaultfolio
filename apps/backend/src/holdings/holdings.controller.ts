@@ -12,6 +12,7 @@ import { holdingToResponse } from './holdings.mapper';
 import type { FieldError } from '@vaultfolio/domain-holdings';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { RequestUser } from '../auth/current-user.decorator';
+import { RequiresDomain } from '../auth/domain.decorator';
 
 function validationErrorBody(fieldErrors: FieldError[]): HoldingValidationErrorResponse {
   return {
@@ -26,8 +27,9 @@ const NOT_FOUND_BODY: HoldingNotFoundErrorResponse = {
   message: 'This holding no longer exists.',
 };
 
-/** REST surface for `/holdings`, per contracts/holdings-api.md (Principle II). */
+/** REST surface for `/holdings`, per contracts/holdings-api.md (Principle II). `@RequiresDomain('holdings')` — `AuthGuard`/`DomainGuard` run globally (AuthModule) — mirrors the frontend's `domainGuard('holdings')`. */
 @Controller('holdings')
+@RequiresDomain('holdings')
 export class HoldingsController {
   constructor(private readonly holdingsService: HoldingsService) {}
 
