@@ -17,9 +17,10 @@ import {
   LocaleNumberPipe,
   LocaleDatePipe,
 } from '@vaultfolio/frontend-shared-ui';
-import { ASSET_TYPE_LABEL_KEYS } from './asset-type-fields';
+import { ASSET_TYPE_LABEL_KEYS, ASSET_TYPES } from './asset-type-fields';
 import { HoldingFormComponent } from './holding-form/holding-form.component';
 import { HoldingsDistributionComponent } from './holdings-distribution/holdings-distribution.component';
+import { HoldingsTypeBreakdownComponent } from './holdings-type-breakdown/holdings-type-breakdown.component';
 import { HoldingsService } from './holdings.service';
 
 /**
@@ -53,6 +54,7 @@ import { HoldingsService } from './holdings.service';
     TooltipModule,
     HoldingFormComponent,
     HoldingsDistributionComponent,
+    HoldingsTypeBreakdownComponent,
     TranslatePipe,
     LocaleNumberPipe,
     LocaleDatePipe,
@@ -65,9 +67,16 @@ import { HoldingsService } from './holdings.service';
       <ng-template #icon><app-icon name="warning" /></ng-template>
     </p-confirmdialog>
 
-    <p-card [header]="'holdingsDistribution.title' | translate" class="distribution-card">
-      <app-holdings-distribution [holdings]="holdings()" />
-    </p-card>
+    <div class="holdings-charts-grid">
+      <p-card [header]="'holdingsDistribution.title' | translate" class="distribution-card">
+        <app-holdings-distribution [holdings]="holdings()" />
+      </p-card>
+      @for (assetType of assetTypes; track assetType) {
+        <p-card [header]="labelFor(assetType)" class="distribution-card">
+          <app-holdings-type-breakdown [assetType]="assetType" [holdings]="holdings()" />
+        </p-card>
+      }
+    </div>
 
     <section class="holdings-panel">
       <div class="holdings-panel__header">
@@ -216,8 +225,24 @@ import { HoldingsService } from './holdings.service';
     </p-dialog>
   `,
   styles: `
-    .distribution-card {
+    /* FR-009/FR-010: 6 tiles (main chart + 5 per-type) 3-per-row, reflowing
+       to 1-per-row on narrow viewports — same pattern as
+       apps/frontend/src/app/dashboard/dashboard.component.css's .card-row. */
+    .holdings-charts-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.85rem;
       margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 768px) {
+      .holdings-charts-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .distribution-card {
+      margin-bottom: 0;
     }
 
     .holdings-panel {
@@ -286,6 +311,7 @@ export class HoldingsComponent implements OnInit {
   protected readonly holdings = signal<HoldingResponse[]>([]);
   protected readonly loading = signal(true);
   protected readonly loadError = signal<string | null>(null);
+  protected readonly assetTypes = ASSET_TYPES;
 
   protected readonly dialogVisible = signal(false);
   protected readonly editingHolding = signal<HoldingResponse | null>(null);

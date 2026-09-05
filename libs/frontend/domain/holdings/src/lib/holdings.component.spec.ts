@@ -163,6 +163,58 @@ describe('HoldingsComponent', () => {
     expect(text).toContain('No holdings yet');
   });
 
+  it('renders all 6 chart tiles (main + 5 per-type) in fixed ASSET_TYPES order, each fed the full holdings list (FR-002, FR-009, FR-010)', () => {
+    const share: HoldingResponse = {
+      id: 'share-1',
+      assetType: 'SHARE',
+      management: 'Broker',
+      isin: null,
+      name: 'Apple',
+      quantity: '1',
+      purchasePrice: '100',
+      purchaseDate: null,
+      weightGrams: null,
+      currentValue: null,
+      createdAt: '2026-08-14T09:00:00.000Z',
+      updatedAt: '2026-08-14T09:00:00.000Z',
+    };
+    const crypto: HoldingResponse = {
+      id: 'btc-1',
+      assetType: 'CRYPTO',
+      management: 'Private',
+      isin: null,
+      name: 'Bitcoin',
+      quantity: '0.1',
+      purchasePrice: '40000',
+      purchaseDate: null,
+      weightGrams: null,
+      currentValue: null,
+      createdAt: '2026-08-15T09:00:00.000Z',
+      updatedAt: '2026-08-15T09:00:00.000Z',
+    };
+    // ETF and DEPOSIT_MONEY are deliberately absent — their tiles must still
+    // render (empty-state branch) at their fixed grid position.
+    flushList([etf, share, goldNoValue, crypto]);
+
+    const el = fixture.nativeElement as HTMLElement;
+    const mainCharts = el.querySelectorAll('app-holdings-distribution');
+    const typeCharts = fixture.debugElement.queryAll(
+      (node) => node.name === 'app-holdings-type-breakdown',
+    );
+    expect(mainCharts).toHaveLength(1);
+    expect(typeCharts).toHaveLength(5);
+    expect(
+      typeCharts.map(
+        (tile) => (tile.componentInstance as { assetType: HoldingResponse['assetType'] }).assetType,
+      ),
+    ).toEqual(['ETF', 'SHARE', 'PRECIOUS_METAL', 'CRYPTO', 'DEPOSIT_MONEY']);
+    expect(
+      typeCharts.map(
+        (tile) => (tile.componentInstance as { holdings: HoldingResponse[] }).holdings.length,
+      ),
+    ).toEqual([4, 4, 4, 4, 4]);
+  });
+
   describe('delete flow', () => {
     beforeEach(() => {
       flushList([etf]);

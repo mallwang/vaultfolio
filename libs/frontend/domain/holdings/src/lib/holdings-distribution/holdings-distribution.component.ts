@@ -1,9 +1,9 @@
 import { Component, Input, OnChanges, OnInit, computed, inject, signal } from '@angular/core';
-import Decimal from 'decimal.js';
 import type { EChartsOption } from 'echarts';
 import type { AssetType, HoldingResponse } from '@vaultfolio/api-contract';
 import { ASSET_TYPE_LABEL_KEYS } from '../asset-type-fields';
 import { HoldingsService } from '../holdings.service';
+import { groupHoldingsByKey } from '../holdings-valuation';
 import {
   EchartComponent,
   ASSET_TYPE_COLORS,
@@ -243,41 +243,20 @@ export class HoldingsDistributionComponent implements OnChanges, OnInit {
   }
 
   private recompute(): void {
-    const totals = new Map<AssetType, Decimal>();
-    let excluded = 0;
+    const result = groupHoldingsByKey(this.holdings, (h) => h.assetType);
 
-    for (const holding of this.holdings) {
-      const value = HoldingsDistributionComponent.computeValue(holding);
-      if (value == null) {
-        excluded += 1;
-        continue;
-      }
-      const key = holding.assetType;
-      totals.set(key, (totals.get(key) ?? new Decimal(0)).plus(value));
-    }
+    this.excludedCount.set(result.excludedCount);
 
-    this.excludedCount.set(excluded);
-
-    if (totals.size === 0) {
+    if (result.entries.length === 0) {
       this.entries.set(null);
       return;
     }
 
     this.entries.set(
-      [...totals.entries()].map(([assetType, total]) => ({
-        assetType,
-        value: total.toNumber(),
+      result.entries.map((entry) => ({
+        assetType: entry.key,
+        value: entry.value.toNumber(),
       })),
     );
-  }
-
-  private static computeValue(holding: HoldingResponse): Decimal | null {
-    if (holding.assetType === 'PRECIOUS_METAL' || holding.assetType === 'DEPOSIT_MONEY') {
-      return holding.currentValue != null ? new Decimal(holding.currentValue) : null;
-    }
-    if (holding.quantity != null && holding.purchasePrice != null) {
-      return new Decimal(holding.quantity).times(holding.purchasePrice);
-    }
-    return null;
   }
 }

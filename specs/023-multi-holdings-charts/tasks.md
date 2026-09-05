@@ -33,7 +33,7 @@ library (`libs/frontend/domain/holdings`) with its existing lint/test tooling. S
 **Purpose**: Extract the shared, exported valuation/grouping logic (Principle I) that every user
 story's chart — main and per-type — depends on. **MUST complete before any user story phase.**
 
-- [ ] T001 Create `libs/frontend/domain/holdings/src/lib/holdings-valuation.ts` exporting
+- [x] T001 Create `libs/frontend/domain/holdings/src/lib/holdings-valuation.ts` exporting
       `computeHoldingValue(holding: HoldingResponse): Decimal | null` (moved verbatim from
       `HoldingsDistributionComponent.computeValue` in
       `libs/frontend/domain/holdings/src/lib/holdings-distribution/holdings-distribution.component.ts`:
@@ -43,21 +43,21 @@ story's chart — main and per-type — depends on. **MUST complete before any u
       (sums `computeHoldingValue` per key returned by `keyOf`, skips a holding when its value or its
       `keyOf` result is `null` and counts it in `excludedCount`, preserves first-seen key order per
       data-model.md)
-- [ ] T002 [P] Write `libs/frontend/domain/holdings/src/lib/holdings-valuation.spec.ts` with exact
+- [x] T002 [P] Write `libs/frontend/domain/holdings/src/lib/holdings-valuation.spec.ts` with exact
       `Decimal`/`.toString()` assertions (Principle III — no tolerance/approximate assertions) covering:
       `computeHoldingValue` for each `AssetType` (both computable-value rules) and its `null` cases;
       `groupHoldingsByKey` same-key summation of two holdings, exclusion of a holding with no
       computable value (incrementing `excludedCount` without adding an entry), exclusion via `keyOf`
       returning `null`, and an empty `entries: []` result (with correct `excludedCount`) when no input
       holding has a computable value
-- [ ] T003 Refactor `HoldingsDistributionComponent.recompute` in
+- [x] T003 Refactor `HoldingsDistributionComponent.recompute` in
       `libs/frontend/domain/holdings/src/lib/holdings-distribution/holdings-distribution.component.ts`
       to call `groupHoldingsByKey(this.holdings, (h) => h.assetType)` from `holdings-valuation.ts`
       instead of its private `computeValue`/inline grouping loop, mapping `result.entries` to the
       existing `HoldingsDistributionEntry[]` shape and `result.excludedCount` to the existing
       `excludedCount` signal; remove the now-unused private `computeValue` static method; keep
       `centerLabel`, `chartOption`, legend, and all existing DOM/behavior unchanged (FR-001, FR-008)
-- [ ] T004 Run the existing
+- [x] T004 Run the existing
       `libs/frontend/domain/holdings/src/lib/holdings-distribution/holdings-distribution.component.spec.ts`
       suite and confirm it still passes unmodified after T003 (regression guard for FR-001/FR-008
       before building on top of the shared module)
@@ -81,7 +81,7 @@ holdings list, and confirm the resulting chart data has two entries — "Gold" (
 
 ### Tests for User Story 1
 
-- [ ] T005 [P] [US1] Write
+- [x] T005 [P] [US1] Write
       `libs/frontend/domain/holdings/src/lib/holdings-type-breakdown/holdings-type-breakdown.component.spec.ts`
       (mirroring the mocking pattern in
       `holdings-distribution/holdings-distribution.component.spec.ts`: `vi.mock('echarts', ...)`,
@@ -94,7 +94,7 @@ holdings list, and confirm the resulting chart data has two entries — "Gold" (
 
 ### Implementation for User Story 1
 
-- [ ] T006 [US1] Create
+- [x] T006 [US1] Create
       `libs/frontend/domain/holdings/src/lib/holdings-type-breakdown/holdings-type-breakdown.component.ts`:
       a presentational `HoldingsTypeBreakdownComponent` with `@Input() assetType!: AssetType` and
       `@Input() holdings: HoldingResponse[] = []` (no self-fetch — always data-bound by the holdings
@@ -103,11 +103,11 @@ holdings list, and confirm the resulting chart data has two entries — "Gold" (
       and `hasData = computed(() => result().entries.length > 0)`, gating an `@if (hasData())`/`@else`
       template analogous to `HoldingsDistributionComponent`'s (empty branch reuses the
       `holdingsDistribution.emptyState` translation key per research.md #6)
-- [ ] T007 [US1] In the same component, build the `chartOption` pie `series.data` from
+- [x] T007 [US1] In the same component, build the `chartOption` pie `series.data` from
       `result().entries` — `name: entry.key` (the holding name, used as-is, no translation lookup since
       names are user-entered), `value: entry.value.toNumber()` (Decimal → number only at this
       presentation boundary, per data-model.md) — satisfying FR-003/FR-004
-- [ ] T008 [US1] Ensure T006's `groupHoldingsByKey` call and `computeHoldingValue` (transitively,
+- [x] T008 [US1] Ensure T006's `groupHoldingsByKey` call and `computeHoldingValue` (transitively,
       inside `holdings-valuation.ts`) apply the exact same per-`assetType` value rule as the main chart
       (FR-004) — no new value-computation logic in this component; run T005 to confirm
 
@@ -128,31 +128,31 @@ percentage.
 
 ### Tests for User Story 2
 
-- [ ] T009 [P] [US2] Extend
+- [x] T009 [P] [US2] Extend
       `holdings-type-breakdown.component.spec.ts` asserting: the built `chartOption` has no `legend`
       property (FR-007); the rendered template contains no center-label element (unlike
       `holdings-distribution.component.spec.ts`'s equivalent assertion for the main chart, per FR-008);
       the pie series' `tooltip`/label `formatter` output for a segment includes its name, its
       currency-formatted value, and its percentage (SC-004)
-- [ ] T010 [P] [US2] Extend
+- [x] T010 [P] [US2] Extend
       `holdings-distribution/holdings-distribution.component.spec.ts` (or confirm existing coverage) to
       assert the main chart's `chartOption` still includes `legend` and its center-label element still
       renders, unaffected by T009's changes to the sibling component (FR-008, Acceptance Scenario 3)
 
 ### Implementation for User Story 2
 
-- [ ] T011 [US2] In
+- [x] T011 [US2] In
       `holdings-type-breakdown.component.ts`, omit `legend` entirely from the `chartOption`
       `EChartsOption` and omit any centered-total overlay element from the template (research.md #3);
       set `tooltip: { trigger: 'item', formatter: ... }` mirroring
       `HoldingsDistributionComponent.chartOption`'s tooltip formatter (name, `Intl.NumberFormat`
       currency-formatted value, `percent`) so hover behavior matches the main chart (SC-004)
-- [ ] T012 [US2] Apply per-name segment coloring in `holdings-type-breakdown.component.ts` using the
+- [x] T012 [US2] Apply per-name segment coloring in `holdings-type-breakdown.component.ts` using the
       existing generic theme palette already applied by `app-echart`/`chart-palette.ts` (NOT
       `ASSET_TYPE_COLORS`, which is keyed by asset type and has only 5 entries — research.md #4),
       satisfying FR-011's "distinguishable within this chart" requirement without introducing a new
       color scheme
-- [ ] T013 [US2] Verify (manually or via T009) that a type tile with 15+ distinctly-named holdings
+- [x] T013 [US2] Verify (manually or via T009) that a type tile with 15+ distinctly-named holdings
       renders at the same visual footprint (no legend/list added) as one with 2 holdings — SC-002; no
       code change expected beyond T011 if no legend/list is ever added
 
@@ -173,7 +173,7 @@ confirm the tiles reflow without clipping or horizontal scroll.
 
 ### Tests for User Story 3
 
-- [ ] T014 [P] [US3] Extend `libs/frontend/domain/holdings/src/lib/holdings.component.spec.ts`
+- [x] T014 [P] [US3] Extend `libs/frontend/domain/holdings/src/lib/holdings.component.spec.ts`
       (`HttpTestingController`-backed, per plan.md's Integration Testing requirement) with a fixture
       spanning multiple asset types and repeated names, asserting: all 6 chart tiles render (1
       `app-holdings-distribution` + 5 `app-holdings-type-breakdown` instances); the 5 type-breakdown
@@ -185,19 +185,19 @@ confirm the tiles reflow without clipping or horizontal scroll.
 
 ### Implementation for User Story 3
 
-- [ ] T015 [US3] In `libs/frontend/domain/holdings/src/lib/holdings.component.ts`, import
+- [x] T015 [US3] In `libs/frontend/domain/holdings/src/lib/holdings.component.ts`, import
       `HoldingsTypeBreakdownComponent` and `ASSET_TYPES` (from `./asset-type-fields`), replace the
       existing single `<p-card>...<app-holdings-distribution [holdings]="holdings()" /></p-card>` block
       with a `.card-row`-style grid container wrapping 6 tiles: the existing main-chart card first,
       then `@for (assetType of assetTypes; track assetType) { <app-holdings-type-breakdown [assetType]="assetType" [holdings]="holdings()" /> }`
       over `protected readonly assetTypes = ASSET_TYPES;` (FR-002, FR-009, FR-010)
-- [ ] T016 [US3] Add a `.holdings-charts-grid` CSS rule to `holdings.component.ts`'s inline
+- [x] T016 [US3] Add a `.holdings-charts-grid` CSS rule to `holdings.component.ts`'s inline
       `styles`, copying the reflow pattern from
       `apps/frontend/src/app/dashboard/dashboard.component.css:5-16`
       (`display: grid; grid-template-columns: repeat(3, 1fr); gap: ...;` collapsing to `1fr` under the
       same `max-width: 768px` media query) so the 6 tiles lay out 3-per-row and reflow to 1-per-row on
       narrow viewports without clipping or horizontal scroll (FR-009, research.md #5)
-- [ ] T017 [US3] Wrap each of the 5 new tiles (and, for consistency, the existing main-chart tile)
+- [x] T017 [US3] Wrap each of the 5 new tiles (and, for consistency, the existing main-chart tile)
       in a small card/container matching the existing `.distribution-card` styling so all 6 tiles share
       a consistent visual frame inside the new grid
 
@@ -211,12 +211,12 @@ end.
 
 **Purpose**: Final validation and cleanup after all three user stories are implemented.
 
-- [ ] T018 [P] Run `npm exec nx lint frontend-domain-holdings` and `npm exec nx test
+- [x] T018 [P] Run `npm exec nx lint frontend-domain-holdings` and `npm exec nx test
 frontend-domain-holdings` and fix any lint/type errors introduced across T001–T017
 - [ ] T019 Manually execute the full validation checklist in
       `specs/023-multi-holdings-charts/quickstart.md` (seed data per its table, verify all 9 numbered
       checks) against `npm exec nx serve frontend` + a running backend
-- [ ] T020 Confirm `apps/frontend/src/app/dashboard/dashboard-widgets.registry.ts` is unmodified and
+- [x] T020 Confirm `apps/frontend/src/app/dashboard/dashboard-widgets.registry.ts` is unmodified and
       the Dashboard page still renders only the single existing main-chart widget (quickstart.md
       validation step 9, plan.md's explicit dashboard-unaffected constraint)
 

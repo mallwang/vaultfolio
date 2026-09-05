@@ -98,6 +98,17 @@ describe('HoldingsDistributionComponent', () => {
     expect(fixture.componentInstance['excludedCount']()).toBe(1);
   });
 
+  it('still includes a legend and a rendered center-label element (FR-008, unaffected by the sibling HoldingsTypeBreakdownComponent)', () => {
+    fixture.componentRef.setInput('holdings', holdings);
+    fixture.detectChanges();
+
+    const option = fixture.componentInstance['chartOption']();
+    expect(option.legend).toBeDefined();
+
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('.distribution__center-label')).not.toBeNull();
+  });
+
   it('sums two differently-named Crypto holdings into exactly one type-level slice (research.md #6a)', () => {
     fixture.componentRef.setInput('holdings', [
       holding({
