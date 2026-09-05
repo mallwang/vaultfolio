@@ -33,7 +33,6 @@ export interface ApplicationArea {
 export const APPLICATION_AREAS: ApplicationArea[] = [
   { id: 'dashboard', label: 'Dashboard', path: 'dashboard', icon: 'home' },
   { id: 'holdings', label: 'Holdings', path: 'holdings', icon: 'briefcase', domainId: 'holdings' },
-  { id: 'imports', label: 'Imports', path: 'imports', icon: 'upload' },
   { id: 'settings', label: 'Settings', path: 'settings', icon: 'cog' },
   { id: 'admin', label: 'Admin', path: 'admin', icon: 'shield', roles: ['ADMIN'] },
 ];

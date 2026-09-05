@@ -1,8 +1,9 @@
-import { Component, Input, OnChanges, computed, inject, signal } from '@angular/core';
+import { Component, Input, OnChanges, OnInit, computed, inject, signal } from '@angular/core';
 import Decimal from 'decimal.js';
 import type { EChartsOption } from 'echarts';
 import type { AssetType, HoldingResponse } from '@vaultfolio/api-contract';
 import { ASSET_TYPE_LABEL_KEYS } from '../asset-type-fields';
+import { HoldingsService } from '../holdings.service';
 import {
   EchartComponent,
   ASSET_TYPE_COLORS,
@@ -30,6 +31,17 @@ interface HoldingsDistributionEntry {
  * `assetType` only (research.md #1, FR-001/FR-005) — at most one slice per
  * type, labeled with the type's localized `assetType.*` name, regardless of
  * how many differently-named holdings of that type exist.
+ *
+ * `holdings` is optional (021-frontend-extension-points): when rendered
+ * directly with an explicit `[holdings]` binding (its original call site,
+ * `HoldingsComponent`'s own page), that data is used as-is and this
+ * component never fetches anything itself. When rendered with no binding at
+ * all — its second call site, `apps/frontend`'s
+ * `DASHBOARD_WIDGET_CONTRIBUTIONS` entry via the generic `DynamicOutletComponent`,
+ * which has no way to plumb page-specific data into a dynamically-loaded
+ * component — it fetches its own data via `HoldingsService`, keeping the
+ * Dashboard's own code free of any holdings-specific wiring (FR-003,
+ * research.md #3).
  */
 @Component({
   selector: 'app-holdings-distribution',
@@ -106,12 +118,16 @@ interface HoldingsDistributionEntry {
     }
   `,
 })
-export class HoldingsDistributionComponent implements OnChanges {
-  @Input({ required: true }) holdings: HoldingResponse[] = [];
+export class HoldingsDistributionComponent implements OnChanges, OnInit {
+  @Input() holdings: HoldingResponse[] = [];
 
+  private readonly holdingsService = inject(HoldingsService);
   private readonly themeService = inject(ThemeService);
   private readonly i18n = inject(I18nService);
   private readonly translate = inject(TranslatePipe);
+
+  /** Set by `ngOnChanges`, which Angular only calls when `holdings` is actually data-bound. */
+  private inputBound = false;
 
   private readonly entries = signal<HoldingsDistributionEntry[] | null>(null);
   protected readonly excludedCount = signal(0);
@@ -186,7 +202,26 @@ export class HoldingsDistributionComponent implements OnChanges {
   });
 
   ngOnChanges(): void {
+    this.inputBound = true;
     this.recompute();
+  }
+
+  ngOnInit(): void {
+    if (this.inputBound) {
+      return;
+    }
+    this.holdingsService.list().subscribe({
+      next: (holdings) => {
+        this.holdings = holdings;
+        this.recompute();
+      },
+      // Falls back to the empty state on load failure, same as
+      // `DashboardComponent`'s own pre-021 fetch did.
+      error: () => {
+        this.holdings = [];
+        this.recompute();
+      },
+    });
   }
 
   private recompute(): void {

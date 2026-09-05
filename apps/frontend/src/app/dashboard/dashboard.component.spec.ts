@@ -1,12 +1,14 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import type { HoldingResponse } from '@vaultfolio/api-contract';
+import type { SessionUser } from '@vaultfolio/api-contract';
 import { DashboardComponent } from './dashboard.component';
+import { CurrentUserStore } from '../auth/current-user.store';
+import { FakeCurrentUserStore } from '../auth/testing/current-user-store.testing';
 
-// The dashboard renders the holdings distribution chart (<app-echart>), which
-// calls into real ECharts — jsdom has no canvas 2D context (no `canvas`
-// package installed), so this test double keeps the render path fast and
+// The entitled-user path renders the holdings distribution widget, which
+// renders <app-echart> and calls into real ECharts — jsdom has no canvas 2D
+// context, so this test double keeps the render path fast and
 // environment-independent, same as echart.component.spec.ts.
 vi.mock('echarts', () => ({
   init: vi.fn(() => ({
@@ -24,24 +26,26 @@ class FakeResizeObserver {
   unobserve = vi.fn();
 }
 
-const etf: HoldingResponse = {
-  id: 'etf-1',
-  assetType: 'ETF',
-  management: 'Roboadvisor',
-  isin: 'IE00B4L5Y983',
-  name: 'iShares Core MSCI World',
-  quantity: '12.5',
-  purchasePrice: '78.42',
-  purchaseDate: null,
-  weightGrams: null,
-  currentValue: null,
-  createdAt: '2026-08-01T09:00:00.000Z',
-  updatedAt: '2026-08-01T09:00:00.000Z',
+const entitledUser: SessionUser = {
+  id: 'user-1',
+  email: 'entitled@example.com',
+  displayName: 'Entitled',
+  role: 'MEMBER',
+  domainScopes: ['holdings'],
+};
+
+const unentitledUser: SessionUser = {
+  id: 'user-2',
+  email: 'unentitled@example.com',
+  displayName: 'Unentitled',
+  role: 'MEMBER',
+  domainScopes: [],
 };
 
 describe('DashboardComponent', () => {
   let fixture: ComponentFixture<DashboardComponent>;
   let httpMock: HttpTestingController;
+  let fakeCurrentUser: FakeCurrentUserStore;
 
   beforeEach(async () => {
     // Guard against a leaked 'de' language choice from another spec file
@@ -49,10 +53,15 @@ describe('DashboardComponent', () => {
     // at construction) — this test asserts against the English copy.
     localStorage.clear();
     vi.stubGlobal('ResizeObserver', FakeResizeObserver);
+    fakeCurrentUser = new FakeCurrentUserStore();
 
     await TestBed.configureTestingModule({
       imports: [DashboardComponent],
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: CurrentUserStore, useValue: fakeCurrentUser },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(DashboardComponent);
@@ -64,27 +73,56 @@ describe('DashboardComponent', () => {
     vi.unstubAllGlobals();
   });
 
-  it('renders the holdings distribution view in the allocation card', async () => {
+  it('shows the holdings distribution widget for a holdings-entitled user (Acceptance Scenario 1)', async () => {
+    fakeCurrentUser.setAuthenticated(entitledUser);
     fixture.detectChanges();
-    httpMock.expectOne('/api/holdings').flush([etf]);
-    fixture.detectChanges();
-    // Flushes past the @defer block's dynamic import of
-    // HoldingsDistributionComponent, and that component's own EchartComponent
-    // awaiting its dynamic `import('echarts')` (020) — see
-    // echart.component.spec.ts's identical note.
-    await new Promise((resolve) => setTimeout(resolve, 0));
 
-    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
-    expect(text).not.toContain('Add a holding with a known value');
+    // The widget's own dynamic `import('@vaultfolio/frontend-domain-holdings')`
+    // (DASHBOARD_WIDGET_CONTRIBUTIONS) is a real code-split chunk load, not a
+    // single microtask — poll until the request it eventually makes shows up.
+    // `match()` (not `expectOne()`) inside the loop, since a matching call
+    // removes the request from the testing backend's open-request queue —
+    // calling it repeatedly while polling would otherwise make every
+    // iteration but the first find nothing.
+    let requests: ReturnType<typeof httpMock.match> = [];
+    await vi.waitFor(
+      () => {
+        fixture.detectChanges();
+        requests = httpMock.match('/api/holdings');
+        expect(requests).toHaveLength(1);
+      },
+      { timeout: 5000 },
+    );
+    requests[0].flush([]);
+    fixture.detectChanges();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    fixture.detectChanges();
+
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('app-dynamic-outlet')).not.toBeNull();
   });
 
-  it('falls back to the distribution empty state when holdings fail to load', async () => {
-    fixture.detectChanges();
-    httpMock.expectOne('/api/holdings').flush(null, { status: 500, statusText: 'Server Error' });
+  it('hides the widget for a user not entitled to holdings (Acceptance Scenario 2)', async () => {
+    fakeCurrentUser.setAuthenticated(unentitledUser);
     fixture.detectChanges();
     await new Promise((resolve) => setTimeout(resolve, 0));
+    fixture.detectChanges();
 
-    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
-    expect(text).toContain('Add a holding with a known value');
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('app-dynamic-outlet')).toBeNull();
+  });
+
+  it('renders the other Dashboard cards without error when no widget is visible (Acceptance Scenario 4)', () => {
+    fakeCurrentUser.setAuthenticated(unentitledUser);
+    fixture.detectChanges();
+
+    const el = fixture.nativeElement as HTMLElement;
+    const text = el.textContent ?? '';
+    expect(text).toContain('Total value');
+    expect(text).toContain("Today's change");
+    // Each widget gets its own p-card (one per DASHBOARD_WIDGET_CONTRIBUTIONS
+    // entry the user is entitled to) rather than a permanent "Allocation"
+    // card — with no widget visible, no such card renders at all.
+    expect(el.querySelector('app-dynamic-outlet')).toBeNull();
   });
 });

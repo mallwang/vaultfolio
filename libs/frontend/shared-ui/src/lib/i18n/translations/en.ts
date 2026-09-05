@@ -220,6 +220,10 @@ export const en: TranslationDictionary = {
   admin: {
     general: 'General',
   },
+  holdingsArea: {
+    list: 'List',
+    imports: 'Imports',
+  },
   accounts: {
     subtitle: 'Every account, active and archived — identity, role, and status.',
     loadError: 'Unable to load accounts. Please try again.',

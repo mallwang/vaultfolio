@@ -1,0 +1,16 @@
+{
+  "name": "@vaultfolio/frontend-admin",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "library",
+  "sourceRoot": "libs/frontend/admin/src",
+  "tags": ["scope:frontend-admin"],
+  "targets": {
+    "test": {
+      "executor": "@angular/build:unit-test",
+      "options": {
+        "buildTarget": "frontend:build:development",
+        "watch": false
+      }
+    }
+  }
+}

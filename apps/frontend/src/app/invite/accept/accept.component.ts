@@ -7,7 +7,15 @@ import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { IconComponent } from '@vaultfolio/frontend-shared-ui';
-import { InvitationsService } from '../../admin/invitations/invitations.service';
+/* eslint-disable-next-line @nx/enforce-module-boundaries -- InvitationsService is a lightweight
+   HttpClient wrapper with no PrimeNG/other Admin-component dependency, imported here (the public,
+   unauthenticated accept-invite flow) for its `lookupToken`/`accept` methods only — the same
+   cross-package "service consumed outside the library's own lazy route" pattern
+   `HoldingsService` already establishes for Holdings (contracts/module-boundaries.md guarantee 2).
+   This does not eagerly pull in AdminComponent/AccountsComponent/etc.: those are only referenced
+   from `app.routes.ts`'s own dynamic `import()`s, in a different module than this one, so a
+   bundler still code-splits them into their own chunk regardless of this static import. */
+import { InvitationsService } from '@vaultfolio/frontend-admin';
 
 const ROLE_LABEL: Record<'ADMIN' | 'MEMBER', string> = {
   ADMIN: 'an Administrator',

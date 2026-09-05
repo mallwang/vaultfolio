@@ -13,11 +13,11 @@
       <p>{{ 'dashboard.todaysChangeBody' | translate }}</p>
     </div>
   </p-card>
-  <p-card [header]="'dashboard.allocation' | translate">
-    @defer (on immediate) {
-      <app-holdings-distribution [holdings]="holdings()" />
-    }
-  </p-card>
+  @for (widget of visibleWidgets(); track widget.domainId) {
+    <p-card [header]="widget.titleKey | translate">
+      <app-dynamic-outlet [loader]="widget.loadComponent" />
+    </p-card>
+  }
 </div>
 
 <p-card>

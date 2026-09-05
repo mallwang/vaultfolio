@@ -2,6 +2,9 @@
   <p-tablist>
     <p-tab value="profile">{{ 'settings.profile' | translate }}</p-tab>
     <p-tab value="preferences">{{ 'settings.preferences' | translate }}</p-tab>
+    @for (tab of visibleTabs(); track tab.domainId) {
+      <p-tab [value]="tab.path">{{ tab.labelKey | translate }}</p-tab>
+    }
   </p-tablist>
   <p-tabpanels>
     <router-outlet />

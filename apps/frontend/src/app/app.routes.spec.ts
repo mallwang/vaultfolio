@@ -27,6 +27,14 @@ const admin: SessionUser = {
   domainScopes: [],
 };
 
+const userWithoutHoldings: SessionUser = {
+  id: 'user-3',
+  email: 'no-holdings@example.com',
+  displayName: 'No Holdings',
+  role: 'MEMBER',
+  domainScopes: [],
+};
+
 /**
  * Route-table integration test per contracts/routes.md (T013): exercises
  * the router ↔ guard contract without rendering components, by navigating
@@ -60,8 +68,8 @@ describe('app.routes', () => {
 
     it.each([
       ['/app/dashboard', '/app/dashboard'],
-      ['/app/holdings', '/app/holdings'],
-      ['/app/imports', '/app/imports'],
+      ['/app/holdings', '/app/holdings/list'],
+      ['/app/imports', '/app/holdings/imports'],
       ['/app/settings', '/app/settings/profile'],
     ])('resolves %s under /app/*', async (path, expected) => {
       await router.navigateByUrl(path);
@@ -71,8 +79,8 @@ describe('app.routes', () => {
     it.each([
       ['/', '/app/dashboard'],
       ['/dashboard', '/app/dashboard'],
-      ['/holdings', '/app/holdings'],
-      ['/imports', '/app/imports'],
+      ['/holdings', '/app/holdings/list'],
+      ['/imports', '/app/holdings/imports'],
       ['/settings', '/app/settings/profile'],
     ])('redirects legacy %s to %s', async (legacy, expected) => {
       await router.navigateByUrl(legacy);
@@ -90,10 +98,38 @@ describe('app.routes', () => {
       },
     );
 
+    // 021 US3: Holdings' "List"/"Imports" tabs are each directly
+    // addressable, same convention as Settings/Admin's own tabs.
+    it.each(['/app/holdings/list', '/app/holdings/imports'])(
+      'resolves %s directly to itself',
+      async (path) => {
+        await router.navigateByUrl(path);
+        expect(location.path()).toBe(path);
+      },
+    );
+
     it('redirects a MEMBER opening an admin subsection address away, same as /app/admin', async () => {
       await router.navigateByUrl('/app/admin/invitations');
       expect(location.path()).toBe('/app/dashboard');
     });
+  });
+
+  describe('when authenticated but not entitled to holdings', () => {
+    beforeEach(() => {
+      setup();
+      fakeCurrentUser.setAuthenticated(userWithoutHoldings);
+    });
+
+    // 021 US3, Acceptance Scenario 3: the Imports tab inherits
+    // domainGuard('holdings') from the Holdings parent route, same as the
+    // "list" tab already was denied before this feature.
+    it.each(['/app/holdings/list', '/app/holdings/imports'])(
+      'denies direct visits to %s the same way as the rest of Holdings',
+      async (path) => {
+        await router.navigateByUrl(path);
+        expect(location.path()).toBe('/app/dashboard');
+      },
+    );
   });
 
   describe('when authenticated as ADMIN', () => {
@@ -126,8 +162,8 @@ describe('app.routes', () => {
 
     it.each([
       ['/app/dashboard', '/app/dashboard'],
-      ['/app/holdings', '/app/holdings'],
-      ['/app/imports', '/app/imports'],
+      ['/app/holdings', '/app/holdings/list'],
+      ['/app/imports', '/app/holdings/imports'],
       ['/app/settings', '/app/settings/profile'],
     ])('redirects %s to /sign-in, preserving %s as a redirect target', async (path, resolved) => {
       await router.navigateByUrl(path);

@@ -18,7 +18,11 @@ export default [
           depConstraints: [
             {
               sourceTag: 'scope:frontend',
-              onlyDependOnLibsWithTags: ['scope:shared', 'scope:frontend-domain'],
+              onlyDependOnLibsWithTags: [
+                'scope:shared',
+                'scope:frontend-domain',
+                'scope:frontend-admin',
+              ],
             },
             {
               sourceTag: 'scope:backend',
@@ -34,6 +38,10 @@ export default [
             },
             {
               sourceTag: 'scope:frontend-domain',
+              onlyDependOnLibsWithTags: ['scope:shared'],
+            },
+            {
+              sourceTag: 'scope:frontend-admin',
               onlyDependOnLibsWithTags: ['scope:shared'],
             },
           ],

@@ -1,3 +1,5 @@
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import type { HoldingResponse } from '@vaultfolio/api-contract';
 import { HoldingsDistributionComponent } from './holdings-distribution.component';
@@ -39,15 +41,18 @@ function holding(overrides: Partial<HoldingResponse>): HoldingResponse {
 
 describe('HoldingsDistributionComponent', () => {
   let fixture: ComponentFixture<HoldingsDistributionComponent>;
+  let httpMock: HttpTestingController;
 
   beforeEach(async () => {
     vi.stubGlobal('ResizeObserver', FakeResizeObserver);
 
     await TestBed.configureTestingModule({
       imports: [HoldingsDistributionComponent],
+      providers: [provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
 
     fixture = TestBed.createComponent(HoldingsDistributionComponent);
+    httpMock = TestBed.inject(HttpTestingController);
   });
 
   afterEach(async () => {
@@ -55,6 +60,7 @@ describe('HoldingsDistributionComponent', () => {
     // ngAfterViewInit (020) before unstubbing ResizeObserver — see
     // echart.component.spec.ts's identical note.
     await new Promise((resolve) => setTimeout(resolve, 0));
+    httpMock.verify();
     vi.unstubAllGlobals();
   });
 
@@ -203,5 +209,29 @@ describe('HoldingsDistributionComponent', () => {
     expect(el.textContent).toContain(
       'Add a holding with a known value to see the distribution by value.',
     );
+  });
+
+  it('fetches its own holdings via HoldingsService when rendered with no [holdings] binding (021, DASHBOARD_WIDGET_CONTRIBUTIONS)', async () => {
+    // No `fixture.componentRef.setInput(...)` call here — mirrors how
+    // `DynamicOutletComponent` renders this component, with no binding at all.
+    fixture.detectChanges();
+    httpMock
+      .expectOne('/api/holdings')
+      .flush([holding({ id: '1', assetType: 'SHARE', quantity: '10', purchasePrice: '5' })]);
+    fixture.detectChanges();
+
+    const option = fixture.componentInstance['chartOption']();
+    const series = option.series as Array<{ data: Array<{ name: string; value: number }> }>;
+    expect(series[0].data).toEqual([
+      { name: 'Share', value: 50, itemStyle: { color: ASSET_TYPE_COLORS.SHARE } },
+    ]);
+  });
+
+  it('falls back to the empty state when the self-fetch fails', () => {
+    fixture.detectChanges();
+    httpMock.expectOne('/api/holdings').flush(null, { status: 500, statusText: 'Server Error' });
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance['hasData']()).toBe(false);
   });
 });
