@@ -56,7 +56,15 @@
       "executor": "@angular/build:dev-server",
       "defaultConfiguration": "development",
       "options": {
-        "proxyConfig": "apps/frontend/proxy.conf.json"
+        "proxyConfig": "apps/frontend/proxy.conf.json",
+        "prebundle": {
+          "exclude": [
+            "@vaultfolio/api-contract",
+            "@vaultfolio/frontend-domain-access",
+            "@vaultfolio/frontend-domain-holdings",
+            "@vaultfolio/frontend-shared-ui"
+          ]
+        }
       },
       "configurations": {
         "production": {

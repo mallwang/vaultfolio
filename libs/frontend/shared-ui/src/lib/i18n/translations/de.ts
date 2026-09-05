@@ -250,6 +250,10 @@ export const de: TranslationDictionary = {
     archivedDaysLeft: 'Archiviert · noch {{days}} Tage',
     reactivateAccount: 'Konto reaktivieren',
     noDomains: 'Keine Domänen',
+    allDomains: 'Alle Domänen',
+    domainScopesDisabledAdmin: 'Administratoren haben automatisch Zugriff auf alle Domänen',
+    domainScopesDisabledArchived:
+      'Der Domänenzugriff eines archivierten Kontos kann nicht geändert werden',
     emptyState: 'Noch keine Konten.',
   },
   invitations: {

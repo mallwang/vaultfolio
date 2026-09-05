@@ -62,27 +62,35 @@
             </div>
           </td>
           <td>
-            <p-multiselect
-              [options]="domainRegistry"
-              optionLabel="labelKey"
-              optionValue="id"
-              display="chip"
-              [ngModel]="account.domainScopes"
-              [disabled]="account.status === 'ARCHIVED'"
-              [placeholder]="'accounts.noDomains' | translate"
+            <span
+              [pTooltip]="domainScopesDisabledReason(account)"
+              tooltipPosition="top"
               appendTo="body"
-              (onChange)="onDomainScopesChange(account, $event.value)"
             >
-              <ng-template #dropdownicon><app-icon name="chevron-down" /></ng-template>
-              <ng-template let-domain #item>{{ domain.labelKey | translate }}</ng-template>
-              <ng-template let-selected #selecteditems>
-                @for (domainId of selected; track domainId) {
-                  <span class="p-multiselect-chip-item">{{
-                    domainLabelKey(domainId) | translate
-                  }}</span>
-                }
-              </ng-template>
-            </p-multiselect>
+              <p-multiselect
+                [options]="domainRegistry"
+                optionLabel="labelKey"
+                optionValue="id"
+                display="chip"
+                [ngModel]="account.role === 'ADMIN' ? [] : account.domainScopes"
+                [disabled]="account.role === 'ADMIN' || account.status === 'ARCHIVED'"
+                [placeholder]="
+                  account.role === 'ADMIN'
+                    ? ('accounts.allDomains' | translate)
+                    : ('accounts.noDomains' | translate)
+                "
+                appendTo="body"
+                (onChange)="onDomainScopesChange(account, $event.value)"
+              >
+                <ng-template #dropdownicon><app-icon name="chevron-down" /></ng-template>
+                <ng-template let-domain #item>{{ domain.labelKey | translate }}</ng-template>
+                <ng-template let-selected #selecteditems>
+                  @for (domain of selected; track domain.id) {
+                    <span class="p-multiselect-chip-item">{{ domain.labelKey | translate }}</span>
+                  }
+                </ng-template>
+              </p-multiselect>
+            </span>
           </td>
           <td>
             @if (account.status === 'ACTIVE') {

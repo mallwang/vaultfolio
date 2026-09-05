@@ -251,6 +251,9 @@ export const en: TranslationDictionary = {
     archivedDaysLeft: 'Archived · {{days}}d left',
     reactivateAccount: 'Reactivate account',
     noDomains: 'No domains',
+    allDomains: 'All domains',
+    domainScopesDisabledAdmin: 'Administrators automatically have access to every domain',
+    domainScopesDisabledArchived: "Can't change an archived account's domain access",
     emptyState: 'No accounts yet.',
   },
   invitations: {

@@ -116,6 +116,17 @@ export class AccountsComponent implements OnInit {
     return '';
   }
 
+  /** Reason the domain-scopes multiselect is disabled, or '' when it isn't — drives the wrapper's tooltip, mirroring `roleSelectDisabledReason`. */
+  protected domainScopesDisabledReason(account: AccountSummary): string {
+    if (account.role === 'ADMIN') {
+      return this.translate.transform('accounts.domainScopesDisabledAdmin');
+    }
+    if (account.status === 'ARCHIVED') {
+      return this.translate.transform('accounts.domainScopesDisabledArchived');
+    }
+    return '';
+  }
+
   protected daysLeft(account: AccountSummary): number | null {
     if (!account.retentionExpiresAt) {
       return null;
@@ -141,11 +152,6 @@ export class AccountsComponent implements OnInit {
         this.handleLifecycleError(account, error, 'change that role');
       },
     });
-  }
-
-  /** Translation key for a domain id's nav label, for the multi-select's chip display. */
-  protected domainLabelKey(domainId: string): string {
-    return this.domainRegistry.find((domain) => domain.id === domainId)?.labelKey ?? domainId;
   }
 
   /** `PATCH /accounts/:id/domain-scopes` (020, FR-004): mirrors `onRoleChange`'s refetch-on-success pattern. */
