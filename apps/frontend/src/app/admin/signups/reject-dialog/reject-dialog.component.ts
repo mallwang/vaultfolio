@@ -4,9 +4,8 @@ import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
-import { IconComponent } from '../../../shared/icon/icon.component';
+import { IconComponent, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
 import { SignupsAdminService } from '../signups.service';
-import { TranslatePipe } from '../../../core/i18n/translate.pipe';
 
 /**
  * "Reject sign-up" dialog: an optional reason, kept admin-side only — never

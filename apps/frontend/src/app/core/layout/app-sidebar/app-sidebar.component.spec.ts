@@ -10,6 +10,7 @@ const adminUser: SessionUser = {
   email: 'admin@example.com',
   displayName: 'Admin',
   role: 'ADMIN',
+  domainScopes: [],
 };
 
 const memberUser: SessionUser = {
@@ -17,6 +18,7 @@ const memberUser: SessionUser = {
   email: 'member@example.com',
   displayName: 'Member',
   role: 'MEMBER',
+  domainScopes: [],
 };
 
 describe('AppSidebarComponent', () => {

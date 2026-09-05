@@ -9,10 +9,9 @@ import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
-import { IconComponent } from '../../shared/icon/icon.component';
+import { IconComponent, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
 import { CurrentUserStore } from '../../auth/current-user.store';
 import { ProfileService } from './profile.service';
-import { TranslatePipe } from '../../core/i18n/translate.pipe';
 
 /** Mirrors `libs/domain/auth/password-policy.ts` — a client-side hint only (scope:frontend can't depend on scope:domain libs). */
 const MIN_PASSWORD_LENGTH = 8;

@@ -14,7 +14,9 @@
     </div>
   </p-card>
   <p-card [header]="'dashboard.allocation' | translate">
-    <app-holdings-distribution [holdings]="holdings()" />
+    @defer (on immediate) {
+      <app-holdings-distribution [holdings]="holdings()" />
+    }
   </p-card>
 </div>
 

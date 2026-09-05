@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { domainGuard } from '@vaultfolio/frontend-domain-access';
 import { NotFoundComponent } from './core/layout/not-found/not-found.component';
 import { AppShellComponent } from './core/layout/app-shell/app-shell.component';
 import { authGuard } from './auth/auth.guard';
@@ -90,8 +91,9 @@ export const routes: Routes = [
       {
         path: 'holdings',
         title: 'Holdings',
+        canActivate: [domainGuard('holdings')],
         loadComponent: () =>
-          import('./holdings/holdings.component').then((m) => m.HoldingsComponent),
+          import('@vaultfolio/frontend-domain-holdings').then((m) => m.HoldingsComponent),
       },
       {
         path: 'imports',

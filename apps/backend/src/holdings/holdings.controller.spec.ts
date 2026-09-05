@@ -8,6 +8,7 @@ import request from 'supertest';
 import type { CreateHoldingRequest } from '@vaultfolio/api-contract';
 import { AppModule } from '../app/app.module';
 import { DatabaseService } from '../database/database.service';
+import { UsersRepository } from '../auth/users.repository';
 
 /**
  * Integration tests for User Story 2 (per-user data isolation) — T040–T046.
@@ -379,5 +380,101 @@ describe('/holdings — deposit money (018-deposit-money)', () => {
       (holding) => holding.id === second.body.id,
     );
     expect(bankTwo?.currentValue).toBe('50');
+  });
+});
+
+/**
+ * Backend authorization for domain entitlement (020-domain-library-architecture):
+ * server-side `@RequiresDomain('holdings')`/`DomainGuard` must reject holdings
+ * CRUD once an admin revokes a MEMBER's `holdings` domain scope — this was
+ * previously enforced only client-side via the frontend's `domainGuard`.
+ */
+describe('/holdings — domain scope enforcement (020-domain-library-architecture)', () => {
+  let app: INestApplication;
+  let users: UsersRepository;
+  let tempDir: string;
+  let adminCookie: string;
+  let memberCookie: string;
+  let memberId: string;
+
+  const ADMIN_EMAIL = 'admin-domain@example.com';
+  const ADMIN_PASSWORD = 'a-valid-8-char-password';
+  const MEMBER_EMAIL = 'member-domain@example.com';
+  const MEMBER_PASSWORD = 'another-8-char-password';
+
+  beforeAll(async () => {
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'vaultfolio-holdings-domain-'));
+    process.env.DATABASE_PATH = path.join(tempDir, 'test.db');
+    process.env.BOOTSTRAP_ADMIN_EMAIL = ADMIN_EMAIL;
+    process.env.BOOTSTRAP_ADMIN_PASSWORD = ADMIN_PASSWORD;
+
+    const moduleRef: TestingModule = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
+
+    app = moduleRef.createNestApplication();
+    app.use(cookieParser());
+    await app.init();
+    users = moduleRef.get(UsersRepository);
+
+    const adminSignIn = await request(app.getHttpServer())
+      .post('/auth/sign-in')
+      .send({ email: ADMIN_EMAIL, password: ADMIN_PASSWORD });
+    adminCookie = (adminSignIn.headers['set-cookie'] as unknown as string[])[0].split(';')[0];
+
+    const argon2 = await import('argon2');
+    const member = await users.create({
+      email: MEMBER_EMAIL,
+      displayName: 'Member Domain',
+      passwordHash: await argon2.hash(MEMBER_PASSWORD),
+      role: 'MEMBER',
+    });
+    memberId = member.id;
+
+    const memberSignIn = await request(app.getHttpServer())
+      .post('/auth/sign-in')
+      .send({ email: MEMBER_EMAIL, password: MEMBER_PASSWORD });
+    memberCookie = (memberSignIn.headers['set-cookie'] as unknown as string[])[0].split(';')[0];
+  });
+
+  afterAll(async () => {
+    await app.close();
+    delete process.env.DATABASE_PATH;
+    delete process.env.BOOTSTRAP_ADMIN_EMAIL;
+    delete process.env.BOOTSTRAP_ADMIN_PASSWORD;
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  });
+
+  it('a MEMBER can use /holdings by default (bootstrap domain scope includes holdings)', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/holdings')
+      .set('Cookie', memberCookie);
+    expect(response.status).toBe(200);
+  });
+
+  it("revoking a MEMBER's holdings domain scope makes every /holdings route reject with 403, even though the record still exists", async () => {
+    await request(app.getHttpServer())
+      .patch(`/accounts/${memberId}/domain-scopes`)
+      .set('Cookie', adminCookie)
+      .send({ domainScopes: [] });
+
+    const list = await request(app.getHttpServer()).get('/holdings').set('Cookie', memberCookie);
+    expect(list.status).toBe(403);
+
+    const create = await request(app.getHttpServer())
+      .post('/holdings')
+      .set('Cookie', memberCookie)
+      .send({
+        assetType: 'PRECIOUS_METAL',
+        management: 'Home safe',
+        name: 'Gold',
+        weightGrams: '10',
+      });
+    expect(create.status).toBe(403);
+  });
+
+  it('an ADMIN can use /holdings regardless of domainScopes (FR-008 parity with the frontend)', async () => {
+    const response = await request(app.getHttpServer()).get('/holdings').set('Cookie', adminCookie);
+    expect(response.status).toBe(200);
   });
 });

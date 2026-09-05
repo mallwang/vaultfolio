@@ -18,6 +18,8 @@ export interface User {
   retentionExpiresAt: string | null;
   pendingEmail: string | null;
   emailLanguage: string | null;
+  /** Domain ids this user is entitled to, independent of `role` (020, FR-004/FR-007). */
+  domainScopes: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -35,8 +37,29 @@ interface UserRow {
   retention_expires_at: string | null;
   pending_email: string | null;
   email_language: string | null;
+  domain_scopes: string | null;
   created_at: string;
   updated_at: string;
+}
+
+/**
+ * Decodes `domain_scopes` (data-model.md's Validation rules): must decode to
+ * an array of strings, otherwise (missing, malformed JSON, non-array,
+ * non-string entries) the user has no domain access — fail closed, never
+ * fail open.
+ */
+function parseDomainScopes(raw: string | null): string[] {
+  if (!raw) {
+    return [];
+  }
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    return Array.isArray(parsed) && parsed.every((entry) => typeof entry === 'string')
+      ? parsed
+      : [];
+  } catch {
+    return [];
+  }
 }
 
 function rowToUser(row: UserRow): User {
@@ -53,6 +76,7 @@ function rowToUser(row: UserRow): User {
     retentionExpiresAt: row.retention_expires_at,
     pendingEmail: row.pending_email,
     emailLanguage: row.email_language,
+    domainScopes: parseDomainScopes(row.domain_scopes),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -172,6 +196,18 @@ export class UsersRepository {
        WHERE id = $1
        RETURNING *`,
       [id, role],
+    );
+    return rows[0] ? rowToUser(rows[0]) : null;
+  }
+
+  /** Sets a user's domain entitlements (020, `PATCH /accounts/:id/domain-scopes`). */
+  async updateDomainScopes(id: string, domainScopes: string[]): Promise<User | null> {
+    const rows = await this.database.query<UserRow>(
+      `UPDATE users
+       SET domain_scopes = $2, updated_at = STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')
+       WHERE id = $1
+       RETURNING *`,
+      [id, JSON.stringify(domainScopes)],
     );
     return rows[0] ? rowToUser(rows[0]) : null;
   }

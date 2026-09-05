@@ -13,7 +13,7 @@ export interface ApplicationArea {
   label: string;
   /** Router path segment, e.g. 'dashboard' → /dashboard. */
   path: string;
-  /** `vf-icon` semantic name (see `shared/icon/icon-name.map.ts`), e.g. 'home'. */
+  /** `vf-icon` semantic name (see `@vaultfolio/frontend-shared-ui`'s `icon-name.map.ts`), e.g. 'home'. */
   icon: string;
   /**
    * When present, the area is rendered only for a current user whose role is
@@ -21,11 +21,18 @@ export interface ApplicationArea {
    * (data-model.md "ApplicationArea").
    */
   roles?: UserRole[];
+  /**
+   * When present, points at a `DomainDescriptor.id`
+   * (`@vaultfolio/frontend-domain-access`) — the area is rendered only when
+   * `isDomainEntitled` says the current user has access to that domain
+   * (020, FR-006), the same way `roles` already gates role-restricted areas.
+   */
+  domainId?: string;
 }
 
 export const APPLICATION_AREAS: ApplicationArea[] = [
   { id: 'dashboard', label: 'Dashboard', path: 'dashboard', icon: 'home' },
-  { id: 'holdings', label: 'Holdings', path: 'holdings', icon: 'briefcase' },
+  { id: 'holdings', label: 'Holdings', path: 'holdings', icon: 'briefcase', domainId: 'holdings' },
   { id: 'imports', label: 'Imports', path: 'imports', icon: 'upload' },
   { id: 'settings', label: 'Settings', path: 'settings', icon: 'cog' },
   { id: 'admin', label: 'Admin', path: 'admin', icon: 'shield', roles: ['ADMIN'] },

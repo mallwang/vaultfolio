@@ -24,6 +24,7 @@
           <th scope="col">{{ 'accounts.columnName' | translate }}</th>
           <th scope="col">{{ 'accounts.columnEmail' | translate }}</th>
           <th scope="col">{{ 'accounts.columnRole' | translate }}</th>
+          <th scope="col">{{ 'accounts.columnDomains' | translate }}</th>
           <th scope="col">{{ 'accounts.columnStatus' | translate }}</th>
           <th scope="col"></th>
         </tr>
@@ -44,7 +45,7 @@
                   optionLabel="label"
                   optionValue="value"
                   [ngModel]="account.role"
-                  [disabled]="account.isLastActiveAdmin || account.status === 'ARCHIVED'"
+                  [disabled]="roleSelectDisabled(account)"
                   (onChange)="onRoleChange(account, $event.value)"
                   appendTo="body"
                 >
@@ -59,6 +60,37 @@
                 />
               }
             </div>
+          </td>
+          <td>
+            <span
+              [pTooltip]="domainScopesDisabledReason(account)"
+              tooltipPosition="top"
+              appendTo="body"
+            >
+              <p-multiselect
+                [options]="domainRegistry"
+                optionLabel="labelKey"
+                optionValue="id"
+                display="chip"
+                [ngModel]="account.role === 'ADMIN' ? [] : account.domainScopes"
+                [disabled]="account.role === 'ADMIN' || account.status === 'ARCHIVED'"
+                [placeholder]="
+                  account.role === 'ADMIN'
+                    ? ('accounts.allDomains' | translate)
+                    : ('accounts.noDomains' | translate)
+                "
+                appendTo="body"
+                (onChange)="onDomainScopesChange(account, $event.value)"
+              >
+                <ng-template #dropdownicon><app-icon name="chevron-down" /></ng-template>
+                <ng-template let-domain #item>{{ domain.labelKey | translate }}</ng-template>
+                <ng-template let-selected #selecteditems>
+                  @for (domain of selected; track domain.id) {
+                    <span class="p-multiselect-chip-item">{{ domain.labelKey | translate }}</span>
+                  }
+                </ng-template>
+              </p-multiselect>
+            </span>
           </td>
           <td>
             @if (account.status === 'ACTIVE') {
@@ -115,7 +147,7 @@
       </ng-template>
       <ng-template #emptymessage>
         <tr>
-          <td colspan="5">
+          <td colspan="6">
             <div class="empty-state">{{ 'accounts.emptyState' | translate }}</div>
           </td>
         </tr>

@@ -16,11 +16,19 @@ import { SUPPORTED_LANGUAGES } from '@vaultfolio/api-contract';
  * `./data/vaultfolio.db`), bind-mounted from the host — see
  * specs/004-sqlite-migration/data-model.md.
  *
- * There is no productive database in use yet, so `initializeSchema()` below
- * creates every table at its current, final shape directly (all `CREATE
- * TABLE IF NOT EXISTS` — safe to run on every boot) rather than accreting a
- * chain of incremental migrations. If a real deployment ever needs to change
- * this schema in place, reach for a proper migration at that point.
+ * `initializeSchema()` below creates every table via `CREATE TABLE IF NOT
+ * EXISTS` — safe to run on every boot, and enough on its own for a brand-new
+ * database. It is NOT enough on its own once a database already exists
+ * (local dev data, or any real deployment): `IF NOT EXISTS` is a no-op
+ * against an existing table, so a column added to one of these `CREATE
+ * TABLE` statements never reaches a database created before that change —
+ * every write against it then fails with "no such column" until someone
+ * migrates the file by hand. Any change to an *existing* table's columns
+ * therefore needs its own idempotent migration step below (guarded by a
+ * `pragma_table_info` check, then `ALTER TABLE ... ADD COLUMN`), run from
+ * `onModuleInit` after `initializeSchema()` — see `migrateDomainScopes` for
+ * the current example. Only a brand-new table can skip this and rely on
+ * `CREATE TABLE IF NOT EXISTS` alone.
  */
 @Injectable()
 export class DatabaseService implements OnModuleInit, OnModuleDestroy {
@@ -38,6 +46,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       this.db.pragma('busy_timeout = 5000');
 
       this.initializeSchema();
+      this.migrateDomainScopes();
       await this.ensureBootstrapAdmin();
       this.ready = true;
     } catch (error) {
@@ -227,6 +236,23 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     db.exec(
       'CREATE INDEX IF NOT EXISTS account_action_tokens_user_purpose_idx ON account_action_tokens (user_id, purpose)',
     );
+  }
+
+  /**
+   * 020-domain-library-architecture: adds `users.domain_scopes` to a `users`
+   * table that pre-dates it (`initializeSchema()`'s `CREATE TABLE IF NOT
+   * EXISTS` only applies the column to a brand-new table — see this file's
+   * top-of-file doc comment). Idempotent via the `pragma_table_info` guard,
+   * same convention as the pre-collapse migrations this restores.
+   */
+  private migrateDomainScopes(): void {
+    const db = this.requireDb();
+    const hasDomainScopes = db
+      .prepare("SELECT 1 FROM pragma_table_info('users') WHERE name = 'domain_scopes'")
+      .get();
+    if (!hasDomainScopes) {
+      db.exec(`ALTER TABLE users ADD COLUMN domain_scopes TEXT NULL DEFAULT '["holdings"]'`);
+    }
   }
 
   /**

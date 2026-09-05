@@ -5,6 +5,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import type { SessionUser } from '@vaultfolio/api-contract';
+import { isDomainEntitled } from '@vaultfolio/frontend-domain-access';
 import { routes } from '../../../app.routes';
 import { CurrentUserStore } from '../../../auth/current-user.store';
 import { FakeCurrentUserStore } from '../../../auth/testing/current-user-store.testing';
@@ -15,6 +16,7 @@ const user: SessionUser = {
   email: 'alex@example.com',
   displayName: 'Alex Example',
   role: 'MEMBER',
+  domainScopes: [],
 };
 
 /**
@@ -42,9 +44,14 @@ describe('AppShellComponent (integration)', () => {
   it('renders the sidebar listing the role-visible APPLICATION_AREAS entries when authenticated', async () => {
     fakeCurrentUser.setAuthenticated(user);
     const harness = await RouterTestingHarness.create('/app/dashboard');
-    const visibleAreas = APPLICATION_AREAS.filter(
-      (area) => !area.roles || area.roles.includes(user.role),
-    );
+    const visibleAreas = APPLICATION_AREAS.filter((area) => {
+      const roleAllowed = !area.roles || area.roles.includes(user.role);
+      // FR-006 (020): the sidebar hides a domain-gated area the user isn't
+      // entitled to the same way it hides a role-gated one — this fixture's
+      // empty domainScopes means 'holdings' is filtered out too.
+      const domainAllowed = !area.domainId || isDomainEntitled(user, area.domainId);
+      return roleAllowed && domainAllowed;
+    });
 
     const items = harness.routeNativeElement?.querySelectorAll('.app-nav__item');
     expect(items?.length).toBe(visibleAreas.length);

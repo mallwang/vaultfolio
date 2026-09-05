@@ -24,6 +24,8 @@ export interface SessionUser {
   email: string;
   displayName: string;
   role: UserRole;
+  /** Domain ids this user is entitled to, independent of `role` (020, FR-004/FR-007). */
+  domainScopes: string[];
 }
 
 export interface AuthErrorResponse {

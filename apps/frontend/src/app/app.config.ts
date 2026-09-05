@@ -10,6 +10,7 @@ import { definePreset } from '@primeuix/themes';
 import Aura from '@primeuix/themes/aura';
 import { catchError, of, tap } from 'rxjs';
 import { providePrimeNG } from 'primeng/config';
+import { CURRENT_USER_SOURCE } from '@vaultfolio/frontend-domain-access';
 import { environment } from '../environments/environment';
 import { routes } from './app.routes';
 import { AuthService } from './auth/auth.service';
@@ -50,6 +51,11 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withInterceptors([authInterceptor])),
     provideRouter(routes),
     { provide: TitleStrategy, useClass: VaultfolioTitleStrategy },
+    // `domainGuard`/`isDomainEntitled` (`@vaultfolio/frontend-domain-access`,
+    // `scope:shared`) may not import `CurrentUserStore` directly (it lives
+    // in `scope:frontend`, contracts/module-boundaries.md) — this binding is
+    // the one place that wires the concrete store to the shared token.
+    { provide: CURRENT_USER_SOURCE, useExisting: CurrentUserStore },
     // research.md #2: resolve Auth Status once at bootstrap so the header
     // and shell never have to guess signed-in/signed-out before the
     // session check completes (data-model.md "Auth Status").

@@ -72,7 +72,7 @@ export class AuthGuard implements CanActivate {
     }
 
     await this.sessions.touch(session.id);
-    request.user = { id: user.id, role: user.role };
+    request.user = { id: user.id, role: user.role, domainScopes: user.domainScopes };
     return true;
   }
 }

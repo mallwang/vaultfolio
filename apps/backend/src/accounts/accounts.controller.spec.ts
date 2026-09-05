@@ -126,7 +126,7 @@ describe('/accounts', () => {
       expect(response.body).toEqual({ error: 'not_found', message: 'Account not found.' });
     });
 
-    it('returns 409 last_admin when demoting the sole active admin', async () => {
+    it('returns 403 forbidden when an admin attempts to change their own role', async () => {
       const cookie = await signIn(ADMIN_EMAIL, ADMIN_PASSWORD);
       const admin = await users.findByEmail(ADMIN_EMAIL);
 
@@ -135,12 +135,20 @@ describe('/accounts', () => {
         .set('Cookie', cookie)
         .send({ role: 'MEMBER' });
 
-      expect(response.status).toBe(409);
+      expect(response.status).toBe(403);
       expect(response.body).toEqual({
-        error: 'last_admin',
-        message: 'At least one active administrator must remain.',
+        error: 'forbidden',
+        message: 'You do not have access to this resource.',
       });
     });
+
+    // Note: the last_admin invariant in AccountsService#changeRole is now
+    // unreachable via this endpoint — reaching it requires actor !== target
+    // while target is the sole active admin, but only an active admin may
+    // call this route at all, so a distinct actor implies activeAdminCount
+    // >= 2 (no longer "sole"). The branch stays as defense-in-depth (e.g. if
+    // the self-change check above were ever relaxed); `canRemoveLastAdmin`
+    // itself is covered directly in last-admin.spec.ts.
   });
 
   describe('POST /accounts/:id/archive', () => {
@@ -275,6 +283,52 @@ describe('/accounts', () => {
         error: 'last_admin',
         message: 'At least one active administrator must remain.',
       });
+    });
+  });
+
+  describe('PATCH /accounts/:id/domain-scopes', () => {
+    it('persists valid domain ids and returns them on the updated account: 200', async () => {
+      const cookie = await signIn(ADMIN_EMAIL, ADMIN_PASSWORD);
+      const member = await createMember('domain-scopes-valid@example.com');
+
+      const response = await request(app.getHttpServer())
+        .patch(`/accounts/${member.id}/domain-scopes`)
+        .set('Cookie', cookie)
+        .send({ domainScopes: ['holdings'] });
+
+      expect(response.status).toBe(200);
+      expect(response.body.domainScopes).toEqual(['holdings']);
+    });
+
+    it('rejects an unknown domain id: 400 invalid_domain, leaving the account unchanged', async () => {
+      const cookie = await signIn(ADMIN_EMAIL, ADMIN_PASSWORD);
+      const member = await createMember('domain-scopes-invalid@example.com');
+
+      const response = await request(app.getHttpServer())
+        .patch(`/accounts/${member.id}/domain-scopes`)
+        .set('Cookie', cookie)
+        .send({ domainScopes: ['not-a-real-domain'] });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        error: 'invalid_domain',
+        message: 'One or more domain ids are not recognized.',
+      });
+
+      const unchanged = await users.findById(member.id);
+      expect(unchanged?.domainScopes).toEqual(['holdings']);
+    });
+
+    it('returns 404 for a nonexistent account', async () => {
+      const cookie = await signIn(ADMIN_EMAIL, ADMIN_PASSWORD);
+
+      const response = await request(app.getHttpServer())
+        .patch('/accounts/nonexistent-id/domain-scopes')
+        .set('Cookie', cookie)
+        .send({ domainScopes: ['holdings'] });
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({ error: 'not_found', message: 'Account not found.' });
     });
   });
 

@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
-import { IconComponent } from '../../shared/icon/icon.component';
+import { IconComponent } from '@vaultfolio/frontend-shared-ui';
 
 /**
  * Shared "no longer valid" page (design.md "Link-invalid page", Edge Cases/

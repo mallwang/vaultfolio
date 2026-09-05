@@ -7,6 +7,7 @@ import { UsersRepository } from './users.repository';
 import { SessionsRepository } from './sessions.repository';
 import { AuthGuard } from './auth.guard';
 import { RolesGuard } from './roles.guard';
+import { DomainGuard } from './domain.guard';
 
 @Module({
   imports: [
@@ -22,10 +23,12 @@ import { RolesGuard } from './roles.guard';
     UsersRepository,
     SessionsRepository,
     // Order matters: AuthGuard (authentication) must run before RolesGuard
-    // (authorization) so `request.user` exists by the time roles are
-    // checked. Nest runs APP_GUARD providers in registration order.
+    // and DomainGuard (authorization) so `request.user` exists by the time
+    // roles/domain scopes are checked. Nest runs APP_GUARD providers in
+    // registration order.
     { provide: APP_GUARD, useClass: AuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
+    { provide: APP_GUARD, useClass: DomainGuard },
   ],
   exports: [UsersRepository, SessionsRepository],
 })

@@ -5,7 +5,7 @@ import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
-import { IconComponent } from '../../shared/icon/icon.component';
+import { IconComponent } from '@vaultfolio/frontend-shared-ui';
 import { CurrentUserStore } from '../../auth/current-user.store';
 import { ProfileService } from '../../settings/profile/profile.service';
 

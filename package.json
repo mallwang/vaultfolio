@@ -85,7 +85,9 @@
   "workspaces": [
     "apps/*",
     "libs/*",
-    "libs/domain/*"
+    "libs/domain/*",
+    "libs/frontend/*",
+    "libs/frontend/domain/*"
   ],
   "dependencies": {
     "@angular/common": "~22.1.0",

@@ -14,7 +14,16 @@
   "exclude": ["src/**/*.spec.ts", "src/**/*.test.ts"],
   "references": [
     {
+      "path": "../../libs/frontend/domain/holdings/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/frontend/domain-access/tsconfig.lib.json"
+    },
+    {
       "path": "../../libs/api-contract/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/frontend/shared-ui/tsconfig.lib.json"
     }
   ]
 }

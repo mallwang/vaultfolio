@@ -8,7 +8,7 @@ import { CardModule } from 'primeng/card';
 import type { AuthErrorResponse } from '@vaultfolio/api-contract';
 import { AuthService } from '../auth.service';
 import { CurrentUserStore } from '../current-user.store';
-import { TranslatePipe } from '../../core/i18n/translate.pipe';
+import { TranslatePipe } from '@vaultfolio/frontend-shared-ui';
 
 /**
  * Sign-in page (contracts/auth-api.md): email/password form; shows the
