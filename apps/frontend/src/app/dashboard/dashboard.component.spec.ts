@@ -116,9 +116,13 @@ describe('DashboardComponent', () => {
     fakeCurrentUser.setAuthenticated(unentitledUser);
     fixture.detectChanges();
 
-    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    const el = fixture.nativeElement as HTMLElement;
+    const text = el.textContent ?? '';
     expect(text).toContain('Total value');
     expect(text).toContain("Today's change");
-    expect(text).toContain('Allocation');
+    // Each widget gets its own p-card (one per DASHBOARD_WIDGET_CONTRIBUTIONS
+    // entry the user is entitled to) rather than a permanent "Allocation"
+    // card — with no widget visible, no such card renders at all.
+    expect(el.querySelector('app-dynamic-outlet')).toBeNull();
   });
 });

@@ -12,9 +12,10 @@ import { DASHBOARD_WIDGET_CONTRIBUTIONS } from './dashboard-widgets.registry';
 
 /**
  * Dashboard area (FR-005): total value and today's change remain placeholder
- * shells; the "Allocation" card renders every `DASHBOARD_WIDGET_CONTRIBUTIONS`
- * entry the current user is entitled to (FR-001, FR-004,
- * 021-frontend-extension-points), via the generic `DynamicOutletComponent`.
+ * shells; a `p-card` per `DASHBOARD_WIDGET_CONTRIBUTIONS` entry the current
+ * user is entitled to renders that widget (FR-001, FR-004,
+ * 021-frontend-extension-points), via the generic `DynamicOutletComponent`,
+ * headed by the contribution's own `titleKey`.
  *
  * `DashboardComponent` itself has no domain-specific knowledge — it neither
  * imports a domain's widget component nor fetches that domain's data

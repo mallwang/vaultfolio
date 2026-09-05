@@ -9,6 +9,7 @@ import type { DashboardWidgetContribution } from '@vaultfolio/frontend-domain-ac
 export const DASHBOARD_WIDGET_CONTRIBUTIONS: DashboardWidgetContribution[] = [
   {
     domainId: 'holdings',
+    titleKey: 'dashboard.allocation',
     loadComponent: () =>
       import('@vaultfolio/frontend-domain-holdings').then((m) => m.HoldingsDistributionComponent),
   },

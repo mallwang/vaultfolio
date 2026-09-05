@@ -11,6 +11,8 @@ import type { Type } from '@angular/core';
 export interface DashboardWidgetContribution {
   /** Matches a `DomainDescriptor.id` (`DOMAIN_REGISTRY`) — the domain this widget belongs to. */
   domainId: string;
+  /** i18n translation key for the widget's own `p-card` header, matching `SettingsTabContribution.labelKey`'s existing convention. */
+  titleKey: string;
   /** Dynamic import factory, e.g. `() => import('@vaultfolio/frontend-domain-holdings').then(m => m.HoldingsDistributionComponent)`. Never imported eagerly (research.md #3). */
   loadComponent: () => Promise<Type<unknown>>;
 }
