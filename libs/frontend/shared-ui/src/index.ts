@@ -10,5 +10,6 @@ export type { Theme } from './lib/theme/theme.service';
 export { IconComponent } from './lib/icon/icon.component';
 export { ICON_NAME_MAP } from './lib/icon/icon-name.map';
 export { EchartComponent } from './lib/chart/echart.component';
+export { DynamicOutletComponent } from './lib/dynamic-outlet/dynamic-outlet.component';
 export { ASSET_TYPE_COLORS, resolveChartPalette } from './lib/chart/chart-palette';
 export type { ChartPalette } from './lib/chart/chart-palette';

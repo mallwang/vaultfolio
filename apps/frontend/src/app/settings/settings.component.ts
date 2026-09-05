@@ -1,9 +1,12 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter, map, startWith } from 'rxjs';
 import { TabsModule } from 'primeng/tabs';
 import { TranslatePipe } from '@vaultfolio/frontend-shared-ui';
+import { isDomainEntitled } from '@vaultfolio/frontend-domain-access';
+import { CurrentUserStore } from '../auth/current-user.store';
+import { SETTINGS_TAB_CONTRIBUTIONS } from './settings-tabs.registry';
 
 /**
  * Settings area (012-restructure-admin-nav): a "Profile" sub-tab (008 —
@@ -18,6 +21,12 @@ import { TranslatePipe } from '@vaultfolio/frontend-shared-ui';
  * `<router-outlet>` below: `activeTab` mirrors the active child segment so a
  * direct visit (e.g. an email link) opens the right tab, and `onTabChange`
  * navigates to the selected tab's route so the URL stays in sync.
+ *
+ * `visibleTabs` (FR-002, 021-frontend-extension-points) adds one more
+ * `<p-tab>` per `SETTINGS_TAB_CONTRIBUTIONS` entry the current user is
+ * entitled to, after the fixed Profile/Preferences pair — the same
+ * `isDomainEntitled` filter `AppSidebarComponent` already applies to
+ * `APPLICATION_AREAS` (020).
  */
 @Component({
   selector: 'app-settings',
@@ -28,6 +37,12 @@ import { TranslatePipe } from '@vaultfolio/frontend-shared-ui';
 export class SettingsComponent {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly currentUserStore = inject(CurrentUserStore);
+
+  protected readonly visibleTabs = computed(() => {
+    const user = this.currentUserStore.current();
+    return SETTINGS_TAB_CONTRIBUTIONS.filter((tab) => isDomainEntitled(user, tab.domainId));
+  });
 
   protected readonly activeTab = toSignal(
     this.router.events.pipe(

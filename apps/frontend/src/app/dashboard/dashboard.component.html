@@ -14,8 +14,8 @@
     </div>
   </p-card>
   <p-card [header]="'dashboard.allocation' | translate">
-    @defer (on immediate) {
-      <app-holdings-distribution [holdings]="holdings()" />
+    @for (widget of visibleWidgets(); track widget.domainId) {
+      <app-dynamic-outlet [loader]="widget.loadComponent" />
     }
   </p-card>
 </div>

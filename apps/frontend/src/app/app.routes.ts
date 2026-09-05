@@ -4,6 +4,7 @@ import { NotFoundComponent } from './core/layout/not-found/not-found.component';
 import { AppShellComponent } from './core/layout/app-shell/app-shell.component';
 import { authGuard } from './auth/auth.guard';
 import { adminGuard } from './auth/admin.guard';
+import { SETTINGS_TAB_CONTRIBUTIONS } from './settings/settings-tabs.registry';
 
 /**
  * Route table (contracts/routes.md): public pages live directly under the
@@ -75,7 +76,9 @@ export const routes: Routes = [
   // equivalent, same as any other `/app/...` request.
   { path: 'dashboard', pathMatch: 'full', redirectTo: 'app/dashboard' },
   { path: 'holdings', pathMatch: 'full', redirectTo: 'app/holdings' },
-  { path: 'imports', pathMatch: 'full', redirectTo: 'app/imports' },
+  // Imports no longer has its own address (021, US3) — both this and its
+  // post-`/app` equivalent below now land on the relocated tab (FR-010).
+  { path: 'imports', pathMatch: 'full', redirectTo: 'app/holdings/imports' },
   { path: 'settings', pathMatch: 'full', redirectTo: 'app/settings' },
   {
     path: 'app',
@@ -93,13 +96,30 @@ export const routes: Routes = [
         title: 'Holdings',
         canActivate: [domainGuard('holdings')],
         loadComponent: () =>
-          import('@vaultfolio/frontend-domain-holdings').then((m) => m.HoldingsComponent),
+          import('@vaultfolio/frontend-domain-holdings').then((m) => m.HoldingsAreaComponent),
+        // Imports is now an internal tab of Holdings, not its own nav
+        // entry/route (FR-008/FR-009, US3) — both children inherit the
+        // `domainGuard('holdings')` above from this parent, the same way
+        // `adminGuard` already covers every Admin sub-route.
+        children: [
+          { path: '', pathMatch: 'full', redirectTo: 'list' },
+          {
+            path: 'list',
+            title: 'Holdings · List',
+            loadComponent: () =>
+              import('@vaultfolio/frontend-domain-holdings').then((m) => m.HoldingsComponent),
+          },
+          {
+            path: 'imports',
+            title: 'Holdings · Imports',
+            loadComponent: () =>
+              import('@vaultfolio/frontend-domain-holdings').then((m) => m.ImportsComponent),
+          },
+        ],
       },
-      {
-        path: 'imports',
-        title: 'Imports',
-        loadComponent: () => import('./imports/imports.component').then((m) => m.ImportsComponent),
-      },
+      // Post-`/app` legacy address (FR-010, FR-013) — pre-021 direct visits
+      // to `/app/imports` now land on the relocated tab.
+      { path: 'imports', pathMatch: 'full', redirectTo: 'holdings/imports' },
       {
         path: 'settings',
         title: 'Settings',
@@ -124,44 +144,51 @@ export const routes: Routes = [
                 (m) => m.PreferencesComponent,
               ),
           },
+          // One child per SETTINGS_TAB_CONTRIBUTIONS entry (FR-002), each
+          // guarded the same way a domain's own main route is
+          // (contracts/dashboard-settings-extension-points.md).
+          ...SETTINGS_TAB_CONTRIBUTIONS.map((contribution) => ({
+            path: contribution.path,
+            canActivate: [domainGuard(contribution.domainId)],
+            loadComponent: contribution.loadComponent,
+          })),
         ],
       },
       {
         path: 'admin',
         title: 'Admin',
         canActivate: [adminGuard],
-        loadComponent: () => import('./admin/admin.component').then((m) => m.AdminComponent),
+        loadComponent: () => import('@vaultfolio/frontend-admin').then((m) => m.AdminComponent),
         // Same pattern as `settings` above; the `adminGuard` on the parent
-        // route already covers these subsection addresses too.
+        // route already covers these subsection addresses too. Admin now
+        // lives in its own `scope:frontend-admin` library (021, US4) —
+        // structurally distinct from any `scope:frontend-domain` library —
+        // only the import source changes here, no path/title/guard change.
         children: [
           { path: '', pathMatch: 'full', redirectTo: 'accounts' },
           {
             path: 'accounts',
             title: 'Admin · Accounts',
             loadComponent: () =>
-              import('./admin/accounts/accounts.component').then((m) => m.AccountsComponent),
+              import('@vaultfolio/frontend-admin').then((m) => m.AccountsComponent),
           },
           {
             path: 'signups',
             title: 'Admin · Sign-ups',
             loadComponent: () =>
-              import('./admin/signups/signups.component').then((m) => m.SignupsComponent),
+              import('@vaultfolio/frontend-admin').then((m) => m.SignupsComponent),
           },
           {
             path: 'invitations',
             title: 'Admin · Invitations',
             loadComponent: () =>
-              import('./admin/invitations/invitations.component').then(
-                (m) => m.InvitationsComponent,
-              ),
+              import('@vaultfolio/frontend-admin').then((m) => m.InvitationsComponent),
           },
           {
             path: 'general',
             title: 'Admin · General',
             loadComponent: () =>
-              import('./admin/health-status/health-status.component').then(
-                (m) => m.HealthStatusComponent,
-              ),
+              import('@vaultfolio/frontend-admin').then((m) => m.HealthStatusComponent),
           },
         ],
       },

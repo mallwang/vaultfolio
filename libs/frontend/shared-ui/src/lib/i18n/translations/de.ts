@@ -218,6 +218,10 @@ export const de: TranslationDictionary = {
   admin: {
     general: 'Allgemein',
   },
+  holdingsArea: {
+    list: 'Liste',
+    imports: 'Importe',
+  },
   accounts: {
     subtitle: 'Jedes Konto, aktiv und archiviert — Identität, Rolle und Status.',
     loadError: 'Konten konnten nicht geladen werden. Bitte erneut versuchen.',

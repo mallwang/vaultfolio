@@ -38,6 +38,9 @@
     },
     {
       "path": "./libs/frontend/shared-ui"
+    },
+    {
+      "path": "./libs/frontend/admin"
     }
   ],
   "compilerOptions": {}

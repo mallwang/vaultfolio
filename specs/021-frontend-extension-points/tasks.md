@@ -41,7 +41,7 @@ dependency and no new build/deploy target (plan.md Technical Context, Constraint
 project is the `libs/frontend/admin` library scaffolded within User Story 4 (Phase 5), since it is
 that story's own concern, not shared setup.
 
-- [ ] T001 Confirm `npm install` succeeds from repo root ([package.json](../../package.json)) and
+- [x] T001 Confirm `npm install` succeeds from repo root ([package.json](../../package.json)) and
       `npx nx graph` resolves cleanly with no new dependency added, establishing the clean baseline
       this feature's changes are diffed against (plan.md Technical Context: "adds no new external
       dependency")
@@ -72,40 +72,40 @@ registry array (quickstart.md §1).
 
 ### Implementation for User Story 1
 
-- [ ] T002 [P] [US1] Add `DashboardWidgetContribution` interface (`domainId: string`,
+- [x] T002 [P] [US1] Add `DashboardWidgetContribution` interface (`domainId: string`,
       `loadComponent: () => Promise<Type<unknown>>`) in
       `libs/frontend/domain-access/src/lib/dashboard-widget-contribution.ts`
       (contracts/dashboard-settings-extension-points.md)
-- [ ] T003 [US1] Export `DashboardWidgetContribution` as a type-only export from
+- [x] T003 [US1] Export `DashboardWidgetContribution` as a type-only export from
       `libs/frontend/domain-access/src/index.ts` (no new runtime export, no new dependency —
       research.md #2)
-- [ ] T004 [P] [US1] Create `DynamicOutletComponent` (wraps `NgComponentOutlet`, `loader: input.required<() => Promise<Type<unknown>>>()`,
+- [x] T004 [P] [US1] Create `DynamicOutletComponent` (wraps `NgComponentOutlet`, `loader: input.required<() => Promise<Type<unknown>>>()`,
       resolves once as a signal) in
       `libs/frontend/shared-ui/src/lib/dynamic-outlet/dynamic-outlet.component.ts` +
       inline template (research.md #3)
-- [ ] T005 [P] [US1] Add
+- [x] T005 [P] [US1] Add
       `libs/frontend/shared-ui/src/lib/dynamic-outlet/dynamic-outlet.component.spec.ts` covering:
       renders nothing before the loader resolves, renders the resolved component after
-- [ ] T006 [US1] Export `DynamicOutletComponent` from `libs/frontend/shared-ui/src/index.ts`
-- [ ] T007 [US1] Create `apps/frontend/src/app/dashboard/dashboard-widgets.registry.ts` exporting
+- [x] T006 [US1] Export `DynamicOutletComponent` from `libs/frontend/shared-ui/src/index.ts`
+- [x] T007 [US1] Create `apps/frontend/src/app/dashboard/dashboard-widgets.registry.ts` exporting
       `DASHBOARD_WIDGET_CONTRIBUTIONS: DashboardWidgetContribution[]` with one entry:
       `{ domainId: 'holdings', loadComponent: () => import('@vaultfolio/frontend-domain-holdings').then(m => m.HoldingsDistributionComponent) }`
       (contracts/dashboard-settings-extension-points.md)
-- [ ] T008 [US1] Update `apps/frontend/src/app/dashboard/dashboard.component.ts`: remove the direct
+- [x] T008 [US1] Update `apps/frontend/src/app/dashboard/dashboard.component.ts`: remove the direct
       `HoldingsDistributionComponent` import and its `@nx/enforce-module-boundaries` eslint-disable
       comment; add a `visibleWidgets = computed(...)` that filters `DASHBOARD_WIDGET_CONTRIBUTIONS`
       by `isDomainEntitled(currentUser, w.domainId)` (import `isDomainEntitled` from
       `@vaultfolio/frontend-domain-access`)
-- [ ] T009 [US1] Update `apps/frontend/src/app/dashboard/dashboard.component.html`: replace the
+- [x] T009 [US1] Update `apps/frontend/src/app/dashboard/dashboard.component.html`: replace the
       hard-coded `@defer (on immediate) { <app-holdings-distribution ... /> }` block inside the
       "Allocation" `p-card` with
       `@for (widget of visibleWidgets(); track widget.domainId) { <app-dynamic-outlet [loader]="widget.loadComponent" /> }`,
       importing `DynamicOutletComponent` into the component's `imports` array
-- [ ] T010 [US1] Update `apps/frontend/src/app/dashboard/dashboard.component.spec.ts`: cover the
+- [x] T010 [US1] Update `apps/frontend/src/app/dashboard/dashboard.component.spec.ts`: cover the
       Holdings widget appearing for an entitled user and disappearing for an unentitled one, and
       the other Dashboard cards still rendering without error when no widget is visible (Acceptance
       Scenarios 1, 2, 4)
-- [ ] T011 [US1] Follow quickstart.md §1's throwaway-domain steps to validate Acceptance Scenario 3
+- [x] T011 [US1] Follow quickstart.md §1's throwaway-domain steps to validate Acceptance Scenario 3
       / SC-001 manually (add a scratch `scope:frontend-domain` library + one
       `DASHBOARD_WIDGET_CONTRIBUTIONS` entry, confirm entitlement-gated visibility, then remove the
       scratch library — no code left behind)
@@ -127,31 +127,31 @@ navigates correctly, and is denied on direct URL visit when not entitled (quicks
 
 ### Implementation for User Story 2
 
-- [ ] T012 [P] [US2] Add `SettingsTabContribution` interface (`domainId: string`, `path: string`,
+- [x] T012 [P] [US2] Add `SettingsTabContribution` interface (`domainId: string`, `path: string`,
       `labelKey: string`, `loadComponent: () => Promise<Type<unknown>>`) in
       `libs/frontend/domain-access/src/lib/settings-tab-contribution.ts`
       (contracts/dashboard-settings-extension-points.md)
-- [ ] T013 [US2] Export `SettingsTabContribution` as a type-only export from
+- [x] T013 [US2] Export `SettingsTabContribution` as a type-only export from
       `libs/frontend/domain-access/src/index.ts`
-- [ ] T014 [US2] Create `apps/frontend/src/app/settings/settings-tabs.registry.ts` exporting
+- [x] T014 [US2] Create `apps/frontend/src/app/settings/settings-tabs.registry.ts` exporting
       `SETTINGS_TAB_CONTRIBUTIONS: SettingsTabContribution[] = []` (empty for this spec — mechanism
       only, per data-model.md/Assumptions)
-- [ ] T015 [US2] Update `apps/frontend/src/app/settings/settings.component.ts`: add a
+- [x] T015 [US2] Update `apps/frontend/src/app/settings/settings.component.ts`: add a
       `visibleTabs = computed(...)` filtering `SETTINGS_TAB_CONTRIBUTIONS` by
       `isDomainEntitled(currentUser, c.domainId)` (same computation style as
       `AppSidebarComponent`'s `APPLICATION_AREAS` filter), alongside the existing fixed
       profile/preferences tab list
-- [ ] T016 [US2] Update `apps/frontend/src/app/settings/settings.component.html`: render one
+- [x] T016 [US2] Update `apps/frontend/src/app/settings/settings.component.html`: render one
       `<p-tab [value]="tab.path">{{ tab.labelKey | translate }}</p-tab>` per entry in
       `visibleTabs()` after the existing Profile/Preferences `p-tab`s
-- [ ] T017 [US2] Update `apps/frontend/src/app/app.routes.ts`'s `settings` route `children` array:
+- [x] T017 [US2] Update `apps/frontend/src/app/app.routes.ts`'s `settings` route `children` array:
       spread `...SETTINGS_TAB_CONTRIBUTIONS.map(c => ({ path: c.path, canActivate: [domainGuard(c.domainId)], loadComponent: c.loadComponent }))`
       after the existing `profile`/`preferences` children (contracts/routes.md "Settings (US2)")
-- [ ] T018 [US2] Update `apps/frontend/src/app/settings/settings.component.spec.ts`: cover Profile
+- [x] T018 [US2] Update `apps/frontend/src/app/settings/settings.component.spec.ts`: cover Profile
       and Preferences always present regardless of entitlements (Acceptance Scenario 1), a
       contributed tab shown only when entitled (Scenarios 2, 3), and no extra tab when a domain
       contributes none (Scenario 5)
-- [ ] T019 [US2] Follow quickstart.md §2's throwaway-domain steps to validate Acceptance Scenario 4
+- [x] T019 [US2] Follow quickstart.md §2's throwaway-domain steps to validate Acceptance Scenario 4
       manually (visit a contributed tab's URL directly while not entitled; confirm the same
       `domainGuard` redirect a domain's main route already produces) — remove the scratch
       contribution afterward
@@ -173,39 +173,39 @@ legacy addresses still redirect correctly (quickstart.md §3).
 
 ### Implementation for User Story 3
 
-- [ ] T020 [US3] Move `apps/frontend/src/app/imports/imports.component.ts`,
+- [x] T020 [US3] Move `apps/frontend/src/app/imports/imports.component.ts`,
       `imports.component.html`, `imports.component.css` unchanged into
       `libs/frontend/domain/holdings/src/lib/imports/` (same file names); delete the old
       `apps/frontend/src/app/imports/` directory
-- [ ] T021 [US3] Export `ImportsComponent` from `libs/frontend/domain/holdings/src/index.ts`
-- [ ] T022 [US3] Create `HoldingsAreaComponent` (tabs container: `p-tabs` + `router-outlet`,
+- [x] T021 [US3] Export `ImportsComponent` from `libs/frontend/domain/holdings/src/index.ts`
+- [x] T022 [US3] Create `HoldingsAreaComponent` (tabs container: `p-tabs` + `router-outlet`,
       `activeTab`/`onTabChange` mirroring `SettingsComponent`/`AdminComponent`'s existing pattern —
       research.md #5) in
       `libs/frontend/domain/holdings/src/lib/holdings-area/holdings-area.component.ts` +
       `.html`/`.css`, with tabs `list` (default) and `imports`
-- [ ] T023 [P] [US3] Add `holdings-area.component.spec.ts` in the same directory covering
+- [x] T023 [P] [US3] Add `holdings-area.component.spec.ts` in the same directory covering
       tab-switching/active-tab detection from the route (mirroring
       `settings.component.spec.ts`'s existing pattern per plan.md Principle IV)
-- [ ] T024 [US3] Export `HoldingsAreaComponent` from `libs/frontend/domain/holdings/src/index.ts`
-- [ ] T025 [US3] Update `apps/frontend/src/app/app.routes.ts`'s `app/holdings` route: change
+- [x] T024 [US3] Export `HoldingsAreaComponent` from `libs/frontend/domain/holdings/src/index.ts`
+- [x] T025 [US3] Update `apps/frontend/src/app/app.routes.ts`'s `app/holdings` route: change
       `loadComponent` to `HoldingsAreaComponent`, keep `canActivate: [domainGuard('holdings')]` on
       this parent only, add `children`: `{ path: '', pathMatch: 'full', redirectTo: 'list' }`,
       `{ path: 'list', ... HoldingsComponent }` (existing list/distribution page unchanged),
       `{ path: 'imports', ... }` → the relocated `ImportsComponent`; remove the standalone
       `app/imports` child route entirely (contracts/routes.md "Holdings (US3)")
-- [ ] T026 [US3] Update the legacy redirects in `apps/frontend/src/app/app.routes.ts`: change
+- [x] T026 [US3] Update the legacy redirects in `apps/frontend/src/app/app.routes.ts`: change
       `{ path: 'imports', ... }` to `redirectTo: 'app/holdings/imports'`, and add a new redirect
       entry `{ path: 'imports', pathMatch: 'full', redirectTo: 'holdings/imports' }` as a child of
       the `app` route (contracts/routes.md "Legacy redirects (updated)", FR-010)
-- [ ] T027 [US3] Remove the `{ id: 'imports', ... }` entry from
+- [x] T027 [US3] Remove the `{ id: 'imports', ... }` entry from
       `apps/frontend/src/app/core/layout/application-areas.ts` (FR-009, SC-004)
-- [ ] T028 [P] [US3] Update `apps/frontend/src/app/core/layout/app-sidebar/*.spec.ts` (and any
+- [x] T028 [P] [US3] Update `apps/frontend/src/app/core/layout/app-sidebar/*.spec.ts` (and any
       other spec asserting on `APPLICATION_AREAS`'s nav entries) to no longer expect a standalone
       "Imports" entry
-- [ ] T029 [US3] Update/verify `libs/frontend/domain/holdings/src/lib/holdings.component.spec.ts`
+- [x] T029 [US3] Update/verify `libs/frontend/domain/holdings/src/lib/holdings.component.spec.ts`
       and any route-level test still passes unchanged now that `HoldingsComponent` is reached via
       `app/holdings/list` rather than directly at `app/holdings`
-- [ ] T030 [US3] Follow quickstart.md §3 to validate end-to-end: nav shows only "Holdings" for a
+- [x] T030 [US3] Follow quickstart.md §3 to validate end-to-end: nav shows only "Holdings" for a
       holdings-entitled user, the Imports tab works inside Holdings, an unentitled user is denied
       both the nav entry and a direct `/app/holdings/imports` visit, and both `/imports` and
       `/app/imports` land on `/app/holdings/imports` (Acceptance Scenarios 1–4, SC-006)
@@ -227,40 +227,40 @@ structurally distinct from both the app-shell and any product-domain library (qu
 
 ### Implementation for User Story 4
 
-- [ ] T031 [US4] Scaffold the new library `libs/frontend/admin` (`@vaultfolio/frontend-admin`):
+- [x] T031 [US4] Scaffold the new library `libs/frontend/admin` (`@vaultfolio/frontend-admin`):
       `package.json` with `"nx": { "tags": ["scope:frontend-admin"] }`, `main`/`types`
       `./src/index.ts`, and `exports` restricted to `"."` and `"./package.json"` only — mirroring
       `libs/frontend/domain/holdings/package.json`'s existing convention
       (contracts/module-boundaries.md guarantee 3)
-- [ ] T032 [US4] Move `apps/frontend/src/app/admin/admin.component.ts/.html/.css`,
+- [x] T032 [US4] Move `apps/frontend/src/app/admin/admin.component.ts/.html/.css`,
       `admin/accounts/**`, `admin/signups/**`, `admin/invitations/**`, `admin/health-status/**`
       (including their existing spec files, e.g. `health-status.component.spec.ts`) unchanged into
       `libs/frontend/admin/src/lib/`; delete the old `apps/frontend/src/app/admin/` directory
-- [ ] T033 [US4] Create `libs/frontend/admin/src/index.ts` exporting `AdminComponent` as the
+- [x] T033 [US4] Create `libs/frontend/admin/src/index.ts` exporting `AdminComponent` as the
       library's public entry point (contracts/module-boundaries.md)
-- [ ] T034 [US4] Add the `scope:frontend-admin` tag's `depConstraints` entry to
+- [x] T034 [US4] Add the `scope:frontend-admin` tag's `depConstraints` entry to
       [eslint.config.mjs](../../eslint.config.mjs): `{ sourceTag: 'scope:frontend-admin', onlyDependOnLibsWithTags: ['scope:shared'] }`,
       and add `'scope:frontend-admin'` to the existing `scope:frontend` entry's
       `onlyDependOnLibsWithTags` array (contracts/module-boundaries.md "depConstraints additions")
-- [ ] T035 [US4] Update `apps/frontend/src/app/app.routes.ts`'s `app/admin` route and its children
+- [x] T035 [US4] Update `apps/frontend/src/app/app.routes.ts`'s `app/admin` route and its children
       (`accounts`, `signups`, `invitations`, `general`) to `loadComponent` from
       `@vaultfolio/frontend-admin` instead of `./admin/...`; keep `canActivate: [adminGuard]`,
       paths, and titles unchanged (contracts/routes.md "Admin (US4)")
-- [ ] T036 [P] [US4] Verify `apps/frontend/src/app/auth/admin.guard.ts` needs no code change
+- [x] T036 [P] [US4] Verify `apps/frontend/src/app/auth/admin.guard.ts` needs no code change
       (still role-based, `role === 'ADMIN'`, per FR-013) and add/keep its existing spec passing
       unchanged
-- [ ] T037 [US4] Confirm the root `package.json` workspace glob `libs/frontend/*` already covers
+- [x] T037 [US4] Confirm the root `package.json` workspace glob `libs/frontend/*` already covers
       the new `libs/frontend/admin` project without modification (plan.md Structure Decision) —
       verification only, no file change expected
-- [ ] T038 [US4] Run `npx nx run-many -t lint` and confirm a deliberate cross-import (e.g.
+- [x] T038 [US4] Run `npx nx run-many -t lint` and confirm a deliberate cross-import (e.g.
       temporarily importing something from `libs/frontend/admin` inside
       `libs/frontend/domain/holdings`, then reverting) fails with an
       `@nx/enforce-module-boundaries` error, proving the new boundary is enforced
       (contracts/module-boundaries.md "Verification")
-- [ ] T039 [US4] Inspect `libs/frontend/admin/package.json`'s `nx.tags` and confirm it reads
+- [x] T039 [US4] Inspect `libs/frontend/admin/package.json`'s `nx.tags` and confirm it reads
       `scope:frontend-admin`, distinct from every `libs/frontend/domain/*` library's
       `scope:frontend-domain` (Acceptance Scenario 3)
-- [ ] T040 [US4] Follow quickstart.md §4 to validate end-to-end: every Admin flow works unchanged
+- [x] T040 [US4] Follow quickstart.md §4 to validate end-to-end: every Admin flow works unchanged
       for an Administrator (SC-003), a non-Administrator is denied in nav and on direct
       `/app/admin` visit exactly as before (Acceptance Scenario 2)
 
@@ -273,13 +273,13 @@ Admin flow and access rule is unchanged.
 
 **Purpose**: Full regression sweep across all four stories, per quickstart.md §5.
 
-- [ ] T041 Run `npm exec nx run-many -t test` and confirm all existing Holdings
+- [x] T041 Run `npm exec nx run-many -t test` and confirm all existing Holdings
       (view/create/edit/delete/import/distribution — SC-002) and Admin (Accounts/Sign-ups/
       Invitations/General — SC-003) tests pass unchanged after the relocations in US3/US4
-- [ ] T042 Run `npm exec nx run-many -t lint` workspace-wide and confirm it is clean, including the
+- [x] T042 Run `npm exec nx run-many -t lint` workspace-wide and confirm it is clean, including the
       new `scope:frontend-admin` boundary (contracts/module-boundaries.md) and the removed
       `imports` nav entry (`application-areas.ts`)
-- [ ] T043 Re-walk quickstart.md sections 1–4 end-to-end in one pass (Dashboard widget, Settings
+- [x] T043 Re-walk quickstart.md sections 1–4 end-to-end in one pass (Dashboard widget, Settings
       tab, Imports-in-Holdings, Admin module) to confirm no cross-story regression was introduced by
       later tasks touching shared files (`app.routes.ts`, `application-areas.ts`)
 
