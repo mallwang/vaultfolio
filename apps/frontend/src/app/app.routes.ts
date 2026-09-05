@@ -153,7 +153,7 @@ export const routes: Routes = [
       },
       {
         path: 'historic-wealth-development',
-        title: 'Historic Wealth Development',
+        title: 'Wealth Development',
         canActivate: [domainGuard('historic-wealth-development')],
         loadComponent: () =>
           import('@vaultfolio/frontend-domain-historic-wealth-development').then(

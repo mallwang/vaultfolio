@@ -34,7 +34,7 @@ export const en: TranslationDictionary = {
     retirement: 'Retirement',
     insurances: 'Insurances',
     haushaltsplaner: 'Haushaltsplaner',
-    historicWealthDevelopment: 'Historic Wealth Development',
+    historicWealthDevelopment: 'Wealth Development',
     accountOverview: 'Account Overview',
     settings: 'Settings',
     admin: 'Admin',
@@ -353,8 +353,8 @@ export const en: TranslationDictionary = {
     body: 'Haushaltsplaner is not yet available. This area will be built out in a future update.',
   },
   historicWealthDevelopmentPlaceholder: {
-    title: 'Historic Wealth Development',
-    body: 'Historic Wealth Development is not yet available. This area will be built out in a future update.',
+    title: 'Wealth Development',
+    body: 'Wealth Development is not yet available. This area will be built out in a future update.',
   },
   accountOverviewPlaceholder: {
     title: 'Account Overview',

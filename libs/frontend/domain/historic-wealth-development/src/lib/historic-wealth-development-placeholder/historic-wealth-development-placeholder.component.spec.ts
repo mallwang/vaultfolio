@@ -15,7 +15,7 @@ describe('HistoricWealthDevelopmentPlaceholderComponent', () => {
 
   it('renders the domain name and "not yet available" copy', () => {
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
-    expect(text).toContain('Historic Wealth Development');
+    expect(text).toContain('Wealth Development');
     expect(text).toContain('not yet available');
   });
 });

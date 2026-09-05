@@ -355,8 +355,8 @@ export const de: TranslationDictionary = {
     body: 'Der Haushaltsplaner ist noch nicht verfügbar. Dieser Bereich wird in einem zukünftigen Update ausgebaut.',
   },
   historicWealthDevelopmentPlaceholder: {
-    title: 'Historische Vermögensentwicklung',
-    body: 'Die historische Vermögensentwicklung ist noch nicht verfügbar. Dieser Bereich wird in einem zukünftigen Update ausgebaut.',
+    title: 'Vermögensentwicklung',
+    body: 'Die Vermögensentwicklung ist noch nicht verfügbar. Dieser Bereich wird in einem zukünftigen Update ausgebaut.',
   },
   accountOverviewPlaceholder: {
     title: 'Kontoübersicht',
