@@ -49,7 +49,7 @@ Context — "No new dependency is introduced"). Setup is folded into Phase 2, be
 entries reference these icon names; the five per-domain library tasks (T001-T008) do not depend on
 this and may proceed in parallel with it.
 
-- [ ] T001 [P] Add the three missing `vf-icon` semantic names this feature needs — `elderly`,
+- [x] T001 [P] Add the three missing `vf-icon` semantic names this feature needs — `elderly`,
       `receipt-long`, `account-balance` — to `ICON_NAME_MAP` in
       `libs/frontend/shared-ui/src/lib/icon/icon-name.map.ts` (research.md #2; `shield` and
       `trending-up` already exist and need no change)
@@ -71,142 +71,142 @@ unaffected (quickstart.md §1-2, §4).
 
 ### Domain library: retirement
 
-- [ ] T002 [P] [US1] Scaffold the `@vaultfolio/frontend-domain-retirement` library
+- [x] T002 [P] [US1] Scaffold the `@vaultfolio/frontend-domain-retirement` library
       (`project.json` tagged `scope:frontend-domain`, `package.json`, `tsconfig.json`,
       `tsconfig.lib.json`, `tsconfig.spec.json`) in `libs/frontend/domain/retirement/`, mirroring
       `libs/frontend/domain/holdings`'s existing shape (contracts/domain-placeholder-library.md
       "Project shape")
-- [ ] T003 [US1] Implement `RetirementPlaceholderComponent` (standalone Angular component,
+- [x] T003 [US1] Implement `RetirementPlaceholderComponent` (standalone Angular component,
       renders the domain name via `nav.retirement`/`retirementPlaceholder.title` and a
       `retirementPlaceholder.body` "not yet available" message, no inputs, no backend call) in
       `libs/frontend/domain/retirement/src/lib/retirement-placeholder/retirement-placeholder.component.ts`
       (contracts/domain-placeholder-library.md "Component contract", depends on T002)
-- [ ] T004 [US1] Add a unit test for `RetirementPlaceholderComponent` (renders the domain name and
+- [x] T004 [US1] Add a unit test for `RetirementPlaceholderComponent` (renders the domain name and
       "not yet available" copy) in
       `libs/frontend/domain/retirement/src/lib/retirement-placeholder/retirement-placeholder.component.spec.ts`
       (depends on T003)
-- [ ] T005 [US1] Export `RetirementPlaceholderComponent` (only symbol) from
+- [x] T005 [US1] Export `RetirementPlaceholderComponent` (only symbol) from
       `libs/frontend/domain/retirement/src/index.ts` (contracts/domain-placeholder-library.md
       "Public API", depends on T003)
 
 ### Domain library: insurances
 
-- [ ] T006 [P] [US1] Scaffold the `@vaultfolio/frontend-domain-insurances` library
+- [x] T006 [P] [US1] Scaffold the `@vaultfolio/frontend-domain-insurances` library
       (`project.json` tagged `scope:frontend-domain`, `package.json`, `tsconfig.json`,
       `tsconfig.lib.json`, `tsconfig.spec.json`) in `libs/frontend/domain/insurances/`, mirroring
       `libs/frontend/domain/holdings`'s existing shape
-- [ ] T007 [US1] Implement `InsurancesPlaceholderComponent` (standalone Angular component,
+- [x] T007 [US1] Implement `InsurancesPlaceholderComponent` (standalone Angular component,
       renders the domain name via `nav.insurances`/`insurancesPlaceholder.title` and an
       `insurancesPlaceholder.body` "not yet available" message, no inputs, no backend call) in
       `libs/frontend/domain/insurances/src/lib/insurances-placeholder/insurances-placeholder.component.ts`
       (depends on T006)
-- [ ] T008 [US1] Add a unit test for `InsurancesPlaceholderComponent` (renders the domain name and
+- [x] T008 [US1] Add a unit test for `InsurancesPlaceholderComponent` (renders the domain name and
       "not yet available" copy) in
       `libs/frontend/domain/insurances/src/lib/insurances-placeholder/insurances-placeholder.component.spec.ts`
       (depends on T007)
-- [ ] T009 [US1] Export `InsurancesPlaceholderComponent` (only symbol) from
+- [x] T009 [US1] Export `InsurancesPlaceholderComponent` (only symbol) from
       `libs/frontend/domain/insurances/src/index.ts` (depends on T007)
 
 ### Domain library: haushaltsplaner
 
-- [ ] T010 [P] [US1] Scaffold the `@vaultfolio/frontend-domain-haushaltsplaner` library
+- [x] T010 [P] [US1] Scaffold the `@vaultfolio/frontend-domain-haushaltsplaner` library
       (`project.json` tagged `scope:frontend-domain`, `package.json`, `tsconfig.json`,
       `tsconfig.lib.json`, `tsconfig.spec.json`) in `libs/frontend/domain/haushaltsplaner/`,
       mirroring `libs/frontend/domain/holdings`'s existing shape
-- [ ] T011 [US1] Implement `HaushaltsplanerPlaceholderComponent` (standalone Angular component,
+- [x] T011 [US1] Implement `HaushaltsplanerPlaceholderComponent` (standalone Angular component,
       renders the domain name via `nav.haushaltsplaner`/`haushaltsplanerPlaceholder.title` and a
       `haushaltsplanerPlaceholder.body` "not yet available" message, no inputs, no backend call) in
       `libs/frontend/domain/haushaltsplaner/src/lib/haushaltsplaner-placeholder/haushaltsplaner-placeholder.component.ts`
       (depends on T010)
-- [ ] T012 [US1] Add a unit test for `HaushaltsplanerPlaceholderComponent` (renders the domain
+- [x] T012 [US1] Add a unit test for `HaushaltsplanerPlaceholderComponent` (renders the domain
       name and "not yet available" copy) in
       `libs/frontend/domain/haushaltsplaner/src/lib/haushaltsplaner-placeholder/haushaltsplaner-placeholder.component.spec.ts`
       (depends on T011)
-- [ ] T013 [US1] Export `HaushaltsplanerPlaceholderComponent` (only symbol) from
+- [x] T013 [US1] Export `HaushaltsplanerPlaceholderComponent` (only symbol) from
       `libs/frontend/domain/haushaltsplaner/src/index.ts` (depends on T011)
 
 ### Domain library: historic-wealth-development
 
-- [ ] T014 [P] [US1] Scaffold the `@vaultfolio/frontend-domain-historic-wealth-development`
+- [x] T014 [P] [US1] Scaffold the `@vaultfolio/frontend-domain-historic-wealth-development`
       library (`project.json` tagged `scope:frontend-domain`, `package.json`, `tsconfig.json`,
       `tsconfig.lib.json`, `tsconfig.spec.json`) in
       `libs/frontend/domain/historic-wealth-development/`, mirroring
       `libs/frontend/domain/holdings`'s existing shape
-- [ ] T015 [US1] Implement `HistoricWealthDevelopmentPlaceholderComponent` (standalone Angular
+- [x] T015 [US1] Implement `HistoricWealthDevelopmentPlaceholderComponent` (standalone Angular
       component, renders the domain name via
       `nav.historicWealthDevelopment`/`historicWealthDevelopmentPlaceholder.title` and a
       `historicWealthDevelopmentPlaceholder.body` "not yet available" message, no inputs, no
       backend call) in
       `libs/frontend/domain/historic-wealth-development/src/lib/historic-wealth-development-placeholder/historic-wealth-development-placeholder.component.ts`
       (depends on T014)
-- [ ] T016 [US1] Add a unit test for `HistoricWealthDevelopmentPlaceholderComponent` (renders the
+- [x] T016 [US1] Add a unit test for `HistoricWealthDevelopmentPlaceholderComponent` (renders the
       domain name and "not yet available" copy) in
       `libs/frontend/domain/historic-wealth-development/src/lib/historic-wealth-development-placeholder/historic-wealth-development-placeholder.component.spec.ts`
       (depends on T015)
-- [ ] T017 [US1] Export `HistoricWealthDevelopmentPlaceholderComponent` (only symbol) from
+- [x] T017 [US1] Export `HistoricWealthDevelopmentPlaceholderComponent` (only symbol) from
       `libs/frontend/domain/historic-wealth-development/src/index.ts` (depends on T015)
 
 ### Domain library: account-overview
 
-- [ ] T018 [P] [US1] Scaffold the `@vaultfolio/frontend-domain-account-overview` library
+- [x] T018 [P] [US1] Scaffold the `@vaultfolio/frontend-domain-account-overview` library
       (`project.json` tagged `scope:frontend-domain`, `package.json`, `tsconfig.json`,
       `tsconfig.lib.json`, `tsconfig.spec.json`) in `libs/frontend/domain/account-overview/`,
       mirroring `libs/frontend/domain/holdings`'s existing shape
-- [ ] T019 [US1] Implement `AccountOverviewPlaceholderComponent` (standalone Angular component,
+- [x] T019 [US1] Implement `AccountOverviewPlaceholderComponent` (standalone Angular component,
       renders the domain name via `nav.accountOverview`/`accountOverviewPlaceholder.title` and an
       `accountOverviewPlaceholder.body` "not yet available" message, no inputs, no backend call) in
       `libs/frontend/domain/account-overview/src/lib/account-overview-placeholder/account-overview-placeholder.component.ts`
       (depends on T018)
-- [ ] T020 [US1] Add a unit test for `AccountOverviewPlaceholderComponent` (renders the domain
+- [x] T020 [US1] Add a unit test for `AccountOverviewPlaceholderComponent` (renders the domain
       name and "not yet available" copy) in
       `libs/frontend/domain/account-overview/src/lib/account-overview-placeholder/account-overview-placeholder.component.spec.ts`
       (depends on T019)
-- [ ] T021 [US1] Export `AccountOverviewPlaceholderComponent` (only symbol) from
+- [x] T021 [US1] Export `AccountOverviewPlaceholderComponent` (only symbol) from
       `libs/frontend/domain/account-overview/src/index.ts` (depends on T019)
 
 ### i18n
 
-- [ ] T022 [P] [US1] Add `nav.retirement`, `nav.insurances`, `nav.haushaltsplaner`,
+- [x] T022 [P] [US1] Add `nav.retirement`, `nav.insurances`, `nav.haushaltsplaner`,
       `nav.historicWealthDevelopment`, `nav.accountOverview` nav labels, and
       `retirementPlaceholder.{title,body}`, `insurancesPlaceholder.{title,body}`,
       `haushaltsplanerPlaceholder.{title,body}`,
       `historicWealthDevelopmentPlaceholder.{title,body}`,
       `accountOverviewPlaceholder.{title,body}` keys (English copy) to
       `libs/frontend/shared-ui/src/lib/i18n/translations/en.ts` (research.md #4)
-- [ ] T023 [P] [US1] Add the same ten nav keys and ten placeholder keys (German copy) to
+- [x] T023 [P] [US1] Add the same ten nav keys and ten placeholder keys (German copy) to
       `libs/frontend/shared-ui/src/lib/i18n/translations/de.ts`, matching `en.ts`'s key shape
       (FR-011 of 020's i18n contract — `de.ts` is validated against `en.ts`'s shape)
 
 ### Registry wiring
 
-- [ ] T024 [US1] Append five `DomainDescriptor` entries (`retirement`/`elderly`,
+- [x] T024 [US1] Append five `DomainDescriptor` entries (`retirement`/`elderly`,
       `insurances`/`shield`, `haushaltsplaner`/`receipt-long`,
       `historic-wealth-development`/`trending-up`, `account-overview`/`account-balance`, each with
       its `nav.<id>` `labelKey` and `path` equal to `id`) to `DOMAIN_REGISTRY` in
       `libs/frontend/domain-access/src/lib/domain-registry.ts`, after the existing `holdings`
       entry, in the order given in contracts/registry-additions.md §1 (depends on T001)
-- [ ] T025 [US1] Append five `ApplicationArea` entries (matching ids/paths/icons from T024, each
+- [x] T025 [US1] Append five `ApplicationArea` entries (matching ids/paths/icons from T024, each
       with `domainId` set to its own id) to `APPLICATION_AREAS` in
       `apps/frontend/src/app/core/layout/application-areas.ts`, inserted after the existing
       `holdings` area and before `settings` (contracts/registry-additions.md §2, depends on T001)
-- [ ] T026 [US1] Add five sibling route objects (`retirement`, `insurances`, `haushaltsplaner`,
+- [x] T026 [US1] Add five sibling route objects (`retirement`, `insurances`, `haushaltsplaner`,
       `historic-wealth-development`, `account-overview`) to the `app` route's `children` in
       `apps/frontend/src/app/app.routes.ts`, each guarded by `domainGuard('<id>')` and
       lazy-loading its placeholder component via `loadComponent`, alongside the existing
       `holdings` block (contracts/registry-additions.md §3, depends on T005, T009, T013, T017,
       T021)
-- [ ] T027 [US1] Add the five new ids (`retirement`, `insurances`, `haushaltsplaner`,
+- [x] T027 [US1] Add the five new ids (`retirement`, `insurances`, `haushaltsplaner`,
       `historic-wealth-development`, `account-overview`) to the `KNOWN_DOMAIN_IDS` set in
       `apps/backend/src/accounts/accounts.service.ts`, alongside `'holdings'`
       (contracts/registry-additions.md §4)
 
 ### Regression tests for User Story 1
 
-- [ ] T028 [US1] Extend `apps/frontend/src/app/app.routes.spec.ts` with cases covering all five
+- [x] T028 [US1] Extend `apps/frontend/src/app/app.routes.spec.ts` with cases covering all five
       new domains: an entitled user resolves `/app/<id>` to its placeholder route, and a user
       without that domain's entitlement is redirected to `/app/dashboard` the same way an
       unentitled Holdings visit is today (depends on T026)
-- [ ] T029 [US1] Extend `apps/backend/src/accounts/accounts.controller.spec.ts` (and/or
+- [x] T029 [US1] Extend `apps/backend/src/accounts/accounts.controller.spec.ts` (and/or
       `accounts.service.spec.ts`) to confirm `PATCH /accounts/:id/domain-scopes` now accepts each
       of the five new ids (200, previously `invalid_domain`) and still rejects an unknown id
       (depends on T027)
@@ -226,18 +226,18 @@ entitled to any of the five new domains — no widget, tab, error, or empty gap 
 Dashboard and Settings screens render exactly as they would with only Holdings entitlement, with
 no errors, empty widget slots, or empty tabs (quickstart.md §3).
 
-- [ ] T030 [US2] Add a regression test asserting `DASHBOARD_WIDGET_CONTRIBUTIONS` in
+- [x] T030 [US2] Add a regression test asserting `DASHBOARD_WIDGET_CONTRIBUTIONS` in
       `apps/frontend/src/app/dashboard/dashboard-widgets.registry.ts` contains no entry whose
       `domainId` is one of the five new ids (only `holdings`), locking in FR-005 (depends on T024
       for the ids to assert against)
-- [ ] T031 [US2] Add a regression test asserting `SETTINGS_TAB_CONTRIBUTIONS` in
+- [x] T031 [US2] Add a regression test asserting `SETTINGS_TAB_CONTRIBUTIONS` in
       `apps/frontend/src/app/settings/settings-tabs.registry.ts` contains no entry whose
       `domainId` is one of the five new ids, locking in FR-005 (depends on T024)
-- [ ] T032 [P] [US2] Extend the Dashboard component's existing rendering test (e.g.
+- [x] T032 [P] [US2] Extend the Dashboard component's existing rendering test (e.g.
       `apps/frontend/src/app/dashboard/dashboard.component.spec.ts` if present, else add one) to
       cover a user entitled to one of the five new domains and no other domain: only the
       non-domain-specific Dashboard content renders, no error or empty widget slot
-- [ ] T033 [P] [US2] Extend the Settings component's existing rendering test (e.g.
+- [x] T033 [P] [US2] Extend the Settings component's existing rendering test (e.g.
       `apps/frontend/src/app/settings/settings.component.spec.ts` if present, else add one) to
       cover a user entitled to one of the five new domains and no other domain: only
       Profile/Preferences tabs render, no error or empty tab
@@ -257,16 +257,16 @@ user independently of their other entitlements, and that admin accounts have all
 exactly that domain's nav entry and access; revoke it and confirm access is removed with no effect
 on other entitlements (quickstart.md §2, §4).
 
-- [ ] T034 [US3] Extend the admin accounts screen's existing domain-scope-checkbox test (e.g.
+- [x] T034 [US3] Extend the admin accounts screen's existing domain-scope-checkbox test (e.g.
       `libs/frontend/admin/src/lib/accounts/accounts.component.spec.ts` — locate via existing
       Holdings domain-scope test) to confirm the five new domains each appear as an independently
       togglable checkbox, sourced from `DOMAIN_REGISTRY` with no new admin-UI code (depends on
       T024)
-- [ ] T035 [US3] Add a regression test confirming granting/revoking one of the five new domain
+- [x] T035 [US3] Add a regression test confirming granting/revoking one of the five new domain
       scopes via `PATCH /accounts/:id/domain-scopes` does not add or remove any other id already
       present in that account's `domainScopes` (FR-010), in
       `apps/backend/src/accounts/accounts.service.spec.ts` (depends on T027)
-- [ ] T036 [US3] Add a regression test confirming an ADMIN-role `SessionUser`/`AccountSummary` is
+- [x] T036 [US3] Add a regression test confirming an ADMIN-role `SessionUser`/`AccountSummary` is
       treated as entitled to all five new domains by default (mirroring the existing Holdings
       `isDomainEntitled` ADMIN-bypass test) in
       `libs/frontend/domain-access/src/lib/is-domain-entitled.spec.ts` (depends on T024)
@@ -280,10 +280,10 @@ Dashboard/Settings are unaffected, and per-user/per-domain admin entitlement man
 
 **Purpose**: Final validation that spans all three stories.
 
-- [ ] T037 Run `npm exec nx affected -t lint test build` and confirm every new
+- [x] T037 Run `npm exec nx affected -t lint test build` and confirm every new
       `scope:frontend-domain` library passes the existing `scope:frontend-domain` → `scope:shared`
       ESLint boundary rule with no new rule needed (quickstart.md §5)
-- [ ] T038 Walk through quickstart.md end-to-end (all five domains) to confirm SC-001 through
+- [x] T038 Walk through quickstart.md end-to-end (all five domains) to confirm SC-001 through
       SC-005 and FR-006/FR-009 hold
 
 ---

@@ -21,4 +21,24 @@ export interface DomainDescriptor {
  */
 export const DOMAIN_REGISTRY: DomainDescriptor[] = [
   { id: 'holdings', labelKey: 'nav.holdings', path: 'holdings', icon: 'briefcase' },
+  { id: 'retirement', labelKey: 'nav.retirement', path: 'retirement', icon: 'elderly' },
+  { id: 'insurances', labelKey: 'nav.insurances', path: 'insurances', icon: 'shield' },
+  {
+    id: 'haushaltsplaner',
+    labelKey: 'nav.haushaltsplaner',
+    path: 'haushaltsplaner',
+    icon: 'receipt-long',
+  },
+  {
+    id: 'historic-wealth-development',
+    labelKey: 'nav.historicWealthDevelopment',
+    path: 'historic-wealth-development',
+    icon: 'trending-up',
+  },
+  {
+    id: 'account-overview',
+    labelKey: 'nav.accountOverview',
+    path: 'account-overview',
+    icon: 'account-balance',
+  },
 ];

@@ -31,6 +31,11 @@ export const en: TranslationDictionary = {
     dashboard: 'Dashboard',
     holdings: 'Holdings',
     imports: 'Imports',
+    retirement: 'Retirement',
+    insurances: 'Insurances',
+    haushaltsplaner: 'Haushaltsplaner',
+    historicWealthDevelopment: 'Historic Wealth Development',
+    accountOverview: 'Account Overview',
     settings: 'Settings',
     admin: 'Admin',
     accounts: 'Accounts',
@@ -332,5 +337,27 @@ export const en: TranslationDictionary = {
     checkedAt: 'Checked at',
     checking: 'Checking backend health…',
     error: 'Unable to reach the backend health check.',
+  },
+  // Placeholder domains (022-add-domain-placeholders, FR-003): each renders
+  // only its name and this "not yet available" copy — no other UI surface.
+  retirementPlaceholder: {
+    title: 'Retirement',
+    body: 'Retirement is not yet available. This area will be built out in a future update.',
+  },
+  insurancesPlaceholder: {
+    title: 'Insurances',
+    body: 'Insurances is not yet available. This area will be built out in a future update.',
+  },
+  haushaltsplanerPlaceholder: {
+    title: 'Haushaltsplaner',
+    body: 'Haushaltsplaner is not yet available. This area will be built out in a future update.',
+  },
+  historicWealthDevelopmentPlaceholder: {
+    title: 'Historic Wealth Development',
+    body: 'Historic Wealth Development is not yet available. This area will be built out in a future update.',
+  },
+  accountOverviewPlaceholder: {
+    title: 'Account Overview',
+    body: 'Account Overview is not yet available. This area will be built out in a future update.',
   },
 };

@@ -33,6 +33,43 @@ export interface ApplicationArea {
 export const APPLICATION_AREAS: ApplicationArea[] = [
   { id: 'dashboard', label: 'Dashboard', path: 'dashboard', icon: 'home' },
   { id: 'holdings', label: 'Holdings', path: 'holdings', icon: 'briefcase', domainId: 'holdings' },
+  // The five placeholder domains (022-add-domain-placeholders, FR-001/FR-004),
+  // inserted after Holdings and before Settings per research.md #3.
+  {
+    id: 'retirement',
+    label: 'Retirement',
+    path: 'retirement',
+    icon: 'elderly',
+    domainId: 'retirement',
+  },
+  {
+    id: 'insurances',
+    label: 'Insurances',
+    path: 'insurances',
+    icon: 'shield',
+    domainId: 'insurances',
+  },
+  {
+    id: 'haushaltsplaner',
+    label: 'Haushaltsplaner',
+    path: 'haushaltsplaner',
+    icon: 'receipt-long',
+    domainId: 'haushaltsplaner',
+  },
+  {
+    id: 'historic-wealth-development',
+    label: 'Historic Wealth Development',
+    path: 'historic-wealth-development',
+    icon: 'trending-up',
+    domainId: 'historic-wealth-development',
+  },
+  {
+    id: 'account-overview',
+    label: 'Account Overview',
+    path: 'account-overview',
+    icon: 'account-balance',
+    domainId: 'account-overview',
+  },
   { id: 'settings', label: 'Settings', path: 'settings', icon: 'cog' },
   { id: 'admin', label: 'Admin', path: 'admin', icon: 'shield', roles: ['ADMIN'] },
 ];

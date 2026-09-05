@@ -41,6 +41,21 @@
     },
     {
       "path": "./libs/frontend/admin"
+    },
+    {
+      "path": "./libs/frontend/domain/historic-wealth-development"
+    },
+    {
+      "path": "./libs/frontend/domain/account-overview"
+    },
+    {
+      "path": "./libs/frontend/domain/haushaltsplaner"
+    },
+    {
+      "path": "./libs/frontend/domain/insurances"
+    },
+    {
+      "path": "./libs/frontend/domain/retirement"
     }
   ],
   "compilerOptions": {}

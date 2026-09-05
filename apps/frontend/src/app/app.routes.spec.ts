@@ -19,6 +19,24 @@ const user: SessionUser = {
   domainScopes: ['holdings'],
 };
 
+// 022-add-domain-placeholders, US1: one placeholder domain, entitled and not,
+// covering all five without repeating the whole fixture set per domain.
+const NEW_DOMAIN_IDS = [
+  'retirement',
+  'insurances',
+  'haushaltsplaner',
+  'historic-wealth-development',
+  'account-overview',
+] as const;
+
+const userWithAllNewDomains: SessionUser = {
+  id: 'user-4',
+  email: 'new-domains@example.com',
+  displayName: 'New Domains',
+  role: 'MEMBER',
+  domainScopes: [...NEW_DOMAIN_IDS],
+};
+
 const admin: SessionUser = {
   id: 'user-2',
   email: 'admin@example.com',
@@ -110,6 +128,34 @@ describe('app.routes', () => {
 
     it('redirects a MEMBER opening an admin subsection address away, same as /app/admin', async () => {
       await router.navigateByUrl('/app/admin/invitations');
+      expect(location.path()).toBe('/app/dashboard');
+    });
+  });
+
+  // 022-add-domain-placeholders, US1 (FR-001/FR-002/FR-004): each of the five
+  // new domains resolves to its own placeholder route once entitled.
+  describe('when authenticated and entitled to all five new domains', () => {
+    beforeEach(() => {
+      setup();
+      fakeCurrentUser.setAuthenticated(userWithAllNewDomains);
+    });
+
+    it.each(NEW_DOMAIN_IDS)('resolves /app/%s to itself', async (id) => {
+      await router.navigateByUrl(`/app/${id}`);
+      expect(location.path()).toBe(`/app/${id}`);
+    });
+  });
+
+  // 022-add-domain-placeholders, US1 (FR-004): an unentitled user is denied
+  // the same way an unentitled Holdings visit is today.
+  describe('when authenticated but not entitled to any of the five new domains', () => {
+    beforeEach(() => {
+      setup();
+      fakeCurrentUser.setAuthenticated(userWithoutHoldings);
+    });
+
+    it.each(NEW_DOMAIN_IDS)('redirects /app/%s to /app/dashboard', async (id) => {
+      await router.navigateByUrl(`/app/${id}`);
       expect(location.path()).toBe('/app/dashboard');
     });
   });

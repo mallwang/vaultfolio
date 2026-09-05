@@ -56,4 +56,8 @@ export const ICON_NAME_MAP: Record<string, string> = {
   building: 'apartment',
   diamond: 'diamond',
   'currency-bitcoin': 'currency_bitcoin',
+  // Placeholder-domain nav icons (022-add-domain-placeholders, research.md #2).
+  elderly: 'elderly',
+  'receipt-long': 'receipt_long',
+  'account-balance': 'account_balance',
 };

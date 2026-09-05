@@ -120,6 +120,55 @@ export const routes: Routes = [
       // Post-`/app` legacy address (FR-010, FR-013) — pre-021 direct visits
       // to `/app/imports` now land on the relocated tab.
       { path: 'imports', pathMatch: 'full', redirectTo: 'holdings/imports' },
+      // Five placeholder domains (022-add-domain-placeholders, FR-001/FR-002):
+      // each is a single `domainGuard`-gated route lazy-loading its own
+      // library's placeholder component, exactly like Holdings' own route
+      // (contracts/registry-additions.md §3) — no sub-tabs, no imports.
+      {
+        path: 'retirement',
+        title: 'Retirement',
+        canActivate: [domainGuard('retirement')],
+        loadComponent: () =>
+          import('@vaultfolio/frontend-domain-retirement').then(
+            (m) => m.RetirementPlaceholderComponent,
+          ),
+      },
+      {
+        path: 'insurances',
+        title: 'Insurances',
+        canActivate: [domainGuard('insurances')],
+        loadComponent: () =>
+          import('@vaultfolio/frontend-domain-insurances').then(
+            (m) => m.InsurancesPlaceholderComponent,
+          ),
+      },
+      {
+        path: 'haushaltsplaner',
+        title: 'Haushaltsplaner',
+        canActivate: [domainGuard('haushaltsplaner')],
+        loadComponent: () =>
+          import('@vaultfolio/frontend-domain-haushaltsplaner').then(
+            (m) => m.HaushaltsplanerPlaceholderComponent,
+          ),
+      },
+      {
+        path: 'historic-wealth-development',
+        title: 'Historic Wealth Development',
+        canActivate: [domainGuard('historic-wealth-development')],
+        loadComponent: () =>
+          import('@vaultfolio/frontend-domain-historic-wealth-development').then(
+            (m) => m.HistoricWealthDevelopmentPlaceholderComponent,
+          ),
+      },
+      {
+        path: 'account-overview',
+        title: 'Account Overview',
+        canActivate: [domainGuard('account-overview')],
+        loadComponent: () =>
+          import('@vaultfolio/frontend-domain-account-overview').then(
+            (m) => m.AccountOverviewPlaceholderComponent,
+          ),
+      },
       {
         path: 'settings',
         title: 'Settings',

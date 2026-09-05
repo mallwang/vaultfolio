@@ -1,0 +1,16 @@
+{
+  "name": "@vaultfolio/frontend-domain-retirement",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "library",
+  "sourceRoot": "libs/frontend/domain/retirement/src",
+  "tags": ["scope:frontend-domain"],
+  "targets": {
+    "test": {
+      "executor": "@angular/build:unit-test",
+      "options": {
+        "buildTarget": "frontend:build:development",
+        "watch": false
+      }
+    }
+  }
+}
