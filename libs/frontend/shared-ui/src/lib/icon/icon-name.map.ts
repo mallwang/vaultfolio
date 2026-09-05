@@ -60,4 +60,5 @@ export const ICON_NAME_MAP: Record<string, string> = {
   elderly: 'elderly',
   'receipt-long': 'receipt_long',
   'account-balance': 'account_balance',
+  'manage-accounts': 'manage_accounts',
 };

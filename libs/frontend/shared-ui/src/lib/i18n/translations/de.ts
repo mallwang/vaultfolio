@@ -29,7 +29,7 @@ export const de: TranslationDictionary = {
     retirement: 'Altersvorsorge',
     insurances: 'Versicherungen',
     haushaltsplaner: 'Haushaltsplaner',
-    historicWealthDevelopment: 'Historische Vermögensentwicklung',
+    historicWealthDevelopment: 'Vermögensentwicklung',
     accountOverview: 'Kontoübersicht',
     settings: 'Einstellungen',
     admin: 'Verwaltung',

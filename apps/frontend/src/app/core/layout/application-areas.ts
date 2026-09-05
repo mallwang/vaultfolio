@@ -11,6 +11,13 @@ export interface ApplicationArea {
   id: string;
   /** Nav entry text, e.g. 'Dashboard'. */
   label: string;
+  /**
+   * i18n translation key for the nav label, e.g. `'nav.accountOverview'`
+   * (matches `DomainDescriptor.labelKey`'s convention). Needed because
+   * `area.id` is kebab-case but the `nav.*` translation keys are
+   * camelCase, so the sidebar can't derive one from the other.
+   */
+  labelKey: string;
   /** Router path segment, e.g. 'dashboard' → /dashboard. */
   path: string;
   /** `vf-icon` semantic name (see `@vaultfolio/frontend-shared-ui`'s `icon-name.map.ts`), e.g. 'home'. */
@@ -31,13 +38,27 @@ export interface ApplicationArea {
 }
 
 export const APPLICATION_AREAS: ApplicationArea[] = [
-  { id: 'dashboard', label: 'Dashboard', path: 'dashboard', icon: 'home' },
-  { id: 'holdings', label: 'Holdings', path: 'holdings', icon: 'briefcase', domainId: 'holdings' },
+  {
+    id: 'dashboard',
+    label: 'Dashboard',
+    labelKey: 'nav.dashboard',
+    path: 'dashboard',
+    icon: 'home',
+  },
+  {
+    id: 'holdings',
+    label: 'Holdings',
+    labelKey: 'nav.holdings',
+    path: 'holdings',
+    icon: 'briefcase',
+    domainId: 'holdings',
+  },
   // The five placeholder domains (022-add-domain-placeholders, FR-001/FR-004),
   // inserted after Holdings and before Settings per research.md #3.
   {
     id: 'retirement',
     label: 'Retirement',
+    labelKey: 'nav.retirement',
     path: 'retirement',
     icon: 'elderly',
     domainId: 'retirement',
@@ -45,6 +66,7 @@ export const APPLICATION_AREAS: ApplicationArea[] = [
   {
     id: 'insurances',
     label: 'Insurances',
+    labelKey: 'nav.insurances',
     path: 'insurances',
     icon: 'shield',
     domainId: 'insurances',
@@ -52,6 +74,7 @@ export const APPLICATION_AREAS: ApplicationArea[] = [
   {
     id: 'haushaltsplaner',
     label: 'Haushaltsplaner',
+    labelKey: 'nav.haushaltsplaner',
     path: 'haushaltsplaner',
     icon: 'receipt-long',
     domainId: 'haushaltsplaner',
@@ -59,6 +82,7 @@ export const APPLICATION_AREAS: ApplicationArea[] = [
   {
     id: 'historic-wealth-development',
     label: 'Historic Wealth Development',
+    labelKey: 'nav.historicWealthDevelopment',
     path: 'historic-wealth-development',
     icon: 'trending-up',
     domainId: 'historic-wealth-development',
@@ -66,10 +90,18 @@ export const APPLICATION_AREAS: ApplicationArea[] = [
   {
     id: 'account-overview',
     label: 'Account Overview',
+    labelKey: 'nav.accountOverview',
     path: 'account-overview',
     icon: 'account-balance',
     domainId: 'account-overview',
   },
-  { id: 'settings', label: 'Settings', path: 'settings', icon: 'cog' },
-  { id: 'admin', label: 'Admin', path: 'admin', icon: 'shield', roles: ['ADMIN'] },
+  { id: 'settings', label: 'Settings', labelKey: 'nav.settings', path: 'settings', icon: 'cog' },
+  {
+    id: 'admin',
+    label: 'Admin',
+    labelKey: 'nav.admin',
+    path: 'admin',
+    icon: 'manage-accounts',
+    roles: ['ADMIN'],
+  },
 ];
