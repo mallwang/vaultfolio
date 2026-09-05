@@ -204,13 +204,14 @@ describe('HoldingsComponent', () => {
     expect(mainCharts).toHaveLength(1);
     expect(typeCharts).toHaveLength(5);
     expect(
-      typeCharts.map(
-        (tile) => (tile.componentInstance as { assetType: HoldingResponse['assetType'] }).assetType,
+      typeCharts.map((tile) =>
+        (tile.componentInstance as { assetType: () => HoldingResponse['assetType'] }).assetType(),
       ),
     ).toEqual(['ETF', 'SHARE', 'PRECIOUS_METAL', 'CRYPTO', 'DEPOSIT_MONEY']);
     expect(
       typeCharts.map(
-        (tile) => (tile.componentInstance as { holdings: HoldingResponse[] }).holdings.length,
+        (tile) =>
+          (tile.componentInstance as { holdings: () => HoldingResponse[] }).holdings().length,
       ),
     ).toEqual([4, 4, 4, 4, 4]);
   });

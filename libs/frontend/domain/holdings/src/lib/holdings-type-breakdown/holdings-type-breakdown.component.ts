@@ -1,4 +1,4 @@
-import { Component, Input, computed, inject } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
 import type { EChartsOption } from 'echarts';
 import type { AssetType, HoldingResponse } from '@vaultfolio/api-contract';
 import { groupHoldingsByKey } from '../holdings-valuation';
@@ -65,14 +65,22 @@ import { EchartComponent, I18nService, TranslatePipe } from '@vaultfolio/fronten
   `,
 })
 export class HoldingsTypeBreakdownComponent {
-  @Input() assetType!: AssetType;
-  @Input() holdings: HoldingResponse[] = [];
+  readonly assetType = input.required<AssetType>();
+  readonly holdings = input<HoldingResponse[]>([]);
 
   private readonly i18n = inject(I18nService);
 
+  /**
+   * `computed()` only re-evaluates when a signal it read changes — plain
+   * `@Input()` properties aren't signals, so a naive `computed()` over them
+   * would read the initial (pre-fetch, empty) `holdings` value once and
+   * cache it forever, never reflecting the parent's later async load
+   * (`HoldingsComponent.refresh()`). Signal inputs (`input()`) fix that by
+   * giving `computed()` a real reactive dependency.
+   */
   private readonly result = computed(() =>
     groupHoldingsByKey(
-      this.holdings.filter((h) => h.assetType === this.assetType),
+      this.holdings().filter((h) => h.assetType === this.assetType()),
       (h) => h.name,
     ),
   );
