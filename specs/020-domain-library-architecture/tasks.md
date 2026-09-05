@@ -122,7 +122,7 @@ remove the throwaway library afterward.
       `libs/frontend/domain/holdings/src/lib/...` (available once T015 in Phase 4 has moved holdings'
       code — see Dependencies), run `npx nx lint <throwaway>`, confirm it fails with an
       `@nx/enforce-module-boundaries` error, then delete the throwaway library
-- [ ] T014 [US1] Confirm (by inspection of eslint.config.mjs) that `apps/frontend`
+- [x] T014 [US1] Confirm (by inspection of eslint.config.mjs) that `apps/frontend`
       (`scope:frontend`) is allowed to depend on `scope:frontend-domain` (Acceptance Scenario 3) and
       that no `depConstraints` entry restricts imports within a single project (Acceptance Scenario 2)
 
