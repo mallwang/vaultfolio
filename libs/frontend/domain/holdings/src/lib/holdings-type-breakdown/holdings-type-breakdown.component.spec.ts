@@ -131,23 +131,29 @@ describe('HoldingsTypeBreakdownComponent', () => {
     );
   });
 
-  it('builds no legend key in the chartOption (FR-007)', () => {
+  it('explicitly disables the legend in the chartOption (FR-007)', () => {
     setInputs('PRECIOUS_METAL', [
       holding({ id: '1', assetType: 'PRECIOUS_METAL', name: 'Gold', currentValue: '25' }),
     ]);
 
+    // Explicit `{ show: false }`, not merely absent — `EchartComponent`'s
+    // shared theming fragment merges in its own `legend` object on every
+    // theme change, which would otherwise resurrect a default-visible
+    // legend (see the component's own `legend` doc comment).
     const option = fixture.componentInstance['chartOption']();
-    expect(option.legend).toBeUndefined();
+    expect(option.legend).toEqual({ show: false });
   });
 
-  it('renders no center-label element, unlike the main chart (FR-008)', () => {
+  it('renders a center-label element with the segment total, matching the main chart (FR-008)', () => {
     setInputs('PRECIOUS_METAL', [
       holding({ id: '1', assetType: 'PRECIOUS_METAL', name: 'Gold', currentValue: '25' }),
+      holding({ id: '2', assetType: 'PRECIOUS_METAL', name: 'Silver', currentValue: '10' }),
     ]);
 
     const el = fixture.nativeElement as HTMLElement;
-    expect(el.querySelector('.distribution__center-label')).toBeNull();
-    expect(el.querySelector('[class*="center-label"]')).toBeNull();
+    const label = el.querySelector('.type-breakdown__center-label');
+    expect(label).not.toBeNull();
+    expect(label?.textContent).toContain('35');
   });
 
   it('formats the tooltip with the segment name, currency-formatted value, and percentage (SC-004)', () => {

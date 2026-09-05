@@ -225,24 +225,46 @@ import { HoldingsService } from './holdings.service';
     </p-dialog>
   `,
   styles: `
-    /* FR-009/FR-010: 6 tiles (main chart + 5 per-type) 3-per-row, reflowing
-       to 1-per-row on narrow viewports — same pattern as
-       apps/frontend/src/app/dashboard/dashboard.component.css's .card-row. */
+    /* FR-009/FR-010: 6 tiles (main chart + 5 per-type) all in one row so the
+       datatable below never needs an extra scroll to reach — reflowing to
+       3-per-row, then 1-per-row, as the viewport narrows (same breakpoint
+       pattern as apps/frontend/src/app/dashboard/dashboard.component.css's
+       .card-row, just with an extra step for the wider 6-tile row). */
     .holdings-charts-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 0.85rem;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 0.5rem;
       margin-bottom: 1.5rem;
+      /* Shrinks every tile's chart at once (both chart components read this
+         inherited custom property) — see their own .*__chart app-echart
+         rules for why this crosses the style-encapsulation boundary safely. */
+      --holdings-chart-height: 11rem;
+    }
+
+    @media (max-width: 1200px) {
+      .holdings-charts-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.85rem;
+        --holdings-chart-height: 15rem;
+      }
     }
 
     @media (max-width: 768px) {
       .holdings-charts-grid {
         grid-template-columns: 1fr;
+        --holdings-chart-height: 18rem;
       }
     }
 
     .distribution-card {
       margin-bottom: 0;
+    }
+
+    /* PrimeNG's p-card header is left-aligned by default; these chart tiles
+       read better with a centered title. \`::ng-deep\` crosses into p-card's
+       own template since \`.p-card-title\` isn't part of this component's DOM. */
+    .distribution-card ::ng-deep .p-card-title {
+      text-align: center;
     }
 
     .holdings-panel {
