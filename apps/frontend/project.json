@@ -14,6 +14,7 @@
         "outputPath": "dist/apps/frontend",
         "browser": "apps/frontend/src/main.ts",
         "tsConfig": "apps/frontend/tsconfig.app.json",
+        "preserveSymlinks": true,
         "assets": [
           {
             "glob": "**/*",
@@ -60,8 +61,14 @@
         "prebundle": {
           "exclude": [
             "@vaultfolio/api-contract",
+            "@vaultfolio/frontend-admin",
             "@vaultfolio/frontend-domain-access",
+            "@vaultfolio/frontend-domain-account-overview",
+            "@vaultfolio/frontend-domain-haushaltsplaner",
+            "@vaultfolio/frontend-domain-historic-wealth-development",
             "@vaultfolio/frontend-domain-holdings",
+            "@vaultfolio/frontend-domain-insurances",
+            "@vaultfolio/frontend-domain-retirement",
             "@vaultfolio/frontend-shared-ui"
           ]
         }
