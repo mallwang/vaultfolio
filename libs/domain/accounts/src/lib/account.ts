@@ -1,5 +1,4 @@
-import type { AccountCategory } from './account-category.js';
-import type { AccountStatus } from './account-status.js';
+import type { AccountCategory, AccountStatus } from '@vaultfolio/account-fields';
 
 /**
  * The core entity (spec.md's "Account" Key Entity, data-model.md's Account

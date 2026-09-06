@@ -3,8 +3,8 @@
  * (closed/cancelled but kept in the overview for reference — the whole
  * point of this field: a decommissioned account keeps its history and
  * context instead of disappearing on deletion). Mirrors
- * `account-category.ts`'s plain-string-union shape so both `apps/backend`
- * and `apps/frontend` share the exact same literals via `libs/api-contract`.
+ * `account-category.ts`'s plain-string-union shape and reason for living in
+ * this `scope:shared` lib.
  */
 export type AccountStatus = 'ACTIVE' | 'DECOMMISSIONED';
 

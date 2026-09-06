@@ -1,7 +1,6 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import type { AccountCategory, AccountOverviewEntry } from '@vaultfolio/api-contract';
-import { ACCOUNT_CATEGORIES } from '../account-category-options';
-import { deriveCardBrand } from '@vaultfolio/card-brand';
+import { ACCOUNT_CATEGORIES, deriveCardBrand } from '@vaultfolio/account-fields';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { ConfirmationService, MessageService } from 'primeng/api';

@@ -7,7 +7,7 @@ const swcJestConfig = JSON.parse(readFileSync(`${__dirname}/.spec.swcrc`, 'utf-8
 swcJestConfig.swcrc = false;
 
 module.exports = {
-  displayName: 'card-brand',
+  displayName: 'account-fields',
   preset: '../../jest.preset.js',
   testEnvironment: 'node',
   transform: {

@@ -25,8 +25,7 @@ import type {
   CreateAccountOverviewEntryRequest,
   UpdateAccountOverviewEntryRequest,
 } from '@vaultfolio/api-contract';
-import { ACCOUNT_CATEGORIES } from '../account-category-options';
-import { ACCOUNT_STATUSES } from '../account-status-options';
+import { ACCOUNT_CATEGORIES, ACCOUNT_STATUSES } from '@vaultfolio/account-fields';
 import { formatCardNumberInput, formatExpirationInput } from '../card-format';
 import { ButtonModule } from 'primeng/button';
 import { InputNumberModule } from 'primeng/inputnumber';

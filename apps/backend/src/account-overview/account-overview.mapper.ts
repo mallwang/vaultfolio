@@ -1,5 +1,6 @@
 import { Account } from '@vaultfolio/domain-accounts';
-import type { AccountCategory, AccountStatus, ValidatedAccount } from '@vaultfolio/domain-accounts';
+import type { ValidatedAccount } from '@vaultfolio/domain-accounts';
+import type { AccountCategory, AccountStatus } from '@vaultfolio/account-fields';
 import type {
   AccountOverviewEntry,
   CreateAccountOverviewEntryRequest,

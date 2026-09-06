@@ -1,7 +1,5 @@
-import { isAccountCategory } from './account-category.js';
-import type { AccountCategory } from './account-category.js';
-import { isAccountStatus } from './account-status.js';
-import type { AccountStatus } from './account-status.js';
+import { isAccountCategory, isAccountStatus } from '@vaultfolio/account-fields';
+import type { AccountCategory, AccountStatus } from '@vaultfolio/account-fields';
 
 /**
  * Raw create/update payload as it arrives at the domain boundary, mirroring

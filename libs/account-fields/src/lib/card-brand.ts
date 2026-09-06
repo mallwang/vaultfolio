@@ -5,9 +5,11 @@
  * (Principle I), mirroring `card-brand.spec.ts`'s cases — not an exhaustive
  * BIN database, just the three networks the feature calls out.
  *
- * Lives in this `scope:shared` lib (rather than `libs/domain/accounts`)
- * so both `scope:domain` and `scope:frontend-domain` consumers can depend on
- * it per the module-boundary rules in `eslint.config.mjs`.
+ * Lives in this `scope:shared` `account-fields` lib (rather than
+ * `libs/domain/accounts`) so both `scope:domain` and `scope:frontend-domain`
+ * consumers can depend on it per the module-boundary rules in
+ * `eslint.config.mjs` — alongside `account-category.ts`/`account-status.ts`,
+ * which have the same reason for living here.
  */
 export type CardBrand = 'VISA' | 'MASTERCARD' | 'AMEX';
 
