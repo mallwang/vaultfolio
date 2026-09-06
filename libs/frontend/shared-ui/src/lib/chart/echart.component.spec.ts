@@ -11,13 +11,25 @@ const mockInstance = {
   dispose: vi.fn(),
 };
 
+const mockInit = vi.fn(() => mockInstance);
+
 vi.mock('echarts', () => ({
-  init: vi.fn(() => mockInstance),
+  init: mockInit,
 }));
 
-/** Flushes the microtask/macrotask queue past `ngAfterViewInit`'s `await import('echarts')`. */
+/**
+ * Waits past `ngAfterViewInit`'s `await import('echarts')` by polling for the
+ * mocked `init()` call it makes right after resolving, rather than flushing a
+ * fixed number of ticks: the very first dynamic import in the process (the
+ * module-level `echartsModulePromise` cache is cold) resolves noticeably
+ * slower than on every subsequent test, so a single `setTimeout(0)` flush was
+ * only reliable from the second test onward.
+ */
 async function flushEchartsInit(): Promise<void> {
-  await new Promise((resolve) => setTimeout(resolve, 0));
+  // vi.waitFor's own timeout (default 1000ms) is independent of the test's
+  // testTimeout (vitest-base.config.ts) — give it the same headroom, since
+  // coverage instrumentation slows down that first module resolution too.
+  await vi.waitFor(() => expect(mockInit).toHaveBeenCalled(), { timeout: 15000 });
 }
 
 class FakeResizeObserver {

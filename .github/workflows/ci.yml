@@ -112,3 +112,53 @@ jobs:
       - uses: nrwl/nx-set-shas@afb73a62d26e41464e9254689e1fd6122ee683c1 # v5
 
       - run: npx nx affected -t build --base=$NX_BASE --head=$NX_HEAD
+
+  sonar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          # Full history, not just the merge commit: Sonar's new-code/blame
+          # analysis and PR decoration both need it.
+          fetch-depth: 0
+
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci --prefer-offline
+
+      # Full coverage run (not `nx affected`) so every project has an
+      # up-to-date lcov report — a project Sonar never sees coverage for
+      # reads as 0% covered rather than "not analyzed this run".
+      - run: npm run test:coverage
+
+      # frontend/backend share one version (nx.json release.projectsRelationship:
+      # "fixed") and it only changes when `nx release` bumps it — so this stays
+      # constant between releases and jumps exactly at a release boundary. Feeding
+      # it to the scan is what makes SonarCloud's "Previous version" New Code
+      # definition compare against the last release instead of never advancing.
+      - name: Read release version
+        id: version
+        run: echo "version=$(node -p "require('./apps/frontend/package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: SonarQube Cloud Scan
+        uses: SonarSource/sonarqube-scan-action@22918119ff8e1ca75a623e15c8296b6ea4fbe28f # v8.2.1
+        with:
+          args: -Dsonar.projectVersion=${{ steps.version.outputs.version }}
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: SonarQube Quality Gate
+        uses: SonarSource/sonarqube-quality-gate-action@7a5fffe8e523c40e0c740b6bc2712ab503e52efa # v1.2.1
+        timeout-minutes: 10
+        with:
+          pollingTimeoutSec: 600
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

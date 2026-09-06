@@ -101,7 +101,11 @@ describe('DashboardComponent', () => {
         requests = httpMock.match('/api/holdings');
         expect(requests).toHaveLength(1);
       },
-      { timeout: 5000 },
+      // vi.waitFor has its own timeout independent of the test's
+      // testTimeout (vitest-base.config.ts) — the real dynamic chunk load
+      // this polls for gets noticeably slower once coverage instrumentation
+      // is on, so give it the same headroom.
+      { timeout: 15000 },
     );
     requests[0].flush([]);
     fixture.detectChanges();

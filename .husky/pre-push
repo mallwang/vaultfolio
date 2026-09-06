@@ -1,1 +1,1 @@
-npx nx affected -t test --base=main
+npm run test:coverage:affected
