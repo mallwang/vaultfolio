@@ -1,3 +1,17 @@
+## 0.0.7 (2026-09-06)
+
+### 🚀 Features
+
+- **frontend:** extract domain libraries and add per-account domain scopes ([#35](https://github.com/mallwang/vaultfolio/pull/35))
+- **frontend:** extension-point mechanisms for Dashboard, Settings and Admin ([#36](https://github.com/mallwang/vaultfolio/pull/36))
+- **frontend:** add locale-aware date/time formatting and admin UX polish ([#38](https://github.com/mallwang/vaultfolio/pull/38))
+- **frontend-domain:** add five placeholder domains ([#37](https://github.com/mallwang/vaultfolio/pull/37))
+- **holdings:** add per-asset-type holdings breakdown charts ([#39](https://github.com/mallwang/vaultfolio/pull/39))
+
+### 🩹 Fixes
+
+- **frontend:** enable HMR for symlinked workspace libs in dev server ([#41](https://github.com/mallwang/vaultfolio/pull/41))
+
 ## 0.0.6 (2026-09-04)
 
 ### 🚀 Features
