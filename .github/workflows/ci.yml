@@ -139,8 +139,19 @@ jobs:
       # reads as 0% covered rather than "not analyzed this run".
       - run: npm run test:coverage
 
+      # frontend/backend share one version (nx.json release.projectsRelationship:
+      # "fixed") and it only changes when `nx release` bumps it — so this stays
+      # constant between releases and jumps exactly at a release boundary. Feeding
+      # it to the scan is what makes SonarCloud's "Previous version" New Code
+      # definition compare against the last release instead of never advancing.
+      - name: Read release version
+        id: version
+        run: echo "version=$(node -p "require('./apps/frontend/package.json').version")" >> "$GITHUB_OUTPUT"
+
       - name: SonarQube Cloud Scan
         uses: SonarSource/sonarqube-scan-action@22918119ff8e1ca75a623e15c8296b6ea4fbe28f # v8.2.1
+        with:
+          args: -Dsonar.projectVersion=${{ steps.version.outputs.version }}
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
