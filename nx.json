@@ -82,7 +82,9 @@
       "inputs": ["default", "^production"],
       "options": {
         // Vitest's default reporter doesn't write a report file; SonarQube needs lcov to import coverage.
-        "coverageReporters": ["lcov", "text-summary"]
+        "coverageReporters": ["lcov", "text-summary"],
+        // Picks up vitest-base.config.ts (workspace root) for a higher testTimeout.
+        "runnerConfig": true
       }
     },
     "test": {
