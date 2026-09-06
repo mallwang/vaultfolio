@@ -17,6 +17,9 @@
     },
     {
       "path": "../../../api-contract/tsconfig.lib.json"
+    },
+    {
+      "path": "../../../card-brand/tsconfig.lib.json"
     }
   ]
 }

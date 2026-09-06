@@ -4,6 +4,10 @@
  * detail, "credit card" special fields). Pure/framework-independent
  * (Principle I), mirroring `card-brand.spec.ts`'s cases — not an exhaustive
  * BIN database, just the three networks the feature calls out.
+ *
+ * Lives in this `scope:shared` lib (rather than `libs/domain/accounts`)
+ * so both `scope:domain` and `scope:frontend-domain` consumers can depend on
+ * it per the module-boundary rules in `eslint.config.mjs`.
  */
 export type CardBrand = 'VISA' | 'MASTERCARD' | 'AMEX';
 

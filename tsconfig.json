@@ -10,6 +10,9 @@
       "path": "./libs/api-contract"
     },
     {
+      "path": "./libs/card-brand"
+    },
+    {
       "path": "./libs/market-data"
     },
     {
