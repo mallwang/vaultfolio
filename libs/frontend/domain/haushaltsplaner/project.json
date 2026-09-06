@@ -8,7 +8,7 @@
     "test": {
       "executor": "@angular/build:unit-test",
       "options": {
-        "buildTarget": "frontend:build:development",
+        "buildTarget": "frontend:build:development,test",
         "watch": false
       }
     }

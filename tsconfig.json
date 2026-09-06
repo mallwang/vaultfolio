@@ -10,6 +10,9 @@
       "path": "./libs/api-contract"
     },
     {
+      "path": "./libs/account-fields"
+    },
+    {
       "path": "./libs/market-data"
     },
     {
@@ -56,6 +59,9 @@
     },
     {
       "path": "./libs/frontend/domain/retirement"
+    },
+    {
+      "path": "./libs/domain/accounts"
     }
   ],
   "compilerOptions": {}
