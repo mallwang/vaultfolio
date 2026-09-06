@@ -80,7 +80,9 @@ Routes live under `/app/...` (declared in
 Selector conventions, most to least preferred:
 
 1. `[data-testid="..."]` where present (e.g. `language-switcher`, `theme-toggle` in the app
-   header) — add one to the template you're testing if it's missing and durable ids would help.
+   header) — if an in-scope element is missing one, add it per
+   [docs/frontend/testid-conventions.md](../../../docs/frontend/testid-conventions.md) rather than
+   falling back to translated-text matching (item 4 below).
 2. A stable DOM id/attribute (form fields, routerLink targets) — not translated.
 3. PrimeNG role/structure locators (e.g. `page.getByRole('button', { name: /.../ })`,
    `.p-datatable-tbody tr`) — PrimeNG renders real ARIA roles, so `getByRole` usually works even

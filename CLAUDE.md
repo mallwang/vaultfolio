@@ -32,3 +32,7 @@
   to copy into the scratchpad. Verification scripts are throw-away — don't commit them or add a
   real `playwright.config.ts`/e2e project unless the user explicitly asks for permanent e2e
   coverage.
+- When implementing or changing a new/changed interactive element that meets
+  [docs/frontend/testid-conventions.md](docs/frontend/testid-conventions.md)'s criteria (a
+  translated-only label, a repeated row/item, or a PrimeNG-wrapped node with no other stable
+  selector), add its `data-testid` as part of that same change — not as a follow-up chore.

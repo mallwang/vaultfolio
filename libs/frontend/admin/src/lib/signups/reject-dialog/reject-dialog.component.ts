@@ -30,6 +30,7 @@ import { SignupsAdminService } from '../signups.service';
       [modal]="true"
       [visible]="visible"
       [style]="{ width: '28rem' }"
+      [pt]="{ pcCloseButton: { root: { 'data-testid': 'reject-dialog-close' } } }"
       (visibleChange)="close()"
     >
       <ng-template #closeicon><app-icon name="close" /></ng-template>
@@ -55,10 +56,24 @@ import { SignupsAdminService } from '../signups.service';
       </div>
 
       <ng-template #footer>
-        <button pButton type="button" severity="secondary" [text]="true" (click)="close()">
+        <button
+          pButton
+          data-testid="reject-dialog-keep-it"
+          type="button"
+          severity="secondary"
+          [text]="true"
+          (click)="close()"
+        >
           {{ 'invitations.keepIt' | translate }}
         </button>
-        <button pButton type="button" severity="danger" [loading]="submitting()" (click)="submit()">
+        <button
+          pButton
+          data-testid="reject-dialog-reject-signup"
+          type="button"
+          severity="danger"
+          [loading]="submitting()"
+          (click)="submit()"
+        >
           <app-icon name="close" /> {{ 'signups.rejectSignup' | translate }}
         </button>
       </ng-template>

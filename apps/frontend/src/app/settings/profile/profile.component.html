@@ -19,6 +19,7 @@
       <div class="field-row-actions">
         <button
           pButton
+          data-testid="profile-save-name"
           type="button"
           [loading]="savingName()"
           [disabled]="!displayName().trim() || savingName()"
@@ -37,7 +38,12 @@
             {{ profile()?.pendingEmail }}.</strong
           >
           {{ 'profile.verificationPendingHint' | translate }}
-          <button type="button" class="banner-cancel" (click)="cancelEmailChange()">
+          <button
+            type="button"
+            class="banner-cancel"
+            data-testid="profile-cancel-email-change"
+            (click)="cancelEmailChange()"
+          >
             {{ 'profile.cancelRequest' | translate }}
           </button>
         </p-message>
@@ -65,6 +71,7 @@
       <div class="field-row-actions">
         <button
           pButton
+          data-testid="profile-send-verification-link"
           type="button"
           severity="secondary"
           [loading]="requestingEmailChange()"
@@ -124,6 +131,7 @@
       <div class="field-row-actions">
         <button
           pButton
+          data-testid="profile-change-password"
           type="button"
           [loading]="changingPassword()"
           [disabled]="!currentPassword() || !newPassword() || changingPassword()"
@@ -143,11 +151,17 @@
       </h2>
       <p>{{ 'profile.dangerZoneHint' | translate }}</p>
       <div class="danger-actions">
-        <button pButton type="button" severity="secondary">
+        <button pButton data-testid="profile-export-data" type="button" severity="secondary">
           <app-icon name="download" />
           {{ 'profile.exportData' | translate }}
         </button>
-        <button pButton type="button" severity="danger" (click)="openDangerZone()">
+        <button
+          pButton
+          data-testid="profile-delete-account"
+          type="button"
+          severity="danger"
+          (click)="openDangerZone()"
+        >
           <app-icon name="trash" />
           {{ 'profile.deleteAccount' | translate }}
         </button>
@@ -162,15 +176,28 @@
   [modal]="true"
   [visible]="dangerStep() === 'advisory'"
   [style]="{ width: '28rem' }"
+  [pt]="{ pcCloseButton: { root: { 'data-testid': 'profile-dialog-advisory-close' } } }"
   (visibleChange)="closeDangerZone()"
 >
   <ng-template #closeicon><app-icon name="close" /></ng-template>
   <p>{{ 'profile.deleteAdvisory' | translate }}</p>
   <ng-template #footer>
-    <button pButton type="button" severity="secondary" [text]="true">
+    <button
+      pButton
+      data-testid="profile-dialog-advisory-export-first"
+      type="button"
+      severity="secondary"
+      [text]="true"
+    >
       <app-icon name="download" /> {{ 'profile.exportDataFirst' | translate }}
     </button>
-    <button pButton type="button" severity="danger" (click)="proceedToConfirm()">
+    <button
+      pButton
+      data-testid="profile-dialog-advisory-continue"
+      type="button"
+      severity="danger"
+      (click)="proceedToConfirm()"
+    >
       {{ 'profile.continue' | translate }}
     </button>
   </ng-template>
@@ -182,6 +209,7 @@
   [modal]="true"
   [visible]="dangerStep() === 'confirm'"
   [style]="{ width: '28rem' }"
+  [pt]="{ pcCloseButton: { root: { 'data-testid': 'profile-dialog-confirm-close' } } }"
   (visibleChange)="closeDangerZone()"
 >
   <ng-template #closeicon><app-icon name="close" /></ng-template>
@@ -200,11 +228,19 @@
     <p-message severity="error">{{ deleteErrorMessage() }}</p-message>
   }
   <ng-template #footer>
-    <button pButton type="button" severity="secondary" [text]="true" (click)="closeDangerZone()">
+    <button
+      pButton
+      data-testid="profile-dialog-confirm-cancel"
+      type="button"
+      severity="secondary"
+      [text]="true"
+      (click)="closeDangerZone()"
+    >
       {{ 'common.cancel' | translate }}
     </button>
     <button
       pButton
+      data-testid="profile-dialog-confirm-delete"
       type="button"
       severity="danger"
       [loading]="deleting()"
@@ -223,6 +259,7 @@
   [modal]="true"
   [visible]="dangerStep() === 'blocked'"
   [style]="{ width: '28rem' }"
+  [pt]="{ pcCloseButton: { root: { 'data-testid': 'profile-dialog-blocked-close' } } }"
   (visibleChange)="closeDangerZone()"
 >
   <ng-template #closeicon><app-icon name="close" /></ng-template>
@@ -232,10 +269,23 @@
     {{ 'profile.soleAdministratorHint' | translate }}
   </p-message>
   <ng-template #footer>
-    <button pButton type="button" severity="secondary" [text]="true" (click)="closeDangerZone()">
+    <button
+      pButton
+      data-testid="profile-dialog-blocked-cancel"
+      type="button"
+      severity="secondary"
+      [text]="true"
+      (click)="closeDangerZone()"
+    >
       {{ 'common.cancel' | translate }}
     </button>
-    <button pButton type="button" severity="danger" [disabled]="true">
+    <button
+      pButton
+      data-testid="profile-dialog-blocked-delete"
+      type="button"
+      severity="danger"
+      [disabled]="true"
+    >
       <app-icon name="trash" />
       {{ 'profile.permanentlyDeleteAccount' | translate }}
     </button>

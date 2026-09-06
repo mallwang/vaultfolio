@@ -57,7 +57,12 @@ const STATUS_LABEL_KEY: Record<InvitationStatus, string> = {
   providers: [ConfirmationService, MessageService, TranslatePipe],
   template: `
     <p-toast />
-    <p-confirmdialog>
+    <p-confirmdialog
+      [pt]="{
+        pcAcceptButton: { root: { 'data-testid': 'invitations-confirm-accept' } },
+        pcRejectButton: { root: { 'data-testid': 'invitations-confirm-reject' } },
+      }"
+    >
       <ng-template #icon><app-icon name="warning" /></ng-template>
     </p-confirmdialog>
 
@@ -67,7 +72,12 @@ const STATUS_LABEL_KEY: Record<InvitationStatus, string> = {
           <h2>{{ 'nav.invitations' | translate }}</h2>
           <p>{{ 'invitations.subtitle' | translate }}</p>
         </div>
-        <button pButton type="button" (click)="openInviteDialog()">
+        <button
+          pButton
+          data-testid="invitations-invite-member"
+          type="button"
+          (click)="openInviteDialog()"
+        >
           <app-icon name="plus" /> {{ 'invitations.inviteMember' | translate }}
         </button>
       </div>
@@ -115,6 +125,7 @@ const STATUS_LABEL_KEY: Record<InvitationStatus, string> = {
                       iconOnly
                       severity="secondary"
                       [text]="true"
+                      [attr.data-testid]="'invitations-row-' + invitation.id + '-resend'"
                       [attr.aria-label]="'invitations.resendInvitation' | translate"
                       [pTooltip]="'invitations.resendInvitation' | translate"
                       tooltipPosition="top"
@@ -129,6 +140,7 @@ const STATUS_LABEL_KEY: Record<InvitationStatus, string> = {
                       iconOnly
                       severity="danger"
                       [text]="true"
+                      [attr.data-testid]="'invitations-row-' + invitation.id + '-cancel'"
                       [attr.aria-label]="'invitations.cancelInvitation' | translate"
                       [pTooltip]="'invitations.cancelInvitation' | translate"
                       tooltipPosition="top"

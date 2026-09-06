@@ -35,7 +35,7 @@ guidance) to enable independent implementation and testing of each story.
 
 **Purpose**: Create the home for the new convention document
 
-- [ ] T001 Create the `docs/frontend/` directory at the repo root (new top-level `docs/` dir, per
+- [x] T001 Create the `docs/frontend/` directory at the repo root (new top-level `docs/` dir, per
       research.md §1) so `docs/frontend/testid-conventions.md` has somewhere to live
 
 ---
@@ -61,7 +61,7 @@ an author following the convention would pick.
 
 ### Implementation for User Story 1
 
-- [ ] T002 [US1] Author `docs/frontend/testid-conventions.md` using
+- [x] T002 [US1] Author `docs/frontend/testid-conventions.md` using
       `specs/024-ui-testid-convention/contracts/testid-convention-contract.md` as the authoritative
       source: the `data-testid` attribute definition (§1), the full decision table covering static /
       repeated / shared / exempt categories and the PrimeNG host-attribute placement rule with its
@@ -69,7 +69,7 @@ an author following the convention would pick.
       grandfathering statement (§3, FR-004), the "consumers of this contract" section naming
       `CLAUDE.md` and the `verify-ui` skill (§4, FR-008/FR-009), and the non-goals section (§5) —
       satisfies FR-001, FR-002, FR-003, FR-004, FR-005
-- [ ] T003 [US1] Self-validate the new doc against `specs/024-ui-testid-convention/quickstart.md`
+- [x] T003 [US1] Self-validate the new doc against `specs/024-ui-testid-convention/quickstart.md`
       Scenario A: derive testids for the three example elements (translated-label submit button,
       holdings table row, a button reused in two lists) using only the doc, and confirm
       `language-switcher`/`theme-toggle` are unambiguously addressed — SC-003, Acceptance Scenario 4
@@ -99,75 +99,75 @@ non-interactive/display-only templates are intentionally excluded.
 
 ### Implementation for User Story 2
 
-- [ ] T004 [P] [US2] Add `data-testid` (static category) to the translated-label submit button in
+- [x] T004 [P] [US2] Add `data-testid` (static category) to the translated-label submit button in
       apps/frontend/src/app/account/forgot-password/forgot-password.component.html
-- [ ] T005 [P] [US2] Add `data-testid` (static category) to the translated-label submit button in
+- [x] T005 [P] [US2] Add `data-testid` (static category) to the translated-label submit button in
       apps/frontend/src/app/account/reset-password/reset-password.component.html
-- [ ] T006 [P] [US2] Add `data-testid` (static category) to the translated-label "confirm email
+- [x] T006 [P] [US2] Add `data-testid` (static category) to the translated-label "confirm email
       change" button in apps/frontend/src/app/account/verify-email/verify-email.component.html
-- [ ] T007 [P] [US2] Add `data-testid` (static category) to the translated-label submit button in
+- [x] T007 [P] [US2] Add `data-testid` (static category) to the translated-label submit button in
       apps/frontend/src/app/auth/sign-in/sign-in.component.html
-- [ ] T008 [P] [US2] Add `data-testid` (wrapped category, host-attribute placement) to the
+- [x] T008 [P] [US2] Add `data-testid` (wrapped category, host-attribute placement) to the
       PrimeNG-wrapped sign-out `p-button` in
       apps/frontend/src/app/core/layout/app-header/app-header.component.html — verify it doesn't
       collide with the existing grandfathered `language-switcher`/`theme-toggle` testids in the same
       file
-- [ ] T009 [P] [US2] Add a distinct per-item `data-testid` (repeated category, keyed by `area.id`) to
+- [x] T009 [P] [US2] Add a distinct per-item `data-testid` (repeated category, keyed by `area.id`) to
       the nav `<a>` items rendered by the `@for` loop, and a `data-testid` (static category) to the
       sidebar collapse-toggle button, in
       apps/frontend/src/app/core/layout/app-sidebar/app-sidebar.component.html
-- [ ] T010 [P] [US2] Add `data-testid` (static category) to the translated-label "activate account"
+- [x] T010 [P] [US2] Add `data-testid` (static category) to the translated-label "activate account"
       submit button in apps/frontend/src/app/invite/accept/accept.component.html
-- [ ] T011 [P] [US2] Add `data-testid` (static category) to the disabled preview toggle switch and to
+- [x] T011 [P] [US2] Add `data-testid` (static category) to the disabled preview toggle switch and to
       the "save" button in apps/frontend/src/app/settings/preferences/preferences.component.html
-- [ ] T012 [P] [US2] Add `data-testid` (static category) to every translated-label action button
+- [x] T012 [P] [US2] Add `data-testid` (static category) to every translated-label action button
       (save name, cancel email change, send verification link, change password, export data, delete
       account) and to the three danger-zone dialog footer button pairs, plus `data-testid` (wrapped
       category) to the PrimeNG dialog close-icon control on each of the three `p-dialog`s, in
       apps/frontend/src/app/settings/profile/profile.component.html
-- [ ] T013 [P] [US2] Add `data-testid` (static category) to the two fixed top-level tabs
+- [x] T013 [P] [US2] Add `data-testid` (static category) to the two fixed top-level tabs
       (profile/preferences) and a distinct per-item `data-testid` (repeated category, keyed by
       `tab.domainId`) to the dynamic domain tabs, in
       apps/frontend/src/app/settings/settings.component.html
-- [ ] T014 [P] [US2] Add `data-testid` (static category) to the translated-label submit button in
+- [x] T014 [P] [US2] Add `data-testid` (static category) to the translated-label submit button in
       apps/frontend/src/app/signup/signup.component.html
-- [ ] T015 [P] [US2] Add a distinct per-item `data-testid` (repeated category, keyed by
+- [x] T015 [P] [US2] Add a distinct per-item `data-testid` (repeated category, keyed by
       `option.value`) to the asset-type selector buttons, and `data-testid` (static category) to the
       cancel/save buttons, in
       libs/frontend/domain/holdings/src/lib/holding-form/holding-form.component.ts
-- [ ] T016 [P] [US2] Add `data-testid` (static category) to the four admin tabs
+- [x] T016 [P] [US2] Add `data-testid` (static category) to the four admin tabs
       (accounts/signups/invitations/general) in libs/frontend/admin/src/lib/admin.component.ts
-- [ ] T017 [P] [US2] Add `data-testid` (static category) to the two holdings-area tabs
+- [x] T017 [P] [US2] Add `data-testid` (static category) to the two holdings-area tabs
       (list/imports) in
       libs/frontend/domain/holdings/src/lib/holdings-area/holdings-area.component.ts
-- [ ] T018 [P] [US2] Add `data-testid` (static category) to the "keep it" and "reject signup" dialog
+- [x] T018 [P] [US2] Add `data-testid` (static category) to the "keep it" and "reject signup" dialog
       buttons, plus `data-testid` (wrapped category) to the dialog close-icon control, in
       libs/frontend/admin/src/lib/signups/reject-dialog/reject-dialog.component.ts
-- [ ] T019 [P] [US2] Add `data-testid` (static category) to the "cancel" and "send invitation" dialog
+- [x] T019 [P] [US2] Add `data-testid` (static category) to the "cancel" and "send invitation" dialog
       buttons, plus `data-testid` (wrapped category) to the dialog close-icon control, in
       libs/frontend/admin/src/lib/invitations/invite-dialog/invite-dialog.component.ts
-- [ ] T020 [P] [US2] Add a distinct per-row `data-testid` (repeated category, keyed by signup id) to
+- [x] T020 [P] [US2] Add a distinct per-row `data-testid` (repeated category, keyed by signup id) to
       the approve/reject/delete row buttons, and `data-testid` (wrapped category, via PrimeNG
       `pt`/passthrough attributes per the convention's escape hatch) to the shared `p-confirmdialog`
       accept/reject controls, in libs/frontend/admin/src/lib/signups/signups.component.ts
-- [ ] T021 [P] [US2] Add `data-testid` (static category) to the "invite member" header button, a
+- [x] T021 [P] [US2] Add `data-testid` (static category) to the "invite member" header button, a
       distinct per-row `data-testid` (repeated category, keyed by invitation id) to the
       resend/cancel row buttons, and `data-testid` (wrapped category) to the shared `p-confirmdialog`
       controls, in libs/frontend/admin/src/lib/invitations/invitations.component.ts
-- [ ] T022 [P] [US2] Add a distinct per-row `data-testid` (repeated + wrapped category, keyed by
+- [x] T022 [P] [US2] Add a distinct per-row `data-testid` (repeated + wrapped category, keyed by
       account id) to the role-select and domain-scopes multiselect controls, a distinct per-row
       `data-testid` to the archive/reactivate buttons, and `data-testid` (wrapped category) to the
       shared `p-confirmdialog` controls, in libs/frontend/admin/src/lib/accounts/accounts.component.ts
-- [ ] T023 [P] [US2] Add `data-testid` to the static "add holding" header button, the static filter
+- [x] T023 [P] [US2] Add `data-testid` to the static "add holding" header button, the static filter
       input, the sortable column headers (static category, keyed by column name), a distinct per-row
       `data-testid` (repeated category, keyed by holding id) to the edit/delete row buttons, the
       static empty-state "add first holding" button, and `data-testid` (wrapped category) to the
       add/edit dialog and delete-confirm dialog controls, in
       libs/frontend/domain/holdings/src/lib/holdings.component.ts
-- [ ] T024 [US2] Run `npx nx affected -t test` (scoped to the projects touched by T004-T023) and
+- [x] T024 [US2] Run `npx nx affected -t test` (scoped to the projects touched by T004-T023) and
       confirm every retrofitted component's existing unit tests still pass with unchanged assertions —
       FR-007
-- [ ] T025 [US2] Using the `verify-ui` skill, Playwright-verify one retrofitted element per FR-002
+- [x] T025 [US2] Using the `verify-ui` skill, Playwright-verify one retrofitted element per FR-002
       category (one static, one repeated, one PrimeNG-wrapped): locate each via `getByTestId` in the
       default locale, switch to a second supported locale via `language-switcher`, and confirm the
       same locator still finds it with no rendered-output change — SC-002, quickstart Scenario B
@@ -189,14 +189,14 @@ implementation, without needing the full US2 retrofit to be complete.
 
 ### Implementation for User Story 3
 
-- [ ] T026 [P] [US3] Update the "Verifying UI changes" section of `CLAUDE.md` to instruct that a
+- [x] T026 [P] [US3] Update the "Verifying UI changes" section of `CLAUDE.md` to instruct that a
       new/changed interactive element meeting the convention's criteria gets its `data-testid` added
       as part of that same change, linking to `docs/frontend/testid-conventions.md` — FR-008
-- [ ] T027 [P] [US3] Update item 1 of the "Selector conventions" list in
+- [x] T027 [P] [US3] Update item 1 of the "Selector conventions" list in
       `.claude/skills/verify-ui/SKILL.md` to link to `docs/frontend/testid-conventions.md` and
       instruct: when an in-scope element is missing a testid, add one per the convention before
       falling back to translated-text matching (item 4) — FR-009
-- [ ] T028 [US3] Walk through `specs/024-ui-testid-convention/quickstart.md` Scenario C against the
+- [x] T028 [US3] Walk through `specs/024-ui-testid-convention/quickstart.md` Scenario C against the
       updated `CLAUDE.md`/`SKILL.md` text and confirm both acceptance scenarios (guidance calls for
       the attribute; skill points to the doc before text-matching) are satisfied — SC-004
 
@@ -208,9 +208,9 @@ implementation, without needing the full US2 retrofit to be complete.
 
 **Purpose**: Final acceptance sweep across all three stories
 
-- [ ] T029 [P] Cross-check SC-001: re-review every file touched in Phase 4 (T004-T023) against the
+- [x] T029 [P] Cross-check SC-001: re-review every file touched in Phase 4 (T004-T023) against the
       FR-002 categories and confirm no qualifying element was missed
-- [ ] T030 Run the full `specs/024-ui-testid-convention/quickstart.md` validation end-to-end
+- [x] T030 Run the full `specs/024-ui-testid-convention/quickstart.md` validation end-to-end
       (Scenarios A, B, C) as the final acceptance check before merging
 
 ---

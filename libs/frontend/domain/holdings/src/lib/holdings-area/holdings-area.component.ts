@@ -36,8 +36,12 @@ import { TranslatePipe } from '@vaultfolio/frontend-shared-ui';
   template: `
     <p-tabs [value]="activeTab()" (valueChange)="onTabChange($event)">
       <p-tablist>
-        <p-tab value="list">{{ 'holdingsArea.list' | translate }}</p-tab>
-        <p-tab value="imports">{{ 'holdingsArea.imports' | translate }}</p-tab>
+        <p-tab value="list" data-testid="holdings-area-tab-list">{{
+          'holdingsArea.list' | translate
+        }}</p-tab>
+        <p-tab value="imports" data-testid="holdings-area-tab-imports">{{
+          'holdingsArea.imports' | translate
+        }}</p-tab>
       </p-tablist>
       <p-tabpanels>
         <router-outlet />

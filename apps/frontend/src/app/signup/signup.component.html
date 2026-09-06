@@ -61,7 +61,13 @@
           <p-message severity="error">{{ errorMessage() }}</p-message>
         }
 
-        <p-button type="submit" label="Sign up" [loading]="submitting()" [disabled]="submitting()">
+        <p-button
+          type="submit"
+          data-testid="signup-submit"
+          label="Sign up"
+          [loading]="submitting()"
+          [disabled]="submitting()"
+        >
           <ng-template #icon><app-icon name="user-plus" /></ng-template>
         </p-button>
 
