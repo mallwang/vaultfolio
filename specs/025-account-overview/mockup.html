@@ -1,0 +1,1681 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Account Overview Review</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    />
+    <style>
+      :root {
+        color-scheme: light;
+
+        /* App tokens — approximating PrimeNG's Aura preset (light), matching the tokens used in
+           prior mockups (e.g. specs/010-theme-switch/mockup.html) since Vaultfolio has no theme
+           file wired up yet. See design.md for the mapping note. */
+        --p-content-background: #ffffff;
+        --p-text-color: #1f2430;
+        --p-text-muted-color: #6b7280;
+        --p-content-border-color: #e5e7eb;
+        --p-content-hover-background: #f4f4f6;
+        --p-highlight-background: #eef1ff;
+        --p-primary-color: #6366f1;
+        --p-primary-600: #4f46e5;
+        --p-red-500: #ef4444;
+        --p-red-50: #fef2f2;
+
+        /* Review-tool-only tokens */
+        --review-bg: #f3f2ee;
+        --review-ink: #2c2a25;
+        --review-muted: #7a7669;
+        --review-line: #ddd9d0;
+        --review-accent: #b45f2c;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--review-bg);
+        color: var(--review-ink);
+        font-family:
+          'Inter',
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        text-wrap: balance;
+      }
+
+      /* ============ Review-tool chrome (reusable as-is) ============ */
+
+      .review-header {
+        padding: 1.5rem 2rem 1rem;
+        border-bottom: 1px solid var(--review-line);
+      }
+      .review-eyebrow {
+        font-size: 0.72rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--review-accent);
+        font-weight: 700;
+        margin: 0 0 0.25rem;
+      }
+      .review-header h1 {
+        margin: 0 0 0.35rem;
+        font-size: 1.35rem;
+        font-weight: 800;
+      }
+      .review-header p {
+        margin: 0;
+        color: var(--review-muted);
+        font-size: 0.9rem;
+        max-width: 68ch;
+        line-height: 1.5;
+      }
+
+      .review-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.25rem;
+        align-items: center;
+        padding: 0.85rem 2rem;
+        background: #fff;
+        border-bottom: 1px solid var(--review-line);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+      .control-group {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .control-group span.label {
+        font-size: 0.72rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--review-muted);
+        font-weight: 700;
+      }
+
+      .segmented {
+        display: inline-flex;
+        border: 1px solid var(--review-line);
+        border-radius: 8px;
+        overflow: hidden;
+        flex-wrap: wrap;
+      }
+      .segmented button {
+        appearance: none;
+        border: none;
+        background: #fff;
+        color: var(--review-ink);
+        font: inherit;
+        font-size: 0.83rem;
+        font-weight: 600;
+        padding: 0.4rem 0.75rem;
+        cursor: pointer;
+        border-right: 1px solid var(--review-line);
+      }
+      .segmented button:last-child {
+        border-right: none;
+      }
+      .segmented button:hover {
+        background: #f1efe9;
+      }
+      .segmented button:focus-visible {
+        outline: 2px solid var(--review-accent);
+        outline-offset: -2px;
+      }
+      .segmented button[aria-pressed='true'] {
+        background: var(--review-accent);
+        color: #fff;
+      }
+
+      .review-stage {
+        padding: 2rem;
+        display: flex;
+        justify-content: center;
+      }
+
+      .stage-frame {
+        width: 100%;
+        max-width: 1180px;
+        background: #d9d4c8;
+        border-radius: 14px;
+        padding: 1.25rem;
+        transition: max-width 0.2s ease;
+      }
+      .stage-frame[data-viewport='mobile'] {
+        max-width: 400px;
+      }
+
+      .stage-frame-label {
+        font-size: 0.72rem;
+        color: var(--review-muted);
+        text-align: center;
+        margin: 0 0 0.5rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .canvas {
+        background: var(--p-content-background);
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+        color: var(--p-text-color);
+        position: relative;
+      }
+
+      .review-footer {
+        padding: 0 2rem 2rem;
+        max-width: 1180px;
+        margin: 0 auto;
+        font-size: 0.85rem;
+        color: var(--review-muted);
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+      }
+      .review-footer code {
+        background: #fff;
+        border: 1px solid var(--review-line);
+        border-radius: 4px;
+        padding: 0.1em 0.4em;
+        font-size: 0.8em;
+      }
+      .review-footer h3 {
+        margin: 0.5rem 0 0;
+        font-size: 0.8rem;
+        color: var(--review-ink);
+      }
+      .review-footer ul {
+        margin: 0.25rem 0 0.5rem;
+        padding-left: 1.1rem;
+      }
+
+      /* ============ generic state-visibility mechanism (reusable as-is) ============ */
+
+      [data-screen] [data-show] {
+        display: none;
+      }
+      [data-screen='grouped'] [data-show='grouped'] {
+        display: block;
+      }
+      [data-screen='flat'] [data-show='flat'] {
+        display: block;
+      }
+      [data-screen='empty'] [data-show='empty'] {
+        display: block;
+      }
+      [data-screen='add'] [data-show='add'] {
+        display: block;
+      }
+      /* Gotcha: if a shown block needs display:grid/flex (not the default block), the generic
+         `display:block` rule above wins on equal specificity. Add a same-block override with an
+         extra class qualifier. */
+      [data-screen] [data-show].category-group {
+        display: flex;
+      }
+      [data-screen] [data-show].account-row {
+        display: flex;
+      }
+      [data-screen='add'] [data-show='add'].modal-backdrop {
+        display: flex;
+      }
+      [data-screen='empty'] [data-show='empty'].empty-screen {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+      }
+
+      /* ============ feature styles (authored fresh per feature) ============ */
+
+      .app-shell {
+        display: grid;
+        grid-template-columns: 232px 1fr;
+        min-height: 620px;
+      }
+      .stage-frame[data-viewport='mobile'] .app-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .app-sidebar {
+        background: var(--p-content-background);
+        border-right: 1px solid var(--p-content-border-color);
+        display: flex;
+        flex-direction: column;
+        padding: 1.1rem 0.85rem;
+        gap: 1.5rem;
+      }
+      .stage-frame[data-viewport='mobile'] .app-sidebar {
+        flex-direction: row;
+        align-items: center;
+        border-right: none;
+        border-bottom: 1px solid var(--p-content-border-color);
+        padding: 0.65rem 0.85rem;
+        gap: 0.75rem;
+        overflow-x: auto;
+      }
+
+      .app-brand {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        padding: 0 0.4rem;
+      }
+      .stage-frame[data-viewport='mobile'] .app-brand {
+        padding: 0;
+      }
+      .app-brand__mark {
+        width: 26px;
+        height: 26px;
+        border-radius: 7px;
+        background: linear-gradient(135deg, var(--p-primary-color), var(--p-primary-600));
+        flex: 0 0 auto;
+      }
+      .app-brand__name {
+        font-weight: 800;
+        font-size: 0.98rem;
+        letter-spacing: -0.01em;
+      }
+      .stage-frame[data-viewport='mobile'] .app-brand__name {
+        display: none;
+      }
+
+      .app-nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+      }
+      .stage-frame[data-viewport='mobile'] .app-nav {
+        flex-direction: row;
+        gap: 0.3rem;
+      }
+
+      .app-nav__item {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        padding: 0.55rem 0.6rem;
+        border-radius: 8px;
+        font-size: 0.86rem;
+        font-weight: 600;
+        color: var(--p-text-muted-color);
+        position: relative;
+      }
+      .app-nav__item svg {
+        width: 17px;
+        height: 17px;
+        flex: 0 0 auto;
+      }
+      .app-nav__item--active {
+        background: var(--p-highlight-background);
+        color: var(--p-primary-color);
+      }
+      .app-nav__item--active::before {
+        content: '';
+        position: absolute;
+        left: -0.85rem;
+        top: 0.35rem;
+        bottom: 0.35rem;
+        width: 3px;
+        border-radius: 2px;
+        background: var(--p-primary-color);
+      }
+      .stage-frame[data-viewport='mobile'] .app-nav__item {
+        flex-direction: column;
+        gap: 0.2rem;
+        min-width: 60px;
+        padding: 0.45rem 0.4rem;
+        font-size: 0.64rem;
+        text-align: center;
+      }
+      .stage-frame[data-viewport='mobile'] .app-nav__item--active::before {
+        display: none;
+      }
+
+      .app-main {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+      }
+
+      .app-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--p-content-border-color);
+      }
+      .app-header__crumb {
+        font-size: 0.75rem;
+        color: var(--p-text-muted-color);
+        margin: 0 0 0.15rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+      }
+      .app-header__title {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 800;
+      }
+      .app-header__meta {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+        color: var(--p-text-muted-color);
+      }
+      .role-badge {
+        font-size: 0.68rem;
+        font-weight: 700;
+        color: var(--p-primary-600);
+        background: var(--p-highlight-background);
+        padding: 0.15rem 0.5rem;
+        border-radius: 999px;
+      }
+      .avatar {
+        width: 28px;
+        height: 28px;
+        border-radius: 999px;
+        background: var(--p-primary-color);
+        color: #fff;
+        font-size: 0.72rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .theme-toggle,
+      .btn-signout {
+        appearance: none;
+        border: none;
+        background: none;
+        color: var(--p-text-muted-color);
+        font: inherit;
+        cursor: pointer;
+      }
+      .theme-toggle {
+        width: 30px;
+        height: 30px;
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+      }
+      .theme-toggle svg {
+        width: 16px;
+        height: 16px;
+      }
+      .theme-toggle:hover,
+      .btn-signout:hover {
+        background: var(--p-content-hover-background);
+        color: var(--p-text-color);
+      }
+      .btn-signout {
+        font-size: 0.8rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.35rem 0.5rem;
+        border-radius: 6px;
+      }
+      .btn-signout svg {
+        width: 15px;
+        height: 15px;
+      }
+
+      .app-content {
+        flex: 1;
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.1rem;
+        overflow-y: auto;
+      }
+
+      /* ---- Account Overview page ---- */
+
+      .overview-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+      }
+      .overview-toolbar p {
+        margin: 0.2rem 0 0;
+        font-size: 0.82rem;
+        color: var(--p-text-muted-color);
+      }
+      .overview-eyebrow-line {
+        margin: 0;
+        font-size: 0.78rem;
+        color: var(--p-text-muted-color);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      .btn-primary {
+        appearance: none;
+        border: none;
+        background: var(--p-primary-color);
+        color: #fff;
+        font: inherit;
+        font-size: 0.84rem;
+        font-weight: 700;
+        padding: 0.55rem 0.95rem;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      .btn-primary:hover {
+        background: var(--p-primary-600);
+      }
+      .btn-primary svg {
+        width: 15px;
+        height: 15px;
+      }
+
+      .category-group {
+        flex-direction: column;
+        border: 1px solid var(--p-content-border-color);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .category-group__header {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        padding: 0.7rem 1rem;
+        background: var(--p-content-hover-background);
+        border-bottom: 1px solid var(--p-content-border-color);
+      }
+      .category-group__header h3 {
+        margin: 0;
+        font-size: 0.85rem;
+        font-weight: 700;
+      }
+      .category-group__header .group-sub {
+        font-size: 0.72rem;
+        color: var(--p-text-muted-color);
+        font-weight: 600;
+      }
+      .category-group__header .group-count {
+        font-size: 0.72rem;
+        color: var(--p-text-muted-color);
+        font-weight: 600;
+      }
+
+      .account-row {
+        align-items: flex-start;
+        gap: 0.9rem;
+        padding: 0.85rem 1rem;
+        border-bottom: 1px solid var(--p-content-border-color);
+      }
+      .account-row:last-child {
+        border-bottom: none;
+      }
+      .account-row__icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 9px;
+        background: var(--p-highlight-background);
+        color: var(--p-primary-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+        font-size: 0.78rem;
+        font-weight: 700;
+        margin-top: 0.1rem;
+      }
+      .account-row__body {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+      }
+      .account-row__headline {
+        display: flex;
+        align-items: baseline;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+      .account-row__name {
+        font-size: 0.9rem;
+        font-weight: 700;
+        margin: 0;
+      }
+      .account-row__provider {
+        font-size: 0.78rem;
+        color: var(--p-text-muted-color);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        text-decoration: none;
+      }
+      .account-row__provider svg {
+        width: 12px;
+        height: 12px;
+      }
+      .account-row__provider:hover {
+        color: var(--p-primary-color);
+      }
+      .account-row__purpose {
+        font-size: 0.82rem;
+        color: var(--p-text-color);
+        margin: 0;
+        line-height: 1.4;
+      }
+      .detail-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+      }
+      .detail-chip {
+        font-size: 0.72rem;
+        color: var(--p-text-muted-color);
+        background: var(--p-content-hover-background);
+        border-radius: 6px;
+        padding: 0.22rem 0.5rem;
+        display: inline-flex;
+        gap: 0.3rem;
+      }
+      .detail-chip strong {
+        color: var(--p-text-color);
+        font-weight: 700;
+      }
+      .account-row__actions {
+        display: flex;
+        gap: 0.15rem;
+        flex: 0 0 auto;
+      }
+      .icon-btn {
+        appearance: none;
+        border: none;
+        background: none;
+        width: 28px;
+        height: 28px;
+        border-radius: 7px;
+        color: var(--p-text-muted-color);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+      .icon-btn:hover {
+        background: var(--p-content-hover-background);
+        color: var(--p-text-color);
+      }
+      .icon-btn svg {
+        width: 15px;
+        height: 15px;
+      }
+      .icon-btn--danger:hover {
+        background: var(--p-red-50);
+        color: var(--p-red-500);
+      }
+
+      .stage-frame[data-viewport='mobile'] .account-row {
+        flex-wrap: wrap;
+      }
+      .stage-frame[data-viewport='mobile'] .category-group__header {
+        flex-wrap: wrap;
+        gap: 0.15rem;
+      }
+
+      /* Empty state */
+      .empty-state {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+      }
+      .empty-state__card {
+        text-align: center;
+        max-width: 320px;
+      }
+      .empty-state__icon {
+        width: 52px;
+        height: 52px;
+        margin: 0 auto 0.9rem;
+        border-radius: 14px;
+        background: var(--p-highlight-background);
+        color: var(--p-primary-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .empty-state__icon svg {
+        width: 26px;
+        height: 26px;
+      }
+      .empty-state__card h2 {
+        margin: 0 0 0.35rem;
+        font-size: 1rem;
+        font-weight: 800;
+      }
+      .empty-state__card p {
+        margin: 0 0 1rem;
+        font-size: 0.84rem;
+        color: var(--p-text-muted-color);
+        line-height: 1.5;
+      }
+
+      /* Add/edit account modal */
+      .modal-backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(20, 20, 30, 0.42);
+        align-items: flex-start;
+        justify-content: center;
+        padding: 2.4rem 1rem;
+        z-index: 5;
+        overflow-y: auto;
+      }
+      .modal-card {
+        background: var(--p-content-background);
+        border-radius: 12px;
+        width: 100%;
+        max-width: 440px;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.22);
+        overflow: hidden;
+      }
+      .modal-card__header {
+        padding: 1.05rem 1.25rem 0.85rem;
+        border-bottom: 1px solid var(--p-content-border-color);
+      }
+      .modal-card__header h2 {
+        margin: 0;
+        font-size: 0.98rem;
+        font-weight: 800;
+      }
+      .modal-card__header p {
+        margin: 0.2rem 0 0;
+        font-size: 0.78rem;
+        color: var(--p-text-muted-color);
+      }
+      .modal-card__body {
+        padding: 1.1rem 1.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.9rem;
+      }
+      .field label {
+        display: block;
+        font-size: 0.76rem;
+        font-weight: 700;
+        margin-bottom: 0.32rem;
+      }
+      .field .req {
+        color: var(--p-red-500);
+      }
+      .field input,
+      .field select,
+      .field textarea {
+        width: 100%;
+        font: inherit;
+        font-size: 0.86rem;
+        padding: 0.5rem 0.65rem;
+        border: 1px solid var(--p-content-border-color);
+        border-radius: 7px;
+        background: #fff;
+        color: var(--p-text-color);
+      }
+      .field textarea {
+        resize: vertical;
+        min-height: 3.4rem;
+      }
+      .field--error input {
+        border-color: var(--p-red-500);
+        background: var(--p-red-50);
+      }
+      .field__error {
+        margin: 0.3rem 0 0;
+        font-size: 0.75rem;
+        color: var(--p-red-500);
+        font-weight: 600;
+      }
+      .field__hint {
+        margin: 0.3rem 0 0;
+        font-size: 0.74rem;
+        color: var(--p-text-muted-color);
+      }
+      .field-row {
+        display: flex;
+        gap: 0.75rem;
+      }
+      .field-row .field {
+        flex: 1;
+        min-width: 0;
+      }
+      .modal-card__footer {
+        padding: 0.9rem 1.25rem 1.1rem;
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.6rem;
+        border-top: 1px solid var(--p-content-border-color);
+      }
+      .btn-secondary {
+        appearance: none;
+        border: 1px solid var(--p-content-border-color);
+        background: #fff;
+        color: var(--p-text-color);
+        font: inherit;
+        font-size: 0.84rem;
+        font-weight: 700;
+        padding: 0.5rem 0.9rem;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+      .btn-secondary:hover {
+        background: var(--p-content-hover-background);
+      }
+    </style>
+  </head>
+  <body>
+    <header class="review-header">
+      <p class="review-eyebrow">Non-functional review mockup</p>
+      <h1>Account Overview — layout &amp; states</h1>
+      <p>
+        Revised per feedback: this is a static reference directory, not a balance/finance dashboard
+        — no amounts, no totals. Each account just records what it is, its purpose, a link to the
+        provider, and a couple of free-text detail fields (e.g. card usage, a required minimum). Use
+        "Screen" to compare the grouped multi-account view, the flat view for a user who skips
+        categorization (FR-008), the empty state (FR-012), and the add-account form mid-validation
+        (FR-006). Use "Viewport" to check the mobile layout. The sidebar now sits on the left as in
+        the real app shell (fixed from the previous pass).
+      </p>
+    </header>
+
+    <div class="review-controls">
+      <div class="control-group">
+        <span class="label">Viewport</span>
+        <div class="segmented" id="viewport-toggle">
+          <button type="button" data-viewport="desktop" aria-pressed="true">Desktop</button>
+          <button type="button" data-viewport="mobile" aria-pressed="false">Mobile</button>
+        </div>
+      </div>
+      <div class="control-group">
+        <span class="label">Screen</span>
+        <div class="segmented" id="screen-toggle">
+          <button type="button" data-screen="grouped" aria-pressed="true">
+            Multi-account (grouped)
+          </button>
+          <button type="button" data-screen="flat">Uncategorized (flat)</button>
+          <button type="button" data-screen="empty">Empty</button>
+          <button type="button" data-screen="add">Add account (error)</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="review-stage">
+      <div class="stage-frame" id="stage-frame" data-viewport="desktop">
+        <p class="stage-frame-label" id="stage-frame-label">Desktop — 1180px+</p>
+        <div class="canvas" data-screen="grouped" id="canvas">
+          <div class="app-shell">
+            <nav class="app-sidebar" aria-label="Primary">
+              <div class="app-brand">
+                <span class="app-brand__mark" aria-hidden="true"></span>
+                <span class="app-brand__name">Vaultfolio</span>
+              </div>
+              <div class="app-nav">
+                <span class="app-nav__item">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M3 11l9-7 9 7" />
+                    <path d="M5 10v9a1 1 0 0 0 1 1h3v-6h6v6h3a1 1 0 0 0 1-1v-9" />
+                  </svg>
+                  <span>Dashboard</span>
+                </span>
+                <span class="app-nav__item">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M4 19V9l8-5 8 5v10" />
+                    <path d="M9 19v-6h6v6" />
+                  </svg>
+                  <span>Holdings</span>
+                </span>
+                <span class="app-nav__item app-nav__item--active">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <rect x="3" y="6" width="18" height="13" rx="2" />
+                    <path d="M3 10h18" />
+                    <path d="M7 15h4" />
+                  </svg>
+                  <span>Account Overview</span>
+                </span>
+                <span class="app-nav__item">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M12 3v4M12 17v4M3 12h4M17 12h4" />
+                    <circle cx="12" cy="12" r="4" />
+                  </svg>
+                  <span>Settings</span>
+                </span>
+              </div>
+            </nav>
+
+            <div class="app-main">
+              <div class="app-header">
+                <div>
+                  <p class="app-header__crumb">Vaultfolio</p>
+                  <h1 class="app-header__title">Account Overview</h1>
+                </div>
+                <div class="app-header__meta">
+                  <span>markus.allwang</span>
+                  <span class="role-badge">Owner</span>
+                  <span class="avatar">MA</span>
+                  <button
+                    type="button"
+                    class="theme-toggle"
+                    aria-pressed="false"
+                    aria-label="Switch to dark theme"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                      <circle cx="12" cy="12" r="4" />
+                      <path
+                        d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"
+                      />
+                    </svg>
+                  </button>
+                  <button type="button" class="btn-signout">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                      <path d="M16 17l5-5-5-5" />
+                      <path d="M21 12H9" />
+                    </svg>
+                    Sign out
+                  </button>
+                </div>
+              </div>
+
+              <div class="app-content">
+                <!-- ===== Grouped (multi-account) screen ===== -->
+                <div data-show="grouped">
+                  <div class="overview-toolbar">
+                    <div>
+                      <p class="overview-eyebrow-line">5 accounts across 4 categories</p>
+                      <p>
+                        Grouped to match how you split your money — General, Leisure, Savings,
+                        Credit Card.
+                      </p>
+                    </div>
+                    <button type="button" class="btn-primary js-open-add">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <path d="M12 5v14M5 12h14" />
+                      </svg>
+                      Add account
+                    </button>
+                  </div>
+
+                  <div class="category-group" style="display: flex">
+                    <div class="category-group__header">
+                      <h3>General <span class="group-sub">· fixed income &amp; costs</span></h3>
+                      <span class="group-count">1 account</span>
+                    </div>
+                    <div class="account-row" style="display: flex">
+                      <div class="account-row__icon">GK</div>
+                      <div class="account-row__body">
+                        <div class="account-row__headline">
+                          <p class="account-row__name">Gehaltskonto</p>
+                          <a class="account-row__provider" href="#" onclick="return false;">
+                            Sparkasse
+                            <svg
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                            >
+                              <path d="M7 17L17 7" />
+                              <path d="M8 7h9v9" />
+                            </svg>
+                          </a>
+                        </div>
+                        <p class="account-row__purpose">
+                          Salary in, rent, leasing, power, and insurance direct debits out.
+                        </p>
+                        <div class="detail-chips">
+                          <span class="detail-chip"
+                            ><strong>Card usage:</strong> Not used — no card issued</span
+                          >
+                          <span class="detail-chip"
+                            ><strong>Required minimum:</strong> €500 buffer</span
+                          >
+                        </div>
+                      </div>
+                      <div class="account-row__actions">
+                        <button type="button" class="icon-btn" aria-label="Edit Gehaltskonto">
+                          <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                          >
+                            <path d="M12 20h9" />
+                            <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                          </svg>
+                        </button>
+                        <button
+                          type="button"
+                          class="icon-btn icon-btn--danger"
+                          aria-label="Delete Gehaltskonto"
+                        >
+                          <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                          >
+                            <path d="M3 6h18" />
+                            <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="category-group" style="display: flex">
+                    <div class="category-group__header">
+                      <h3>Leisure <span class="group-sub">· variable, everyday spending</span></h3>
+                      <span class="group-count">1 account</span>
+                    </div>
+                    <div class="account-row" style="display: flex">
+                      <div class="account-row__icon">AK</div>
+                      <div class="account-row__body">
+                        <div class="account-row__headline">
+                          <p class="account-row__name">Alltagskonto</p>
+                          <a class="account-row__provider" href="#" onclick="return false;">
+                            N26
+                            <svg
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                            >
+                              <path d="M7 17L17 7" />
+                              <path d="M8 7h9v9" />
+                            </svg>
+                          </a>
+                        </div>
+                        <p class="account-row__purpose">
+                          Groceries, everyday shopping, and PayPal top-ups.
+                        </p>
+                        <div class="detail-chips">
+                          <span class="detail-chip"
+                            ><strong>Card usage:</strong> Debit card, daily contactless</span
+                          >
+                        </div>
+                      </div>
+                      <div class="account-row__actions">
+                        <button type="button" class="icon-btn" aria-label="Edit Alltagskonto">
+                          <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                          >
+                            <path d="M12 20h9" />
+                            <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                          </svg>
+                        </button>
+                        <button
+                          type="button"
+                          class="icon-btn icon-btn--danger"
+                          aria-label="Delete Alltagskonto"
+                        >
+                          <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                          >
+                            <path d="M3 6h18" />
+                            <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="category-group" style="display: flex">
+                    <div class="category-group__header">
+                      <h3>Savings</h3>
+                      <span class="group-count">3 accounts</span>
+                    </div>
+                    <div class="account-row" style="display: flex">
+                      <div class="account-row__icon">RA</div>
+                      <div class="account-row__body">
+                        <div class="account-row__headline">
+                          <p class="account-row__name">Roboadvisor</p>
+                          <a class="account-row__provider" href="#" onclick="return false;">
+                            Scalable Capital
+                            <svg
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                            >
+                              <path d="M7 17L17 7" />
+                              <path d="M8 7h9v9" />
+                            </svg>
+                          </a>
+                        </div>
+                        <p class="account-row__purpose">Long-term diversified ETF savings plan.</p>
+                        <div class="detail-chips">
+                          <span class="detail-chip"><strong>Card usage:</strong> No card</span>
+                          <span class="detail-chip"><strong>Required minimum:</strong> None</span>
+                        </div>
+                      </div>
+                      <div class="account-row__actions">
+                        <button type="button" class="icon-btn" aria-label="Edit Roboadvisor">
+                          <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                          >
+                            <path d="M12 20h9" />
+                            <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                          </svg>
+                        </button>
+                        <button
+                          type="button"
+                          class="icon-btn icon-btn--danger"
+                          aria-label="Delete Roboadvisor"
+                        >
+                          <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                          >
+                            <path d="M3 6h18" />
+                            <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="account-row" style="display: flex">
+                      <div class="account-row__icon">EM</div>
+                      <div class="account-row__body">
+                        <div class="account-row__headline">
+                          <p class="account-row__name">Edelmetalle</p>
+                          <a class="account-row__provider" href="#" onclick="return false;">
+                            BullionVault
+                            <svg
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                            >
+                              <path d="M7 17L17 7" />
+                              <path d="M8 7h9v9" />
+                            </svg>
+                          </a>
+                        </div>
+                        <p class="account-row__purpose">Physical gold, stored with the vendor.</p>
+                        <div class="detail-chips">
+                          <span class="detail-chip"><strong>Card usage:</strong> No card</span>
+                        </div>
+                      </div>
+                      <div class="account-row__actions">
+                        <button type="button" class="icon-btn" aria-label="Edit Edelmetalle">
+                          <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                          >
+                            <path d="M12 20h9" />
+                            <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                          </svg>
+                        </button>
+                        <button
+                          type="button"
+                          class="icon-btn icon-btn--danger"
+                          aria-label="Delete Edelmetalle"
+                        >
+                          <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                          >
+                            <path d="M3 6h18" />
+                            <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="account-row" style="display: flex">
+                      <div class="account-row__icon">TG</div>
+                      <div class="account-row__body">
+                        <div class="account-row__headline">
+                          <p class="account-row__name">Tagesgeld</p>
+                          <a class="account-row__provider" href="#" onclick="return false;">
+                            ING
+                            <svg
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                            >
+                              <path d="M7 17L17 7" />
+                              <path d="M8 7h9v9" />
+                            </svg>
+                          </a>
+                        </div>
+                        <p class="account-row__purpose">Instant-access cash buffer.</p>
+                        <div class="detail-chips">
+                          <span class="detail-chip"
+                            ><strong>Required minimum:</strong> 3 months of expenses</span
+                          >
+                        </div>
+                      </div>
+                      <div class="account-row__actions">
+                        <button type="button" class="icon-btn" aria-label="Edit Tagesgeld">
+                          <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                          >
+                            <path d="M12 20h9" />
+                            <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                          </svg>
+                        </button>
+                        <button
+                          type="button"
+                          class="icon-btn icon-btn--danger"
+                          aria-label="Delete Tagesgeld"
+                        >
+                          <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                          >
+                            <path d="M3 6h18" />
+                            <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="category-group" style="display: flex">
+                    <div class="category-group__header">
+                      <h3>Credit Card</h3>
+                      <span class="group-count">1 account</span>
+                    </div>
+                    <div class="account-row" style="display: flex">
+                      <div class="account-row__icon">VK</div>
+                      <div class="account-row__body">
+                        <div class="account-row__headline">
+                          <p class="account-row__name">Visa Karte</p>
+                          <a class="account-row__provider" href="#" onclick="return false;">
+                            DKB
+                            <svg
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                            >
+                              <path d="M7 17L17 7" />
+                              <path d="M8 7h9v9" />
+                            </svg>
+                          </a>
+                        </div>
+                        <p class="account-row__purpose">Travel bookings and larger purchases.</p>
+                        <div class="detail-chips">
+                          <span class="detail-chip"
+                            ><strong>Card usage:</strong> Travel &amp; online purchases only</span
+                          >
+                          <span class="detail-chip"
+                            ><strong>Required minimum:</strong> Paid off monthly</span
+                          >
+                        </div>
+                      </div>
+                      <div class="account-row__actions">
+                        <button type="button" class="icon-btn" aria-label="Edit Visa Karte">
+                          <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                          >
+                            <path d="M12 20h9" />
+                            <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                          </svg>
+                        </button>
+                        <button
+                          type="button"
+                          class="icon-btn icon-btn--danger"
+                          aria-label="Delete Visa Karte"
+                        >
+                          <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                          >
+                            <path d="M3 6h18" />
+                            <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ===== Flat (all uncategorized) screen ===== -->
+                <div data-show="flat">
+                  <div class="overview-toolbar">
+                    <div>
+                      <p class="overview-eyebrow-line">3 accounts</p>
+                      <p>
+                        No categories in use — every account shows in one plain list, no empty
+                        category headers.
+                      </p>
+                    </div>
+                    <button type="button" class="btn-primary js-open-add">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <path d="M12 5v14M5 12h14" />
+                      </svg>
+                      Add account
+                    </button>
+                  </div>
+
+                  <div class="category-group" style="display: flex">
+                    <div class="category-group__header">
+                      <h3>All accounts</h3>
+                      <span class="group-count">3 accounts</span>
+                    </div>
+                    <div class="account-row" style="display: flex">
+                      <div class="account-row__icon">GI</div>
+                      <div class="account-row__body">
+                        <div class="account-row__headline">
+                          <p class="account-row__name">Girokonto</p>
+                          <a class="account-row__provider" href="#" onclick="return false;">
+                            Deutsche Bank
+                            <svg
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                            >
+                              <path d="M7 17L17 7" />
+                              <path d="M8 7h9v9" />
+                            </svg>
+                          </a>
+                        </div>
+                        <p class="account-row__purpose">Main everyday account.</p>
+                      </div>
+                      <div class="account-row__actions">
+                        <button type="button" class="icon-btn" aria-label="Edit Girokonto">
+                          <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                          >
+                            <path d="M12 20h9" />
+                            <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                          </svg>
+                        </button>
+                        <button
+                          type="button"
+                          class="icon-btn icon-btn--danger"
+                          aria-label="Delete Girokonto"
+                        >
+                          <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                          >
+                            <path d="M3 6h18" />
+                            <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="account-row" style="display: flex">
+                      <div class="account-row__icon">SP</div>
+                      <div class="account-row__body">
+                        <div class="account-row__headline">
+                          <p class="account-row__name">Sparkonto</p>
+                          <a class="account-row__provider" href="#" onclick="return false;">
+                            Deutsche Bank
+                            <svg
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                            >
+                              <path d="M7 17L17 7" />
+                              <path d="M8 7h9v9" />
+                            </svg>
+                          </a>
+                        </div>
+                        <p class="account-row__purpose">Untouched savings buffer.</p>
+                      </div>
+                      <div class="account-row__actions">
+                        <button type="button" class="icon-btn" aria-label="Edit Sparkonto">
+                          <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                          >
+                            <path d="M12 20h9" />
+                            <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                          </svg>
+                        </button>
+                        <button
+                          type="button"
+                          class="icon-btn icon-btn--danger"
+                          aria-label="Delete Sparkonto"
+                        >
+                          <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                          >
+                            <path d="M3 6h18" />
+                            <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="account-row" style="display: flex">
+                      <div class="account-row__icon">KK</div>
+                      <div class="account-row__body">
+                        <div class="account-row__headline">
+                          <p class="account-row__name">Kreditkarte</p>
+                          <a class="account-row__provider" href="#" onclick="return false;">
+                            Amex
+                            <svg
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                            >
+                              <path d="M7 17L17 7" />
+                              <path d="M8 7h9v9" />
+                            </svg>
+                          </a>
+                        </div>
+                        <p class="account-row__purpose">Backup card, rarely used.</p>
+                      </div>
+                      <div class="account-row__actions">
+                        <button type="button" class="icon-btn" aria-label="Edit Kreditkarte">
+                          <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                          >
+                            <path d="M12 20h9" />
+                            <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                          </svg>
+                        </button>
+                        <button
+                          type="button"
+                          class="icon-btn icon-btn--danger"
+                          aria-label="Delete Kreditkarte"
+                        >
+                          <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                          >
+                            <path d="M3 6h18" />
+                            <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ===== Empty screen ===== -->
+                <div data-show="empty" class="empty-screen">
+                  <div class="overview-toolbar">
+                    <div>
+                      <p class="overview-eyebrow-line">No accounts yet</p>
+                    </div>
+                  </div>
+                  <div class="empty-state">
+                    <div class="empty-state__card">
+                      <div class="empty-state__icon">
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="1.8"
+                        >
+                          <rect x="3" y="6" width="18" height="13" rx="2" />
+                          <path d="M3 10h18" />
+                          <path d="M7 15h4" />
+                        </svg>
+                      </div>
+                      <h2>No accounts yet</h2>
+                      <p>
+                        Add your banks, brokers, savings, and credit cards to keep a reference of
+                        what each one is for — grouped however you like, or not at all.
+                      </p>
+                      <button type="button" class="btn-primary js-open-add" style="margin: 0 auto">
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2.2"
+                        >
+                          <path d="M12 5v14M5 12h14" />
+                        </svg>
+                        Add your first account
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ===== Add-account screen (grouped view dimmed behind a validation-error modal) ===== -->
+                <div data-show="add">
+                  <div class="overview-toolbar">
+                    <div>
+                      <p class="overview-eyebrow-line">5 accounts across 4 categories</p>
+                    </div>
+                    <button type="button" class="btn-primary">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <path d="M12 5v14M5 12h14" /></svg
+                      >Add account
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Add-account modal — shown only in the "add" screen -->
+          <div class="modal-backdrop" data-show="add">
+            <div class="modal-card">
+              <div class="modal-card__header">
+                <h2>Add account</h2>
+                <p>Record any bank, broker, depot, or card — categorize it or not.</p>
+              </div>
+              <div class="modal-card__body">
+                <div class="field field--error">
+                  <label for="acc-name">Account name <span class="req">*</span></label>
+                  <input type="text" id="acc-name" placeholder="e.g. Tagesgeld" />
+                  <p class="field__error">Enter a name for this account.</p>
+                </div>
+                <div class="field-row">
+                  <div class="field">
+                    <label for="acc-category">Category</label>
+                    <select id="acc-category">
+                      <option>Other</option>
+                      <option>General</option>
+                      <option>Leisure</option>
+                      <option>Savings</option>
+                      <option>Credit Card</option>
+                    </select>
+                    <p class="field__hint">
+                      Optional — leave as "Other" if you don't split accounts up.
+                    </p>
+                  </div>
+                  <div class="field">
+                    <label for="acc-provider">Provider / institution</label>
+                    <input type="text" id="acc-provider" placeholder="e.g. ING" />
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="acc-website">Website</label>
+                  <input type="url" id="acc-website" placeholder="https://…" />
+                  <p class="field__hint">Optional link to the provider's site or login page.</p>
+                </div>
+                <div class="field">
+                  <label for="acc-purpose">Purpose</label>
+                  <input type="text" id="acc-purpose" placeholder="e.g. salary and fixed costs" />
+                </div>
+                <div class="field-row">
+                  <div class="field">
+                    <label for="acc-card-usage">Card usage</label>
+                    <input
+                      type="text"
+                      id="acc-card-usage"
+                      placeholder="e.g. daily contactless spending"
+                    />
+                  </div>
+                  <div class="field">
+                    <label for="acc-required">Required minimum</label>
+                    <input type="text" id="acc-required" placeholder="e.g. €500 buffer" />
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="acc-notes">Notes</label>
+                  <textarea id="acc-notes" placeholder="Anything else worth remembering"></textarea>
+                </div>
+              </div>
+              <div class="modal-card__footer">
+                <button type="button" class="btn-secondary js-close-add">Cancel</button>
+                <button type="button" class="btn-primary js-close-add">Save account</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="review-footer">
+      <p>
+        This is a static, non-functional mockup for design review — no data is saved, no backend is
+        called.
+      </p>
+      <h3>What this covers</h3>
+      <ul>
+        <li>
+          US1 (P1): a reference list per account — name, category, provider (linked), purpose, and a
+          couple of free-text detail fields — grouped with a per-category count (FR-001, FR-002,
+          FR-009).
+        </li>
+        <li>
+          US2 (P2): add/edit/delete affordances on every row, and the required-name validation error
+          (FR-003–FR-006).
+        </li>
+        <li>
+          US3 (P3): categorization is optional — the "Uncategorized (flat)" screen shows the same
+          page with no category structure at all (FR-007, FR-008).
+        </li>
+        <li>Edge cases: the empty state before any account exists.</li>
+      </ul>
+      <h3>Note — this revises the reviewed spec</h3>
+      <ul>
+        <li>
+          The original spec.md described balances, totals, and per-category subtotals; this feedback
+          replaces that with a purely descriptive reference (no money at all), plus provider links
+          and a couple of named free-text fields ("card usage", "required minimum"). spec.md and
+          design.md are being updated to match before planning proceeds.
+        </li>
+      </ul>
+      <h3>Not shown here (out of scope for this mockup)</h3>
+      <ul>
+        <li>
+          Delete confirmation dialog copy/behavior (FR-005) — the row-level delete icon is shown,
+          the confirmation step itself is a plan-time detail.
+        </li>
+        <li>
+          Exact category-filter interaction (dropdown vs. tabs vs. always-grouped) — FR-009 only
+          requires grouping-or-filtering; this mockup shows the grouped variant.
+        </li>
+      </ul>
+    </footer>
+
+    <script>
+      const canvas = document.getElementById('canvas');
+      const stageFrame = document.getElementById('stage-frame');
+      const stageLabel = document.getElementById('stage-frame-label');
+
+      function setScreen(value) {
+        canvas.setAttribute('data-screen', value);
+        [...document.getElementById('screen-toggle').querySelectorAll('button')].forEach((b) =>
+          b.setAttribute('aria-pressed', String(b.getAttribute('data-screen') === value)),
+        );
+      }
+
+      document.getElementById('viewport-toggle').addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-viewport]');
+        if (!btn) return;
+        const value = btn.getAttribute('data-viewport');
+        stageFrame.setAttribute('data-viewport', value);
+        stageLabel.textContent = value === 'mobile' ? 'Mobile — 400px' : 'Desktop — 1180px+';
+        [...document.getElementById('viewport-toggle').querySelectorAll('button')].forEach((b) =>
+          b.setAttribute('aria-pressed', String(b === btn)),
+        );
+      });
+
+      document.getElementById('screen-toggle').addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-screen]');
+        if (!btn) return;
+        setScreen(btn.getAttribute('data-screen'));
+      });
+
+      canvas.addEventListener('click', (e) => {
+        if (e.target.closest('.js-open-add')) setScreen('add');
+        if (e.target.closest('.js-close-add')) setScreen('grouped');
+      });
+    </script>
+  </body>
+</html>

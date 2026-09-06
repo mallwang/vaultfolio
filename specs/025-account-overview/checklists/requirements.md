@@ -31,8 +31,11 @@
 
 ## Notes
 
-- No [NEEDS CLARIFICATION] markers were needed: reasonable defaults (manual balances, single base
-  currency, extensible category list, no linkage to existing Holding entity) were documented in the
-  Assumptions section instead, consistent with existing precedent in this codebase (e.g. the manual
-  holdings-entry feature's own single-currency assumption).
+- No [NEEDS CLARIFICATION] markers were needed: reasonable defaults (extensible category list, no
+  linkage to existing Holding entity) were documented in the Assumptions section instead.
 - All items pass on first validation pass.
+- Revised after the `/speckit-ux-review` mockup review: the user clarified this is a static
+  reference directory, not a balance/finance dashboard — all balance/total/aggregation
+  requirements were removed and replaced with provider-link, purpose, and free-text detail fields
+  (e.g. card usage, required minimum). Spec re-validated against the checklist after the rewrite;
+  all items still pass.
