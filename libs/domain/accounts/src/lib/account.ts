@@ -1,4 +1,5 @@
 import type { AccountCategory } from './account-category.js';
+import type { AccountStatus } from './account-status.js';
 
 /**
  * The core entity (spec.md's "Account" Key Entity, data-model.md's Account
@@ -15,6 +16,8 @@ export interface AccountProps {
   readonly name: string;
   /** Defaults to `OTHER` when omitted (FR-007/FR-008). */
   readonly category: AccountCategory;
+  /** Defaults to `ACTIVE` when omitted. A `DECOMMISSIONED` account stays listed (sorted after the active ones within its category) instead of being deleted. */
+  readonly status: AccountStatus;
   readonly provider: string | null;
   /** Stored/displayed as entered, not validated as a live/reachable URL. */
   readonly website: string | null;
@@ -22,6 +25,15 @@ export interface AccountProps {
   readonly cardUsage: string | null;
   readonly requiredMinimum: string | null;
   readonly notes: string | null;
+  /**
+   * Full card number, only ever populated for a `CREDIT_CARD` account —
+   * stored as entered (digits, spaces, dashes), like `website`. The API
+   * layer returns it as-is; masking it to the last 4 digits by default is a
+   * frontend display concern, not a storage one.
+   */
+  readonly cardNumber: string | null;
+  /** Card expiry in `MM/YY` form, only meaningful for a `CREDIT_CARD` account. */
+  readonly validUntil: string | null;
   /** Set by the backend from the authenticated session; never client-supplied. */
   readonly ownerId: string | null;
   readonly createdAt: Date;
@@ -32,12 +44,15 @@ export class Account implements AccountProps {
   readonly id: string;
   readonly name: string;
   readonly category: AccountCategory;
+  readonly status: AccountStatus;
   readonly provider: string | null;
   readonly website: string | null;
   readonly purpose: string | null;
   readonly cardUsage: string | null;
   readonly requiredMinimum: string | null;
   readonly notes: string | null;
+  readonly cardNumber: string | null;
+  readonly validUntil: string | null;
   readonly ownerId: string | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;
@@ -46,12 +61,15 @@ export class Account implements AccountProps {
     this.id = props.id;
     this.name = props.name;
     this.category = props.category;
+    this.status = props.status;
     this.provider = props.provider;
     this.website = props.website;
     this.purpose = props.purpose;
     this.cardUsage = props.cardUsage;
     this.requiredMinimum = props.requiredMinimum;
     this.notes = props.notes;
+    this.cardNumber = props.cardNumber;
+    this.validUntil = props.validUntil;
     this.ownerId = props.ownerId;
     this.createdAt = props.createdAt;
     this.updatedAt = props.updatedAt;

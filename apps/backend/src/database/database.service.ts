@@ -47,6 +47,9 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
 
       this.initializeSchema();
       this.migrateDomainScopes();
+      this.migrateAccountDepotCategory();
+      this.migrateAccountCardFields();
+      this.migrateAccountStatus();
       await this.ensureBootstrapAdmin();
       this.ready = true;
     } catch (error) {
@@ -133,13 +136,16 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       CREATE TABLE IF NOT EXISTS accounts (
         id                TEXT PRIMARY KEY,
         name              TEXT NOT NULL CHECK (name <> ''),
-        category          TEXT NOT NULL CHECK (category IN ('GENERAL','LEISURE','SAVINGS','CREDIT_CARD','OTHER')) DEFAULT 'OTHER',
+        category          TEXT NOT NULL CHECK (category IN ('GENERAL','LEISURE','SAVINGS','DEPOT','CREDIT_CARD','OTHER')) DEFAULT 'OTHER',
+        status            TEXT NOT NULL CHECK (status IN ('ACTIVE','DECOMMISSIONED')) DEFAULT 'ACTIVE',
         provider          TEXT NULL,
         website           TEXT NULL,
         purpose           TEXT NULL,
         card_usage        TEXT NULL,
         required_minimum  TEXT NULL,
         notes             TEXT NULL,
+        card_number       TEXT NULL,
+        valid_until       TEXT NULL,
         owner_id          TEXT NULL,
         created_at        TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')),
         updated_at        TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now'))
@@ -273,6 +279,98 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       .get();
     if (!hasDomainScopes) {
       db.exec(`ALTER TABLE users ADD COLUMN domain_scopes TEXT NULL DEFAULT '["holdings"]'`);
+    }
+  }
+
+  /**
+   * 025-account-overview follow-up: widens `accounts.category`'s CHECK
+   * constraint to allow 'DEPOT' on a database created before that category
+   * existed. `initializeSchema()`'s `CREATE TABLE IF NOT EXISTS` only applies
+   * the widened CHECK to a brand-new database (this file's top-of-file doc
+   * comment) — and unlike a plain column addition, SQLite has no `ALTER
+   * TABLE ... ADD CONSTRAINT`/`DROP CONSTRAINT` for CHECK, so the only way to
+   * widen one on an existing table is to rebuild it. Idempotent: guarded by
+   * inspecting the table's stored CREATE TABLE SQL for 'DEPOT' already being
+   * an allowed value.
+   */
+  private migrateAccountDepotCategory(): void {
+    const db = this.requireDb();
+    const table = db
+      .prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'accounts'")
+      .get() as { sql: string } | undefined;
+    if (!table || table.sql.includes('DEPOT')) {
+      return;
+    }
+    db.exec('BEGIN');
+    try {
+      db.exec('ALTER TABLE accounts RENAME TO accounts_pre_depot');
+      db.exec(`
+        CREATE TABLE accounts (
+          id                TEXT PRIMARY KEY,
+          name              TEXT NOT NULL CHECK (name <> ''),
+          category          TEXT NOT NULL CHECK (category IN ('GENERAL','LEISURE','SAVINGS','DEPOT','CREDIT_CARD','OTHER')) DEFAULT 'OTHER',
+          provider          TEXT NULL,
+          website           TEXT NULL,
+          purpose           TEXT NULL,
+          card_usage        TEXT NULL,
+          required_minimum  TEXT NULL,
+          notes             TEXT NULL,
+          owner_id          TEXT NULL,
+          created_at        TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')),
+          updated_at        TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now'))
+        )
+      `);
+      db.exec('INSERT INTO accounts SELECT * FROM accounts_pre_depot');
+      db.exec('DROP TABLE accounts_pre_depot');
+      db.exec('CREATE INDEX IF NOT EXISTS accounts_owner_id_idx ON accounts (owner_id)');
+      db.exec('COMMIT');
+    } catch (error) {
+      db.exec('ROLLBACK');
+      throw error;
+    }
+  }
+
+  /**
+   * Credit-card special fields follow-up: adds `accounts.card_number` and
+   * `accounts.valid_until` to an `accounts` table that pre-dates them.
+   * Unlike `migrateAccountDepotCategory`, these are plain nullable columns
+   * with no CHECK constraint to widen, so a simple `ALTER TABLE ... ADD
+   * COLUMN` (guarded by `pragma_table_info`, same convention as
+   * `migrateDomainScopes`) is enough — no table rebuild needed.
+   */
+  private migrateAccountCardFields(): void {
+    const db = this.requireDb();
+    const hasCardNumber = db
+      .prepare("SELECT 1 FROM pragma_table_info('accounts') WHERE name = 'card_number'")
+      .get();
+    if (!hasCardNumber) {
+      db.exec('ALTER TABLE accounts ADD COLUMN card_number TEXT NULL');
+    }
+    const hasValidUntil = db
+      .prepare("SELECT 1 FROM pragma_table_info('accounts') WHERE name = 'valid_until'")
+      .get();
+    if (!hasValidUntil) {
+      db.exec('ALTER TABLE accounts ADD COLUMN valid_until TEXT NULL');
+    }
+  }
+
+  /**
+   * Account status follow-up: adds `accounts.status` (`ACTIVE` /
+   * `DECOMMISSIONED`) to an `accounts` table that pre-dates it. Every
+   * existing row backfills to `'ACTIVE'` via the column's `DEFAULT`, which
+   * SQLite applies to existing rows for a constant default (unlike
+   * `migrateAccountDepotCategory`'s CHECK-widening, no table rebuild is
+   * needed here — same convention as `migrateAccountCardFields`).
+   */
+  private migrateAccountStatus(): void {
+    const db = this.requireDb();
+    const hasStatus = db
+      .prepare("SELECT 1 FROM pragma_table_info('accounts') WHERE name = 'status'")
+      .get();
+    if (!hasStatus) {
+      db.exec(
+        "ALTER TABLE accounts ADD COLUMN status TEXT NOT NULL CHECK (status IN ('ACTIVE','DECOMMISSIONED')) DEFAULT 'ACTIVE'",
+      );
     }
   }
 

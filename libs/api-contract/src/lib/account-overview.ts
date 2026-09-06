@@ -13,19 +13,28 @@
  * plain text.
  */
 
-export type AccountCategory = 'GENERAL' | 'LEISURE' | 'SAVINGS' | 'CREDIT_CARD' | 'OTHER';
+export type AccountCategory = 'GENERAL' | 'LEISURE' | 'SAVINGS' | 'DEPOT' | 'CREDIT_CARD' | 'OTHER';
+
+/** Whether an account is still in active use, or decommissioned (closed/cancelled but kept for reference). */
+export type AccountStatus = 'ACTIVE' | 'DECOMMISSIONED';
 
 /** The full shape returned by GET/POST/PUT — same shape as a list item. */
 export interface AccountOverviewEntry {
   id: string;
   name: string;
   category: AccountCategory;
+  /** Defaults to `ACTIVE`. A decommissioned account stays listed, sorted after the active ones within its category. */
+  status: AccountStatus;
   provider: string | null;
   website: string | null;
   purpose: string | null;
   cardUsage: string | null;
   requiredMinimum: string | null;
   notes: string | null;
+  /** Full card number as entered (`CREDIT_CARD` accounts only); the frontend masks it by default. */
+  cardNumber: string | null;
+  /** Card expiry, `MM/YY` (`CREDIT_CARD` accounts only). */
+  validUntil: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -35,12 +44,16 @@ export interface CreateAccountOverviewEntryRequest {
   name: string;
   /** Omit to default to 'OTHER' (FR-007/FR-008). */
   category?: AccountCategory;
+  /** Omit to default to 'ACTIVE'. */
+  status?: AccountStatus;
   provider?: string;
   website?: string;
   purpose?: string;
   cardUsage?: string;
   requiredMinimum?: string;
   notes?: string;
+  cardNumber?: string;
+  validUntil?: string;
 }
 
 /**

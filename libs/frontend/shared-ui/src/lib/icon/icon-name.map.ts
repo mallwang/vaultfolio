@@ -63,4 +63,12 @@ export const ICON_NAME_MAP: Record<string, string> = {
   'manage-accounts': 'manage_accounts',
   // Account Overview (025-account-overview, design.md's account-row provider link).
   'external-link': 'open_in_new',
+  // Account Overview chips (025-account-overview): icon+tooltip instead of a text prefix.
+  'credit-card': 'credit_card',
+  payments: 'payments',
+  'sticky-note': 'sticky_note_2',
+  language: 'language',
+  // Account Overview credit-card fields (025-account-overview follow-up): reveal/hide toggle.
+  visibility: 'visibility',
+  'visibility-off': 'visibility_off',
 };

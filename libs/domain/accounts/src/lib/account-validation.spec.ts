@@ -18,6 +18,13 @@ const validSubmission: AccountSubmission = {
   notes: 'Shared with partner',
 };
 
+const validCreditCardSubmission: AccountSubmission = {
+  ...validSubmission,
+  category: 'CREDIT_CARD',
+  cardNumber: '4111 1111 1111 1111',
+  validUntil: '09/28',
+};
+
 describe('validateAccountSubmission — name', () => {
   it('accepts a valid submission', () => {
     const result = validateAccountSubmission(validSubmission);
@@ -81,6 +88,38 @@ describe('validateAccountSubmission — category', () => {
   });
 });
 
+describe('validateAccountSubmission — status', () => {
+  it('defaults missing status to ACTIVE', () => {
+    const { status: _status, ...withoutStatus } = validSubmission;
+    const result = validateAccountSubmission(withoutStatus);
+    expect(result.valid).toBe(true);
+    if (result.valid) {
+      expect(result.value.status).toBe('ACTIVE');
+    }
+  });
+
+  it('accepts every known status literal', () => {
+    for (const status of ['ACTIVE', 'DECOMMISSIONED'] as const) {
+      const result = validateAccountSubmission({ ...validSubmission, status });
+      expect(result.valid).toBe(true);
+      if (result.valid) {
+        expect(result.value.status).toBe(status);
+      }
+    }
+  });
+
+  it('rejects an unknown status literal', () => {
+    const result = validateAccountSubmission({
+      ...validSubmission,
+      status: 'CLOSED' as AccountSubmission['status'],
+    });
+    expect(result.valid).toBe(false);
+    if (!result.valid) {
+      expect(result.fieldErrors).toContainEqual(expect.objectContaining({ field: 'status' }));
+    }
+  });
+});
+
 describe('validateAccountSubmission — optional field trimming/null-normalization', () => {
   it('trims every optional field', () => {
     const result = validateAccountSubmission({
@@ -126,7 +165,77 @@ describe('validateAccountSubmission — optional field trimming/null-normalizati
       expect(result.value.cardUsage).toBeNull();
       expect(result.value.requiredMinimum).toBeNull();
       expect(result.value.notes).toBeNull();
+      expect(result.value.cardNumber).toBeNull();
+      expect(result.value.validUntil).toBeNull();
       expect(result.value.category).toBe('OTHER');
+      expect(result.value.status).toBe('ACTIVE');
+    }
+  });
+});
+
+describe('validateAccountSubmission — credit card fields (cardNumber/validUntil)', () => {
+  it('accepts a valid credit card submission', () => {
+    const result = validateAccountSubmission(validCreditCardSubmission);
+    expect(result.valid).toBe(true);
+    if (result.valid) {
+      expect(result.value.cardNumber).toBe('4111 1111 1111 1111');
+      expect(result.value.validUntil).toBe('09/28');
+    }
+  });
+
+  it('accepts a card number with dashes instead of spaces', () => {
+    const result = validateAccountSubmission({
+      ...validCreditCardSubmission,
+      cardNumber: '4111-1111-1111-1111',
+    });
+    expect(result.valid).toBe(true);
+  });
+
+  it('rejects a card number with too few digits', () => {
+    const result = validateAccountSubmission({ ...validCreditCardSubmission, cardNumber: '4111' });
+    expect(result.valid).toBe(false);
+    if (!result.valid) {
+      expect(result.fieldErrors).toContainEqual(expect.objectContaining({ field: 'cardNumber' }));
+    }
+  });
+
+  it('rejects a card number containing letters', () => {
+    const result = validateAccountSubmission({
+      ...validCreditCardSubmission,
+      cardNumber: '4111abcd11112222',
+    });
+    expect(result.valid).toBe(false);
+    if (!result.valid) {
+      expect(result.fieldErrors).toContainEqual(expect.objectContaining({ field: 'cardNumber' }));
+    }
+  });
+
+  it('rejects a malformed valid-until value', () => {
+    const result = validateAccountSubmission({ ...validCreditCardSubmission, validUntil: '2028' });
+    expect(result.valid).toBe(false);
+    if (!result.valid) {
+      expect(result.fieldErrors).toContainEqual(expect.objectContaining({ field: 'validUntil' }));
+    }
+  });
+
+  it('rejects an out-of-range month in valid-until', () => {
+    const result = validateAccountSubmission({ ...validCreditCardSubmission, validUntil: '13/28' });
+    expect(result.valid).toBe(false);
+    if (!result.valid) {
+      expect(result.fieldErrors).toContainEqual(expect.objectContaining({ field: 'validUntil' }));
+    }
+  });
+
+  it('normalizes an empty-after-trim cardNumber/validUntil to null', () => {
+    const result = validateAccountSubmission({
+      ...validCreditCardSubmission,
+      cardNumber: '   ',
+      validUntil: '',
+    });
+    expect(result.valid).toBe(true);
+    if (result.valid) {
+      expect(result.value.cardNumber).toBeNull();
+      expect(result.value.validUntil).toBeNull();
     }
   });
 });

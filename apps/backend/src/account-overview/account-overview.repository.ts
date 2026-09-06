@@ -40,19 +40,23 @@ export class AccountOverviewRepository {
     const id = randomUUID();
     const rows = await this.database.query<AccountRow>(
       `INSERT INTO accounts
-         (id, name, category, provider, website, purpose, card_usage, required_minimum, notes, owner_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+         (id, name, category, status, provider, website, purpose, card_usage, required_minimum, notes,
+          card_number, valid_until, owner_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
        RETURNING *`,
       [
         id,
         row.name,
         row.category,
+        row.status,
         row.provider,
         row.website,
         row.purpose,
         row.card_usage,
         row.required_minimum,
         row.notes,
+        row.card_number,
+        row.valid_until,
         ownerId,
       ],
     );
@@ -67,8 +71,9 @@ export class AccountOverviewRepository {
     const row = validatedAccountToRow(value);
     const rows = await this.database.query<AccountRow>(
       `UPDATE accounts
-       SET name = $3, category = $4, provider = $5, website = $6, purpose = $7,
-           card_usage = $8, required_minimum = $9, notes = $10,
+       SET name = $3, category = $4, status = $5, provider = $6, website = $7, purpose = $8,
+           card_usage = $9, required_minimum = $10, notes = $11,
+           card_number = $12, valid_until = $13,
            updated_at = STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')
        WHERE id = $1 AND owner_id = $2
        RETURNING *`,
@@ -77,12 +82,15 @@ export class AccountOverviewRepository {
         ownerId,
         row.name,
         row.category,
+        row.status,
         row.provider,
         row.website,
         row.purpose,
         row.card_usage,
         row.required_minimum,
         row.notes,
+        row.card_number,
+        row.valid_until,
       ],
     );
     return rows[0] ? rowToAccount(rows[0]) : null;

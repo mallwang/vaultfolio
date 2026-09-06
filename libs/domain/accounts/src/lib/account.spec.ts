@@ -6,13 +6,16 @@ import type { AccountProps } from './account.js';
 const baseProps: AccountProps = {
   id: 'a1',
   name: 'N26 checking',
-  category: 'GENERAL',
+  category: 'CREDIT_CARD',
+  status: 'ACTIVE',
   provider: 'N26',
   website: 'https://n26.com',
   purpose: 'Everyday spending',
   cardUsage: 'Contactless only',
   requiredMinimum: null,
   notes: null,
+  cardNumber: '4111 1111 1111 1111',
+  validUntil: '09/28',
   ownerId: 'owner-1',
   createdAt: new Date('2026-01-01'),
   updatedAt: new Date('2026-01-02'),
@@ -24,13 +27,16 @@ describe('Account', () => {
 
     expect(account.id).toBe('a1');
     expect(account.name).toBe('N26 checking');
-    expect(account.category).toBe('GENERAL');
+    expect(account.category).toBe('CREDIT_CARD');
+    expect(account.status).toBe('ACTIVE');
     expect(account.provider).toBe('N26');
     expect(account.website).toBe('https://n26.com');
     expect(account.purpose).toBe('Everyday spending');
     expect(account.cardUsage).toBe('Contactless only');
     expect(account.requiredMinimum).toBeNull();
     expect(account.notes).toBeNull();
+    expect(account.cardNumber).toBe('4111 1111 1111 1111');
+    expect(account.validUntil).toBe('09/28');
     expect(account.ownerId).toBe('owner-1');
     expect(account.createdAt).toEqual(new Date('2026-01-01'));
     expect(account.updatedAt).toEqual(new Date('2026-01-02'));
@@ -45,6 +51,8 @@ describe('Account', () => {
       cardUsage: null,
       requiredMinimum: null,
       notes: null,
+      cardNumber: null,
+      validUntil: null,
       ownerId: null,
     });
 
@@ -54,6 +62,8 @@ describe('Account', () => {
     expect(account.cardUsage).toBeNull();
     expect(account.requiredMinimum).toBeNull();
     expect(account.notes).toBeNull();
+    expect(account.cardNumber).toBeNull();
+    expect(account.validUntil).toBeNull();
     expect(account.ownerId).toBeNull();
   });
 });

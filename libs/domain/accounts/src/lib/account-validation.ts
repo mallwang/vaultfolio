@@ -1,5 +1,7 @@
 import { isAccountCategory } from './account-category.js';
 import type { AccountCategory } from './account-category.js';
+import { isAccountStatus } from './account-status.js';
+import type { AccountStatus } from './account-status.js';
 
 /**
  * Raw create/update payload as it arrives at the domain boundary, mirroring
@@ -9,12 +11,18 @@ import type { AccountCategory } from './account-category.js';
 export interface AccountSubmission {
   name: string;
   category?: AccountCategory;
+  /** Omitted (or `undefined`) defaults to `'ACTIVE'`. */
+  status?: AccountStatus;
   provider?: string | null;
   website?: string | null;
   purpose?: string | null;
   cardUsage?: string | null;
   requiredMinimum?: string | null;
   notes?: string | null;
+  /** Digits plus optional spaces/dashes; 12-19 digits once those are stripped (common PAN range). */
+  cardNumber?: string | null;
+  /** `MM/YY`, e.g. `09/28`. */
+  validUntil?: string | null;
 }
 
 export interface FieldError {
@@ -26,12 +34,15 @@ export interface FieldError {
 export interface ValidatedAccount {
   name: string;
   category: AccountCategory;
+  status: AccountStatus;
   provider: string | null;
   website: string | null;
   purpose: string | null;
   cardUsage: string | null;
   requiredMinimum: string | null;
   notes: string | null;
+  cardNumber: string | null;
+  validUntil: string | null;
 }
 
 export type ValidationResult =
@@ -78,6 +89,34 @@ export function validateAccountSubmission(submission: AccountSubmission): Valida
     }
   }
 
+  let status: AccountStatus = 'ACTIVE';
+  if (submission.status != null) {
+    if (!isAccountStatus(submission.status)) {
+      errors.push({
+        field: 'status',
+        message: `${String(submission.status)} is not a recognized status.`,
+      });
+    } else {
+      status = submission.status;
+    }
+  }
+
+  const cardNumber = trimToNullable(submission.cardNumber);
+  if (cardNumber != null) {
+    const digitCount = cardNumber.replace(/\D/g, '').length;
+    if (!/^[0-9 -]+$/.test(cardNumber) || digitCount < 12 || digitCount > 19) {
+      errors.push({
+        field: 'cardNumber',
+        message: 'Card number must be 12-19 digits (spaces/dashes allowed).',
+      });
+    }
+  }
+
+  const validUntil = trimToNullable(submission.validUntil);
+  if (validUntil != null && !/^(0[1-9]|1[0-2])\/\d{2}$/.test(validUntil)) {
+    errors.push({ field: 'validUntil', message: 'Valid until must be in MM/YY format.' });
+  }
+
   if (errors.length > 0) {
     return { valid: false, fieldErrors: errors };
   }
@@ -87,12 +126,15 @@ export function validateAccountSubmission(submission: AccountSubmission): Valida
     value: {
       name: submission.name.trim(),
       category,
+      status,
       provider: trimToNullable(submission.provider),
       website: trimToNullable(submission.website),
       purpose: trimToNullable(submission.purpose),
       cardUsage: trimToNullable(submission.cardUsage),
       requiredMinimum: trimToNullable(submission.requiredMinimum),
       notes: trimToNullable(submission.notes),
+      cardNumber,
+      validUntil,
     },
   };
 }

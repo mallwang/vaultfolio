@@ -114,6 +114,36 @@ describe('/account-overview/accounts', () => {
     expect(listAfterDelete.body.some((entry: { id: string }) => entry.id === id)).toBe(false);
   });
 
+  it('POST creates a credit card account with cardNumber/validUntil, then rejects a malformed edit', async () => {
+    const created = await request(app.getHttpServer())
+      .post('/account-overview/accounts')
+      .set('Cookie', cookie)
+      .send({
+        name: 'Amex Gold',
+        category: 'CREDIT_CARD',
+        cardNumber: '3782 822463 10005',
+        validUntil: '09/28',
+      });
+    expect(created.status).toBe(201);
+    expect(created.body).toMatchObject({
+      cardNumber: '3782 822463 10005',
+      validUntil: '09/28',
+    });
+
+    const badEdit = await request(app.getHttpServer())
+      .put(`/account-overview/accounts/${created.body.id}`)
+      .set('Cookie', cookie)
+      .send({ validUntil: '2028' });
+    expect(badEdit.status).toBe(400);
+    expect(badEdit.body.fieldErrors).toContainEqual(
+      expect.objectContaining({ field: 'validUntil' }),
+    );
+
+    await request(app.getHttpServer())
+      .delete(`/account-overview/accounts/${created.body.id}`)
+      .set('Cookie', cookie);
+  });
+
   it('POST with a blank name returns 400 VALIDATION_FAILED', async () => {
     const response = await request(app.getHttpServer())
       .post('/account-overview/accounts')
@@ -124,14 +154,44 @@ describe('/account-overview/accounts', () => {
     expect(response.body.fieldErrors).toContainEqual(expect.objectContaining({ field: 'name' }));
   });
 
-  it('POST with only a name defaults category to OTHER (FR-007/FR-008)', async () => {
+  it('POST with only a name defaults category to OTHER (FR-007/FR-008) and status to ACTIVE', async () => {
     const response = await request(app.getHttpServer())
       .post('/account-overview/accounts')
       .set('Cookie', cookie)
       .send({ name: 'Minimal account' });
     expect(response.status).toBe(201);
     expect(response.body.category).toBe('OTHER');
+    expect(response.body.status).toBe('ACTIVE');
     expect(response.body.provider).toBeNull();
+  });
+
+  it('POST creates a decommissioned account, then PUT can reactivate it', async () => {
+    const created = await request(app.getHttpServer())
+      .post('/account-overview/accounts')
+      .set('Cookie', cookie)
+      .send({ name: 'Closed depot', status: 'DECOMMISSIONED' });
+    expect(created.status).toBe(201);
+    expect(created.body.status).toBe('DECOMMISSIONED');
+
+    const updated = await request(app.getHttpServer())
+      .put(`/account-overview/accounts/${created.body.id}`)
+      .set('Cookie', cookie)
+      .send({ status: 'ACTIVE' });
+    expect(updated.status).toBe(200);
+    expect(updated.body.status).toBe('ACTIVE');
+
+    await request(app.getHttpServer())
+      .delete(`/account-overview/accounts/${created.body.id}`)
+      .set('Cookie', cookie);
+  });
+
+  it('POST with an unrecognized status returns 400', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/account-overview/accounts')
+      .set('Cookie', cookie)
+      .send({ name: 'Bad status', status: 'CLOSED' });
+    expect(response.status).toBe(400);
+    expect(response.body.fieldErrors).toContainEqual(expect.objectContaining({ field: 'status' }));
   });
 
   it('POST with an unrecognized category returns 400', async () => {

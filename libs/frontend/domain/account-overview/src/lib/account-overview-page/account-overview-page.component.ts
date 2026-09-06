@@ -1,6 +1,7 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import type { AccountCategory, AccountOverviewEntry } from '@vaultfolio/api-contract';
 import { ACCOUNT_CATEGORIES } from '../account-category-options';
+import { deriveCardBrand } from '../card-brand';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -9,7 +10,7 @@ import { DialogModule } from 'primeng/dialog';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
-import { IconComponent, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
+import { IconComponent, LocaleNumberPipe, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
 import { AccountOverviewFormComponent } from '../account-overview-form/account-overview-form.component';
 import { AccountOverviewService } from '../account-overview.service';
 
@@ -18,6 +19,21 @@ interface AccountGroup {
   category: AccountCategory | 'ALL';
   labelKey: string;
   accounts: AccountOverviewEntry[];
+}
+
+/**
+ * Active accounts first, decommissioned ones below them — within a category
+ * (per the user's request), not a global re-sort. `Array.prototype.sort` is
+ * spec-guaranteed stable, so accounts sharing a status keep their existing
+ * relative order (oldest-created first, per the repository's query).
+ */
+function sortByStatus(accounts: AccountOverviewEntry[]): AccountOverviewEntry[] {
+  return [...accounts].sort((a, b) => {
+    if (a.status === b.status) {
+      return 0;
+    }
+    return a.status === 'ACTIVE' ? -1 : 1;
+  });
 }
 
 /**
@@ -44,6 +60,7 @@ interface AccountGroup {
     TooltipModule,
     AccountOverviewFormComponent,
     TranslatePipe,
+    LocaleNumberPipe,
     IconComponent,
   ],
   providers: [ConfirmationService, MessageService, TranslatePipe],
@@ -117,42 +134,126 @@ interface AccountGroup {
                 <div class="account-row__body">
                   <div class="account-row__title">
                     <span class="account-row__name">{{ account.name }}</span>
+                    <p-tag
+                      [value]="'accountStatus.' + account.status | translate"
+                      [severity]="account.status === 'ACTIVE' ? 'success' : 'warn'"
+                      [rounded]="true"
+                      class="status-badge"
+                      [attr.data-testid]="'account-overview-row-' + account.id + '-status'"
+                    />
                     @if (account.provider) {
-                      @if (account.website) {
-                        <a
-                          [href]="account.website"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          class="account-row__provider"
-                        >
-                          {{ account.provider }} <app-icon name="external-link" />
-                        </a>
-                      } @else {
-                        <span class="account-row__provider">{{ account.provider }}</span>
-                      }
+                      <span class="account-row__provider">{{ account.provider }}</span>
+                    }
+                    @if (cardBrandFor(account); as brand) {
+                      <p-tag
+                        [value]="brand"
+                        severity="info"
+                        [attr.data-testid]="'account-overview-row-' + account.id + '-brand'"
+                      />
                     }
                   </div>
                   @if (account.purpose) {
                     <p class="account-row__purpose">{{ account.purpose }}</p>
                   }
-                  @if (account.cardUsage || account.requiredMinimum || account.notes) {
+                  @if (
+                    account.category === 'CREDIT_CARD' && (account.cardNumber || account.validUntil)
+                  ) {
+                    <div class="account-row__card-badges">
+                      @if (account.cardNumber) {
+                        <p-tag severity="secondary" class="card-badge">
+                          <span
+                            class="card-number"
+                            [attr.data-testid]="
+                              'account-overview-row-' + account.id + '-card-number'
+                            "
+                          >
+                            {{
+                              isRevealed(account.id)
+                                ? account.cardNumber
+                                : maskCardNumber(account.cardNumber)
+                            }}
+                          </span>
+                          <button
+                            type="button"
+                            class="card-badge__reveal"
+                            [attr.data-testid]="'account-overview-row-' + account.id + '-reveal'"
+                            [attr.aria-label]="
+                              (isRevealed(account.id)
+                                ? 'accountOverview.hideCardNumber'
+                                : 'accountOverview.revealCardNumber'
+                              ) | translate
+                            "
+                            [pTooltip]="
+                              (isRevealed(account.id)
+                                ? 'accountOverview.hideCardNumber'
+                                : 'accountOverview.revealCardNumber'
+                              ) | translate
+                            "
+                            tooltipPosition="top"
+                            (click)="toggleReveal(account.id)"
+                          >
+                            <app-icon
+                              [name]="isRevealed(account.id) ? 'visibility-off' : 'visibility'"
+                            />
+                          </button>
+                        </p-tag>
+                      }
+                      @if (account.validUntil) {
+                        <p-tag
+                          [value]="account.validUntil"
+                          severity="secondary"
+                          class="card-badge"
+                          [attr.data-testid]="'account-overview-row-' + account.id + '-valid-until'"
+                        />
+                      }
+                    </div>
+                  }
+                  @if (
+                    account.website || account.cardUsage || account.requiredMinimum || account.notes
+                  ) {
                     <div class="account-row__chips">
-                      @if (account.cardUsage) {
-                        <span class="chip"
-                          >{{ 'accountOverview.cardUsageLabel' | translate }}:
-                          {{ account.cardUsage }}</span
+                      @if (account.website) {
+                        <a
+                          [href]="account.website"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          class="chip chip--link"
+                          [pTooltip]="'accountOverview.websiteLabel' | translate"
+                          tooltipPosition="top"
                         >
+                          <app-icon name="language" class="chip__icon" />
+                          {{ account.website }}
+                        </a>
+                      }
+                      @if (account.cardUsage) {
+                        <span
+                          class="chip"
+                          [pTooltip]="'accountOverview.cardUsageLabel' | translate"
+                          tooltipPosition="top"
+                        >
+                          <app-icon name="credit-card" class="chip__icon" />
+                          {{ account.cardUsage }}
+                        </span>
                       }
                       @if (account.requiredMinimum) {
-                        <span class="chip"
-                          >{{ 'accountOverview.requiredMinimumLabel' | translate }}:
-                          {{ account.requiredMinimum }}</span
+                        <span
+                          class="chip"
+                          [pTooltip]="'accountOverview.requiredMinimumLabel' | translate"
+                          tooltipPosition="top"
                         >
+                          <app-icon name="payments" class="chip__icon" />
+                          {{ account.requiredMinimum | localeNumber: currencyFormat }}
+                        </span>
                       }
                       @if (account.notes) {
-                        <span class="chip"
-                          >{{ 'accountOverview.notesLabel' | translate }}: {{ account.notes }}</span
+                        <span
+                          class="chip"
+                          [pTooltip]="'accountOverview.notesLabel' | translate"
+                          tooltipPosition="top"
                         >
+                          <app-icon name="sticky-note" class="chip__icon" />
+                          {{ account.notes }}
+                        </span>
                       }
                     </div>
                   }
@@ -216,7 +317,8 @@ interface AccountGroup {
   `,
   styles: `
     .account-overview-panel {
-      margin-bottom: 1.5rem;
+      max-width: 66%;
+      margin: 0 auto 1.5rem;
     }
 
     .account-overview-panel__header {
@@ -241,6 +343,7 @@ interface AccountGroup {
       display: flex;
       align-items: center;
       gap: 0.5rem;
+      padding: 1.25rem 1.25rem 0;
     }
 
     .account-group__header h3 {
@@ -293,20 +396,73 @@ interface AccountGroup {
     .account-row__provider {
       color: var(--p-text-muted-color);
       font-size: 0.85rem;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.25rem;
-      text-decoration: none;
     }
 
-    a.account-row__provider:hover {
-      text-decoration: underline;
+    /* Small, next to the name rather than sized like the other row badges. */
+    .status-badge {
+      font-size: 0.65rem;
+      padding: 0.1rem 0.5rem;
     }
 
     .account-row__purpose {
       margin: 0.15rem 0 0;
       font-size: 0.85rem;
       color: var(--p-text-muted-color);
+    }
+
+    .account-row__card-badges {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin-top: 0.3rem;
+    }
+
+    /* Both badges get the same box (padding/font-size come from PrimeNG's
+       .p-tag styling); only this shared class's content needs normalizing
+       so the card-number badge (custom content) matches the valid-until
+       badge (plain [value]) exactly. */
+    .card-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .card-number {
+      font-family: monospace;
+      font-size: inherit;
+      letter-spacing: 0.05em;
+    }
+
+    .card-badge__reveal {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      border: none;
+      background: transparent;
+      color: inherit;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    /* Material Symbols' own stylesheet hardcodes font-size: 24px on this
+       class, ignoring inheritance. The glyph span lives inside app-icon's
+       own encapsulated template, so reaching it from here needs ng-deep
+       — a plain descendant selector would compile with this component's
+       content attribute on both sides and never match the child's markup. */
+    .card-badge__reveal ::ng-deep .material-symbols-outlined {
+      font-size: 0.95em;
+    }
+
+    .card-badge__reveal:hover {
+      opacity: 0.7;
+    }
+
+    .card-badge__reveal:focus-visible {
+      outline: 2px solid var(--p-primary-color);
+      outline-offset: 1px;
+      border-radius: 2px;
     }
 
     .account-row__chips {
@@ -317,12 +473,31 @@ interface AccountGroup {
     }
 
     .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
       background: var(--p-content-background);
       border: 1px solid var(--p-content-border-color);
       border-radius: 999px;
       padding: 0.15rem 0.6rem;
       font-size: 0.75rem;
       color: var(--p-text-muted-color);
+    }
+
+    .chip__icon {
+      font-size: 0.9rem;
+    }
+
+    a.chip--link {
+      text-decoration: none;
+      max-width: 16rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    a.chip--link:hover {
+      text-decoration: underline;
     }
 
     .account-row__actions {
@@ -363,6 +538,16 @@ export class AccountOverviewPageComponent implements OnInit {
   protected readonly dialogVisible = signal(false);
   protected readonly editingAccount = signal<AccountOverviewEntry | null>(null);
 
+  /** Ids of credit-card accounts whose card number is currently shown in full (per-viewer, reset on reload). */
+  protected readonly revealedIds = signal<ReadonlySet<string>>(new Set());
+
+  /** `requiredMinimum` chip's format — whole-currency amounts, matching the add/edit form's input. */
+  protected readonly currencyFormat: Intl.NumberFormatOptions = {
+    style: 'currency',
+    currency: 'EUR',
+    maximumFractionDigits: 0,
+  };
+
   /**
    * Category groups in the fixed order, omitting empty ones (FR-009, Edge
    * Cases) — collapses to a single "All accounts" group when every account
@@ -377,14 +562,20 @@ export class AccountOverviewPageComponent implements OnInit {
 
     if (!anyNonOtherInUse) {
       return accounts.length > 0
-        ? [{ category: 'ALL', labelKey: 'accountOverview.allAccounts', accounts }]
+        ? [
+            {
+              category: 'ALL',
+              labelKey: 'accountOverview.allAccounts',
+              accounts: sortByStatus(accounts),
+            },
+          ]
         : [];
     }
 
     return ACCOUNT_CATEGORIES.map((category) => ({
       category,
       labelKey: `accountCategory.${category}`,
-      accounts: accounts.filter((account) => account.category === category),
+      accounts: sortByStatus(accounts.filter((account) => account.category === category)),
     })).filter((group) => group.accounts.length > 0);
   });
 
@@ -414,6 +605,34 @@ export class AccountOverviewPageComponent implements OnInit {
       .slice(0, 2)
       .map((part) => part.charAt(0).toUpperCase())
       .join('');
+  }
+
+  /** Card network badge, derived client-side from the stored number (`CREDIT_CARD` accounts only). */
+  protected cardBrandFor(account: AccountOverviewEntry): string | null {
+    return account.category === 'CREDIT_CARD' ? deriveCardBrand(account.cardNumber) : null;
+  }
+
+  /** Masks every digit but the last 4, preserving the entered grouping (`•••• •••• •••• 1234`). */
+  protected maskCardNumber(cardNumber: string): string {
+    const digitsOnly = cardNumber.replace(/\D/g, '');
+    const lastFour = digitsOnly.slice(-4);
+    const maskedCount = Math.max(digitsOnly.length - 4, 0);
+    const masked = '•'.repeat(maskedCount) + lastFour;
+    return masked.replace(/(.{4})/g, '$1 ').trim();
+  }
+
+  protected isRevealed(accountId: string): boolean {
+    return this.revealedIds().has(accountId);
+  }
+
+  protected toggleReveal(accountId: string): void {
+    const next = new Set(this.revealedIds());
+    if (next.has(accountId)) {
+      next.delete(accountId);
+    } else {
+      next.add(accountId);
+    }
+    this.revealedIds.set(next);
   }
 
   protected openAddDialog(): void {

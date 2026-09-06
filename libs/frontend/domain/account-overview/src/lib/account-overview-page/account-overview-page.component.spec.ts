@@ -9,12 +9,15 @@ function makeAccount(overrides: Partial<AccountOverviewEntry>): AccountOverviewE
     id: 'a1',
     name: 'N26 checking',
     category: 'OTHER',
+    status: 'ACTIVE',
     provider: null,
     website: null,
     purpose: null,
     cardUsage: null,
     requiredMinimum: null,
     notes: null,
+    cardNumber: null,
+    validUntil: null,
     createdAt: '2026-08-01T09:00:00.000Z',
     updatedAt: '2026-08-01T09:00:00.000Z',
     ...overrides,
@@ -54,7 +57,7 @@ describe('AccountOverviewPageComponent', () => {
         website: 'https://n26.com',
         purpose: 'Everyday spending',
         cardUsage: 'Contactless only',
-        requiredMinimum: '€500',
+        requiredMinimum: '500',
         notes: 'Shared with partner',
       }),
     ]);
@@ -68,10 +71,10 @@ describe('AccountOverviewPageComponent', () => {
     expect(text).toContain('Shared with partner');
   });
 
-  it('renders the provider as a link when a website is recorded (FR-002)', () => {
+  it('renders the website as a linked chip when recorded (FR-002)', () => {
     flushList([makeAccount({ provider: 'N26', website: 'https://n26.com' })]);
 
-    const link = (fixture.nativeElement as HTMLElement).querySelector('a.account-row__provider');
+    const link = (fixture.nativeElement as HTMLElement).querySelector('a.chip--link');
     expect(link).not.toBeNull();
     expect(link?.getAttribute('href')).toBe('https://n26.com');
   });
@@ -83,6 +86,40 @@ describe('AccountOverviewPageComponent', () => {
 
     const chips = (fixture.nativeElement as HTMLElement).querySelectorAll('.chip');
     expect(chips).toHaveLength(0);
+  });
+
+  it('shows the derived brand badge and a masked card number with a reveal toggle for a credit card account', () => {
+    flushList([
+      makeAccount({
+        id: 'a1',
+        category: 'CREDIT_CARD',
+        cardNumber: '4111 1111 1111 1111',
+        validUntil: '09/28',
+      }),
+    ]);
+
+    const nativeElement = fixture.nativeElement as HTMLElement;
+    expect(
+      nativeElement.querySelector('[data-testid="account-overview-row-a1-brand"]')?.textContent,
+    ).toContain('VISA');
+
+    const numberEl = nativeElement.querySelector(
+      '[data-testid="account-overview-row-a1-card-number"]',
+    );
+    expect(numberEl?.textContent?.trim()).toBe('•••• •••• •••• 1111');
+    expect(nativeElement.textContent).toContain('09/28');
+
+    const revealButton = nativeElement.querySelector(
+      '[data-testid="account-overview-row-a1-reveal"]',
+    ) as HTMLElement;
+    revealButton.click();
+    fixture.detectChanges();
+
+    expect(
+      nativeElement
+        .querySelector('[data-testid="account-overview-row-a1-card-number"]')
+        ?.textContent?.trim(),
+    ).toBe('4111 1111 1111 1111');
   });
 
   it('renders the empty state when there are no accounts', () => {
@@ -109,6 +146,33 @@ describe('AccountOverviewPageComponent', () => {
       (fixture.nativeElement as HTMLElement).querySelectorAll('.account-group__header h3'),
     ).map((el) => el.textContent?.trim());
     expect(headers).toEqual(['General', 'Leisure', 'Savings', 'Credit Card', 'Other']);
+  });
+
+  it('sorts decommissioned accounts after active ones within a category, without dropping them', () => {
+    flushList([
+      makeAccount({
+        id: 'a1',
+        name: 'Closed depot',
+        category: 'SAVINGS',
+        status: 'DECOMMISSIONED',
+      }),
+      makeAccount({ id: 'a2', name: 'Open depot', category: 'SAVINGS', status: 'ACTIVE' }),
+      makeAccount({ id: 'a3', name: 'Another open depot', category: 'SAVINGS', status: 'ACTIVE' }),
+    ]);
+
+    const rowIds = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('.account-row'),
+    ).map((el) => (el as HTMLElement).getAttribute('data-testid'));
+    expect(rowIds).toEqual([
+      'account-overview-row-a2',
+      'account-overview-row-a3',
+      'account-overview-row-a1',
+    ]);
+
+    const statusBadge = (fixture.nativeElement as HTMLElement).querySelector(
+      '[data-testid="account-overview-row-a1-status"]',
+    );
+    expect(statusBadge?.textContent?.trim()).toBe('Decommissioned');
   });
 
   it('omits empty category groups (Edge Cases)', () => {

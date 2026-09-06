@@ -6,13 +6,14 @@
  * same literals via `libs/api-contract` without a vendor-specific runtime
  * dependency.
  */
-export type AccountCategory = 'GENERAL' | 'LEISURE' | 'SAVINGS' | 'CREDIT_CARD' | 'OTHER';
+export type AccountCategory = 'GENERAL' | 'LEISURE' | 'SAVINGS' | 'DEPOT' | 'CREDIT_CARD' | 'OTHER';
 
-/** Fixed display/grouping order (design.md): General -> Leisure -> Savings -> Credit Card -> Other. */
+/** Fixed display/grouping order (design.md): General -> Leisure -> Savings -> Depot -> Credit Card -> Other. */
 export const ACCOUNT_CATEGORIES: readonly AccountCategory[] = [
   'GENERAL',
   'LEISURE',
   'SAVINGS',
+  'DEPOT',
   'CREDIT_CARD',
   'OTHER',
 ];

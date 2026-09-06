@@ -46,12 +46,15 @@ describe('AccountOverviewRepository', () => {
   const validAccount: ValidatedAccount = {
     name: 'N26 checking',
     category: 'GENERAL',
+    status: 'ACTIVE',
     provider: 'N26',
     website: 'https://n26.com',
     purpose: 'Everyday spending',
     cardUsage: null,
     requiredMinimum: null,
     notes: null,
+    cardNumber: null,
+    validUntil: null,
   };
 
   it('inserts and finds an account by id for its owner', async () => {
@@ -85,6 +88,40 @@ describe('AccountOverviewRepository', () => {
 
     expect(updated?.name).toBe('Renamed');
     expect(updated?.category).toBe('SAVINGS');
+  });
+
+  it('persists and updates the credit-card fields (cardNumber/validUntil)', async () => {
+    const inserted = await repository.insert(
+      {
+        ...validAccount,
+        category: 'CREDIT_CARD',
+        cardNumber: '4111 1111 1111 1111',
+        validUntil: '09/28',
+      },
+      ownerId,
+    );
+    expect(inserted.cardNumber).toBe('4111 1111 1111 1111');
+    expect(inserted.validUntil).toBe('09/28');
+
+    const updated = await repository.updateForOwner(inserted.id, ownerId, {
+      ...validAccount,
+      category: 'CREDIT_CARD',
+      cardNumber: '5500 0000 0000 0004',
+      validUntil: '01/30',
+    });
+    expect(updated?.cardNumber).toBe('5500 0000 0000 0004');
+    expect(updated?.validUntil).toBe('01/30');
+  });
+
+  it('persists and updates status (ACTIVE/DECOMMISSIONED)', async () => {
+    const inserted = await repository.insert(validAccount, ownerId);
+    expect(inserted.status).toBe('ACTIVE');
+
+    const updated = await repository.updateForOwner(inserted.id, ownerId, {
+      ...validAccount,
+      status: 'DECOMMISSIONED',
+    });
+    expect(updated?.status).toBe('DECOMMISSIONED');
   });
 
   it('deletes an existing account for its owner', async () => {

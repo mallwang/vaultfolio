@@ -1,5 +1,5 @@
 import { Account } from '@vaultfolio/domain-accounts';
-import type { AccountCategory, ValidatedAccount } from '@vaultfolio/domain-accounts';
+import type { AccountCategory, AccountStatus, ValidatedAccount } from '@vaultfolio/domain-accounts';
 import type {
   AccountOverviewEntry,
   CreateAccountOverviewEntryRequest,
@@ -10,12 +10,15 @@ import type {
 export interface AccountSubmissionInput {
   name: string;
   category?: AccountCategory;
+  status?: AccountStatus;
   provider?: string | null;
   website?: string | null;
   purpose?: string | null;
   cardUsage?: string | null;
   requiredMinimum?: string | null;
   notes?: string | null;
+  cardNumber?: string | null;
+  validUntil?: string | null;
 }
 
 /** Raw `better-sqlite3` row shape for the `accounts` table (snake_case columns). */
@@ -23,12 +26,15 @@ export interface AccountRow {
   id: string;
   name: string;
   category: AccountCategory;
+  status: AccountStatus;
   provider: string | null;
   website: string | null;
   purpose: string | null;
   card_usage: string | null;
   required_minimum: string | null;
   notes: string | null;
+  card_number: string | null;
+  valid_until: string | null;
   created_at: Date | string;
   updated_at: Date | string;
 }
@@ -44,12 +50,15 @@ export function rowToAccount(row: AccountRow): Account {
     id: row.id,
     name: row.name,
     category: row.category,
+    status: row.status,
     provider: row.provider,
     website: row.website,
     purpose: row.purpose,
     cardUsage: row.card_usage,
     requiredMinimum: row.required_minimum,
     notes: row.notes,
+    cardNumber: row.card_number,
+    validUntil: row.valid_until,
     ownerId: null,
     createdAt: toDate(row.created_at),
     updatedAt: toDate(row.updated_at),
@@ -62,12 +71,15 @@ export function accountToResponse(account: Account): AccountOverviewEntry {
     id: account.id,
     name: account.name,
     category: account.category,
+    status: account.status,
     provider: account.provider,
     website: account.website,
     purpose: account.purpose,
     cardUsage: account.cardUsage,
     requiredMinimum: account.requiredMinimum,
     notes: account.notes,
+    cardNumber: account.cardNumber,
+    validUntil: account.validUntil,
     createdAt: account.createdAt.toISOString(),
     updatedAt: account.updatedAt.toISOString(),
   };
@@ -80,12 +92,15 @@ export function createRequestToSubmission(
   return {
     name: typeof body.name === 'string' ? body.name : '',
     category: body.category,
+    status: body.status,
     provider: body.provider,
     website: body.website,
     purpose: body.purpose,
     cardUsage: body.cardUsage,
     requiredMinimum: body.requiredMinimum,
     notes: body.notes,
+    cardNumber: body.cardNumber,
+    validUntil: body.validUntil,
   };
 }
 
@@ -103,6 +118,7 @@ export function updateRequestToSubmission(
   return {
     name: body.name !== undefined ? body.name : existing.name,
     category: body.category !== undefined ? body.category : existing.category,
+    status: body.status !== undefined ? body.status : existing.status,
     provider: body.provider !== undefined ? body.provider : existing.provider,
     website: body.website !== undefined ? body.website : existing.website,
     purpose: body.purpose !== undefined ? body.purpose : existing.purpose,
@@ -110,6 +126,8 @@ export function updateRequestToSubmission(
     requiredMinimum:
       body.requiredMinimum !== undefined ? body.requiredMinimum : existing.requiredMinimum,
     notes: body.notes !== undefined ? body.notes : existing.notes,
+    cardNumber: body.cardNumber !== undefined ? body.cardNumber : existing.cardNumber,
+    validUntil: body.validUntil !== undefined ? body.validUntil : existing.validUntil,
   };
 }
 
@@ -117,21 +135,27 @@ export function updateRequestToSubmission(
 export function validatedAccountToRow(value: ValidatedAccount): {
   name: string;
   category: AccountCategory;
+  status: AccountStatus;
   provider: string | null;
   website: string | null;
   purpose: string | null;
   card_usage: string | null;
   required_minimum: string | null;
   notes: string | null;
+  card_number: string | null;
+  valid_until: string | null;
 } {
   return {
     name: value.name,
     category: value.category,
+    status: value.status,
     provider: value.provider,
     website: value.website,
     purpose: value.purpose,
     card_usage: value.cardUsage,
     required_minimum: value.requiredMinimum,
     notes: value.notes,
+    card_number: value.cardNumber,
+    valid_until: value.validUntil,
   };
 }
