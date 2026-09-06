@@ -26,7 +26,10 @@ vi.mock('echarts', () => ({
  * only reliable from the second test onward.
  */
 async function flushEchartsInit(): Promise<void> {
-  await vi.waitFor(() => expect(mockInit).toHaveBeenCalled());
+  // vi.waitFor's own timeout (default 1000ms) is independent of the test's
+  // testTimeout (vitest-base.config.ts) — give it the same headroom, since
+  // coverage instrumentation slows down that first module resolution too.
+  await vi.waitFor(() => expect(mockInit).toHaveBeenCalled(), { timeout: 15000 });
 }
 
 class FakeResizeObserver {
