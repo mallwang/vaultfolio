@@ -16,6 +16,26 @@ import { ThemeService, type Theme } from '../theme/theme.service';
 import { resolveChartPalette, type ChartPalette } from './chart-palette';
 
 /**
+ * Module-level cache for the dynamic `import('echarts')` below, shared by
+ * every `EchartComponent` instance. Without it, a page rendering several
+ * tiles at once (e.g. the holdings page's 6 charts) fires that many
+ * independent `import('echarts')` calls in the same change-detection pass —
+ * wasteful once the chunk is already loaded, and in `@angular/build:unit-test`
+ * specs that `vi.mock('echarts', ...)`, concurrent first-time dynamic
+ * imports of the same specifier can race such that only the first actually
+ * resolves to the mock. Caching the promise means every instance awaits the
+ * exact same resolution.
+ */
+let echartsModulePromise: Promise<typeof EChartsNamespace> | undefined;
+
+function loadEcharts(): Promise<typeof EChartsNamespace> {
+  if (!echartsModulePromise) {
+    echartsModulePromise = import('echarts');
+  }
+  return echartsModulePromise;
+}
+
+/**
  * Thin standalone wrapper around ECharts' imperative `init`/`setOption`/
  * `resize`/`dispose` API (research.md #1) — the reusable, documented
  * pattern FR-009 requires for any chart in the app. See
@@ -80,7 +100,7 @@ export class EchartComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   async ngAfterViewInit(): Promise<void> {
-    const echarts = await import('echarts');
+    const echarts = await loadEcharts();
     this.instance = echarts.init(this.hostRef.nativeElement);
     this.applyState();
     this.applyThemeFragment(this.themeService.theme());
