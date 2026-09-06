@@ -126,6 +126,27 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     `);
     db.exec('CREATE INDEX IF NOT EXISTS holdings_owner_id_idx ON holdings (owner_id)');
 
+    // Account Overview (025-account-overview) — a static reference directory
+    // of the user's accounts (banks, neobrokers, depots, credit cards): no
+    // monetary values, only `name` is required (data-model.md).
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS accounts (
+        id                TEXT PRIMARY KEY,
+        name              TEXT NOT NULL CHECK (name <> ''),
+        category          TEXT NOT NULL CHECK (category IN ('GENERAL','LEISURE','SAVINGS','CREDIT_CARD','OTHER')) DEFAULT 'OTHER',
+        provider          TEXT NULL,
+        website           TEXT NULL,
+        purpose           TEXT NULL,
+        card_usage        TEXT NULL,
+        required_minimum  TEXT NULL,
+        notes             TEXT NULL,
+        owner_id          TEXT NULL,
+        created_at        TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')),
+        updated_at        TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now'))
+      )
+    `);
+    db.exec('CREATE INDEX IF NOT EXISTS accounts_owner_id_idx ON accounts (owner_id)');
+
     // Auth/isolation — users, sessions, and per-account profile fields
     // (data-model.md across 005-auth-sessions-isolation, 006-admin-accounts-
     // invitations, 008-profile-password-account, 013-multilanguage-support).

@@ -56,6 +56,9 @@
     },
     {
       "path": "./libs/frontend/domain/retirement"
+    },
+    {
+      "path": "./libs/domain/accounts"
     }
   ],
   "compilerOptions": {}

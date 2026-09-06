@@ -166,7 +166,7 @@ export const routes: Routes = [
         canActivate: [domainGuard('account-overview')],
         loadComponent: () =>
           import('@vaultfolio/frontend-domain-account-overview').then(
-            (m) => m.AccountOverviewPlaceholderComponent,
+            (m) => m.AccountOverviewPageComponent,
           ),
       },
       {

@@ -16,6 +16,9 @@
       "path": "../../libs/domain/invitations/tsconfig.lib.json"
     },
     {
+      "path": "../../libs/notifications/tsconfig.lib.json"
+    },
+    {
       "path": "../../libs/domain/holdings/tsconfig.lib.json"
     },
     {
@@ -25,7 +28,7 @@
       "path": "../../libs/api-contract/tsconfig.lib.json"
     },
     {
-      "path": "../../libs/notifications/tsconfig.lib.json"
+      "path": "../../libs/domain/accounts/tsconfig.lib.json"
     }
   ]
 }

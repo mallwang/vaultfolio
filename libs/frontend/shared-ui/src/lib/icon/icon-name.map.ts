@@ -61,4 +61,6 @@ export const ICON_NAME_MAP: Record<string, string> = {
   'receipt-long': 'receipt_long',
   'account-balance': 'account_balance',
   'manage-accounts': 'manage_accounts',
+  // Account Overview (025-account-overview, design.md's account-row provider link).
+  'external-link': 'open_in_new',
 };
