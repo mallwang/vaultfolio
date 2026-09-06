@@ -49,6 +49,9 @@
               "with": "apps/frontend/src/environments/environment.local.ts"
             }
           ]
+        },
+        "test": {
+          "preserveSymlinks": false
         }
       }
     },
@@ -98,7 +101,8 @@
     "test": {
       "executor": "@angular/build:unit-test",
       "options": {
-        "watch": false
+        "watch": false,
+        "buildTarget": "frontend:build:development,test"
       }
     },
     "serve-static": {
