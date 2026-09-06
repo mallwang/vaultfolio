@@ -46,6 +46,7 @@ const ROLE_OPTIONS: RoleOption[] = [
       [modal]="true"
       [visible]="visible"
       [style]="{ width: '28rem' }"
+      [pt]="{ pcCloseButton: { root: { 'data-testid': 'invite-dialog-close' } } }"
       (visibleChange)="close()"
     >
       <ng-template #closeicon><app-icon name="close" /></ng-template>
@@ -84,11 +85,19 @@ const ROLE_OPTIONS: RoleOption[] = [
       <p class="invite-dialog__hint">{{ 'invitations.dialogHint' | translate }}</p>
 
       <ng-template #footer>
-        <button pButton type="button" severity="secondary" [text]="true" (click)="close()">
+        <button
+          pButton
+          data-testid="invite-dialog-cancel"
+          type="button"
+          severity="secondary"
+          [text]="true"
+          (click)="close()"
+        >
           {{ 'common.cancel' | translate }}
         </button>
         <button
           pButton
+          data-testid="invite-dialog-send-invitation"
           type="button"
           [loading]="submitting()"
           [disabled]="!email().trim()"

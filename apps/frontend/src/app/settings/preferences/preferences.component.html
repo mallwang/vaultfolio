@@ -15,7 +15,11 @@
           </p>
           <p class="preferences__hint">{{ 'preferences.notifications.hint' | translate }}</p>
         </div>
-        <p-toggleswitch [ngModel]="false" [disabled]="true" />
+        <p-toggleswitch
+          data-testid="preferences-email-notifications-toggle"
+          [ngModel]="false"
+          [disabled]="true"
+        />
       </div>
       <p-tag severity="secondary" [value]="'preferences.comingSoon' | translate" [rounded]="true" />
     </section>
@@ -57,6 +61,7 @@
 
       <button
         pButton
+        data-testid="preferences-save"
         type="button"
         class="preferences__save"
         [disabled]="saving() || loading()"

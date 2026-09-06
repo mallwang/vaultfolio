@@ -33,10 +33,18 @@ import { TranslatePipe } from '@vaultfolio/frontend-shared-ui';
   template: `
     <p-tabs [value]="activeTab()" (valueChange)="onTabChange($event)">
       <p-tablist>
-        <p-tab value="accounts">{{ 'nav.accounts' | translate }}</p-tab>
-        <p-tab value="signups">{{ 'nav.signups' | translate }}</p-tab>
-        <p-tab value="invitations">{{ 'nav.invitations' | translate }}</p-tab>
-        <p-tab value="general">{{ 'admin.general' | translate }}</p-tab>
+        <p-tab value="accounts" data-testid="admin-tab-accounts">{{
+          'nav.accounts' | translate
+        }}</p-tab>
+        <p-tab value="signups" data-testid="admin-tab-signups">{{
+          'nav.signups' | translate
+        }}</p-tab>
+        <p-tab value="invitations" data-testid="admin-tab-invitations">{{
+          'nav.invitations' | translate
+        }}</p-tab>
+        <p-tab value="general" data-testid="admin-tab-general">{{
+          'admin.general' | translate
+        }}</p-tab>
       </p-tablist>
       <p-tabpanels>
         <router-outlet />

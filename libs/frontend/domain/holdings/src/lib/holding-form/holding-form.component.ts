@@ -138,6 +138,7 @@ function toIsoDateOnly(value: Date | null): string | undefined {
               <button
                 type="button"
                 class="type-option"
+                [attr.data-testid]="'holding-form-asset-type-' + option.value"
                 [class.type-option--active]="form.controls.assetType.value === option.value"
                 [attr.aria-pressed]="form.controls.assetType.value === option.value"
                 (click)="selectAssetType(option.value)"
@@ -335,10 +336,22 @@ function toIsoDateOnly(value: Date | null): string | undefined {
       }
 
       <div class="form-actions">
-        <button pButton type="button" severity="secondary" (click)="cancel()">
+        <button
+          pButton
+          data-testid="holding-form-cancel"
+          type="button"
+          severity="secondary"
+          (click)="cancel()"
+        >
           {{ 'common.cancel' | translate }}
         </button>
-        <button pButton type="submit" [disabled]="form.invalid" [loading]="submitting()">
+        <button
+          pButton
+          data-testid="holding-form-save"
+          type="submit"
+          [disabled]="form.invalid"
+          [loading]="submitting()"
+        >
           {{ 'common.save' | translate }}
         </button>
       </div>

@@ -54,7 +54,12 @@ const STATUS_LABEL_KEY: Record<SignupStatus, string> = {
   providers: [ConfirmationService, MessageService, TranslatePipe],
   template: `
     <p-toast />
-    <p-confirmdialog>
+    <p-confirmdialog
+      [pt]="{
+        pcAcceptButton: { root: { 'data-testid': 'signups-confirm-accept' } },
+        pcRejectButton: { root: { 'data-testid': 'signups-confirm-reject' } },
+      }"
+    >
       <ng-template #icon><app-icon [name]="confirmIcon()" /></ng-template>
     </p-confirmdialog>
 
@@ -104,6 +109,7 @@ const STATUS_LABEL_KEY: Record<SignupStatus, string> = {
                       iconOnly
                       severity="success"
                       [text]="true"
+                      [attr.data-testid]="'signups-row-' + signup.id + '-approve'"
                       [attr.aria-label]="'signups.approveSignup' | translate"
                       [pTooltip]="'signups.approveSignup' | translate"
                       tooltipPosition="top"
@@ -118,6 +124,7 @@ const STATUS_LABEL_KEY: Record<SignupStatus, string> = {
                       iconOnly
                       severity="danger"
                       [text]="true"
+                      [attr.data-testid]="'signups-row-' + signup.id + '-reject'"
                       [attr.aria-label]="'signups.rejectSignup' | translate"
                       [pTooltip]="'signups.rejectSignup' | translate"
                       tooltipPosition="top"
@@ -133,6 +140,7 @@ const STATUS_LABEL_KEY: Record<SignupStatus, string> = {
                     iconOnly
                     severity="secondary"
                     [text]="true"
+                    [attr.data-testid]="'signups-row-' + signup.id + '-delete'"
                     [attr.aria-label]="'signups.deleteSignup' | translate"
                     [pTooltip]="'signups.deleteSignup' | translate"
                     tooltipPosition="top"

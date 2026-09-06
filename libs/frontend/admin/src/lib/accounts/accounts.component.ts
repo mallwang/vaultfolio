@@ -59,7 +59,12 @@ const ROLE_OPTIONS: RoleOption[] = [
   providers: [ConfirmationService, MessageService, TranslatePipe],
   template: `
     <p-toast />
-    <p-confirmdialog>
+    <p-confirmdialog
+      [pt]="{
+        pcAcceptButton: { root: { 'data-testid': 'accounts-confirm-accept' } },
+        pcRejectButton: { root: { 'data-testid': 'accounts-confirm-reject' } },
+      }"
+    >
       <ng-template #icon><app-icon name="warning" /></ng-template>
     </p-confirmdialog>
 
@@ -102,6 +107,7 @@ const ROLE_OPTIONS: RoleOption[] = [
                     appendTo="body"
                   >
                     <p-select
+                      [attr.data-testid]="'accounts-row-' + account.id + '-role-select'"
                       [options]="roleOptions"
                       optionLabel="label"
                       optionValue="value"
@@ -129,6 +135,7 @@ const ROLE_OPTIONS: RoleOption[] = [
                   appendTo="body"
                 >
                   <p-select
+                    [attr.data-testid]="'accounts-row-' + account.id + '-domain-scopes'"
                     [options]="domainRegistry"
                     optionLabel="labelKey"
                     optionValue="id"
@@ -200,6 +207,7 @@ const ROLE_OPTIONS: RoleOption[] = [
                         severity="danger"
                         [text]="true"
                         [disabled]="account.isLastActiveAdmin"
+                        [attr.data-testid]="'accounts-row-' + account.id + '-archive'"
                         [attr.aria-label]="archiveLabel(account)"
                         (click)="confirmArchive(account, $event)"
                       >
@@ -213,6 +221,7 @@ const ROLE_OPTIONS: RoleOption[] = [
                       iconOnly
                       severity="secondary"
                       [text]="true"
+                      [attr.data-testid]="'accounts-row-' + account.id + '-reactivate'"
                       [attr.aria-label]="'accounts.reactivateAccount' | translate"
                       [pTooltip]="'accounts.reactivateAccount' | translate"
                       tooltipPosition="top"

@@ -63,7 +63,12 @@ import { HoldingsService } from './holdings.service';
   providers: [ConfirmationService, MessageService, TranslatePipe],
   template: `
     <p-toast />
-    <p-confirmdialog>
+    <p-confirmdialog
+      [pt]="{
+        pcAcceptButton: { root: { 'data-testid': 'holdings-confirm-accept' } },
+        pcRejectButton: { root: { 'data-testid': 'holdings-confirm-reject' } },
+      }"
+    >
       <ng-template #icon><app-icon name="warning" /></ng-template>
     </p-confirmdialog>
 
@@ -87,7 +92,7 @@ import { HoldingsService } from './holdings.service';
               | translate
           }}
         </h2>
-        <button pButton type="button" (click)="openAddDialog()">
+        <button pButton data-testid="holdings-add-holding" type="button" (click)="openAddDialog()">
           <app-icon name="plus" /> {{ 'holdings.addHolding' | translate }}
         </button>
       </div>
@@ -103,6 +108,7 @@ import { HoldingsService } from './holdings.service';
             <input
               pInputText
               type="text"
+              data-testid="holdings-filter"
               [attr.aria-label]="'holdings.filterPlaceholder' | translate"
               [placeholder]="'holdings.filterPlaceholder' | translate"
               (input)="dt.filterGlobal($any($event.target).value, 'contains')"
@@ -120,27 +126,35 @@ import { HoldingsService } from './holdings.service';
         >
           <ng-template #header>
             <tr>
-              <th scope="col" pSortableColumn="assetType">
+              <th scope="col" pSortableColumn="assetType" data-testid="holdings-column-assetType">
                 {{ 'holdings.columnType' | translate }}
                 <p-sort-icon field="assetType" />
               </th>
-              <th scope="col" pSortableColumn="name">
+              <th scope="col" pSortableColumn="name" data-testid="holdings-column-name">
                 {{ 'holdings.columnAsset' | translate }}
                 <p-sort-icon field="name" />
               </th>
-              <th scope="col" pSortableColumn="management">
+              <th scope="col" pSortableColumn="management" data-testid="holdings-column-management">
                 {{ 'holdings.columnManagement' | translate }}
                 <p-sort-icon field="management" />
               </th>
-              <th scope="col" pSortableColumn="quantity">
+              <th scope="col" pSortableColumn="quantity" data-testid="holdings-column-quantity">
                 {{ 'holdings.columnQuantity' | translate }}
                 <p-sort-icon field="quantity" />
               </th>
-              <th scope="col" pSortableColumn="purchasePrice">
+              <th
+                scope="col"
+                pSortableColumn="purchasePrice"
+                data-testid="holdings-column-purchasePrice"
+              >
                 {{ 'holdings.columnPrice' | translate }}
                 <p-sort-icon field="purchasePrice" />
               </th>
-              <th scope="col" pSortableColumn="purchaseDate">
+              <th
+                scope="col"
+                pSortableColumn="purchaseDate"
+                data-testid="holdings-column-purchaseDate"
+              >
                 {{ 'holdings.columnPurchaseDate' | translate }}
                 <p-sort-icon field="purchaseDate" />
               </th>
@@ -167,6 +181,7 @@ import { HoldingsService } from './holdings.service';
                   iconOnly
                   severity="secondary"
                   [text]="true"
+                  [attr.data-testid]="'holdings-row-' + holding.id + '-edit'"
                   [attr.aria-label]="'holdings.editHolding' | translate"
                   [pTooltip]="'holdings.editHolding' | translate"
                   tooltipPosition="top"
@@ -180,6 +195,7 @@ import { HoldingsService } from './holdings.service';
                   iconOnly
                   severity="danger"
                   [text]="true"
+                  [attr.data-testid]="'holdings-row-' + holding.id + '-delete'"
                   [attr.aria-label]="'holdings.deleteHolding' | translate"
                   [pTooltip]="'holdings.deleteHolding' | translate"
                   tooltipPosition="top"
@@ -197,7 +213,12 @@ import { HoldingsService } from './holdings.service';
                   <app-icon name="briefcase" class="empty-state__icon" />
                   <h2>{{ 'holdings.emptyStateTitle' | translate }}</h2>
                   <p>{{ 'holdings.emptyStateBody' | translate }}</p>
-                  <button pButton type="button" (click)="openAddDialog()">
+                  <button
+                    pButton
+                    data-testid="holdings-add-first-holding"
+                    type="button"
+                    (click)="openAddDialog()"
+                  >
                     {{ 'holdings.addFirstHolding' | translate }}
                   </button>
                 </div>
@@ -213,6 +234,7 @@ import { HoldingsService } from './holdings.service';
       [header]="(editingHolding() ? 'holdings.editHolding' : 'holdings.addHolding') | translate"
       [modal]="true"
       [dismissableMask]="false"
+      [pt]="{ pcCloseButton: { root: { 'data-testid': 'holdings-dialog-close' } } }"
     >
       <ng-template #closeicon><app-icon name="close" /></ng-template>
       @if (dialogVisible()) {

@@ -18,6 +18,7 @@
           Confirm <strong>{{ newEmail() }}</strong> as your new Vaultfolio email address.
         </p>
         <p-button
+          data-testid="verify-email-confirm"
           label="Confirm email change"
           [loading]="confirming()"
           [disabled]="confirming()"

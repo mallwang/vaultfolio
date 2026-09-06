@@ -61,6 +61,7 @@
       <app-icon [name]="theme() === 'dark' ? 'moon' : 'sun'" />
     </button>
     <p-button
+      data-testid="sign-out"
       severity="secondary"
       text
       [attr.aria-label]="'header.signOut' | translate"
