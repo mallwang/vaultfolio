@@ -89,38 +89,30 @@ Follow this structure exactly:
 
 ### 4. Output format
 
-Wrap the entire output in a single triple-backtick code fence so the user can copy raw markdown and paste it directly into GitHub's PR form. The fence itself must not have a language tag. Print the title on its own line inside the fence, then a blank line, then the markdown description. Example:
+Present the title and description as a readable preview (not a raw code fence) so the user can review it comfortably. Use a `>` blockquote or plain markdown — do NOT wrap in a code fence at this stage.
 
-````
+### 5. Human gate — ask before creating
+
+After presenting the preview, ask the user **one question**:
+
+> Should I create this pull request now using `gh pr create`? (yes / no / edit first)
+
+Wait for the answer before doing anything else. Do NOT call `gh pr create` before receiving confirmation.
+
+### 6. Create the PR (only if the user says yes)
+
+Run:
+
+```bash
+gh pr create --title "<title>" --body "$(cat <<'EOF'
+<body>
+EOF
+)"
 ```
-feat(domain-valuation): add look-through allocation aggregation for ETF holdings
 
-## Summary
+Use a `HEREDOC` to pass the body so special characters are safe. Return the PR URL to the user.
 
-- Adds look-through allocation aggregation that resolves ETF constituent weights against a holding's percentage of the portfolio
-- Backend exposes the aggregated allocation via a new `GET /portfolio/allocation` endpoint
-- Frontend portfolio overview renders the look-through breakdown alongside direct holdings
-
-## What changed
-
-**Domain — Valuation** (`libs/domain-valuation`)
-- `allocation.ts`: added `computeLookThroughAllocation`, combining direct holdings with ETF constituent weights; uses the project's decimal library throughout, no native `number` for weights or values
-- `allocation.spec.ts`: exact-value tests for overlapping exposure across a directly held share and two ETFs
-
-**Backend** (`apps/backend`)
-- `portfolio.controller.ts`: new `GET /portfolio/allocation` endpoint, delegates to `domain-valuation`
-- `portfolio.module.ts`: wires the new endpoint into the existing `PortfolioModule`
-
-**Frontend** (`apps/frontend`)
-- `portfolio-overview.component.ts`: fetches and renders the look-through allocation table
-- `allocation-row.component.ts`: new component for a single aggregated allocation row
-
-**Specs**
-- `specs/004-lookthrough-allocation/`: spec, plan, tasks, data-model, API docs, quickstart, requirements checklist added
-
-Co-Authored-By: Claude <noreply@anthropic.com>
-```
-````
+If the user says "edit first", ask what to change, apply the edit, show the updated preview, and repeat step 5.
 
 ## Notes
 
