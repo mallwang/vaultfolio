@@ -1,5 +1,7 @@
 # Vaultfolio User Guide
 
+> Diese Anleitung ist auch auf Deutsch verfügbar: [Deutsche Benutzeranleitung](user-guide.de.md)
+
 Vaultfolio is a self-hosted personal finance tracker. You manage your investment
 portfolio manually — no bank or brokerage connections. All data lives in your own
 infrastructure.
