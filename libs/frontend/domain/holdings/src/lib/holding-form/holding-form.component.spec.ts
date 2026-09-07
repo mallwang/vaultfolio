@@ -225,7 +225,7 @@ describe('HoldingFormComponent', () => {
       fixture.detectChanges();
     });
 
-    it('pre-fills the form with the holding’s values', () => {
+    it("pre-fills the form with the holding's values", () => {
       expect(component['form'].controls.management.value).toBe('Private');
       expect(component['form'].controls.quantity.value).toBe(0.5);
       expect(component['form'].controls.name.value).toBe('Bitcoin');
@@ -244,7 +244,7 @@ describe('HoldingFormComponent', () => {
       expect(text).toContain('Crypto');
     });
 
-    it('shows only the holding’s own type fields (no ISIN/weight for Crypto)', () => {
+    it("shows only the holding's own type fields (no ISIN/weight for Crypto)", () => {
       const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
       expect(text).not.toContain('ISIN');
       expect(text).not.toContain('Weight');
@@ -266,9 +266,10 @@ describe('HoldingFormComponent', () => {
       component['submit']();
 
       httpMock.expectNone(() => true);
+      expect(component['form'].invalid).toBe(true);
     });
 
-    it('submits a valid edit via PUT to the holding’s id', () => {
+    it("submits a valid edit via PUT to the holding's id", () => {
       component['form'].controls.quantity.setValue(0.75);
 
       component['submit']();

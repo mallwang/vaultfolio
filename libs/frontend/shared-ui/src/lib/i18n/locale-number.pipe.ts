@@ -8,8 +8,8 @@ export class LocaleNumberPipe implements PipeTransform {
 
   transform(value: number | string | null | undefined, options?: Intl.NumberFormatOptions): string {
     if (value == null || value === '') return '—';
-    const num = typeof value === 'string' ? parseFloat(value) : value;
-    if (isNaN(num)) return '—';
+    const num = typeof value === 'string' ? Number.parseFloat(value) : value;
+    if (Number.isNaN(num)) return '—';
     return new Intl.NumberFormat(this.i18n.language(), {
       maximumFractionDigits: 8,
       ...options,

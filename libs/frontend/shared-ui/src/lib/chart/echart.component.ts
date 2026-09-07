@@ -11,7 +11,7 @@ import {
   inject,
 } from '@angular/core';
 import type * as EChartsNamespace from 'echarts';
-import type { EChartsOption } from 'echarts';
+type EChartsOption = EChartsNamespace.EChartsOption;
 import { ThemeService, type Theme } from '../theme/theme.service';
 import { resolveChartPalette, type ChartPalette } from './chart-palette';
 
@@ -29,9 +29,7 @@ import { resolveChartPalette, type ChartPalette } from './chart-palette';
 let echartsModulePromise: Promise<typeof EChartsNamespace> | undefined;
 
 function loadEcharts(): Promise<typeof EChartsNamespace> {
-  if (!echartsModulePromise) {
-    echartsModulePromise = import('echarts');
-  }
+  echartsModulePromise ??= import('echarts');
   return echartsModulePromise;
 }
 
@@ -99,14 +97,15 @@ export class EchartComponent implements AfterViewInit, OnChanges, OnDestroy {
     });
   }
 
-  async ngAfterViewInit(): Promise<void> {
-    const echarts = await loadEcharts();
-    this.instance = echarts.init(this.hostRef.nativeElement);
-    this.applyState();
-    this.applyThemeFragment(this.themeService.theme());
+  ngAfterViewInit(): void {
+    loadEcharts().then((echarts) => {
+      this.instance = echarts.init(this.hostRef.nativeElement);
+      this.applyState();
+      this.applyThemeFragment(this.themeService.theme());
 
-    this.resizeObserver = new ResizeObserver(() => this.instance?.resize());
-    this.resizeObserver.observe(this.hostRef.nativeElement);
+      this.resizeObserver = new ResizeObserver(() => this.instance?.resize());
+      this.resizeObserver.observe(this.hostRef.nativeElement);
+    });
   }
 
   ngOnChanges(changes: SimpleChanges): void {

@@ -107,7 +107,7 @@ export class SignupsService {
   /** Public token lookup: collapses not-found/resolved/expired into `invalid_token`, never distinguishing (FR-010). */
   async lookupByToken(token: string): Promise<LookupTokenResult> {
     const request = await this.signups.findByToken(token);
-    if (!request || request.status !== 'PENDING') {
+    if (request?.status !== 'PENDING') {
       return { kind: 'invalid_token' };
     }
     if (new Date(request.expiresAt).getTime() <= Date.now()) {

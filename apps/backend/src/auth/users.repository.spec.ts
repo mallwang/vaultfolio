@@ -99,7 +99,7 @@ describe('UsersRepository', () => {
     await repository.archive(user.id, new Date(Date.now() + 1000).toISOString());
 
     const all = await repository.findAll();
-    expect(all.length).toBe(before.length + 1);
+    expect(all).toHaveLength(before.length + 1);
     const found = all.find((u) => u.id === user.id);
     expect(found?.status).toBe('ARCHIVED');
   });
@@ -200,9 +200,9 @@ describe('UsersRepository', () => {
 
     expect(await repository.findById(user.id)).toBeNull();
     const sessions = await database.query('SELECT * FROM sessions WHERE user_id = $1', [user.id]);
-    expect(sessions.length).toBe(0);
+    expect(sessions).toHaveLength(0);
     const holdings = await database.query('SELECT * FROM holdings WHERE owner_id = $1', [user.id]);
-    expect(holdings.length).toBe(0);
+    expect(holdings).toHaveLength(0);
   });
 
   it('008: updateDisplayName updates the display name only', async () => {

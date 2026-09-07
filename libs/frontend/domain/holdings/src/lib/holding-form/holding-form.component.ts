@@ -526,30 +526,31 @@ export class HoldingFormComponent implements OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if ('holding' in changes) {
-      this.submitError.set(null);
-      if (this.holding) {
-        this.form.reset({
-          assetType: this.holding.assetType,
-          management: this.holding.management,
-          isin: this.holding.isin,
-          name: this.holding.name,
-          quantity: this.holding.quantity != null ? Number(this.holding.quantity) : null,
-          purchasePrice:
-            this.holding.purchasePrice != null ? Number(this.holding.purchasePrice) : null,
-          purchaseDate: this.holding.purchaseDate ? new Date(this.holding.purchaseDate) : null,
-          weightGrams: this.holding.weightGrams != null ? Number(this.holding.weightGrams) : null,
-          currentValue:
-            this.holding.currentValue != null ? Number(this.holding.currentValue) : null,
-        });
-        this.form.controls.assetType.disable();
-        this.applyFieldSet(this.holding.assetType, { resetInapplicable: false });
-      } else {
-        this.form.reset({ assetType: 'ETF', management: '' });
-        this.form.controls.assetType.enable();
-        this.applyFieldSet('ETF', { resetInapplicable: false });
-      }
+    if (!('holding' in changes)) return;
+    this.submitError.set(null);
+    if (this.holding) {
+      this.form.reset(this.holdingToFormValue(this.holding));
+      this.form.controls.assetType.disable();
+      this.applyFieldSet(this.holding.assetType, { resetInapplicable: false });
+    } else {
+      this.form.reset({ assetType: 'ETF', management: '' });
+      this.form.controls.assetType.enable();
+      this.applyFieldSet('ETF', { resetInapplicable: false });
     }
+  }
+
+  private holdingToFormValue(holding: HoldingResponse) {
+    return {
+      assetType: holding.assetType,
+      management: holding.management,
+      isin: holding.isin,
+      name: holding.name,
+      quantity: holding.quantity != null ? Number(holding.quantity) : null,
+      purchasePrice: holding.purchasePrice != null ? Number(holding.purchasePrice) : null,
+      purchaseDate: holding.purchaseDate ? new Date(holding.purchaseDate) : null,
+      weightGrams: holding.weightGrams != null ? Number(holding.weightGrams) : null,
+      currentValue: holding.currentValue != null ? Number(holding.currentValue) : null,
+    };
   }
 
   private applyFieldSet(assetType: AssetType, options: { resetInapplicable: boolean }): void {
@@ -604,7 +605,7 @@ export class HoldingFormComponent implements OnChanges {
     applicable: boolean,
     extraValidators: ValidatorFn[],
     resetInapplicable: boolean,
-    opts: { requiredWhenApplicable: boolean } = { requiredWhenApplicable: true },
+    { requiredWhenApplicable = true }: { requiredWhenApplicable?: boolean } = {},
   ): void {
     if (!applicable) {
       if (resetInapplicable) {
@@ -616,7 +617,7 @@ export class HoldingFormComponent implements OnChanges {
     }
 
     const validators = [...extraValidators];
-    if (opts.requiredWhenApplicable) {
+    if (requiredWhenApplicable) {
       validators.push(Validators.required);
     }
     control.setValidators(validators);

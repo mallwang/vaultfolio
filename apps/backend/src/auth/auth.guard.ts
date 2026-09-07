@@ -66,7 +66,7 @@ export class AuthGuard implements CanActivate {
     }
 
     const user = await this.users.findById(session.userId);
-    if (!user || user.status !== 'ACTIVE') {
+    if (user?.status !== 'ACTIVE') {
       await this.sessions.deleteById(session.id);
       throw unauthenticated();
     }

@@ -195,7 +195,7 @@ export class AccountsService {
 
   async reactivate(actorId: string, id: string): Promise<ReactivateResult> {
     const user = await this.users.findById(id);
-    if (!user || user.status !== 'ARCHIVED') {
+    if (user?.status !== 'ARCHIVED') {
       return { kind: 'not_found' };
     }
 

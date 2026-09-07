@@ -1,7 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
-import type { Account } from '@vaultfolio/domain-accounts';
-import { validateAccountSubmission } from '@vaultfolio/domain-accounts';
-import type { FieldError } from '@vaultfolio/domain-accounts';
+import {
+  validateAccountSubmission,
+  type Account,
+  type FieldError,
+} from '@vaultfolio/domain-accounts';
 import type {
   CreateAccountOverviewEntryRequest,
   UpdateAccountOverviewEntryRequest,

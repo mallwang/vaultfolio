@@ -53,7 +53,7 @@ export class AuthService {
   async signIn(email: string, password: string): Promise<SignInResult> {
     const user = await this.users.findByEmail(email);
 
-    if (!user || user.status !== 'ACTIVE') {
+    if (user?.status !== 'ACTIVE') {
       // Deliberately identical to a wrong-password failure below — no
       // account-existence signal (FR-008/SC-005). Nothing to lock/increment
       // for a nonexistent account.
