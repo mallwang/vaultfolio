@@ -1,6 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import type { HoldingResponse } from '@vaultfolio/api-contract';
 import { HoldingsComponent } from './holdings.component';
 
@@ -258,6 +259,59 @@ describe('HoldingsComponent', () => {
       fixture.detectChanges();
 
       expect(component['holdings']()).toEqual([]);
+    });
+
+    it('shows error toast on generic delete failure', () => {
+      const ms = fixture.debugElement.injector.get(MessageService);
+      const addSpy = vi.spyOn(ms, 'add');
+      fixture.componentInstance['deleteHolding'](etf);
+      httpMock.expectOne('/api/holdings/etf-1').error(new ProgressEvent('error'), { status: 500 });
+      expect(addSpy).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error' }));
+    });
+
+    it('calls confirmationService.confirm on confirmDelete', () => {
+      const cs = fixture.debugElement.injector.get(ConfirmationService);
+      const spy = vi.spyOn(cs, 'confirm');
+      fixture.componentInstance['confirmDelete'](etf, new MouseEvent('click'));
+      expect(spy).toHaveBeenCalledOnce();
+    });
+  });
+
+  describe('dialog management', () => {
+    beforeEach(() => {
+      flushList([etf]);
+    });
+
+    it('openAddDialog sets editingHolding=null and shows dialog', () => {
+      fixture.componentInstance['openAddDialog']();
+      expect(fixture.componentInstance['editingHolding']()).toBeNull();
+      expect(fixture.componentInstance['dialogVisible']()).toBe(true);
+    });
+
+    it('openEditDialog sets the holding and shows dialog', () => {
+      fixture.componentInstance['openEditDialog'](etf);
+      expect(fixture.componentInstance['editingHolding']()).toBe(etf);
+      expect(fixture.componentInstance['dialogVisible']()).toBe(true);
+    });
+
+    it('onCancelled hides the dialog', () => {
+      fixture.componentInstance['openAddDialog']();
+      fixture.componentInstance['onCancelled']();
+      expect(fixture.componentInstance['dialogVisible']()).toBe(false);
+    });
+
+    it('onSaved appends a new holding', () => {
+      fixture.componentInstance['openAddDialog']();
+      fixture.componentInstance['onSaved'](etf);
+      expect(fixture.componentInstance['holdings']()).toContainEqual(etf);
+      expect(fixture.componentInstance['dialogVisible']()).toBe(false);
+    });
+
+    it('onSaved replaces an existing holding', () => {
+      const updated = { ...etf, name: 'Updated' };
+      fixture.componentInstance['onSaved'](updated);
+      const found = fixture.componentInstance['holdings']().find((h) => h.id === etf.id);
+      expect(found?.name).toBe('Updated');
     });
   });
 });
