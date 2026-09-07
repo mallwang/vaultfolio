@@ -325,4 +325,85 @@ describe('AccountsComponent — business logic', () => {
       expect(fixture.componentInstance['loading']()).toBe(false);
     });
   });
+
+  describe('confirmArchive() / archive()', () => {
+    let cs: ConfirmationService;
+    let ms: MessageService;
+
+    beforeEach(() => {
+      cs = fixture.debugElement.injector.get(ConfirmationService);
+      ms = fixture.debugElement.injector.get(MessageService);
+    });
+
+    it('calls confirmationService.confirm', () => {
+      const spy = vi.spyOn(cs, 'confirm');
+      fixture.componentInstance['confirmArchive'](makeAccount(), new MouseEvent('click'));
+      expect(spy).toHaveBeenCalledOnce();
+    });
+
+    it('POSTs to archive endpoint and shows success toast on confirm', () => {
+      vi.spyOn(cs, 'confirm').mockImplementation((opts) => {
+        opts.accept?.();
+        return cs;
+      });
+      const addSpy = vi.spyOn(ms, 'add');
+      fixture.componentInstance['confirmArchive'](
+        makeAccount({ id: 'acc-1' }),
+        new MouseEvent('click'),
+      );
+      httpMock.expectOne('/api/accounts/acc-1/archive').flush(makeAccount({ status: 'ARCHIVED' }));
+      httpMock.expectOne('/api/accounts').flush([]);
+      expect(addSpy).toHaveBeenCalledWith(expect.objectContaining({ severity: 'success' }));
+    });
+
+    it('shows info toast and refreshes on 409 already_archived', () => {
+      vi.spyOn(cs, 'confirm').mockImplementation((opts) => {
+        opts.accept?.();
+        return cs;
+      });
+      const addSpy = vi.spyOn(ms, 'add');
+      fixture.componentInstance['confirmArchive'](
+        makeAccount({ id: 'acc-1' }),
+        new MouseEvent('click'),
+      );
+      httpMock
+        .expectOne('/api/accounts/acc-1/archive')
+        .flush({ error: 'already_archived' }, { status: 409, statusText: 'Conflict' });
+      httpMock.expectOne('/api/accounts').flush([]);
+      expect(addSpy).toHaveBeenCalledWith(expect.objectContaining({ severity: 'info' }));
+    });
+
+    it('shows warn toast and sets lastAdminBlockedFor on 409 last_admin', () => {
+      vi.spyOn(cs, 'confirm').mockImplementation((opts) => {
+        opts.accept?.();
+        return cs;
+      });
+      const addSpy = vi.spyOn(ms, 'add');
+      const account = makeAccount({ id: 'acc-1', displayName: 'Last Admin' });
+      fixture.componentInstance['confirmArchive'](account, new MouseEvent('click'));
+      httpMock
+        .expectOne('/api/accounts/acc-1/archive')
+        .flush({ error: 'last_admin' }, { status: 409, statusText: 'Conflict' });
+      httpMock.expectOne('/api/accounts').flush([]);
+      expect(addSpy).toHaveBeenCalledWith(expect.objectContaining({ severity: 'warn' }));
+      expect(fixture.componentInstance['lastAdminBlockedFor']()).toBe('Last Admin');
+    });
+
+    it('shows error toast on generic archive failure', () => {
+      vi.spyOn(cs, 'confirm').mockImplementation((opts) => {
+        opts.accept?.();
+        return cs;
+      });
+      const addSpy = vi.spyOn(ms, 'add');
+      fixture.componentInstance['confirmArchive'](
+        makeAccount({ id: 'acc-1' }),
+        new MouseEvent('click'),
+      );
+      httpMock
+        .expectOne('/api/accounts/acc-1/archive')
+        .error(new ProgressEvent('error'), { status: 500 });
+      httpMock.expectOne('/api/accounts').flush([]);
+      expect(addSpy).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error' }));
+    });
+  });
 });
