@@ -7,6 +7,7 @@ import cookieParser from 'cookie-parser';
 import request from 'supertest';
 import { AppModule } from '../app/app.module';
 import { UsersRepository } from '../auth/users.repository';
+import { TurnstileGuard } from '../turnstile/turnstile.guard';
 import { SignupsRepository } from './signups.repository';
 import { EmailService } from './email.service';
 
@@ -52,6 +53,8 @@ describe('/signups', () => {
     })
       .overrideProvider(EmailService)
       .useValue({ sendVerification, sendAdminNotification, sendWelcome, sendRejection })
+      .overrideGuard(TurnstileGuard)
+      .useValue({ canActivate: () => true })
       .compile();
 
     app = moduleRef.createNestApplication();
