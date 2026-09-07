@@ -39,8 +39,12 @@ today as placeholders). Broader capabilities (live market data, valuation) are s
   [Frontend domain-library architecture](#frontend-domain-library-architecture) below
 - **Database**: SQLite, embedded directly in the backend process as a single file (no separate
   database container/service), bind-mounted from the host's `./data` directory
-- **Shared libraries**: `libs/api-contract` (types shared between backend/frontend),
-  `libs/domain/holdings` (backend-side holdings validation/merge logic, Library-First),
+- **Shared libraries**: `libs/api-contract` (wire types shared between backend/frontend),
+  `libs/domain/holdings` (holdings validation/merge logic, Library-First),
+  `libs/domain/auth` (password policy, lockout, last-admin invariant, account-action-token rules),
+  `libs/domain/invitations` (invitation token state machine),
+  `libs/domain/accounts` (account overview domain shape and validation),
+  `libs/account-fields` (shared `AccountCategory`/`AccountStatus` literals for the account overview feature, `scope:shared`),
   `libs/market-data` (reserved, empty — see `TODO(MARKET_DATA_PROVIDER)`),
   `libs/notifications` (localized email notifications)
 
@@ -228,12 +232,11 @@ inject the key some other way) as part of its build/CI step.
 Each tier is independently buildable and testable — no other tier needs to be running:
 
 ```bash
-npm run test:backend         # apps/backend — no frontend, no browser required
-npm run test:frontend        # apps/frontend — no backend required (mocked HTTP)
-npm run test:domain-example  # libs/domain/example — proves Library-First isolation
+npm run test:backend   # apps/backend — no frontend, no browser required
+npm run test:frontend  # apps/frontend — no backend required (mocked HTTP)
 ```
 
-(Equivalent to `npx nx test backend` / `frontend` / `domain-example`.)
+(Equivalent to `npx nx test backend` / `frontend`.)
 
 ## Adding a new library
 

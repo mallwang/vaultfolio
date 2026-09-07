@@ -117,6 +117,8 @@ feat(domain-valuation): add look-through allocation aggregation for ETF holdings
 
 **Specs**
 - `specs/004-lookthrough-allocation/`: spec, plan, tasks, data-model, API docs, quickstart, requirements checklist added
+
+Co-Authored-By: Claude <noreply@anthropic.com>
 ```
 ````
 
@@ -125,6 +127,7 @@ feat(domain-valuation): add look-through allocation aggregation for ETF holdings
 - Ignore commits whose messages start with `[Spec Kit]` or `docs(spec-kit):` when deriving the PR title — those are housekeeping commits added by tooling.
 - If the diff contains only spec/docs changes, use type `docs` and scope `specs`.
 - Do not include a "Test plan" section — the project's CI covers that.
+- Always end the description with `Co-Authored-By: Claude <noreply@anthropic.com>` on its own line after a blank line — this is required for the squash-merge commit to carry the co-authorship attribution.
 - If the diff skips test-first for money-handling code, or otherwise deviates from a Core
   Principle in the [constitution](../../../.specify/memory/constitution.md), add a short
   **Constitution deviations** section explicitly justifying it — the constitution requires this

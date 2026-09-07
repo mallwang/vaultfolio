@@ -171,6 +171,14 @@ hooks:
       prompt: Check the SonarCloud quality gate for this branch?
       description: Poll SonarCloud for the current branch's quality gate status before considering the implementation done
       condition: null
+    - extension: docs
+      command: speckit.docs.update
+      enabled: true
+      optional: true
+      priority: 25
+      prompt: Review and update documentation affected by this implementation?
+      description: Check which READMEs and user docs are affected by the changes and update only those sections
+      condition: null
   after_checklist:
     - extension: git
       command: speckit.git.commit
