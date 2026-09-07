@@ -61,12 +61,19 @@
           <p-message severity="error">{{ errorMessage() }}</p-message>
         }
 
+        <app-turnstile
+          #turnstileRef
+          [siteKey]="turnstileSiteKey"
+          action="signup"
+          (tokenChange)="onTokenChange($event)"
+        />
+
         <p-button
           type="submit"
           data-testid="signup-submit"
           label="Sign up"
           [loading]="submitting()"
-          [disabled]="submitting()"
+          [disabled]="submitting() || !turnstileToken()"
         >
           <ng-template #icon><app-icon name="user-plus" /></ng-template>
         </p-button>

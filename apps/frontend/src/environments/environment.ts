@@ -8,4 +8,5 @@ export const environment = {
   // https://primeng.dev/configuration#license. Left empty here; a real
   // deployment must supply this via its own build/deploy pipeline.
   primengLicenseKey: '',
+  turnstileSiteKey: '',
 };

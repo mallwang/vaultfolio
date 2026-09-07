@@ -8,6 +8,7 @@ import { InvitationsModule } from '../invitations/invitations.module';
 import { SignupsModule } from '../signups/signups.module';
 import { ProfileModule } from '../profile/profile.module';
 import { AccountOverviewModule } from '../account-overview/account-overview.module';
+import { TurnstileModule } from '../turnstile/turnstile.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { AccountOverviewModule } from '../account-overview/account-overview.modu
     SignupsModule,
     ProfileModule,
     AccountOverviewModule,
+    TurnstileModule,
   ],
 })
 export class AppModule {}

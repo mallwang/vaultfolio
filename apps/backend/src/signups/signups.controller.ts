@@ -8,6 +8,7 @@ import {
   Param,
   Post,
   Res,
+  UseGuards,
 } from '@nestjs/common';
 import type { Response } from 'express';
 import type {
@@ -22,6 +23,8 @@ import { Public } from '../auth/public.decorator';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { RequestUser } from '../auth/current-user.decorator';
 import { SignupsService } from './signups.service';
+import { TurnstileAction } from '../turnstile/turnstile-action.decorator';
+import { TurnstileGuard } from '../turnstile/turnstile.guard';
 
 const SIGNUP_DISABLED: SignupsErrorResponse = {
   error: 'signup_disabled',
@@ -86,6 +89,8 @@ export class SignupsController {
   constructor(private readonly signupsService: SignupsService) {}
 
   @Public()
+  @TurnstileAction('signup')
+  @UseGuards(TurnstileGuard)
   @Post()
   async submit(
     @Body() body: CreateSignupRequest,

@@ -38,6 +38,7 @@ export interface ChangePasswordRequest {
 
 export interface ForgotPasswordRequest {
   email: string;
+  turnstileToken: string;
 }
 
 export interface ResetPasswordRequest {
@@ -54,6 +55,7 @@ export interface ProfileErrorResponse {
     | 'invalid_current_password'
     | 'last_admin'
     | 'deletion_failed'
-    | 'invalid_email_language';
+    | 'invalid_email_language'
+    | 'bot_protection_failed';
   message: string;
 }

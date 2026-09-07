@@ -7,6 +7,21 @@ declare global {
   interface Window {
     __env?: {
       primengLicenseKey?: string;
+      turnstileSiteKey?: string;
+    };
+    turnstile?: {
+      render(
+        container: string | HTMLElement,
+        params: {
+          sitekey: string;
+          action?: string;
+          callback?: (token: string) => void;
+          'expired-callback'?: () => void;
+          'error-callback'?: () => void;
+        },
+      ): string;
+      reset(widgetId: string): void;
+      remove(widgetId: string): void;
     };
   }
 }

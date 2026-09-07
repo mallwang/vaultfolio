@@ -15,12 +15,12 @@
 
 **Purpose**: Environment config, CDN script, and type declarations — no business logic.
 
-- [ ] T001 Add Turnstile CDN `<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer>` to `apps/frontend/src/index.html`
-- [ ] T002 [P] Add `turnstileSiteKey?: string` to the `Window.__env` interface in `apps/frontend/src/env.d.ts` (alongside `primengLicenseKey`)
-- [ ] T003 [P] Add `turnstileSiteKey: ''` placeholder field to `apps/frontend/src/environments/environment.ts`
-- [ ] T004 [P] Document `turnstileSiteKey` (with Cloudflare always-pass test key `1x00000000000000000000AA`) in `apps/frontend/src/environments/environment.local.example.ts`
-- [ ] T005 [P] Add `window.__env.turnstileSiteKey = "${TURNSTILE_SITE_KEY}"` to `docker/frontend-entrypoint.sh` (follow the same pattern as `primengLicenseKey`)
-- [ ] T006 [P] Add `TURNSTILE_SECRET_KEY`, `TURNSTILE_SITE_KEY`, and `TURNSTILE_HOSTNAMES` entries (with comments) to `.env.example`
+- [x] T001 Add Turnstile CDN `<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer>` to `apps/frontend/src/index.html`
+- [x] T002 [P] Add `turnstileSiteKey?: string` to the `Window.__env` interface in `apps/frontend/src/env.d.ts` (alongside `primengLicenseKey`)
+- [x] T003 [P] Add `turnstileSiteKey: ''` placeholder field to `apps/frontend/src/environments/environment.ts`
+- [x] T004 [P] Document `turnstileSiteKey` (with Cloudflare always-pass test key `1x00000000000000000000AA`) in `apps/frontend/src/environments/environment.local.example.ts`
+- [x] T005 [P] Add `window.__env.turnstileSiteKey = "${TURNSTILE_SITE_KEY}"` to `docker/frontend-entrypoint.sh` (follow the same pattern as `primengLicenseKey`)
+- [x] T006 [P] Add `TURNSTILE_SECRET_KEY`, `TURNSTILE_SITE_KEY`, and `TURNSTILE_HOSTNAMES` entries (with comments) to `.env.example`
 
 **Checkpoint**: Runtime config delivery is wired — both CDN script and `window.__env` ready.
 
@@ -34,28 +34,28 @@
 
 ### 2a — API Contract (Principle II: must be written before implementation)
 
-- [ ] T007 [P] Add `turnstileToken: string` to `CreateSignupRequest` and `'bot_protection_failed'` to `SignupsErrorResponse.error` union in `libs/api-contract/src/lib/signups.ts`
-- [ ] T008 [P] Add `turnstileToken: string` to `ForgotPasswordRequest` and `'bot_protection_failed'` to `ProfileErrorResponse.error` union in `libs/api-contract/src/lib/profile.ts`
+- [x] T007 [P] Add `turnstileToken: string` to `CreateSignupRequest` and `'bot_protection_failed'` to `SignupsErrorResponse.error` union in `libs/api-contract/src/lib/signups.ts`
+- [x] T008 [P] Add `turnstileToken: string` to `ForgotPasswordRequest` and `'bot_protection_failed'` to `ProfileErrorResponse.error` union in `libs/api-contract/src/lib/profile.ts`
 
 ### 2b — Backend TurnstileModule
 
-- [ ] T009 Create `@TurnstileAction(action: string)` metadata decorator in `apps/backend/src/turnstile/turnstile-action.decorator.ts` using `SetMetadata('turnstile_action', action)`
-- [ ] T010 Implement `TurnstileService.verify(token, action, clientIp?)` in `apps/backend/src/turnstile/turnstile.service.ts`:
+- [x] T009 Create `@TurnstileAction(action: string)` metadata decorator in `apps/backend/src/turnstile/turnstile-action.decorator.ts` using `SetMetadata('turnstile_action', action)`
+- [x] T010 Implement `TurnstileService.verify(token, action, clientIp?)` in `apps/backend/src/turnstile/turnstile.service.ts`:
   - Pre-flight: throw `HttpException(422, 'bot_protection_failed')` if `!token || token.length > 2048`
   - Call `POST https://challenges.cloudflare.com/turnstile/v0/siteverify` with `Content-Type: application/x-www-form-urlencoded` body (`URLSearchParams({ secret, response: token, remoteip: clientIp })`) and `AbortSignal.timeout(10_000)` using `globalThis.fetch`
   - Assert `result.success === true`, `result.action === action`, and `TURNSTILE_HOSTNAMES.has(result.hostname)`
   - Log `warn` on any assertion failure (including `error-codes`); log `error` on network/timeout failure
   - Any failure throws `HttpException(422, 'bot_protection_failed')` (fail-closed)
-- [ ] T011 Implement `TurnstileGuard` (`CanActivate`) in `apps/backend/src/turnstile/turnstile.guard.ts`:
+- [x] T011 Implement `TurnstileGuard` (`CanActivate`) in `apps/backend/src/turnstile/turnstile.guard.ts`:
   - Read `@TurnstileAction` metadata via `Reflector`
   - Extract `req.body.turnstileToken` and `req.ip` / `X-Forwarded-For` header
   - Delegate to `TurnstileService.verify(token, action, clientIp)`
-- [ ] T012 Create `TurnstileModule` in `apps/backend/src/turnstile/turnstile.module.ts` (providers: `TurnstileService`, `TurnstileGuard`; exports: `TurnstileGuard`, `TurnstileService`)
-- [ ] T013 Import `TurnstileModule` into `apps/backend/src/app.module.ts`
+- [x] T012 Create `TurnstileModule` in `apps/backend/src/turnstile/turnstile.module.ts` (providers: `TurnstileService`, `TurnstileGuard`; exports: `TurnstileGuard`, `TurnstileService`)
+- [x] T013 Import `TurnstileModule` into `apps/backend/src/app.module.ts`
 
 ### 2c — Frontend TurnstileComponent
 
-- [ ] T014 Create standalone `TurnstileComponent` in `apps/frontend/src/app/shared/turnstile/turnstile.component.ts`:
+- [x] T014 Create standalone `TurnstileComponent` in `apps/frontend/src/app/shared/turnstile/turnstile.component.ts`:
   - Inputs: `siteKey: string`, `action: string`
   - Output: `tokenChange: OutputEmitterRef<string | null>`
   - Public method: `reset()` — calls `window.turnstile.reset(widgetId)`
@@ -66,10 +66,10 @@
 
 ### 2d — Tests (Constitution Principle IV: required for new module public contract)
 
-- [ ] T015 [P] Write `TurnstileService` unit + integration tests in `apps/backend/src/turnstile/turnstile.service.spec.ts`:
+- [x] T015 [P] Write `TurnstileService` unit + integration tests in `apps/backend/src/turnstile/turnstile.service.spec.ts`:
   - Mock `globalThis.fetch`; test: happy path (`success: true`, correct action + hostname); `success: false`; action mismatch; hostname not in allow-list; network error; timeout (`AbortError`); pre-flight rejection (empty token, token > 2048 chars)
   - Each failure case: assert `HttpException(422)` thrown and `warn`/`error` logged
-- [ ] T016 [P] Write `TurnstileComponent` unit tests in `apps/frontend/src/app/shared/turnstile/turnstile.component.spec.ts`:
+- [x] T016 [P] Write `TurnstileComponent` unit tests in `apps/frontend/src/app/shared/turnstile/turnstile.component.spec.ts`:
   - Stub `window.turnstile`; test: `tokenChange` emits on `callback`; emits `null` on `expired-callback` and `error-callback`; `reset()` calls `turnstile.reset(widgetId)`; `remove()` called on destroy
 
 **Checkpoint**: Foundation ready — `TurnstileModule` tested and registered; `TurnstileComponent` ready to embed; API contract types updated.
@@ -82,9 +82,9 @@
 
 **Independent Test**: Use the Cloudflare always-pass test key — load `/signup`, wait for widget to issue a token (submit button enables), fill form, submit; verify account is created. Then submit via `curl` without `turnstileToken`; verify HTTP 422 `bot_protection_failed`.
 
-- [ ] T017 [US1] Apply `@TurnstileAction('signup')` and `@UseGuards(TurnstileGuard)` to `SignupsController.create()` in `apps/backend/src/signups/signups.controller.ts`
-- [ ] T018 [US1] Embed `<app-turnstile>` in `apps/frontend/src/app/signup/signup.component.ts`: bind `[siteKey]="turnstileSiteKey"`, `action="signup"`, `(tokenChange)="onTokenChange($event)"`, `#turnstileRef`; bind `[disabled]="!turnstileToken"` on the submit button; call `turnstileRef.reset()` after successful submission; read `turnstileSiteKey` from `window.__env?.turnstileSiteKey ?? environment.turnstileSiteKey`
-- [ ] T019 [US1] Include `turnstileToken` in the request body in `apps/frontend/src/app/signup/signup.service.ts` (add it to the `this.http.post(...)` body alongside `email` and `password`)
+- [x] T017 [US1] Apply `@TurnstileAction('signup')` and `@UseGuards(TurnstileGuard)` to `SignupsController.create()` in `apps/backend/src/signups/signups.controller.ts`
+- [x] T018 [US1] Embed `<app-turnstile>` in `apps/frontend/src/app/signup/signup.component.ts`: bind `[siteKey]="turnstileSiteKey"`, `action="signup"`, `(tokenChange)="onTokenChange($event)"`, `#turnstileRef`; bind `[disabled]="!turnstileToken"` on the submit button; call `turnstileRef.reset()` after successful submission; read `turnstileSiteKey` from `window.__env?.turnstileSiteKey ?? environment.turnstileSiteKey`
+- [x] T019 [US1] Include `turnstileToken` in the request body in `apps/frontend/src/app/signup/signup.service.ts` (add it to the `this.http.post(...)` body alongside `email` and `password`)
 
 **Checkpoint**: Signup form bot protection is end-to-end functional and independently testable.
 
@@ -96,9 +96,9 @@
 
 **Independent Test**: Load `/forgot-password`, wait for widget token (submit enables), enter email, submit; verify reset flow proceeds. Then `curl` without `turnstileToken`; verify HTTP 422 `bot_protection_failed` and no reset email sent.
 
-- [ ] T020 [US2] Apply `@TurnstileAction('forgot-password')` and `@UseGuards(TurnstileGuard)` to `ProfileController.forgotPassword()` in `apps/backend/src/profile/profile.controller.ts`
-- [ ] T021 [US2] Embed `<app-turnstile>` in `apps/frontend/src/app/account/forgot-password/forgot-password.component.ts`: bind `[siteKey]="turnstileSiteKey"`, `action="forgot-password"`, `(tokenChange)="onTokenChange($event)"`, `#turnstileRef`; bind `[disabled]="!turnstileToken"` on the submit button; call `turnstileRef.reset()` after successful submission; read `turnstileSiteKey` from `window.__env?.turnstileSiteKey ?? environment.turnstileSiteKey`
-- [ ] T022 [US2] Pass `turnstileToken` through the service call that backs `forgot-password.component.ts` (update `ProfileService.requestPasswordReset(...)` or the inline HTTP call to include `turnstileToken` in the request body)
+- [x] T020 [US2] Apply `@TurnstileAction('forgot-password')` and `@UseGuards(TurnstileGuard)` to `ProfileController.forgotPassword()` in `apps/backend/src/profile/profile.controller.ts`
+- [x] T021 [US2] Embed `<app-turnstile>` in `apps/frontend/src/app/account/forgot-password/forgot-password.component.ts`: bind `[siteKey]="turnstileSiteKey"`, `action="forgot-password"`, `(tokenChange)="onTokenChange($event)"`, `#turnstileRef`; bind `[disabled]="!turnstileToken"` on the submit button; call `turnstileRef.reset()` after successful submission; read `turnstileSiteKey` from `window.__env?.turnstileSiteKey ?? environment.turnstileSiteKey`
+- [x] T022 [US2] Pass `turnstileToken` through the service call that backs `forgot-password.component.ts` (update `ProfileService.requestPasswordReset(...)` or the inline HTTP call to include `turnstileToken` in the request body)
 
 **Checkpoint**: Forgot-password form bot protection is end-to-end functional and independently testable.
 
@@ -106,10 +106,10 @@
 
 ## Phase 5: Polish & Cross-Cutting Concerns
 
-- [ ] T023 Run `pnpm nx run frontend:lint` and `pnpm nx run backend:lint` and fix any lint errors introduced by this feature
-- [ ] T024 Run `pnpm nx run-many -t test --projects=frontend,backend` and confirm all tests pass
-- [ ] T025 Invoke the `verify-ui` skill and drive the signup and forgot-password pages with Playwright: confirm submit button is disabled on load, enables after token issued, and re-disables after reset (per CLAUDE.md guidelines for frontend changes)
-- [ ] T026 Walk through quickstart.md Scenarios 1–7 and confirm each expected result is observed
+- [x] T023 Run `pnpm nx run frontend:lint` and `pnpm nx run backend:lint` and fix any lint errors introduced by this feature
+- [x] T024 Run `pnpm nx run-many -t test --projects=frontend,backend` and confirm all tests pass
+- [x] T025 Invoke the `verify-ui` skill and drive the signup and forgot-password pages with Playwright: confirm submit button is disabled on load, enables after token issued, and re-disables after reset (per CLAUDE.md guidelines for frontend changes)
+- [x] T026 Walk through quickstart.md Scenarios 1–7 and confirm each expected result is observed
 
 ---
 
