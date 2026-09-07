@@ -36,3 +36,10 @@
   [docs/frontend/testid-conventions.md](docs/frontend/testid-conventions.md)'s criteria (a
   translated-only label, a repeated row/item, or a PrimeNG-wrapped node with no other stable
   selector), add its `data-testid` as part of that same change — not as a follow-up chore.
+
+<!-- SPECKIT START -->
+
+## Current Feature Plan
+
+Active implementation plan: [specs/026-turnstile-bot-protection/plan.md](specs/026-turnstile-bot-protection/plan.md)
+<!-- SPECKIT END -->

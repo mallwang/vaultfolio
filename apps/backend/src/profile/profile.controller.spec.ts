@@ -9,6 +9,7 @@ import request from 'supertest';
 import { AppModule } from '../app/app.module';
 import { UsersRepository } from '../auth/users.repository';
 import { SessionsRepository } from '../auth/sessions.repository';
+import { TurnstileGuard } from '../turnstile/turnstile.guard';
 import { AccountActionTokensRepository } from './account-action-tokens.repository';
 import { EmailService } from './email.service';
 
@@ -53,6 +54,8 @@ describe('/profile', () => {
     })
       .overrideProvider(EmailService)
       .useValue({ sendEmailChangeVerification, sendPasswordReset })
+      .overrideGuard(TurnstileGuard)
+      .useValue({ canActivate: () => true })
       .compile();
 
     app = moduleRef.createNestApplication();

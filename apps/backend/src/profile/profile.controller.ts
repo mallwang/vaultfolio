@@ -10,6 +10,7 @@ import {
   Post,
   Req,
   Res,
+  UseGuards,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import type {
@@ -28,6 +29,8 @@ import type { RequestUser } from '../auth/current-user.decorator';
 import { Public } from '../auth/public.decorator';
 import { clearSessionCookie, SESSION_COOKIE_NAME, setSessionCookie } from '../auth/session-cookie';
 import { ProfileService } from './profile.service';
+import { TurnstileAction } from '../turnstile/turnstile-action.decorator';
+import { TurnstileGuard } from '../turnstile/turnstile.guard';
 
 const INVALID_DISPLAY_NAME: ProfileErrorResponse = {
   error: 'invalid_display_name',
@@ -200,6 +203,8 @@ export class ProfileController {
   }
 
   @Public()
+  @TurnstileAction('forgot-password')
+  @UseGuards(TurnstileGuard)
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
   async forgotPassword(@Body() body: ForgotPasswordRequest): Promise<{ accepted: true }> {

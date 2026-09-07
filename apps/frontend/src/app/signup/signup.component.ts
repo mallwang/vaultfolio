@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, ViewChild, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import type { CreateSignupRequest, SignupsErrorResponse } from '@vaultfolio/api-contract';
@@ -8,6 +8,8 @@ import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { IconComponent } from '@vaultfolio/frontend-shared-ui';
 import { SignupService } from './signup.service';
+import { TurnstileComponent } from '../shared/turnstile/turnstile.component';
+import { environment } from '../../environments/environment';
 
 /** Mirrors `libs/domain/auth/password-policy.ts` (spec 005) — a client-side
  * hint only, not imported directly since `scope:frontend` can't depend on
@@ -33,6 +35,7 @@ const MAX_PASSWORD_LENGTH = 200;
     MessageModule,
     RouterLink,
     IconComponent,
+    TurnstileComponent,
   ],
   templateUrl: './signup.component.html',
   styleUrl: './signup.component.css',
@@ -40,12 +43,21 @@ const MAX_PASSWORD_LENGTH = 200;
 export class SignupComponent {
   private readonly signupService = inject(SignupService);
 
+  @ViewChild('turnstileRef') private readonly turnstileRef?: TurnstileComponent;
+
   protected readonly email = signal('');
   protected readonly password = signal('');
   protected readonly confirmPassword = signal('');
   protected readonly submitting = signal(false);
   protected readonly errorMessage = signal<string | null>(null);
   protected readonly submitted = signal(false);
+  protected readonly turnstileToken = signal<string | null>(null);
+  protected readonly turnstileSiteKey =
+    window.__env?.turnstileSiteKey ?? environment.turnstileSiteKey;
+
+  protected onTokenChange(token: string | null): void {
+    this.turnstileToken.set(token);
+  }
 
   protected submit(): void {
     if (this.submitting()) {
@@ -69,11 +81,16 @@ export class SignupComponent {
     }
 
     this.submitting.set(true);
-    const body: CreateSignupRequest = { email, password: this.password() };
+    const body: CreateSignupRequest = {
+      email,
+      password: this.password(),
+      turnstileToken: this.turnstileToken() ?? '',
+    };
     this.signupService.submit(body).subscribe({
       next: () => {
         this.submitting.set(false);
         this.submitted.set(true);
+        this.turnstileRef?.reset();
       },
       error: (error: unknown) => {
         this.submitting.set(false);

@@ -10,6 +10,7 @@ set -eu
 
 cat > /usr/share/nginx/html/env.js <<EOF
 window.__env = {
-  primengLicenseKey: "${PRIMENG_LICENSE_KEY:-}"
+  primengLicenseKey: "${PRIMENG_LICENSE_KEY:-}",
+  turnstileSiteKey: "${TURNSTILE_SITE_KEY:-}"
 };
 EOF

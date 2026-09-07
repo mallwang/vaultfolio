@@ -18,6 +18,7 @@ export interface SignupSummary {
 export interface CreateSignupRequest {
   email: string;
   password: string;
+  turnstileToken: string;
 }
 
 export interface SignupSubmitted {
@@ -37,6 +38,7 @@ export interface SignupsErrorResponse {
     | 'invalid_token'
     | 'not_found'
     | 'not_verified'
-    | 'already_resolved';
+    | 'already_resolved'
+    | 'bot_protection_failed';
   message: string;
 }
