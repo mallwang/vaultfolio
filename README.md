@@ -4,6 +4,12 @@
   <img src="logo.png" alt="Vaultfolio" width="120" />
 </p>
 
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=mallwang_vaultfolio&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=mallwang_vaultfolio)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=mallwang_vaultfolio&metric=coverage)](https://sonarcloud.io/summary/new_code?id=mallwang_vaultfolio)
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=mallwang_vaultfolio&metric=bugs)](https://sonarcloud.io/summary/new_code?id=mallwang_vaultfolio)
+
+**[Deutsche Version](README.de.md)**
+
 A personal finance web application — frontend, backend, and database, packaged and hosted as
 Docker containers.
 
@@ -28,6 +34,9 @@ invitations, sign-ups), self-service signup, profile/password/preferences settin
 UI, theme switching, and a dashboard — with holdings as the first of several planned domains
 (retirement, insurances, household planning, historic wealth development, account overview exist
 today as placeholders). Broader capabilities (live market data, valuation) are still to come.
+
+For a full walkthrough of the UI, see [docs/user-guide.md](docs/user-guide.md)
+([Deutsche Version](docs/user-guide.de.md)).
 
 ## Tech stack
 
