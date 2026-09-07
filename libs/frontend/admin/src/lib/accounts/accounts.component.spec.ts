@@ -127,7 +127,7 @@ describe('AccountsComponent — business logic', () => {
       const req = httpMock.expectOne('/api/accounts');
       req.flush([makeAccount()]);
       fixture.detectChanges();
-      expect(fixture.componentInstance['accounts']().length).toBe(1);
+      expect(fixture.componentInstance['accounts']()).toHaveLength(1);
     });
   });
 

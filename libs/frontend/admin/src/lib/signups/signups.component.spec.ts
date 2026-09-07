@@ -44,7 +44,7 @@ describe('SignupsComponent', () => {
 
   describe('ngOnInit', () => {
     it('loads signups list', () => {
-      expect(fixture.componentInstance['signups']().length).toBe(1);
+      expect(fixture.componentInstance['signups']()).toHaveLength(1);
       expect(fixture.componentInstance['loading']()).toBe(false);
     });
 
