@@ -17,6 +17,8 @@ services:
       SMTP_FROM: ${SMTP_FROM:-}
       ACCOUNT_RETENTION_DAYS: ${ACCOUNT_RETENTION_DAYS:-30}
       INVITATION_EXPIRY_DAYS: ${INVITATION_EXPIRY_DAYS:-7}
+      TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:-}
+      TURNSTILE_HOSTNAMES: ${TURNSTILE_HOSTNAMES:-}
     volumes:
       - /opt/vaultfolio/data:/data
     healthcheck:
@@ -41,6 +43,7 @@ services:
     restart: unless-stopped
     environment:
       PRIMENG_LICENSE_KEY: ${PRIMENG_LICENSE_KEY:-}
+      TURNSTILE_SITE_KEY: ${TURNSTILE_SITE_KEY:-}
     ports:
       - '4200:80'
     depends_on:
