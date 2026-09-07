@@ -9,5 +9,14 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     testTimeout: 15000,
+    coverage: {
+      exclude: [
+        '**/main.ts',
+        '**/app.config.ts',
+        '**/app.routes.ts',
+        '**/*-placeholder.component.ts',
+        '**/application-areas.ts',
+      ],
+    },
   },
 });
