@@ -73,9 +73,10 @@ export interface ForgotPasswordRequest {
 
 ## Environment Variables
 
-| Variable               | Side               | Required         | Notes                                                                   |
-| ---------------------- | ------------------ | ---------------- | ----------------------------------------------------------------------- |
-| `TURNSTILE_SECRET_KEY` | Backend            | Yes (production) | Cloudflare secret key; never sent to frontend                           |
-| `TURNSTILE_SITE_KEY`   | Frontend (runtime) | Yes (production) | Public site key; delivered via `window.__env` or `environment.local.ts` |
+| Variable               | Side               | Required         | Notes                                                                                                                                                    |
+| ---------------------- | ------------------ | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `TURNSTILE_SECRET_KEY` | Backend            | Yes (production) | Cloudflare secret key; never sent to frontend                                                                                                            |
+| `TURNSTILE_SITE_KEY`   | Frontend (runtime) | Yes (production) | Public site key (`0x4AAAAAAEreSPMcekykFDqv` for production); delivered via `window.__env` or `environment.local.ts`                                      |
+| `TURNSTILE_HOSTNAMES`  | Backend            | Yes (production) | Comma-separated allowed hostnames (e.g. `vaultfolio.example.com`); MUST NOT include `localhost` or `127.0.0.1` to prevent local-dev bypass in production |
 
-Both must be added to `.env.example` and `docker-compose.yml` (or equivalent) but MUST NOT be committed with real values.
+All three must be added to `.env.example`. Secret values MUST NOT be committed with real values; the site key is non-secret but still environment-specific.

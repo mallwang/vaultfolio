@@ -64,8 +64,9 @@ apps/
 ├── backend/src/
 │   ├── turnstile/                  # NEW — TurnstileModule, TurnstileService, TurnstileGuard
 │   │   ├── turnstile.module.ts
-│   │   ├── turnstile.service.ts
-│   │   ├── turnstile.guard.ts
+│   │   ├── turnstile.service.ts    # calls siteverify (form-encoded, action+hostname validation)
+│   │   ├── turnstile.guard.ts      # reads @TurnstileAction metadata, calls service
+│   │   ├── turnstile-action.decorator.ts  # @TurnstileAction('signup') etc.
 │   │   └── turnstile.service.spec.ts
 │   ├── signups/
 │   │   └── signups.controller.ts   # CHANGED — @UseGuards(TurnstileGuard) on create()

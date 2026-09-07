@@ -19,11 +19,18 @@
 
 ## 2. Cloudflare siteverify API
 
-**Decision**: Call `POST https://challenges.cloudflare.com/turnstile/v0/siteverify` with `application/json` body `{ secret, response, remoteip? }`.
+**Decision**: Call `POST https://challenges.cloudflare.com/turnstile/v0/siteverify` with `Content-Type: application/x-www-form-urlencoded` body (`URLSearchParams` with `secret`, `response`, `remoteip`).
 
-**Rationale**: Cloudflare's documented server-side verification endpoint. Returns `{ success: boolean, error-codes?: string[] }`. Any response where `success !== true` MUST be treated as failed (spec FR-006, edge case). The `remoteip` parameter is optional and improves accuracy; include the client IP from the `X-Forwarded-For` header when available.
+**Rationale**: Cloudflare's documented server-side verification endpoint requires form-encoded body (not JSON). Returns `{ success: boolean, action: string, hostname: string, error-codes?: string[] }`.
 
-**Timeout handling**: `fetch` will be called with `AbortSignal.timeout(5000)` (5 s). Any thrown error (timeout, network failure) is treated as verification failure — fail-closed per FR-007.
+**Validation (beyond `success: true`)**: Per the integration guide, the backend MUST also assert:
+
+- `result.action === expectedAction` — the action name embedded in the widget token matches what the endpoint expects (prevents tokens issued for one form being replayed on another)
+- `expectedHostnames.has(result.hostname)` — the hostname on the verified token is in the allow-list (`TURNSTILE_HOSTNAMES` env var, comma-separated); **localhost and 127.0.0.1 MUST NOT appear in production allow-lists**
+
+**Pre-flight guard**: Reject any token where `!token || token.length > 2048` before calling siteverify (avoids unnecessary outbound calls for obviously invalid payloads).
+
+**Timeout handling**: `AbortSignal.timeout(10_000)` (10 s, per Cloudflare guidance). Any thrown error (timeout, network failure) is treated as verification failure — fail-closed per FR-007.
 
 ---
 
@@ -35,12 +42,25 @@
 
 **Widget mode**: Use `managed` (Cloudflare's default, equivalent to "invisible/managed") so users with clean signals see no challenge UI, matching FR-003.
 
+**Widget mode**: `managed` with a per-form `data-action` attribute:
+
+- Signup form: `data-action="signup"`
+- Forgot-password form: `data-action="forgot-password"`
+
+These action strings flow through to the verified token and are checked server-side.
+
 **Token lifecycle**:
 
-- `turnstile.render()` triggers on component init; the `callback` sets a local `token` signal.
-- `turnstile.remove()` on component destroy cleans up the widget.
-- The `expired-callback` re-renders the widget automatically (Turnstile refreshes on its own); the frontend clears the stale token until the new one arrives.
-- The form's submit button is `[disabled]` while `token` is null/empty (FR-001, FR-002).
+- `turnstile.render('#container', { sitekey, action, callback, 'expired-callback', 'error-callback' })` on component init; the `callback` receives the token string.
+- On successful form submission: call `turnstile.reset(widgetId)` (not re-render) to issue a fresh token for the next submission attempt.
+- `expired-callback`: clears the stored token (form disabled) — Turnstile auto-renews and fires `callback` again.
+- `error-callback`: clears the stored token; show a guidance message (edge case in spec).
+- `turnstile.remove(widgetId)` on component destroy.
+- Submit button `[disabled]` while token is `null` (FR-001, FR-002).
+
+**Configured site key** (production widget, non-secret): `0x4AAAAAAEreSPMcekykFDqv`
+
+- Store in `TURNSTILE_SITE_KEY` env var / `window.__env.turnstileSiteKey`; test keys still used in local dev.
 
 ---
 
