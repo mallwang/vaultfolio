@@ -1,109 +1,104 @@
-# Implementation Plan: [FEATURE]
+# Implementation Plan: Cloudflare Turnstile Bot Protection
 
-**Branch**: `[###-feature-name]` | **Date**: [DATE] | **Spec**: [link]
+**Branch**: `026-turnstile-bot-protection` | **Date**: 2026-09-07 | **Spec**: [spec.md](spec.md)
 
-**Input**: Feature specification from `/specs/[###-feature-name]/spec.md`
-
-**Note**: This template is filled in by the `/speckit-plan` command; its definition describes the execution workflow.
+**Input**: Feature specification from `specs/026-turnstile-bot-protection/spec.md`
 
 ## Summary
 
-[Extract from feature spec: primary requirement + technical approach from research]
+Add Cloudflare Turnstile bot protection to the public Signup (`POST /signups`) and Forgot-Password (`POST /profile/forgot-password`) endpoints. The Angular frontend loads the Turnstile widget via CDN, collects a token in managed/invisible mode, and includes it in the request body. A new `TurnstileGuard` on the backend calls Cloudflare's siteverify API (via Node's built-in `fetch`) before any business logic runs, rejecting requests with missing, invalid, or unverifiable tokens (fail-closed). No new npm packages required.
 
 ## Technical Context
 
-<!--
-  ACTION REQUIRED: Replace the content in this section with the technical details
-  for the project. The structure here is presented in advisory capacity to guide
-  the iteration process.
--->
+**Language/Version**: TypeScript; Node.js LTS (18+) for backend (provides `globalThis.fetch`)
 
-**Language/Version**: TypeScript (Node.js LTS runtime for the backend)
+**Primary Dependencies**: NestJS (backend), Angular (frontend), Nx monorepo tooling — no new packages
 
-**Primary Dependencies**: NestJS (backend), Angular (frontend), Nx (monorepo tooling) — per the
-constitution's Stack Decision. Note any feature-specific additions here (e.g., a charting library,
-a market-data client) beyond this baseline.
+**Storage**: No DB changes; tokens are transient (verified in-flight, not persisted)
 
-**Storage**: PostgreSQL, accessed via the backend only (Principle II)
+**Testing**: Jest (Nx default for both projects); `TurnstileService` integration-tested with a mocked fetch/siteverify response
 
-**Testing**: Jest (Nx default for both NestJS and Angular projects); contract/integration tests per
-Principle IV
+**Target Platform**: Linux container (backend), modern evergreen browsers (Angular frontend)
 
-**Target Platform**: Linux server (backend + PostgreSQL containers), modern evergreen browsers
-(Angular frontend)
+**Project Type**: web-service + frontend, Nx monorepo
 
-**Project Type**: web-service + frontend, Nx monorepo (see Project Structure below)
+**Performance Goals**: Siteverify call < 2 s (SC-004); page-load impact < 500 ms (SC-003, widget async/defer)
 
-**Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps or NEEDS CLARIFICATION]
+**Constraints**: No new npm packages (spec assumption); fail-closed on siteverify outage (FR-007)
 
-**Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]
-
-**Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
+**Scale/Scope**: Two protected endpoints; one new backend module; one new frontend component; two modified api-contract interfaces
 
 ## Constitution Check
 
-_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
+_GATE: Must pass before Phase 0 research. Re-checked after Phase 1 design._
 
-[Gates determined based on constitution file]
+| Principle                         | Assessment                                                                                                                                                                                                                                                         | Status  |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------- |
+| **I. Library-First**              | `TurnstileModule` is a NestJS module with a single coherent responsibility (bot-token verification). Backend-only; does not belong in a shared Nx lib. Angular `TurnstileComponent` is a standalone component with a clear boundary (renders widget, emits token). | ✅ Pass |
+| **II. API-First Interface**       | `turnstileToken: string` added to `CreateSignupRequest` and `ForgotPasswordRequest` in `libs/api-contract`; `bot_protection_failed` error code added to both error unions. Contract written before implementation.                                                 | ✅ Pass |
+| **III. Test Coverage**            | No monetary/financial logic involved. Standard coverage required: `TurnstileService` (unit + integration with mocked siteverify), `TurnstileGuard` (unit), `TurnstileComponent` (unit — token emit, disabled state).                                               | ✅ Pass |
+| **IV. Integration Testing**       | `TurnstileService` integration test required: exercises the full HTTP-call → parse → throw path with a mocked fetch (nock or Jest fetch mock).                                                                                                                     | ✅ Pass |
+| **V. Observability & Simplicity** | Failure cases logged at `warn`/`error` with structured context. No new abstraction beyond the minimal guard+service. YAGNI: no retry logic (fail-closed is correct).                                                                                               | ✅ Pass |
+
+**No violations. Complexity Tracking section not required.**
 
 ## Project Structure
 
 ### Documentation (this feature)
 
 ```text
-specs/[###-feature]/
-├── plan.md              # This file (/speckit-plan command output)
-├── research.md          # Phase 0 output (/speckit-plan command)
-├── data-model.md        # Phase 1 output (/speckit-plan command)
-├── quickstart.md        # Phase 1 output (/speckit-plan command)
-├── contracts/           # Phase 1 output (/speckit-plan command)
-└── tasks.md             # Phase 2 output (/speckit-tasks command - NOT created by /speckit-plan)
+specs/026-turnstile-bot-protection/
+├── plan.md              ← this file
+├── research.md          ← Phase 0 output
+├── data-model.md        ← Phase 1 output
+├── quickstart.md        ← Phase 1 output
+├── contracts/
+│   └── turnstile-api.md ← Phase 1 output
+└── tasks.md             ← Phase 2 output (/speckit-tasks — not created here)
 ```
 
 ### Source Code (repository root)
 
-<!--
-  ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
-  for this feature. Delete unused options and expand the chosen structure with
-  real paths (e.g., apps/admin, packages/something). The delivered plan must
-  not include Option labels.
--->
-
 ```text
-# DEFAULT: Nx monorepo (frontend + backend), per the constitution's Stack Decision
 apps/
-├── backend/                  # NestJS
-│   ├── src/
-│   │   ├── modules/          # feature modules (controllers, DTOs, wiring)
-│   │   └── main.ts
-│   └── src/tests/            # e2e/integration tests for this app
-└── frontend/                 # Angular
-    ├── src/
-    │   ├── app/               # components, pages, routing
-    │   └── main.ts
-    └── src/tests/
+├── backend/src/
+│   ├── turnstile/                  # NEW — TurnstileModule, TurnstileService, TurnstileGuard
+│   │   ├── turnstile.module.ts
+│   │   ├── turnstile.service.ts
+│   │   ├── turnstile.guard.ts
+│   │   └── turnstile.service.spec.ts
+│   ├── signups/
+│   │   └── signups.controller.ts   # CHANGED — @UseGuards(TurnstileGuard) on create()
+│   └── profile/
+│       └── profile.controller.ts   # CHANGED — @UseGuards(TurnstileGuard) on forgotPassword()
+└── frontend/src/
+    ├── index.html                  # CHANGED — add Turnstile CDN <script> tag
+    ├── env.d.ts                    # CHANGED — add turnstileSiteKey to Window.__env
+    ├── environments/
+    │   ├── environment.ts          # CHANGED — add turnstileSiteKey: '' placeholder
+    │   └── environment.local.example.ts # CHANGED — document TURNSTILE_SITE_KEY
+    └── app/
+        ├── shared/turnstile/
+        │   ├── turnstile.component.ts  # NEW — wraps Turnstile widget
+        │   └── turnstile.component.spec.ts
+        ├── signup/
+        │   ├── signup.component.ts     # CHANGED — embed TurnstileComponent, gate submit
+        │   └── signup.service.ts       # CHANGED — include turnstileToken in POST body
+        └── account/forgot-password/
+            └── forgot-password.component.ts  # CHANGED — embed TurnstileComponent, gate submit
 
 libs/
-├── domain/[domain-name]/     # standalone finance/domain logic (Principle I),
-│                             # framework-independent, unit-tested in isolation
-├── api-contract/             # shared DTOs/types between backend and frontend
-└── [market-data-provider]/   # external market-data integration, isolated per
-                              # Product Scope's External Market Data rules
+└── api-contract/src/lib/
+    ├── signups.ts                  # CHANGED — turnstileToken on CreateSignupRequest
+    └── profile.ts                  # CHANGED — turnstileToken on ForgotPasswordRequest
 
-# [REMOVE IF UNUSED] Only if this feature also needs a standalone project outside
-# the monorepo's normal app/lib shape (rare — justify in Complexity Tracking):
-src/
-tests/
+docker/
+└── frontend-entrypoint.sh          # CHANGED — write TURNSTILE_SITE_KEY into window.__env
+.env.example                        # CHANGED — document TURNSTILE_SECRET_KEY, TURNSTILE_SITE_KEY
 ```
 
-**Structure Decision**: [Document the selected Nx apps/libs for this feature —
-which existing libs it extends, which new libs (if any) it introduces, and why]
+**Structure Decision**: No new Nx library. `TurnstileModule` lives inside the backend app (backend-only infrastructure). `TurnstileComponent` lives in `apps/frontend/src/app/shared/turnstile/` (app-scoped, not domain logic). The api-contract lib (`libs/api-contract`) is the only shared library touched, per existing patterns.
 
 ## Complexity Tracking
 
-> **Fill ONLY if Constitution Check has violations that must be justified**
-
-| Violation                  | Why Needed         | Simpler Alternative Rejected Because |
-| -------------------------- | ------------------ | ------------------------------------ |
-| [e.g., 4th project]        | [current need]     | [why 3 projects insufficient]        |
-| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient]  |
+_No violations — section not required._
