@@ -111,13 +111,13 @@ export const ASSET_TYPE_NAME_PLACEHOLDER_KEYS: Readonly<Record<AssetType, string
  * client-side feedback; the server is the authority.
  */
 export function isValidIsin(isin: string): boolean {
-  if (!/^[A-Z]{2}[A-Z0-9]{9}[0-9]$/.test(isin)) {
+  if (!/^[A-Z]{2}[A-Z0-9]{9}\d$/.test(isin)) {
     return false;
   }
 
   const expanded = isin
     .split('')
-    .map((char) => (/[0-9]/.test(char) ? char : String(char.charCodeAt(0) - 55)))
+    .map((char) => (/\d/.test(char) ? char : String(char.codePointAt(0)! - 55)))
     .join('');
 
   let sum = 0;

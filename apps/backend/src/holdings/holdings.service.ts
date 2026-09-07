@@ -1,7 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
-import type { Holding } from '@vaultfolio/domain-holdings';
-import { decideMerge, validateHoldingSubmission } from '@vaultfolio/domain-holdings';
-import type { FieldError } from '@vaultfolio/domain-holdings';
+import {
+  decideMerge,
+  validateHoldingSubmission,
+  type Holding,
+  type FieldError,
+} from '@vaultfolio/domain-holdings';
 import type { CreateHoldingRequest, UpdateHoldingRequest } from '@vaultfolio/api-contract';
 import { HoldingsRepository } from './holdings.repository';
 import { createRequestToSubmission, updateRequestToSubmission } from './holdings.mapper';

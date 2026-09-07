@@ -216,7 +216,7 @@ export class ProfileService {
 
   async confirmEmailChange(token: string): Promise<ConfirmEmailChangeResult> {
     const row = await this.tokens.findByTokenAndPurpose(token, 'EMAIL_CHANGE');
-    if (!row || !row.newEmail) {
+    if (!row?.newEmail) {
       return { kind: 'invalid_token' };
     }
 

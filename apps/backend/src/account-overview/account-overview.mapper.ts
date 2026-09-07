@@ -117,18 +117,17 @@ export function updateRequestToSubmission(
   body: UpdateAccountOverviewEntryRequest,
 ): AccountSubmissionInput {
   return {
-    name: body.name !== undefined ? body.name : existing.name,
-    category: body.category !== undefined ? body.category : existing.category,
-    status: body.status !== undefined ? body.status : existing.status,
-    provider: body.provider !== undefined ? body.provider : existing.provider,
-    website: body.website !== undefined ? body.website : existing.website,
-    purpose: body.purpose !== undefined ? body.purpose : existing.purpose,
-    cardUsage: body.cardUsage !== undefined ? body.cardUsage : existing.cardUsage,
-    requiredMinimum:
-      body.requiredMinimum !== undefined ? body.requiredMinimum : existing.requiredMinimum,
-    notes: body.notes !== undefined ? body.notes : existing.notes,
-    cardNumber: body.cardNumber !== undefined ? body.cardNumber : existing.cardNumber,
-    validUntil: body.validUntil !== undefined ? body.validUntil : existing.validUntil,
+    name: body.name ?? existing.name,
+    category: body.category ?? existing.category,
+    status: body.status ?? existing.status,
+    provider: body.provider ?? existing.provider,
+    website: body.website ?? existing.website,
+    purpose: body.purpose ?? existing.purpose,
+    cardUsage: body.cardUsage ?? existing.cardUsage,
+    requiredMinimum: body.requiredMinimum ?? existing.requiredMinimum,
+    notes: body.notes ?? existing.notes,
+    cardNumber: body.cardNumber ?? existing.cardNumber,
+    validUntil: body.validUntil ?? existing.validUntil,
   };
 }
 

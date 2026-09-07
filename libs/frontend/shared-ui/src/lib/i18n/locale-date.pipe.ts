@@ -11,7 +11,7 @@ export class LocaleDatePipe implements PipeTransform {
     // Parse YYYY-MM-DD as local date to avoid UTC-offset day shifts
     const [year, month, day] = value.split('T')[0].split('-').map(Number);
     const date = new Date(year, month - 1, day);
-    if (isNaN(date.getTime())) return '—';
+    if (Number.isNaN(date.getTime())) return '—';
     return new Intl.DateTimeFormat(this.i18n.language(), {
       year: 'numeric',
       month: '2-digit',

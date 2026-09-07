@@ -52,13 +52,13 @@ const DECIMAL_FIELDS = ['quantity', 'purchasePrice', 'weightGrams', 'currentValu
  * spec.md's Assumptions. Pure, no I/O — research.md #1.
  */
 export function isValidIsin(isin: string): boolean {
-  if (!/^[A-Z]{2}[A-Z0-9]{9}[0-9]$/.test(isin)) {
+  if (!/^[A-Z]{2}[A-Z0-9]{9}\d$/.test(isin)) {
     return false;
   }
 
   const expanded = isin
     .split('')
-    .map((char) => (/[0-9]/.test(char) ? char : String(char.charCodeAt(0) - 55)))
+    .map((char) => (/\d/.test(char) ? char : String(char.codePointAt(0)! - 55)))
     .join('');
 
   // Luhn algorithm over the expanded digit string, processed right-to-left.
@@ -118,6 +118,94 @@ function isFieldApplicable(assetType: AssetType, field: HoldingField): boolean {
   return metadata.required.includes(field) || metadata.optional.includes(field);
 }
 
+type ParsedDecimals = Record<(typeof DECIMAL_FIELDS)[number], Decimal | null>;
+
+function validateRequiredFields(
+  submission: HoldingSubmission,
+  assetType: AssetType,
+  parsed: ParsedDecimals,
+  errors: FieldError[],
+): void {
+  const metadata = ASSET_TYPE_FIELDS[assetType];
+  for (const field of metadata.required) {
+    if (field === 'isin' || field === 'name') {
+      if (isBlank(submission[field])) {
+        errors.push({ field, message: `${field} is required for ${assetType}.` });
+      }
+    } else if (
+      field === 'quantity' ||
+      field === 'purchasePrice' ||
+      field === 'weightGrams' ||
+      field === 'currentValue'
+    ) {
+      if (parsed[field] == null && isBlank(submission[field])) {
+        errors.push({ field, message: `${field} is required for ${assetType}.` });
+      }
+    }
+  }
+}
+
+const ALL_HOLDING_FIELDS: HoldingField[] = [
+  'isin',
+  'name',
+  'quantity',
+  'purchasePrice',
+  'purchaseDate',
+  'weightGrams',
+  'currentValue',
+];
+
+function validateExtraneousFields(
+  submission: HoldingSubmission,
+  assetType: AssetType,
+  errors: FieldError[],
+): void {
+  for (const field of ALL_HOLDING_FIELDS) {
+    if (isFieldApplicable(assetType, field)) continue;
+    const raw = submission[field];
+    if (raw != null && raw !== '') {
+      errors.push({
+        field,
+        message: `${field} does not apply to ${assetType} and must be omitted.`,
+      });
+    }
+  }
+}
+
+function validateIsin(
+  submission: HoldingSubmission,
+  assetType: AssetType,
+  errors: FieldError[],
+): string | null {
+  if (!isFieldApplicable(assetType, 'isin') || isBlank(submission.isin)) return null;
+  const isin = submission.isin as string;
+  if (!isValidIsin(isin)) {
+    errors.push({ field: 'isin', message: 'isin is not a well-formed ISIN.' });
+  }
+  return isin;
+}
+
+function validatePurchaseDate(
+  submission: HoldingSubmission,
+  assetType: AssetType,
+  errors: FieldError[],
+): Date | null {
+  if (!isFieldApplicable(assetType, 'purchaseDate') || isBlank(submission.purchaseDate))
+    return null;
+  const candidate = new Date(submission.purchaseDate as string);
+  if (Number.isNaN(candidate.getTime())) {
+    errors.push({ field: 'purchaseDate', message: 'purchaseDate must be a valid date.' });
+    return null;
+  }
+  const today = new Date();
+  today.setHours(23, 59, 59, 999);
+  if (candidate.getTime() > today.getTime()) {
+    errors.push({ field: 'purchaseDate', message: 'purchaseDate must not be in the future.' });
+    return null;
+  }
+  return candidate;
+}
+
 /**
  * Validates a raw submission against every rule in data-model.md's
  * "Validation rules" section, reporting every failing field at once (SC-002)
@@ -143,8 +231,6 @@ export function validateHoldingSubmission(submission: HoldingSubmission): Valida
     };
   }
 
-  const metadata = ASSET_TYPE_FIELDS[assetType];
-
   if (isBlank(submission.management)) {
     errors.push({ field: 'management', message: 'Management is required.' });
   }
@@ -152,81 +238,17 @@ export function validateHoldingSubmission(submission: HoldingSubmission): Valida
   // Parse every decimal field present, positivity-checked regardless of
   // whether it turns out to be applicable — a stray field still gets a
   // useful error rather than being silently accepted.
-  const parsed: Record<(typeof DECIMAL_FIELDS)[number], Decimal | null> = {
+  const parsed: ParsedDecimals = {
     quantity: parsePositiveDecimal('quantity', submission.quantity, errors),
     purchasePrice: parsePositiveDecimal('purchasePrice', submission.purchasePrice, errors),
     weightGrams: parsePositiveDecimal('weightGrams', submission.weightGrams, errors),
     currentValue: parsePositiveDecimal('currentValue', submission.currentValue, errors),
   };
 
-  // Required-field presence for this asset type.
-  for (const field of metadata.required) {
-    if (field === 'isin' || field === 'name') {
-      if (isBlank(submission[field])) {
-        errors.push({ field, message: `${field} is required for ${assetType}.` });
-      }
-    } else if (
-      field === 'quantity' ||
-      field === 'purchasePrice' ||
-      field === 'weightGrams' ||
-      field === 'currentValue'
-    ) {
-      if (parsed[field] == null && isBlank(submission[field])) {
-        errors.push({ field, message: `${field} is required for ${assetType}.` });
-      }
-    }
-  }
-
-  // Extraneous fields not applicable to this asset type must not be present
-  // (FR-008, Edge Cases) — a defensive server rejects them rather than
-  // silently storing them.
-  const allFields: HoldingField[] = [
-    'isin',
-    'name',
-    'quantity',
-    'purchasePrice',
-    'purchaseDate',
-    'weightGrams',
-    'currentValue',
-  ];
-  for (const field of allFields) {
-    if (isFieldApplicable(assetType, field)) {
-      continue;
-    }
-    const raw = submission[field];
-    if (raw != null && raw !== '') {
-      errors.push({
-        field,
-        message: `${field} does not apply to ${assetType} and must be omitted.`,
-      });
-    }
-  }
-
-  // ISIN checksum, only when isin is applicable and present.
-  let isin: string | null = null;
-  if (isFieldApplicable(assetType, 'isin') && !isBlank(submission.isin)) {
-    isin = submission.isin as string;
-    if (!isValidIsin(isin)) {
-      errors.push({ field: 'isin', message: 'isin is not a well-formed ISIN.' });
-    }
-  }
-
-  // purchaseDate: only meaningful when applicable to this type; never in the future.
-  let purchaseDate: Date | null = null;
-  if (isFieldApplicable(assetType, 'purchaseDate') && !isBlank(submission.purchaseDate)) {
-    const candidate = new Date(submission.purchaseDate as string);
-    if (Number.isNaN(candidate.getTime())) {
-      errors.push({ field: 'purchaseDate', message: 'purchaseDate must be a valid date.' });
-    } else {
-      const today = new Date();
-      today.setHours(23, 59, 59, 999);
-      if (candidate.getTime() > today.getTime()) {
-        errors.push({ field: 'purchaseDate', message: 'purchaseDate must not be in the future.' });
-      } else {
-        purchaseDate = candidate;
-      }
-    }
-  }
+  validateRequiredFields(submission, assetType, parsed, errors);
+  validateExtraneousFields(submission, assetType, errors);
+  const isin = validateIsin(submission, assetType, errors);
+  const purchaseDate = validatePurchaseDate(submission, assetType, errors);
 
   if (errors.length > 0) {
     return { valid: false, fieldErrors: errors };

@@ -15,7 +15,7 @@ export class LocaleDateTimePipe implements PipeTransform {
   transform(value: string | null | undefined, options?: Intl.DateTimeFormatOptions): string {
     if (!value) return '—';
     const date = new Date(value);
-    if (isNaN(date.getTime())) return '—';
+    if (Number.isNaN(date.getTime())) return '—';
     return new Intl.DateTimeFormat(this.i18n.language(), {
       dateStyle: 'medium',
       timeStyle: 'medium',

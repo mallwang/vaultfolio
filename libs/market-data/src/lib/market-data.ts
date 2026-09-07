@@ -1,2 +1,2 @@
-// Reserved, intentionally empty. See ../../../README.md — TODO(MARKET_DATA_PROVIDER).
+// Reserved, intentionally empty. See ../../../README.md — implementation deferred until a market data provider is selected.
 export {};
