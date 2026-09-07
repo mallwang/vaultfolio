@@ -19,9 +19,6 @@
       "path": "./apps/frontend"
     },
     {
-      "path": "./libs/domain/example"
-    },
-    {
       "path": "./libs/domain/holdings"
     },
     {
