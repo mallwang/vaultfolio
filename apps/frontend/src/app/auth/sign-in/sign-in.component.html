@@ -1,5 +1,5 @@
 <div class="sign-in-page">
-  <p-card [header]="'signIn.title' | translate" styleClass="sign-in-card">
+  <p-card class="sign-in-card" [header]="'signIn.title' | translate">
     <form (ngSubmit)="submit()" class="sign-in-form">
       <div class="field">
         <label for="email">{{ 'signIn.email' | translate }}</label>
@@ -37,6 +37,10 @@
         [loading]="submitting()"
         [disabled]="submitting()"
       />
+
+      <p class="field-hint">
+        <a routerLink="/account/forgot-password">{{ 'signIn.forgotPassword' | translate }}</a>
+      </p>
 
       <p class="field-hint">
         {{ 'signIn.noAccount' | translate }}

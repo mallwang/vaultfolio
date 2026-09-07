@@ -6,7 +6,7 @@ import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
-import { IconComponent } from '@vaultfolio/frontend-shared-ui';
+import { IconComponent, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
 import { SignupService } from './signup.service';
 import { TurnstileComponent } from '../shared/turnstile/turnstile.component';
 import { environment } from '../../environments/environment';
@@ -36,6 +36,7 @@ const MAX_PASSWORD_LENGTH = 200;
     RouterLink,
     IconComponent,
     TurnstileComponent,
+    TranslatePipe,
   ],
   templateUrl: './signup.component.html',
   styleUrl: './signup.component.css',

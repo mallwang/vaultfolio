@@ -2,11 +2,11 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
+  min-height: 60vh;
   padding: 1.5rem;
 }
 
-::ng-deep .invite-card {
+.invite-card {
   width: 100%;
   max-width: 26rem;
 }

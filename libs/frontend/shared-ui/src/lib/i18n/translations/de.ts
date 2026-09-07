@@ -332,6 +332,32 @@ export const de: TranslationDictionary = {
     rejectReasonLabel: 'Grund (nur intern, optional)',
     rejectError: 'Diese Anmeldung konnte nicht abgelehnt werden. Bitte erneut versuchen.',
   },
+  forgotPassword: {
+    title: 'Passwort vergessen?',
+    lede: 'Geben Sie Ihre E-Mail-Adresse ein – wenn ein Konto existiert, senden wir einen Link zum Zurücksetzen des Passworts.',
+    emailLabel: 'E-Mail-Adresse',
+    submit: 'Link zum Zurücksetzen senden',
+    backToSignIn: 'Zurück zur Anmeldung',
+    checkEmailTitle: 'Prüfen Sie Ihre E-Mails',
+    checkEmailLede:
+      'Falls ein Konto für diese Adresse existiert, haben wir einen Link zum Zurücksetzen des Passworts gesendet. Er ist 1 Stunde gültig. Diese Meldung wird unabhängig davon angezeigt, ob ein Konto existiert oder nicht.',
+  },
+  signup: {
+    title: 'Konto erstellen',
+    lede: 'Registrieren Sie sich für Vaultfolio. Jede neue Anfrage wird von einem Administrator geprüft.',
+    emailLabel: 'E-Mail',
+    passwordLabel: 'Passwort',
+    passwordPlaceholder: '8–200 Zeichen',
+    confirmPasswordLabel: 'Passwort bestätigen',
+    submit: 'Registrieren',
+    checkEmailTitle: 'Prüfen Sie Ihre E-Mails',
+    checkEmailLedePre: 'Wir haben einen Bestätigungslink an',
+    checkEmailLedePost:
+      'gesendet. Öffnen Sie ihn, um Ihre Adresse zu bestätigen – ein Administrator wird Ihre Anfrage anschließend prüfen.',
+    goToSignIn: 'Zur Anmeldung',
+    alreadyHaveAccount: 'Bereits ein Konto?',
+    signIn: 'Anmelden',
+  },
   healthStatus: {
     title: 'Systemstatus',
     backend: 'Backend',

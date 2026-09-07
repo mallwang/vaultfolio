@@ -1,24 +1,28 @@
 <div class="invite-page">
-  <p-card styleClass="invite-card">
+  <p-card class="invite-card">
     @if (submitted()) {
       <div class="invite-expired-icon">
         <app-icon name="envelope" />
       </div>
-      <h1>Check your email</h1>
+      <h1>{{ 'signup.checkEmailTitle' | translate }}</h1>
       <p class="lede">
-        We've sent a verification link to {{ email() }}. Open it to confirm your address — an
-        administrator will review your request afterward.
+        {{ 'signup.checkEmailLedePre' | translate }} {{ email() }}.
+        {{ 'signup.checkEmailLedePost' | translate }}
       </p>
-      <p-button label="Go to sign in" severity="secondary" routerLink="/sign-in">
+      <p-button
+        [label]="'signup.goToSignIn' | translate"
+        severity="secondary"
+        routerLink="/sign-in"
+      >
         <ng-template #icon><app-icon name="lock" /></ng-template>
       </p-button>
     } @else {
-      <h1>Create your account</h1>
-      <p class="lede">Sign up for Vaultfolio. An administrator reviews every new request.</p>
+      <h1>{{ 'signup.title' | translate }}</h1>
+      <p class="lede">{{ 'signup.lede' | translate }}</p>
 
       <form (ngSubmit)="submit()" class="invite-form">
         <div class="field">
-          <label for="signup-email">Email</label>
+          <label for="signup-email">{{ 'signup.emailLabel' | translate }}</label>
           <input
             pInputText
             id="signup-email"
@@ -31,13 +35,13 @@
         </div>
 
         <div class="field">
-          <label for="signup-password">Password</label>
+          <label for="signup-password">{{ 'signup.passwordLabel' | translate }}</label>
           <input
             pInputText
             id="signup-password"
             name="password"
             type="password"
-            placeholder="8–200 characters"
+            [placeholder]="'signup.passwordPlaceholder' | translate"
             autocomplete="new-password"
             [(ngModel)]="password"
             required
@@ -45,7 +49,9 @@
         </div>
 
         <div class="field">
-          <label for="signup-password-confirm">Confirm password</label>
+          <label for="signup-password-confirm">{{
+            'signup.confirmPasswordLabel' | translate
+          }}</label>
           <input
             pInputText
             id="signup-password-confirm"
@@ -71,14 +77,17 @@
         <p-button
           type="submit"
           data-testid="signup-submit"
-          label="Sign up"
+          [label]="'signup.submit' | translate"
           [loading]="submitting()"
           [disabled]="submitting() || !turnstileToken()"
         >
           <ng-template #icon><app-icon name="user-plus" /></ng-template>
         </p-button>
 
-        <p class="field-hint">Already have an account? <a routerLink="/sign-in">Sign in</a></p>
+        <p class="field-hint">
+          {{ 'signup.alreadyHaveAccount' | translate }}
+          <a routerLink="/sign-in">{{ 'signup.signIn' | translate }}</a>
+        </p>
       </form>
     }
   </p-card>

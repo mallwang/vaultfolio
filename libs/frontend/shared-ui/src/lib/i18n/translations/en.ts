@@ -330,6 +330,32 @@ export const en: TranslationDictionary = {
     rejectReasonLabel: 'Reason (internal only, optional)',
     rejectError: 'Unable to reject this sign-up. Please try again.',
   },
+  forgotPassword: {
+    title: 'Forgot your password?',
+    lede: "Enter your email and, if an account exists for it, we'll send a link to reset your password.",
+    emailLabel: 'Email address',
+    submit: 'Send reset link',
+    backToSignIn: 'Back to sign in',
+    checkEmailTitle: 'Check your email',
+    checkEmailLede:
+      "If an account exists for that address, we've sent a link to reset the password. It's valid for 1 hour. This exact message is shown whether or not the address has an account.",
+  },
+  signup: {
+    title: 'Create your account',
+    lede: 'Sign up for Vaultfolio. An administrator reviews every new request.',
+    emailLabel: 'Email',
+    passwordLabel: 'Password',
+    passwordPlaceholder: '8–200 characters',
+    confirmPasswordLabel: 'Confirm password',
+    submit: 'Sign up',
+    checkEmailTitle: 'Check your email',
+    checkEmailLedePre: "We've sent a verification link to",
+    checkEmailLedePost:
+      'Open it to confirm your address — an administrator will review your request afterward.',
+    goToSignIn: 'Go to sign in',
+    alreadyHaveAccount: 'Already have an account?',
+    signIn: 'Sign in',
+  },
   healthStatus: {
     title: 'System health',
     backend: 'Backend',
