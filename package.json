@@ -1,7 +1,16 @@
 {
   "name": "vaultfolio",
   "version": "0.0.0",
+  "description": "Self-hosted personal finance tracker — manually track investments across ETFs, shares, precious metals, crypto, and more. Angular + NestJS + SQLite.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mallwang/vaultfolio.git"
+  },
+  "engines": {
+    "node": ">=22",
+    "npm": ">=10"
+  },
   "packageManager": "npm@11.19.0",
   "scripts": {
     "dev": "nx run-many -t serve -p backend frontend",
