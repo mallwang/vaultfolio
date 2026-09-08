@@ -31,6 +31,7 @@ export const de: TranslationDictionary = {
     haushaltsplaner: 'Haushaltsplaner',
     historicWealthDevelopment: 'Vermögensentwicklung',
     accountOverview: 'Kontoübersicht',
+    klaro: 'Klaro',
     settings: 'Einstellungen',
     admin: 'Verwaltung',
     accounts: 'Konten',
@@ -404,6 +405,25 @@ export const de: TranslationDictionary = {
     title: 'Kontoübersicht',
     body: 'Die Kontoübersicht ist noch nicht verfügbar. Dieser Bereich wird in einem zukünftigen Update ausgebaut.',
   },
+  // Klaro-Infoseite (028-klaro-nav-integration, FR-004–FR-009): statischer,
+  // finaler Inhalt — kein Platzhalter.
+  klaroPage: {
+    heroSubtitle: 'Vertrags- und Abo-Verwaltung',
+    description:
+      'Klaro behält deine Verträge und Abos im Blick — was du zahlst, wann sie sich verlängern und wie sie sich nach Kategorie aufteilen —, damit nichts still und heimlich verlängert wird, ohne dass du es merkst.',
+    feature1: 'Ausgaben- und Kategorienübersicht',
+    feature2: 'Erinnerungen vor der automatischen Vertragsverlängerung',
+    feature3: 'Eine einzige Tabelle für alle erfassten Verträge',
+    feature4: 'Import und Export als JSON oder Excel',
+    standaloneBanner: 'Klaro ist derzeit eine eigenständige, von Vaultfolio getrennte Anwendung.',
+    externalLinkLabel: 'Klaro öffnen ↗',
+    externalLinkCaption: 'Öffnet in einem neuen Tab — deine Vaultfolio-Sitzung bleibt bestehen.',
+    roadmapToday: 'Du musst direkt in Klaro ein separates Konto anlegen.',
+    roadmapSync:
+      'Eine zukünftige Datensynchronisierung erfordert dieselbe E-Mail-Adresse in deinem Klaro- und deinem Vaultfolio-Konto.',
+    roadmapFuture:
+      'Die Funktionen von Klaro sollen künftig unter diesem selben Navigationseintrag in Vaultfolio integriert werden.',
+  },
   accountOverview: {
     countSingular: 'Konto',
     countPlural: 'Konten',
@@ -463,6 +483,7 @@ export const de: TranslationDictionary = {
     haushaltsplaner: 'Haushaltsplaner',
     wealthDevelopment: 'Vermögensentwicklung',
     accountOverview: 'Kontoübersicht',
+    klaro: 'Klaro',
     settings: 'Einstellungen',
     settingsProfile: 'Einstellungen · Profil',
     settingsPreferences: 'Einstellungen · Präferenzen',

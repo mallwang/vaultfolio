@@ -34,15 +34,15 @@ shared-ui/src/lib/i18n/translations/` (i18n dictionaries), `apps/frontend/public
 **Purpose**: Scaffold the new `@vaultfolio/frontend-domain-klaro` library and land the real logo
 asset, mirroring the existing `insurances` placeholder library exactly in shape.
 
-- [ ] T001 Create `libs/frontend/domain/klaro/` library scaffold (`package.json`, `project.json`,
+- [x] T001 Create `libs/frontend/domain/klaro/` library scaffold (`package.json`, `project.json`,
       `tsconfig.json`, `tsconfig.lib.json`, `tsconfig.spec.json`, `src/index.ts`), copied and
       renamed from `libs/frontend/domain/insurances/` (name: `@vaultfolio/frontend-domain-klaro`,
       tag `scope:frontend-domain`, deps limited to `scope:shared` per plan.md Constitution Check)
-- [ ] T002 [P] Add `apps/frontend/public/klaro-logo.png` — the Klaro brand mark pulled from
+- [x] T002 [P] Add `apps/frontend/public/klaro-logo.png` — the Klaro brand mark pulled from
       https://github.com/mallwang/klaro (`klaro.png` at repo root), per research.md #2
-- [ ] T003 [P] Register the new library's path mapping/project reference so
+- [x] T003 [P] Register the new library's path mapping/project reference so
       `@vaultfolio/frontend-domain-klaro` resolves the same way `@vaultfolio/frontend-domain-
-    insurances` does (`tsconfig.base.json` / workspace project references, whichever the
+  insurances` does (`tsconfig.base.json` / workspace project references, whichever the
       insurances library uses)
 
 **Checkpoint**: Library builds empty/lints clean; asset is present on disk.
@@ -55,19 +55,19 @@ asset, mirroring the existing `insurances` placeholder library exactly in shape.
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T004 Add `logoAsset?: string` field to the `ApplicationArea` interface in
+- [x] T004 Add `logoAsset?: string` field to the `ApplicationArea` interface in
       `apps/frontend/src/app/core/layout/application-areas.ts` (data-model.md — `icon` stays
       required)
-- [ ] T005 Add the Klaro `ApplicationArea` entry to `APPLICATION_AREAS` in
+- [x] T005 Add the Klaro `ApplicationArea` entry to `APPLICATION_AREAS` in
       `apps/frontend/src/app/core/layout/application-areas.ts`, positioned between
       `account-overview` and `settings`, per the contract in
       `specs/028-klaro-nav-integration/contracts/klaro-nav-and-page.md`
       (`id: 'klaro'`, `labelKey: 'nav.klaro'`, `path: 'klaro'`, `icon: 'handshake'`,
       `logoAsset: 'klaro-logo.png'`, `domainId: 'klaro'`)
-- [ ] T006 [P] Append the Klaro `DomainDescriptor` entry (`{ id: 'klaro', labelKey: 'nav.klaro',
-    path: 'klaro', icon: 'handshake' }`) to `DOMAIN_REGISTRY` in
+- [x] T006 [P] Append the Klaro `DomainDescriptor` entry (`{ id: 'klaro', labelKey: 'nav.klaro',
+  path: 'klaro', icon: 'handshake' }`) to `DOMAIN_REGISTRY` in
       `libs/frontend/domain-access/src/lib/domain-registry.ts`
-- [ ] T007 [P] Add `nav.klaro` and `pageTitle.klaro` i18n keys to
+- [x] T007 [P] Add `nav.klaro` and `pageTitle.klaro` i18n keys to
       `libs/frontend/shared-ui/src/lib/i18n/translations/en.ts` and `de.ts`
 
 **Checkpoint**: `DOMAIN_REGISTRY`/`APPLICATION_AREAS` know about Klaro; the entitlement gate and
@@ -88,33 +88,33 @@ Klaro logo (not a Material Symbols glyph) in the correct position, select it, an
 
 ### Implementation for User Story 1
 
-- [ ] T008 [US1] Scaffold `KlaroPageComponent` (standalone, no inputs/outputs) at
+- [x] T008 [US1] Scaffold `KlaroPageComponent` (standalone, no inputs/outputs) at
       `libs/frontend/domain/klaro/src/lib/klaro-page/klaro-page.component.ts` with a minimal hero
       section (title + `heroSubtitle`), modeled on
       `libs/frontend/domain/insurances/src/lib/insurances-placeholder/
-    insurances-placeholder.component.ts` for boilerplate (inline template/styles)
-- [ ] T009 [US1] Export `KlaroPageComponent` from
+  insurances-placeholder.component.ts` for boilerplate (inline template/styles)
+- [x] T009 [US1] Export `KlaroPageComponent` from
       `libs/frontend/domain/klaro/src/index.ts`
-- [ ] T010 [US1] Add the `klaro` route to `apps/frontend/src/app/app.routes.ts`
+- [x] T010 [US1] Add the `klaro` route to `apps/frontend/src/app/app.routes.ts`
       (`path: 'klaro'`, `title: 'pageTitle.klaro'`, `canActivate: [domainGuard('klaro')]`,
       `loadComponent` lazy-importing `KlaroPageComponent` from
       `@vaultfolio/frontend-domain-klaro`), alongside the other domain routes under `/app`
-- [ ] T011 [US1] Update `app-sidebar.component.html` to render `<img [src]="'klaro-logo.png' |
-    ..." >` (or `area.logoAsset`) in the icon slot when `area.logoAsset` is set, falling back to
+- [x] T011 [US1] Update `app-sidebar.component.html` to render `<img [src]="'klaro-logo.png' |
+  ..." >` (or `area.logoAsset`) in the icon slot when `area.logoAsset` is set, falling back to
       the existing `<app-icon [name]="area.icon">` otherwise, in
       `apps/frontend/src/app/core/layout/app-sidebar/app-sidebar.component.html`
-- [ ] T012 [US1] Add sizing rules for the logo-mark slot (matching the existing icon slot's
+- [x] T012 [US1] Add sizing rules for the logo-mark slot (matching the existing icon slot's
       dimensions, desktop + collapsed + mobile-top-bar states) in
       `apps/frontend/src/app/core/layout/app-sidebar/app-sidebar.component.css`
-- [ ] T013 [US1] Add `data-testid="sidebar-nav-item-klaro"` to the Klaro entry's rendered markup in
+- [x] T013 [US1] Add `data-testid="sidebar-nav-item-klaro"` to the Klaro entry's rendered markup in
       `app-sidebar.component.html`, following the existing `sidebar-nav-item-<area.id>` convention
       (per [testid-conventions.md](../../docs/frontend/testid-conventions.md) and quickstart.md)
-- [ ] T014 [US1] Extend `app-sidebar.component.spec.ts` with a `klaro` fixture asserting: the entry
+- [x] T014 [US1] Extend `app-sidebar.component.spec.ts` with a `klaro` fixture asserting: the entry
       renders with `logoAsset` as an `<img>` instead of `<app-icon>`, and appears between
       `account-overview` and `settings`
-- [ ] T015 [US1] Extend `app.routes.spec.ts` with an assertion that the `klaro` route exists, is
+- [x] T015 [US1] Extend `app.routes.spec.ts` with an assertion that the `klaro` route exists, is
       guarded by `domainGuard('klaro')`, and lazy-loads `KlaroPageComponent`
-- [ ] T016 [US1] [P] Add `klaro-page.component.spec.ts` at
+- [x] T016 [US1] [P] Add `klaro-page.component.spec.ts` at
       `libs/frontend/domain/klaro/src/lib/klaro-page/klaro-page.component.spec.ts` asserting the
       component renders (smoke test) — expanded further in US2/US3
 
@@ -135,17 +135,17 @@ new tab while the Vaultfolio tab stays open.
 
 ### Implementation for User Story 2
 
-- [ ] T017 [P] [US2] Add `klaroPage.description`, `klaroPage.feature1`…`feature4`,
+- [x] T017 [P] [US2] Add `klaroPage.description`, `klaroPage.feature1`…`feature4`,
       `klaroPage.standaloneBanner`, `klaroPage.externalLinkLabel`, `klaroPage.externalLinkCaption`
       i18n keys to `libs/frontend/shared-ui/src/lib/i18n/translations/en.ts` and `de.ts`
-- [ ] T018 [US2] Extend `KlaroPageComponent`'s template
+- [x] T018 [US2] Extend `KlaroPageComponent`'s template
       (`libs/frontend/domain/klaro/src/lib/klaro-page/klaro-page.component.ts`) with the
       description paragraph, feature-highlight bullets, and standalone-app banner section
       (`p-card`, `TranslatePipe`), per design.md's approved layout (FR-004, FR-005)
-- [ ] T019 [US2] Add the external link ("Open Klaro ↗") to `KlaroPageComponent`'s template,
+- [x] T019 [US2] Add the external link ("Open Klaro ↗") to `KlaroPageComponent`'s template,
       `href="https://klaro.allwang.family/"`, `target="_blank"`, `rel="noopener"`, with the
       `externalLinkCaption` text nearby (FR-006)
-- [ ] T020 [US2] Extend `klaro-page.component.spec.ts` to assert: the description/standalone-app
+- [x] T020 [US2] Extend `klaro-page.component.spec.ts` to assert: the description/standalone-app
       content blocks are present, and the external link has the correct `href`, `target="_blank"`,
       and `rel="noopener"`
 
@@ -164,14 +164,14 @@ integration, current separate account, same-email-address sync requirement) are 
 
 ### Implementation for User Story 3
 
-- [ ] T021 [P] [US3] Add `klaroPage.roadmapToday`, `klaroPage.roadmapSync`,
+- [x] T021 [P] [US3] Add `klaroPage.roadmapToday`, `klaroPage.roadmapSync`,
       `klaroPage.roadmapFuture` i18n keys to
       `libs/frontend/shared-ui/src/lib/i18n/translations/en.ts` and `de.ts`
-- [ ] T022 [US3] Add the "Where this is headed" roadmap card to `KlaroPageComponent`'s template
+- [x] T022 [US3] Add the "Where this is headed" roadmap card to `KlaroPageComponent`'s template
       (`libs/frontend/domain/klaro/src/lib/klaro-page/klaro-page.component.ts`) with three rows
       (Today/Sync/Future) rendering `roadmapToday`, `roadmapSync`, `roadmapFuture` (FR-007, FR-008,
       FR-009)
-- [ ] T023 [US3] Extend `klaro-page.component.spec.ts` to assert all three roadmap statements
+- [x] T023 [US3] Extend `klaro-page.component.spec.ts` to assert all three roadmap statements
       (future integration, separate account today, same-email-address sync) are present in the
       rendered content
 
@@ -184,18 +184,28 @@ FR-004 through FR-009.
 
 **Purpose**: Edge cases and end-to-end validation across all stories.
 
-- [ ] T024 [P] Add the `(error)`-driven `<img>` → `<app-icon>` fallback swap on the sidebar's logo
+- [x] T024 [P] Add the `(error)`-driven `<img>` → `<app-icon>` fallback swap on the sidebar's logo
       slot in `apps/frontend/src/app/core/layout/app-sidebar/app-sidebar.component.html`/`.ts`
       (research.md #4 — reuses `area.icon`, no new fallback icon), covering the Edge Case "logo
-      asset fails to load"
-- [ ] T025 [P] Extend `app-sidebar.component.spec.ts` with a test asserting the fallback swap fires
+      asset fails to load" (landed with T011/T014 since both touch the same render logic)
+- [x] T025 [P] Extend `app-sidebar.component.spec.ts` with a test asserting the fallback swap fires
       on the `<img>`'s `(error)` event and the entry remains selectable
-- [ ] T026 Run `specs/028-klaro-nav-integration/quickstart.md` end-to-end (US1–US3 plus all Edge
+- [x] T026 Run `specs/028-klaro-nav-integration/quickstart.md` end-to-end (US1–US3 plus all Edge
       Cases: broken logo, no entitlement/direct-URL redirect, collapsed/mobile sidebar) via the
-      `verify-ui` skill
-- [ ] T027 [P] Verify `@nx/enforce-module-boundaries` passes for the new
+      `verify-ui` skill (live-browser run blocked by an environment-specific Vite/rolldown
+      dev-server crash on cold-scanning the newly-added `@vaultfolio/frontend-domain-klaro`
+      package — reproducible even with the route/component removed-then-restored, so it is a
+      dev-server tooling issue, not a code defect; `nx run frontend:build` (production, esbuild)
+      succeeds cleanly. Every quickstart scenario is instead covered and passing via component/
+      route-table tests: `app-sidebar.component.spec.ts` (position, logo image, broken-logo
+      fallback, selectability), `app.routes.spec.ts` (route resolution + redirect when
+      un-entitled), `klaro-page.component.spec.ts` (description, standalone banner, external link
+      attributes, all three roadmap statements))
+- [x] T027 [P] Verify `@nx/enforce-module-boundaries` passes for the new
       `libs/frontend/domain/klaro` library (`scope:frontend-domain`, no dependency on another
       domain library or the app-shell), per plan.md's Frontend domain libraries Stack Decision
+      (verified via `nx lint`, plus `frontend`/`frontend-domain-access`/`frontend-shared-ui` lint —
+      all clean)
 
 ---
 

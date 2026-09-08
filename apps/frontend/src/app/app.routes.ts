@@ -148,6 +148,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'klaro',
+        title: 'pageTitle.klaro',
+        canActivate: [domainGuard('klaro')],
+        loadComponent: () =>
+          import('@vaultfolio/frontend-domain-klaro').then((m) => m.KlaroPageComponent),
+      },
+      {
         path: 'settings',
         title: 'pageTitle.settings',
         loadComponent: () =>

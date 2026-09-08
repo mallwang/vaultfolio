@@ -71,4 +71,7 @@ export const ICON_NAME_MAP: Record<string, string> = {
   // Account Overview credit-card fields (025-account-overview follow-up): reveal/hide toggle.
   visibility: 'visibility',
   'visibility-off': 'visibility_off',
+  // Klaro nav entry (028-klaro-nav-integration): broken-logo-image fallback glyph
+  // (research.md #4) and the admin domain-scopes multiselect's DomainDescriptor icon.
+  handshake: 'handshake',
 };

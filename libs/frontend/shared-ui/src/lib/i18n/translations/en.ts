@@ -36,6 +36,7 @@ export const en: TranslationDictionary = {
     haushaltsplaner: 'Haushaltsplaner',
     historicWealthDevelopment: 'Wealth Development',
     accountOverview: 'Account Overview',
+    klaro: 'Klaro',
     settings: 'Settings',
     admin: 'Admin',
     accounts: 'Accounts',
@@ -402,6 +403,25 @@ export const en: TranslationDictionary = {
     title: 'Account Overview',
     body: 'Account Overview is not yet available. This area will be built out in a future update.',
   },
+  // Klaro info page (028-klaro-nav-integration, FR-004–FR-009): static,
+  // final content — not a placeholder.
+  klaroPage: {
+    heroSubtitle: 'Contract & subscription management',
+    description:
+      'Klaro tracks your contracts and subscriptions — what you pay, when it renews, and how it breaks down by category — so nothing quietly auto-renews without you noticing.',
+    feature1: 'Spend and category breakdown',
+    feature2: 'Renewal alerts before a contract auto-renews',
+    feature3: 'A single table of every contract you track',
+    feature4: 'Import and export as JSON or Excel',
+    standaloneBanner: 'Klaro is currently its own, separate application from Vaultfolio.',
+    externalLinkLabel: 'Open Klaro ↗',
+    externalLinkCaption: 'Opens in a new tab — your Vaultfolio session stays open.',
+    roadmapToday: 'You need to create a separate account directly in Klaro.',
+    roadmapSync:
+      'Future data synchronization will require the identical email address on both your Klaro and Vaultfolio accounts.',
+    roadmapFuture:
+      "Klaro's functionality is planned to be integrated into Vaultfolio under this same nav entry.",
+  },
   accountOverview: {
     countSingular: 'account',
     countPlural: 'accounts',
@@ -460,6 +480,7 @@ export const en: TranslationDictionary = {
     haushaltsplaner: 'Haushaltsplaner',
     wealthDevelopment: 'Wealth Development',
     accountOverview: 'Account Overview',
+    klaro: 'Klaro',
     settings: 'Settings',
     settingsProfile: 'Settings · Profile',
     settingsPreferences: 'Settings · Preferences',

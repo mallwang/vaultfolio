@@ -29,6 +29,9 @@
       "path": "../../libs/frontend/domain/insurances/tsconfig.lib.json"
     },
     {
+      "path": "../../libs/frontend/domain/klaro/tsconfig.lib.json"
+    },
+    {
       "path": "../../libs/frontend/domain/retirement/tsconfig.lib.json"
     },
     {

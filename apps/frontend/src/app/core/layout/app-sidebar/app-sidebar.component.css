@@ -51,6 +51,17 @@
   flex: 0 0 auto;
 }
 
+/* Klaro's logo mark (028-klaro-nav-integration): matches app-icon's slot
+   dimensions so the one image-backed entry sits flush with every glyph
+   entry, in desktop, collapsed, and mobile-top-bar states. */
+.app-nav__logo {
+  width: 1.05rem;
+  height: 1.05rem;
+  border-radius: 4px;
+  flex: 0 0 auto;
+  object-fit: cover;
+}
+
 .app-nav__item:hover {
   background: var(--p-content-hover-background);
   color: var(--p-text-color);
