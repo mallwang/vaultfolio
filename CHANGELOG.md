@@ -1,3 +1,15 @@
+## 0.0.8 (2026-09-08)
+
+### 🚀 Features
+
+- **account-overview:** add account overview CRUD feature end-to-end ([#42](https://github.com/mallwang/vaultfolio/pull/42))
+- **frontend:** add forgot-password link to sign-in and i18n account screens ([#49](https://github.com/mallwang/vaultfolio/pull/49))
+- **turnstile:** add Cloudflare Turnstile bot protection to signup and forgot-password ([#47](https://github.com/mallwang/vaultfolio/pull/47))
+
+### 🩹 Fixes
+
+- resolve SonarQube-flagged code quality issues across the codebase ([#44](https://github.com/mallwang/vaultfolio/pull/44))
+
 ## 0.0.7 (2026-09-06)
 
 ### 🚀 Features
