@@ -59,7 +59,7 @@ describe('AccountsComponent — domain-scope options', () => {
     expect(fixture.componentInstance['domainRegistry']).toBe(DOMAIN_REGISTRY);
   });
 
-  it('includes each of the five new placeholder domains as an independently listed option', () => {
+  it('includes each domain as an independently listed option', () => {
     const ids = fixture.componentInstance['domainRegistry'].map((d) => d.id);
     expect(ids).toEqual([
       'holdings',
@@ -68,6 +68,7 @@ describe('AccountsComponent — domain-scope options', () => {
       'haushaltsplaner',
       'historic-wealth-development',
       'account-overview',
+      'klaro',
     ]);
   });
 });
