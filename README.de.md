@@ -155,6 +155,46 @@ von Docker Hub.
 Neu deployen nach einem neuen Push: erneut die `docker push`-Befehle ausführen, dann in
 Portainer **Stacks → dein Stack → Pull and redeploy**.
 
+### Was Portainer eigentlich ist
+
+Portainer ist eine **Web-Oberfläche über Docker** — es ruft die Docker-API auf und zeigt sie im
+Browser. Es ist keine Laufzeitumgebung. Deine Stacks (Frontend, Backend, etc.) laufen als ganz
+normale Docker-Container direkt auf dem Host; Portainer erlaubt dir nur, sie ohne Terminal zu
+verwalten.
+
+Wichtige Konsequenz: **Portainer stoppen oder neustarten berührt deine Stacks nicht.** Die Stacks
+laufen weiter. Portainer ist wie ein Cockpit-Display — wenn man es ausschaltet, fliegt das
+Flugzeug weiter.
+
+### Portainer selbst aktualisieren
+
+Portainer läuft als eigener Docker-Container und speichert seine Konfiguration (Endpunkte, Nutzer,
+Stack-Definitionen, Umgebungsvariablen) in einem Docker-verwalteten Volume (`portainer_data`).
+Aktualisieren bedeutet: Container ersetzen, Volume behalten.
+
+```bash
+# Optional aber empfohlen: Volume vorher sichern
+docker run --rm \
+  -v portainer_data:/data \
+  -v /root:/backup \
+  alpine tar czf /backup/portainer_backup_$(date +%Y%m%d).tar.gz /data
+
+# Container ersetzen (Stacks laufen die ganze Zeit durch)
+docker stop portainer && docker rm portainer
+docker pull portainer/portainer-ce:2.45.0
+docker run -d \
+  -p 8000:8000 -p 9443:9443 \
+  --name portainer \
+  --restart=always \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v portainer_data:/data \
+  portainer/portainer-ce:2.45.0
+```
+
+Ausfallzeit: ~15 Sekunden. Alle Stacks laufen unterbrechungsfrei weiter. Das `portainer_data`
+Volume — inklusive aller Stack-Definitionen und Umgebungsvariablen — bleibt über das Update
+hinweg erhalten.
+
 ## Frontend-Umgebungskonfiguration
 
 `apps/frontend` folgt dem Standard-Angular-Umgebungsdatei-Muster unter
