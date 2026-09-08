@@ -62,7 +62,8 @@ For a full walkthrough of the UI, see [docs/user-guide.md](docs/user-guide.md)
 The frontend is split into an app-shell plus independent domain libraries under
 `libs/frontend/domain/<name>` (holdings today; retirement, insurances, household planning
 (`haushaltsplaner`), historic wealth development, and account overview exist as placeholders ready
-to be built out). This structure — and the Nx project-tag boundaries that enforce it — is a binding
+to be built out; Klaro is a companion app integration — an info page linking out to the standalone
+[Klaro](https://klaro.allwang.family/) app, with account/data sync planned). This structure — and the Nx project-tag boundaries that enforce it — is a binding
 architectural decision recorded in the [constitution](.specify/memory/constitution.md#stack-decision)
 (specs [020-domain-library-architecture](specs/020-domain-library-architecture/spec.md) and
 [021-frontend-extension-points](specs/021-frontend-extension-points/spec.md)):

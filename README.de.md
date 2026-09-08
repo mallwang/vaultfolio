@@ -51,8 +51,10 @@ Für eine vollständige Beschreibung der Oberfläche siehe [docs/user-guide.de.m
 ## Frontend-Domänenbibliothek-Architektur
 
 Das Frontend ist in eine App-Shell plus unabhängige Domänenbibliotheken unter
-`libs/frontend/domain/<name>` aufgeteilt. Diese Struktur und die Nx-Projektgrenzen, die sie
-durchsetzen, sind eine bindende Architekturentscheidung:
+`libs/frontend/domain/<name>` aufgeteilt (Holdings heute; Klaro als Info-Seite mit Verlinkung zur
+eigenständigen [Klaro](https://klaro.allwang.family/)-App, Kontosynchronisierung geplant; weitere
+Domänen als Platzhalter). Diese Struktur und die Nx-Projektgrenzen, die sie durchsetzen, sind eine
+bindende Architekturentscheidung:
 
 - `libs/frontend/domain/<name>` (`scope:frontend-domain`) – eine pro Domäne; darf KEINE andere
   Domänenbibliothek importieren, nur `scope:shared`-Bibliotheken.
