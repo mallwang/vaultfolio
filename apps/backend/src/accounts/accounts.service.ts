@@ -21,6 +21,7 @@ const KNOWN_DOMAIN_IDS: ReadonlySet<string> = new Set([
   'haushaltsplaner',
   'historic-wealth-development',
   'account-overview',
+  'klaro',
 ]);
 
 function retentionDays(): number {

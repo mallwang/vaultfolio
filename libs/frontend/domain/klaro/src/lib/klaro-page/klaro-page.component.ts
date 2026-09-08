@@ -50,13 +50,13 @@ import { TranslatePipe } from '@vaultfolio/frontend-shared-ui';
         <p class="external-link__caption">{{ 'klaroPage.externalLinkCaption' | translate }}</p>
       </p-card>
 
-      <p-card header="Where this is headed">
+      <p-card [header]="'klaroPage.roadmapHeading' | translate">
         <dl class="roadmap">
-          <dt>Today</dt>
+          <dt>{{ 'klaroPage.roadmapTodayLabel' | translate }}</dt>
           <dd>{{ 'klaroPage.roadmapToday' | translate }}</dd>
-          <dt>Sync</dt>
+          <dt>{{ 'klaroPage.roadmapSyncLabel' | translate }}</dt>
           <dd>{{ 'klaroPage.roadmapSync' | translate }}</dd>
-          <dt>Future</dt>
+          <dt>{{ 'klaroPage.roadmapFutureLabel' | translate }}</dt>
           <dd>{{ 'klaroPage.roadmapFuture' | translate }}</dd>
         </dl>
       </p-card>
