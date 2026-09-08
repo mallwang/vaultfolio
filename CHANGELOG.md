@@ -1,3 +1,11 @@
+## 0.0.9 (2026-09-08)
+
+### 🚀 Features
+
+- **account:** i18n reset-password screen, show email, and make Turnstile optional ([#52](https://github.com/mallwang/vaultfolio/pull/52))
+- **frontend:** i18n browser tab titles and remove legacy route redirects ([#53](https://github.com/mallwang/vaultfolio/pull/53))
+- **frontend-domain-klaro:** add Klaro nav entry and info page ([#54](https://github.com/mallwang/vaultfolio/pull/54))
+
 ## 0.0.8 (2026-09-08)
 
 ### 🚀 Features
