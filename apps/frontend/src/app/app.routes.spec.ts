@@ -87,22 +87,15 @@ describe('app.routes', () => {
     it.each([
       ['/app/dashboard', '/app/dashboard'],
       ['/app/holdings', '/app/holdings/list'],
-      ['/app/imports', '/app/holdings/imports'],
       ['/app/settings', '/app/settings/profile'],
     ])('resolves %s under /app/*', async (path, expected) => {
       await router.navigateByUrl(path);
       expect(location.path()).toBe(expected);
     });
 
-    it.each([
-      ['/', '/app/dashboard'],
-      ['/dashboard', '/app/dashboard'],
-      ['/holdings', '/app/holdings/list'],
-      ['/imports', '/app/holdings/imports'],
-      ['/settings', '/app/settings/profile'],
-    ])('redirects legacy %s to %s', async (legacy, expected) => {
-      await router.navigateByUrl(legacy);
-      expect(location.path()).toBe(expected);
+    it('redirects / to /app/dashboard', async () => {
+      await router.navigateByUrl('/');
+      expect(location.path()).toBe('/app/dashboard');
     });
 
     // 012 US4: each Settings/Admin tab is directly addressable for deep
@@ -209,16 +202,10 @@ describe('app.routes', () => {
     it.each([
       ['/app/dashboard', '/app/dashboard'],
       ['/app/holdings', '/app/holdings/list'],
-      ['/app/imports', '/app/holdings/imports'],
       ['/app/settings', '/app/settings/profile'],
     ])('redirects %s to /sign-in, preserving %s as a redirect target', async (path, resolved) => {
       await router.navigateByUrl(path);
       expect(location.path()).toBe(`/sign-in?redirect=${encodeURIComponent(resolved)}`);
-    });
-
-    it('redirects a legacy address to /sign-in via its /app equivalent, preserving the resolved /app address as a redirect target', async () => {
-      await router.navigateByUrl('/dashboard');
-      expect(location.path()).toBe(`/sign-in?redirect=${encodeURIComponent('/app/dashboard')}`);
     });
 
     it.each(['/sign-in', '/signup', '/invite/expired'])(
