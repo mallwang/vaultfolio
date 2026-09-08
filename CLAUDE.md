@@ -22,6 +22,21 @@
 
 <!-- nx configuration end-->
 
+## Code Navigation
+
+- Before grepping/reading files to understand structure, call/data flow, or "what depends on X"
+  across `apps/`/`libs/`, prefer CodeGraph over ad-hoc `Grep`/`Read`. It has several MCP tools —
+  pick the narrowest one that answers the question, since `codegraph_explore` always inlines full
+  verbatim source for every matched file and gets expensive on broad queries:
+  - `codegraph_search` — find symbols by name, no source
+  - `codegraph_callers` / `codegraph_callees` / `codegraph_impact` — who calls/is called by/would
+    break if a symbol changes, structure only
+  - `codegraph_node` — one specific symbol's source + its immediate caller/callee trail
+  - `codegraph_explore` — reach for this only when you actually need the surrounding source (e.g.
+    right before editing), not just to answer "what depends on X"
+  - CLI equivalents (e.g. `npx codegraph callers "<symbol>"`, `npx codegraph explore "<question>" --max-files 5`)
+    work the same if MCP is unavailable.
+
 ## Verifying UI changes
 
 - Whenever a change touches the frontend (a component, route, style, i18n string, PrimeNG usage),
