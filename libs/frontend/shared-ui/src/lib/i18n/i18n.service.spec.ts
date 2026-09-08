@@ -61,4 +61,16 @@ describe('I18nService', () => {
     expect(() => service.setLanguage('de')).not.toThrow();
     expect(service.language()).toBe('de');
   });
+
+  it('translate() returns the active-language value for a dotted key path', () => {
+    const service = new I18nService();
+    expect(service.translate('header.signOut')).toBe('Sign out');
+    service.setLanguage('de');
+    expect(service.translate('header.signOut')).toBe('Abmelden');
+  });
+
+  it('translate() falls back to "en" for a key missing from the active language, and returns the key itself when missing from both', () => {
+    const service = new I18nService();
+    expect(service.translate('nonexistent.key')).toBe('nonexistent.key');
+  });
 });

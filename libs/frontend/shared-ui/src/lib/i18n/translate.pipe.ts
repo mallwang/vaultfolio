@@ -1,21 +1,5 @@
 import { Pipe, PipeTransform, inject } from '@angular/core';
 import { I18nService } from './i18n.service';
-import { en } from './translations/en';
-import { de } from './translations/de';
-import type { TranslationDictionary } from './translations/en';
-import type { LanguageCode } from '@vaultfolio/api-contract';
-
-const DICTIONARIES: Record<LanguageCode, TranslationDictionary> = { en, de };
-
-function lookup(dictionary: TranslationDictionary, key: string): string | undefined {
-  const value = key
-    .split('.')
-    .reduce<string | TranslationDictionary | undefined>(
-      (node, segment) => (node && typeof node === 'object' ? node[segment] : undefined),
-      dictionary,
-    );
-  return typeof value === 'string' ? value : undefined;
-}
 
 /**
  * `{{ 'header.signOut' | translate }}` — looks up a dotted key path in the
@@ -39,7 +23,6 @@ export class TranslatePipe implements PipeTransform {
     if (!key) {
       return '';
     }
-    const active = DICTIONARIES[this.i18n.language()] ?? en;
-    return lookup(active, key) ?? lookup(en, key) ?? key;
+    return this.i18n.translate(key);
   }
 }

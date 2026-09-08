@@ -1,8 +1,22 @@
 import { Injectable, signal } from '@angular/core';
 import { DEFAULT_LANGUAGE_CODE, isSupportedLanguageCode } from '@vaultfolio/api-contract';
 import type { LanguageCode } from '@vaultfolio/api-contract';
+import { en } from './translations/en';
+import { de } from './translations/de';
+import type { TranslationDictionary } from './translations/en';
 
 const STORAGE_KEY = 'vaultfolio-language';
+const DICTIONARIES: Record<LanguageCode, TranslationDictionary> = { en, de };
+
+function lookup(dictionary: TranslationDictionary, key: string): string | undefined {
+  const value = key
+    .split('.')
+    .reduce<string | TranslationDictionary | undefined>(
+      (node, segment) => (node && typeof node === 'object' ? node[segment] : undefined),
+      dictionary,
+    );
+  return typeof value === 'string' ? value : undefined;
+}
 
 /**
  * Resolves and holds the visitor's display-language preference (per-device,
@@ -16,6 +30,11 @@ const STORAGE_KEY = 'vaultfolio-language';
 export class I18nService {
   private readonly _language = signal<LanguageCode>(this.resolveInitialLanguage());
   readonly language = this._language.asReadonly();
+
+  translate(key: string): string {
+    const active = DICTIONARIES[this._language()] ?? en;
+    return lookup(active, key) ?? lookup(en, key) ?? key;
+  }
 
   /** Switches the active language immediately (FR-003) and persists the choice (FR-004). */
   setLanguage(code: LanguageCode): void {
