@@ -25,14 +25,15 @@ infrastructure.
    - 4.4 [Distribution Charts](#44-distribution-charts)
    - 4.5 [Editing and Deleting Holdings](#45-editing-and-deleting-holdings)
 5. [Account Overview](#5-account-overview)
-6. [Settings](#6-settings)
-   - 6.1 [Profile](#61-profile)
-   - 6.2 [Preferences](#62-preferences)
-7. [Admin Area](#7-admin-area)
-   - 7.1 [Managing Accounts](#71-managing-accounts)
-   - 7.2 [Invitations](#72-invitations)
-   - 7.3 [Sign-Up Requests](#73-sign-up-requests)
-   - 7.4 [System Health](#74-system-health)
+6. [Klaro](#6-klaro)
+7. [Settings](#7-settings)
+   - 7.1 [Profile](#71-profile)
+   - 7.2 [Preferences](#72-preferences)
+8. [Admin Area](#8-admin-area)
+   - 8.1 [Managing Accounts](#81-managing-accounts)
+   - 8.2 [Invitations](#82-invitations)
+   - 8.3 [Sign-Up Requests](#83-sign-up-requests)
+   - 8.4 [System Health](#84-system-health)
 
 ---
 
@@ -76,7 +77,7 @@ collapse it to icon-only mode; hovering an icon shows a tooltip with the area na
 The active page is highlighted.
 
 Which areas appear depends on the domains your administrator has granted you access
-to (see [Managing Accounts](#71-managing-accounts)).
+to (see [Managing Accounts](#81-managing-accounts)).
 
 ### 2.2 Header
 
@@ -180,9 +181,23 @@ useful for keeping historical records.
 
 ---
 
-## 6. Settings
+## 6. Klaro
 
-### 6.1 Profile
+**Klaro** is a companion habit-tracking application, developed separately from
+Vaultfolio. The Klaro entry in the sidebar (shown with Klaro's own logo) opens an
+information page — it does not embed Klaro itself.
+
+The page explains what Klaro does and links out to the standalone app at
+[klaro.allwang.family](https://klaro.allwang.family/), which opens in a new tab.
+Klaro currently requires its own separate account; a future update will let you
+synchronize data between the two apps as long as you use the identical email address
+in both.
+
+---
+
+## 7. Settings
+
+### 7.1 Profile
 
 **Display name** — Change how your name appears across the app. Updates immediately
 without a page reload.
@@ -201,7 +216,7 @@ and finally typing `DELETE` to confirm. This action cannot be undone.
 > If you are the only administrator, account deletion is blocked. Promote another
 > user to admin first.
 
-### 6.2 Preferences
+### 7.2 Preferences
 
 **Email language** — Sets the language used in emails sent to you (verification
 links, notifications). This is independent of the UI display language, which is set
@@ -209,11 +224,11 @@ in the header.
 
 ---
 
-## 7. Admin Area
+## 8. Admin Area
 
 The Admin area is only visible to users with the Administrator role.
 
-### 7.1 Managing Accounts
+### 8.1 Managing Accounts
 
 The **Accounts** tab lists all accounts (active and archived).
 
@@ -232,7 +247,7 @@ navigate to. Changes take effect on the user's next page load.
 reactivated within 30 days; after that it is permanently deleted. You cannot archive
 or demote the last remaining administrator.
 
-### 7.2 Invitations
+### 8.2 Invitations
 
 The **Invitations** tab shows all invitations and their status:
 
@@ -250,7 +265,7 @@ invited user sets their own password — you never see it.
 Per-row actions: **Resend** (generates a new link, superseding the old one) and
 **Cancel** (with confirmation).
 
-### 7.3 Sign-Up Requests
+### 8.3 Sign-Up Requests
 
 The **Sign-ups** tab shows self-service registration requests. Each request moves
 through these stages:
@@ -266,7 +281,7 @@ Per-row actions:
 - **Delete** — removes the entry and unblocks the email address so the person can
   sign up again.
 
-### 7.4 System Health
+### 8.4 System Health
 
 **Admin → General** shows the current system status: backend health (ok / degraded)
 and database connectivity (connected / unreachable), with a "last checked" timestamp.

@@ -71,6 +71,7 @@
             "@vaultfolio/frontend-domain-historic-wealth-development",
             "@vaultfolio/frontend-domain-holdings",
             "@vaultfolio/frontend-domain-insurances",
+            "@vaultfolio/frontend-domain-klaro",
             "@vaultfolio/frontend-domain-retirement",
             "@vaultfolio/frontend-shared-ui"
           ]

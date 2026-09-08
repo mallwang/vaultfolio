@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import type { AcceptInvitationRequest, InvitationsErrorResponse } from '@vaultfolio/api-contract';
@@ -6,7 +6,7 @@ import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
-import { IconComponent } from '@vaultfolio/frontend-shared-ui';
+import { IconComponent, I18nService, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
 /* eslint-disable-next-line @nx/enforce-module-boundaries -- InvitationsService is a lightweight
    HttpClient wrapper with no PrimeNG/other Admin-component dependency, imported here (the public,
    unauthenticated accept-invite flow) for its `lookupToken`/`accept` methods only — the same
@@ -17,9 +17,9 @@ import { IconComponent } from '@vaultfolio/frontend-shared-ui';
    bundler still code-splits them into their own chunk regardless of this static import. */
 import { InvitationsService } from '@vaultfolio/frontend-admin';
 
-const ROLE_LABEL: Record<'ADMIN' | 'MEMBER', string> = {
-  ADMIN: 'an Administrator',
-  MEMBER: 'a Member',
+const ROLE_KEY: Record<'ADMIN' | 'MEMBER', 'roleAdmin' | 'roleMember'> = {
+  ADMIN: 'roleAdmin',
+  MEMBER: 'roleMember',
 };
 
 /** Mirrors `libs/domain/auth/password-policy.ts` (spec 005) — a client-side
@@ -39,7 +39,15 @@ const MAX_PASSWORD_LENGTH = 200;
  */
 @Component({
   selector: 'app-invite-accept',
-  imports: [FormsModule, ButtonModule, CardModule, InputTextModule, MessageModule, IconComponent],
+  imports: [
+    FormsModule,
+    ButtonModule,
+    CardModule,
+    InputTextModule,
+    MessageModule,
+    IconComponent,
+    TranslatePipe,
+  ],
   templateUrl: './accept.component.html',
   styleUrl: './accept.component.css',
 })
@@ -47,12 +55,18 @@ export class AcceptComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly invitationsService = inject(InvitationsService);
+  private readonly i18n = inject(I18nService);
 
   private token = '';
 
   protected readonly loading = signal(true);
   protected readonly email = signal('');
-  protected readonly roleLabel = signal('');
+  protected readonly roleKey = signal<'roleAdmin' | 'roleMember'>('roleMember');
+  protected readonly lede = computed(() =>
+    this.i18n
+      .translate('acceptInvite.lede')
+      .replace('{{role}}', this.i18n.translate(`acceptInvite.${this.roleKey()}`)),
+  );
   protected readonly displayName = signal('');
   protected readonly password = signal('');
   protected readonly confirmPassword = signal('');
@@ -68,7 +82,7 @@ export class AcceptComponent implements OnInit {
     this.invitationsService.lookupToken(this.token).subscribe({
       next: (lookup) => {
         this.email.set(lookup.email);
-        this.roleLabel.set(ROLE_LABEL[lookup.role]);
+        this.roleKey.set(ROLE_KEY[lookup.role]);
         this.loading.set(false);
       },
       error: () => this.goToExpired(),
@@ -86,16 +100,16 @@ export class AcceptComponent implements OnInit {
     this.errorMessage.set(null);
 
     if (!this.displayName().trim()) {
-      this.errorMessage.set('Please enter your name.');
+      this.errorMessage.set(this.i18n.translate('acceptInvite.nameRequiredError'));
       return;
     }
     if (this.password() !== this.confirmPassword()) {
-      this.errorMessage.set('Passwords do not match.');
+      this.errorMessage.set(this.i18n.translate('acceptInvite.passwordsDoNotMatchError'));
       return;
     }
     const passwordLength = this.password().length;
     if (passwordLength < MIN_PASSWORD_LENGTH || passwordLength > MAX_PASSWORD_LENGTH) {
-      this.errorMessage.set('Password must be 8–200 characters.');
+      this.errorMessage.set(this.i18n.translate('acceptInvite.passwordLengthError'));
       return;
     }
 
@@ -116,7 +130,7 @@ export class AcceptComponent implements OnInit {
           return;
         }
         this.errorMessage.set(
-          httpError.error?.message ?? 'Unable to activate this account. Please try again.',
+          httpError.error?.message ?? this.i18n.translate('acceptInvite.genericError'),
         );
       },
     });

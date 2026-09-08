@@ -29,6 +29,17 @@ const NEW_DOMAIN_IDS = [
   'account-overview',
 ] as const;
 
+// 028-klaro-nav-integration, US1: Klaro follows the exact same
+// domainGuard/lazy-loaded-component route-table contract as the five
+// placeholder domains above.
+const klaroUser: SessionUser = {
+  id: 'user-5',
+  email: 'klaro@example.com',
+  displayName: 'Klaro User',
+  role: 'MEMBER',
+  domainScopes: ['klaro'],
+};
+
 const userWithAllNewDomains: SessionUser = {
   id: 'user-4',
   email: 'new-domains@example.com',
@@ -149,6 +160,33 @@ describe('app.routes', () => {
 
     it.each(NEW_DOMAIN_IDS)('redirects /app/%s to /app/dashboard', async (id) => {
       await router.navigateByUrl(`/app/${id}`);
+      expect(location.path()).toBe('/app/dashboard');
+    });
+  });
+
+  // 028-klaro-nav-integration, US1: the klaro route resolves once entitled,
+  // and redirects to /app/dashboard the same way the other domains do when
+  // not (contracts/klaro-nav-and-page.md's Route table entry).
+  describe('when authenticated and entitled to klaro', () => {
+    beforeEach(() => {
+      setup();
+      fakeCurrentUser.setAuthenticated(klaroUser);
+    });
+
+    it('resolves /app/klaro to itself', async () => {
+      await router.navigateByUrl('/app/klaro');
+      expect(location.path()).toBe('/app/klaro');
+    });
+  });
+
+  describe('when authenticated but not entitled to klaro', () => {
+    beforeEach(() => {
+      setup();
+      fakeCurrentUser.setAuthenticated(userWithoutHoldings);
+    });
+
+    it('redirects /app/klaro to /app/dashboard', async () => {
+      await router.navigateByUrl('/app/klaro');
       expect(location.path()).toBe('/app/dashboard');
     });
   });

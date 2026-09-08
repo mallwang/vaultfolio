@@ -103,6 +103,14 @@ hooks:
       description: Auto-commit after constitution update
       condition: null
   after_specify:
+    - extension: format
+      command: speckit.format
+      enabled: true
+      optional: false
+      priority: 5
+      prompt: Format changed files before committing?
+      description: Run lint-staged (eslint --fix + prettier --write) over every file this step touched, so formatting never depends solely on the commit-time hook firing correctly
+      condition: null
     - extension: git
       command: speckit.git.commit
       enabled: true
@@ -129,6 +137,14 @@ hooks:
       description: Auto-commit after spec clarification
       condition: null
   after_plan:
+    - extension: format
+      command: speckit.format
+      enabled: true
+      optional: false
+      priority: 5
+      prompt: Format changed files before committing?
+      description: Run lint-staged (eslint --fix + prettier --write) over every file this step touched, so formatting never depends solely on the commit-time hook firing correctly
+      condition: null
     - extension: git
       command: speckit.git.commit
       enabled: true
@@ -138,6 +154,14 @@ hooks:
       description: Auto-commit after implementation planning
       condition: null
   after_tasks:
+    - extension: format
+      command: speckit.format
+      enabled: true
+      optional: false
+      priority: 5
+      prompt: Format changed files before committing?
+      description: Run lint-staged (eslint --fix + prettier --write) over every file this step touched, so formatting never depends solely on the commit-time hook firing correctly
+      condition: null
     - extension: git
       command: speckit.git.commit
       enabled: true
@@ -147,6 +171,14 @@ hooks:
       description: Auto-commit after task generation
       condition: null
   after_implement:
+    - extension: format
+      command: speckit.format
+      enabled: true
+      optional: false
+      priority: 5
+      prompt: Format changed files before committing?
+      description: Run lint-staged (eslint --fix + prettier --write) over every file the implementation touched, so formatting never depends solely on the commit-time hook firing correctly
+      condition: null
     - extension: git
       command: speckit.git.commit
       enabled: true

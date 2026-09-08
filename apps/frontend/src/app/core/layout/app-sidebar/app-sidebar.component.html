@@ -11,7 +11,11 @@
         tooltipPosition="right"
         appendTo="body"
       >
-        <app-icon [name]="area.icon" />
+        @if (area.logoAsset && !logoFailed().has(area.id)) {
+          <img class="app-nav__logo" [src]="area.logoAsset" alt="" (error)="onLogoError(area.id)" />
+        } @else {
+          <app-icon [name]="area.icon" />
+        }
         @if (!collapsed()) {
           <span>{{ area.labelKey | translate }}</span>
         }

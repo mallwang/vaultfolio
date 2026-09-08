@@ -55,6 +55,9 @@
       "path": "./libs/frontend/domain/insurances"
     },
     {
+      "path": "./libs/frontend/domain/klaro"
+    },
+    {
       "path": "./libs/frontend/domain/retirement"
     },
     {

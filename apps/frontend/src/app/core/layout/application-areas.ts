@@ -35,6 +35,13 @@ export interface ApplicationArea {
    * (020, FR-006), the same way `roles` already gates role-restricted areas.
    */
   domainId?: string;
+  /**
+   * Static asset path (served from `apps/frontend/public/`), rendered in the
+   * icon slot instead of the `icon` glyph when present. Only Klaro's entry
+   * sets this (028-klaro-nav-integration, FR-002) — `icon` stays required so
+   * it doubles as the broken-image fallback glyph (research.md #4).
+   */
+  logoAsset?: string;
 }
 
 export const APPLICATION_AREAS: ApplicationArea[] = [
@@ -94,6 +101,19 @@ export const APPLICATION_AREAS: ApplicationArea[] = [
     path: 'account-overview',
     icon: 'account-balance',
     domainId: 'account-overview',
+  },
+  // Klaro (028-klaro-nav-integration, FR-001/FR-002): inserted after Account
+  // Overview and before Settings per design.md placement. `logoAsset` renders
+  // Klaro's own brand mark instead of a Material Symbols glyph; `icon` stays
+  // the fallback if that image fails to load (research.md #1, #4).
+  {
+    id: 'klaro',
+    label: 'Klaro',
+    labelKey: 'nav.klaro',
+    path: 'klaro',
+    icon: 'handshake',
+    logoAsset: 'klaro-logo.png',
+    domainId: 'klaro',
   },
   { id: 'settings', label: 'Settings', labelKey: 'nav.settings', path: 'settings', icon: 'cog' },
   {

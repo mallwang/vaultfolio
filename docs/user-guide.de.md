@@ -25,14 +25,15 @@ eigenen Infrastruktur.
    - 4.4 [Verteilungsdiagramme](#44-verteilungsdiagramme)
    - 4.5 [Positionen bearbeiten und löschen](#45-positionen-bearbeiten-und-löschen)
 5. [Kontenübersicht](#5-kontenübersicht)
-6. [Einstellungen](#6-einstellungen)
-   - 6.1 [Profil](#61-profil)
-   - 6.2 [Präferenzen](#62-präferenzen)
-7. [Administrationsbereich](#7-administrationsbereich)
-   - 7.1 [Konten verwalten](#71-konten-verwalten)
-   - 7.2 [Einladungen](#72-einladungen)
-   - 7.3 [Registrierungsanfragen](#73-registrierungsanfragen)
-   - 7.4 [Systemstatus](#74-systemstatus)
+6. [Klaro](#6-klaro)
+7. [Einstellungen](#7-einstellungen)
+   - 7.1 [Profil](#71-profil)
+   - 7.2 [Präferenzen](#72-präferenzen)
+8. [Administrationsbereich](#8-administrationsbereich)
+   - 8.1 [Konten verwalten](#81-konten-verwalten)
+   - 8.2 [Einladungen](#82-einladungen)
+   - 8.3 [Registrierungsanfragen](#83-registrierungsanfragen)
+   - 8.4 [Systemstatus](#84-systemstatus)
 
 ---
 
@@ -78,7 +79,7 @@ Symbols mit der Maus erscheint ein Tooltip mit dem Bereichsnamen. Die aktive Sei
 hervorgehoben.
 
 Welche Bereiche erscheinen, hängt davon ab, welche Domänen dir dein Administrator freigegeben
-hat (siehe [Konten verwalten](#71-konten-verwalten)).
+hat (siehe [Konten verwalten](#81-konten-verwalten)).
 
 ### 2.2 Kopfzeile
 
@@ -181,9 +182,23 @@ inaktiv, ohne es zu löschen – nützlich für das Führen historischer Aufzeic
 
 ---
 
-## 6. Einstellungen
+## 6. Klaro
 
-### 6.1 Profil
+**Klaro** ist eine eigenständige Gewohnheits-Tracking-Anwendung, die separat von Vaultfolio
+entwickelt wird. Der Klaro-Eintrag in der Seitenleiste (mit dem Klaro-eigenen Logo) öffnet eine
+Informationsseite – er bindet Klaro selbst nicht ein.
+
+Die Seite erklärt, was Klaro macht, und verlinkt auf die eigenständige Anwendung unter
+[klaro.allwang.family](https://klaro.allwang.family/), die in einem neuen Tab geöffnet wird.
+Klaro erfordert derzeit ein eigenes, separates Konto; eine zukünftige Aktualisierung wird es
+ermöglichen, Daten zwischen beiden Anwendungen zu synchronisieren, sofern du in beiden dieselbe
+E-Mail-Adresse verwendest.
+
+---
+
+## 7. Einstellungen
+
+### 7.1 Profil
 
 **Anzeigename** – Ändere, wie dein Name in der gesamten Anwendung erscheint. Die Änderung wird
 sofort übernommen, ohne die Seite neu zu laden.
@@ -203,7 +218,7 @@ werden.
 > Wenn du der einzige Administrator bist, ist das Löschen des Kontos gesperrt. Gib zunächst
 > einem anderen Benutzer die Administrator-Rolle.
 
-### 6.2 Präferenzen
+### 7.2 Präferenzen
 
 **E-Mail-Sprache** – Legt die Sprache fest, die in E-Mails an dich verwendet wird
 (Bestätigungslinks, Benachrichtigungen). Diese Einstellung ist unabhängig von der
@@ -211,11 +226,11 @@ Anzeigesprache der Oberfläche, die in der Kopfzeile geändert wird.
 
 ---
 
-## 7. Administrationsbereich
+## 8. Administrationsbereich
 
 Der Administrationsbereich ist nur für Benutzer mit der Rolle „Administrator" sichtbar.
 
-### 7.1 Konten verwalten
+### 8.1 Konten verwalten
 
 Die Registerkarte **Konten** listet alle Konten (aktive und archivierte) auf.
 
@@ -235,7 +250,7 @@ es aufrufen kann. Änderungen greifen beim nächsten Seitenaufruf des Benutzers.
 innerhalb von 30 Tagen reaktiviert werden; danach wird es dauerhaft gelöscht. Du kannst den
 letzten verbleibenden Administrator nicht archivieren oder degradieren.
 
-### 7.2 Einladungen
+### 8.2 Einladungen
 
 Die Registerkarte **Einladungen** zeigt alle Einladungen und ihren Status:
 
@@ -253,7 +268,7 @@ Der eingeladene Benutzer legt sein eigenes Passwort fest – du siehst es nie.
 Zeilenaktionen: **Erneut senden** (erzeugt einen neuen Link, der den alten ersetzt) und
 **Abbrechen** (mit Bestätigung).
 
-### 7.3 Registrierungsanfragen
+### 8.3 Registrierungsanfragen
 
 Die Registerkarte **Registrierungen** zeigt Selbstregistrierungsanfragen. Jede Anfrage
 durchläuft folgende Phasen:
@@ -271,7 +286,7 @@ Zeilenaktionen:
 - **Löschen** – entfernt den Eintrag und gibt die E-Mail-Adresse für eine erneute Registrierung
   frei.
 
-### 7.4 Systemstatus
+### 8.4 Systemstatus
 
 **Admin → Allgemein** zeigt den aktuellen Systemstatus: Backend-Zustand (ok / beeinträchtigt)
 und Datenbankverbindung (verbunden / nicht erreichbar), jeweils mit einem Zeitstempel der

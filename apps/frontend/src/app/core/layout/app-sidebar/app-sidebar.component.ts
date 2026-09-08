@@ -41,11 +41,23 @@ export class AppSidebarComponent {
     localStorage.getItem('vaultfolio-sidebar-collapsed') === 'true',
   );
 
+  /**
+   * Area ids whose `logoAsset` failed to load (028-klaro-nav-integration
+   * Edge Case): swaps that entry to its `icon` glyph instead of leaving a
+   * broken image — the entry stays rendered and selectable throughout
+   * (research.md #4).
+   */
+  protected readonly logoFailed = signal(new Set<string>());
+
   protected toggleCollapsed(): void {
     this.collapsed.update((v) => {
       const next = !v;
       localStorage.setItem('vaultfolio-sidebar-collapsed', String(next));
       return next;
     });
+  }
+
+  protected onLogoError(areaId: string): void {
+    this.logoFailed.update((failed) => new Set(failed).add(areaId));
   }
 }
