@@ -340,6 +340,18 @@ export const en: TranslationDictionary = {
     checkEmailLede:
       "If an account exists for that address, we've sent a link to reset the password. It's valid for 1 hour. This exact message is shown whether or not the address has an account.",
   },
+  resetPassword: {
+    title: 'Welcome back 👋',
+    lede: 'Choose a new password for your account to finish resetting it.',
+    emailLabel: 'Email address',
+    newPasswordLabel: 'New password',
+    newPasswordPlaceholder: '8–200 characters',
+    confirmPasswordLabel: 'Confirm new password',
+    submit: 'Reset password & sign in',
+    passwordsDoNotMatch: 'Passwords do not match.',
+    passwordLengthError: 'Password must be 8–200 characters.',
+    genericError: 'Unable to reset your password. Please try again.',
+  },
   signup: {
     title: 'Create your account',
     lede: 'Sign up for Vaultfolio. An administrator reviews every new request.',

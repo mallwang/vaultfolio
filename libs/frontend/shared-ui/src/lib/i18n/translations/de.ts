@@ -342,6 +342,18 @@ export const de: TranslationDictionary = {
     checkEmailLede:
       'Falls ein Konto für diese Adresse existiert, haben wir einen Link zum Zurücksetzen des Passworts gesendet. Er ist 1 Stunde gültig. Diese Meldung wird unabhängig davon angezeigt, ob ein Konto existiert oder nicht.',
   },
+  resetPassword: {
+    title: 'Willkommen zurück 👋',
+    lede: 'Wählen Sie ein neues Passwort für Ihr Konto, um das Zurücksetzen abzuschließen.',
+    emailLabel: 'E-Mail-Adresse',
+    newPasswordLabel: 'Neues Passwort',
+    newPasswordPlaceholder: '8–200 Zeichen',
+    confirmPasswordLabel: 'Neues Passwort bestätigen',
+    submit: 'Passwort zurücksetzen & anmelden',
+    passwordsDoNotMatch: 'Die Passwörter stimmen nicht überein.',
+    passwordLengthError: 'Das Passwort muss 8–200 Zeichen lang sein.',
+    genericError: 'Das Passwort konnte nicht zurückgesetzt werden. Bitte erneut versuchen.',
+  },
   signup: {
     title: 'Konto erstellen',
     lede: 'Registrieren Sie sich für Vaultfolio. Jede neue Anfrage wird von einem Administrator geprüft.',

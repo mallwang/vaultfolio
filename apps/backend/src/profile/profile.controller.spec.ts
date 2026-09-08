@@ -426,7 +426,7 @@ describe('/profile', () => {
         `/profile/reset-password/token/${token}`,
       );
       expect(lookup.status).toBe(200);
-      expect(lookup.body).toEqual({ valid: true });
+      expect(lookup.body).toMatchObject({ valid: true });
 
       const confirm = await request(app.getHttpServer())
         .post(`/profile/reset-password/token/${token}/confirm`)

@@ -217,13 +217,13 @@ export class ProfileController {
   async lookupResetToken(
     @Param('token') token: string,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<{ valid: true } | ProfileErrorResponse> {
+  ): Promise<{ valid: true; displayName: string; email: string } | ProfileErrorResponse> {
     const result = await this.profile.lookupPasswordResetToken(token);
     if (result.kind === 'invalid_token') {
       res.status(HttpStatus.GONE);
       return INVALID_TOKEN;
     }
-    return { valid: true };
+    return { valid: true, displayName: result.displayName, email: result.email };
   }
 
   @Public()

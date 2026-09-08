@@ -46,7 +46,8 @@ export type ConfirmEmailChangeResult =
 export type ChangePasswordResult =
   { kind: 'success' } | { kind: 'invalid_current_password' } | { kind: 'invalid_password' };
 
-export type LookupPasswordResetTokenResult = { kind: 'success' } | { kind: 'invalid_token' };
+export type LookupPasswordResetTokenResult =
+  { kind: 'success'; displayName: string; email: string } | { kind: 'invalid_token' };
 
 export type ConfirmPasswordResetResult =
   | { kind: 'success'; user: SessionUser; session: Session }
@@ -302,7 +303,11 @@ export class ProfileService {
     if (!row || !isTokenUsable(row.status, new Date(row.expiresAt), new Date())) {
       return { kind: 'invalid_token' };
     }
-    return { kind: 'success' };
+    const user = await this.users.findById(row.userId);
+    if (!user) {
+      return { kind: 'invalid_token' };
+    }
+    return { kind: 'success', displayName: user.displayName, email: user.email };
   }
 
   async confirmPasswordReset(

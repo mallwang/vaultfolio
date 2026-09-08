@@ -1,5 +1,6 @@
 <div class="sign-in-page">
-  <p-card class="sign-in-card" [header]="'signIn.title' | translate">
+  <p-card class="sign-in-card">
+    <h1>{{ 'signIn.title' | translate }}</h1>
     <form (ngSubmit)="submit()" class="sign-in-form">
       <div class="field">
         <label for="email">{{ 'signIn.email' | translate }}</label>
