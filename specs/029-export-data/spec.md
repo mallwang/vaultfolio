@@ -6,6 +6,8 @@
 
 **Status**: Draft
 
+**Design**: [design.md](design.md) — approved mockup covering the Export control, PDF layout, and Settings entry point.
+
 **Input**: User description: "I would like to enable the user to export the holdings:
 
 - as JSON
