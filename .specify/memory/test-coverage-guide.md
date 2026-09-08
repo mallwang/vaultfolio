@@ -27,7 +27,11 @@ test for them just proves you can type correctly, not that the code works.
 
 These patterns are already excluded from the Vitest coverage report in `vitest-base.config.ts`
 so they do not drag down the measured percentage. If new always-skip patterns are added here,
-add the corresponding glob to the `test.coverage.exclude` array there too.
+add the corresponding glob to **both** the `test.coverage.exclude` array there **and**
+`sonar.coverage.exclusions` in `sonar-project.properties` — a pattern excluded from Vitest's own
+instrumentation but not from Sonar's exclusions has no lcov data at all, which SonarCloud reads as
+"0% covered" instead of "excluded," silently failing the new-code coverage gate on unrelated PRs
+that happen to touch the file.
 
 ---
 
