@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
-import { IconComponent } from '@vaultfolio/frontend-shared-ui';
+import { IconComponent, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
 import { ProfileService } from '../../settings/profile/profile.service';
 import { TurnstileComponent } from '../../shared/turnstile/turnstile.component';
 import { environment } from '../../../environments/environment';
@@ -26,6 +26,7 @@ import { environment } from '../../../environments/environment';
     RouterLink,
     IconComponent,
     TurnstileComponent,
+    TranslatePipe,
   ],
   templateUrl: './forgot-password.component.html',
   styleUrl: './forgot-password.component.css',
