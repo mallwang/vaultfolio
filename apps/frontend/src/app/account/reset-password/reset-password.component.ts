@@ -5,7 +5,7 @@ import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
-import { IconComponent } from '@vaultfolio/frontend-shared-ui';
+import { IconComponent, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
 import { CurrentUserStore } from '../../auth/current-user.store';
 import { ProfileService } from '../../settings/profile/profile.service';
 
@@ -23,7 +23,15 @@ const MAX_PASSWORD_LENGTH = 200;
  */
 @Component({
   selector: 'app-reset-password',
-  imports: [FormsModule, ButtonModule, CardModule, InputTextModule, MessageModule, IconComponent],
+  imports: [
+    FormsModule,
+    ButtonModule,
+    CardModule,
+    InputTextModule,
+    MessageModule,
+    IconComponent,
+    TranslatePipe,
+  ],
   templateUrl: './reset-password.component.html',
   styleUrl: './reset-password.component.css',
 })
@@ -36,6 +44,7 @@ export class ResetPasswordComponent implements OnInit {
   private token = '';
 
   protected readonly loading = signal(true);
+  protected readonly email = signal('');
   protected readonly newPassword = signal('');
   protected readonly confirmPassword = signal('');
   protected readonly submitting = signal(false);
@@ -48,7 +57,10 @@ export class ResetPasswordComponent implements OnInit {
       return;
     }
     this.profileService.lookupResetToken(this.token).subscribe({
-      next: () => this.loading.set(false),
+      next: (result) => {
+        this.email.set(result.email);
+        this.loading.set(false);
+      },
       error: () => this.goToInvalid(),
     });
   }
@@ -64,12 +76,12 @@ export class ResetPasswordComponent implements OnInit {
     this.errorMessage.set(null);
 
     if (this.newPassword() !== this.confirmPassword()) {
-      this.errorMessage.set('Passwords do not match.');
+      this.errorMessage.set('resetPassword.passwordsDoNotMatch');
       return;
     }
     const length = this.newPassword().length;
     if (length < MIN_PASSWORD_LENGTH || length > MAX_PASSWORD_LENGTH) {
-      this.errorMessage.set('Password must be 8–200 characters.');
+      this.errorMessage.set('resetPassword.passwordLengthError');
       return;
     }
 
@@ -88,7 +100,7 @@ export class ResetPasswordComponent implements OnInit {
             this.goToInvalid();
             return;
           }
-          this.errorMessage.set('Unable to reset your password. Please try again.');
+          this.errorMessage.set('resetPassword.genericError');
         },
       });
   }

@@ -11,6 +11,10 @@
   max-width: 26rem;
 }
 
+h1 {
+  margin: 0 0 1rem;
+}
+
 .sign-in-form {
   display: flex;
   flex-direction: column;

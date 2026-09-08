@@ -62,8 +62,10 @@ export class ProfileService {
     return this.http.post<{ accepted: true }>(`${this.baseUrl}/forgot-password`, body);
   }
 
-  lookupResetToken(token: string): Observable<{ valid: true }> {
-    return this.http.get<{ valid: true }>(`${this.baseUrl}/reset-password/token/${token}`);
+  lookupResetToken(token: string): Observable<{ valid: true; displayName: string; email: string }> {
+    return this.http.get<{ valid: true; displayName: string; email: string }>(
+      `${this.baseUrl}/reset-password/token/${token}`,
+    );
   }
 
   confirmPasswordReset(token: string, body: ResetPasswordRequest): Observable<SessionUser> {

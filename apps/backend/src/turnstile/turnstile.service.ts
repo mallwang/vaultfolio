@@ -17,6 +17,12 @@ export class TurnstileService {
   private readonly logger = new Logger(TurnstileService.name);
 
   async verify(token: string, action: string, clientIp?: string): Promise<void> {
+    const secret = process.env['TURNSTILE_SECRET_KEY'] ?? '';
+    if (!secret) {
+      this.logger.warn(`Turnstile skipped — no secret key configured (action: ${action})`);
+      return;
+    }
+
     if (!token || token.length > 2048) {
       throw new HttpException(
         { error: 'bot_protection_failed', message: 'Bot protection check failed.' },
@@ -24,7 +30,6 @@ export class TurnstileService {
       );
     }
 
-    const secret = process.env['TURNSTILE_SECRET_KEY'] ?? '';
     const params = new URLSearchParams({ secret, response: token });
     if (clientIp) {
       params.set('remoteip', clientIp);
@@ -48,11 +53,9 @@ export class TurnstileService {
     }
 
     const hostnames = allowedHostnames();
-    if (
-      !result.success ||
-      result.action !== action ||
-      (hostnames.size > 0 && !hostnames.has(result.hostname ?? ''))
-    ) {
+    const actionMismatch = !!result.action && result.action !== action;
+    const hostnameDenied = hostnames.size > 0 && !hostnames.has(result.hostname ?? '');
+    if (!result.success || actionMismatch || hostnameDenied) {
       this.logger.warn('Turnstile verification failed', {
         success: result.success,
         action: result.action,
