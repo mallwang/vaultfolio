@@ -199,6 +199,43 @@ Re-deploying after a new push: re-run the two `docker push` commands, then in Po
 **Stacks → your stack → Pull and redeploy** (or `docker compose pull && docker compose up -d`
 if managing it from the NAS's shell).
 
+### What Portainer actually is
+
+Portainer is a **web UI wrapper around Docker** — it calls the Docker API and presents it in a
+browser. It is not a runtime. Your stacks (frontend, backend, etc.) run as ordinary Docker
+containers directly on the host; Portainer just lets you manage them without typing commands.
+
+Key consequence: **stopping or restarting Portainer does not touch your stacks.** The stacks
+keep running. Portainer is like a cockpit display — switching it off doesn't stop the plane.
+
+### Updating Portainer itself
+
+Portainer runs as its own Docker container and stores its configuration (endpoints, users, stack
+definitions, environment variables) in a Docker-managed volume (`portainer_data`). Updating means
+replacing the container while keeping the volume.
+
+```bash
+# Optional but recommended: back up the volume first
+docker run --rm \
+  -v portainer_data:/data \
+  -v /root:/backup \
+  alpine tar czf /backup/portainer_backup_$(date +%Y%m%d).tar.gz /data
+
+# Replace the container (stacks keep running throughout)
+docker stop portainer && docker rm portainer
+docker pull portainer/portainer-ce:2.45.0
+docker run -d \
+  -p 8000:8000 -p 9443:9443 \
+  --name portainer \
+  --restart=always \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v portainer_data:/data \
+  portainer/portainer-ce:2.45.0
+```
+
+Downtime: ~15 seconds. All stacks run uninterrupted. The `portainer_data` volume — including
+all stack definitions and environment variables — persists across the update.
+
 ## Frontend environment configuration
 
 `apps/frontend` follows Angular's standard environment-file pattern, under
