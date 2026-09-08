@@ -35,9 +35,9 @@ implementation and testing of each story.
 
 **Purpose**: Scaffold the new library and dependencies
 
-- [ ] T001 Generate `libs/export` Nx library (`scope:shared` tag, alongside `libs/api-contract`, per plan.md Structure Decision) with `project.json`/`tsconfig` boilerplate
-- [ ] T002 [P] Add `exceljs`, `pdfmake`, `jszip` runtime dependencies to `apps/frontend/package.json` and the root `package.json` (per project memory: declare runtime deps in the app's own package.json too)
-- [ ] T003 [P] Configure Jest (`jsdom` environment) for `libs/export` in `libs/export/jest.config.ts`, and Nx module-boundary lint tags so `libs/export` cannot import Angular/`@angular/*`
+- [x] T001 Generate `libs/export` Nx library (`scope:shared` tag, alongside `libs/api-contract`, per plan.md Structure Decision) with `project.json`/`tsconfig` boilerplate
+- [x] T002 [P] Add `exceljs`, `pdfmake`, `jszip` runtime dependencies to `apps/frontend/package.json` and the root `package.json` (per project memory: declare runtime deps in the app's own package.json too)
+- [x] T003 [P] Configure Jest (`jsdom` environment) for `libs/export` in `libs/export/jest.config.ts`, and Nx module-boundary lint tags so `libs/export` cannot import Angular/`@angular/*`
 
 ---
 
@@ -48,19 +48,19 @@ story (single-feature export, per-feature reuse, full export) depends on
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T004 Define shared contract types (`ExportFormat`, `ExportColumn`, `ExportRow`, `FeatureExportDefinition`) per `contracts/export-lib.md` in `libs/export/src/lib/feature-export-definition.ts`
-- [ ] T005 Implement `FeatureExportRegistry` class (`register`/`getAll`/`getById`; `register` throws on duplicate `featureId`) in `libs/export/src/lib/feature-export-registry.ts`
-- [ ] T006 [P] Implement JSON exporter (`FeatureExportDefinition` + rows → JSON bytes) in `libs/export/src/lib/json-exporter.ts`
-- [ ] T007 [P] Implement RFC 4180 CSV exporter (comma/quote/newline escaping, decimal-string passthrough) in `libs/export/src/lib/csv-exporter.ts`
-- [ ] T008 [P] Implement XLSX exporter using `exceljs` (typed columns: text/number/decimal/date, decimal strings converted to numeric cells only at serialization) in `libs/export/src/lib/xlsx-exporter.ts`
-- [ ] T009 [P] Implement PDF exporter using `pdfmake` (infobox + chart images + data table, per `design.md` layout) in `libs/export/src/lib/pdf-exporter.ts`
-- [ ] T010 Implement `exportFeature(definition, format, chartImages?)` dispatcher per `contracts/export-lib.md` in `libs/export/src/lib/export-feature.ts` (depends on T006-T009)
-- [ ] T011 [P] Export public API barrel (`ExportFormat`, `ExportColumn`, `FeatureExportDefinition`, `FeatureExportRegistry`, `exportFeature`) in `libs/export/src/index.ts`
-- [ ] T012 [P] Unit tests for json-exporter (0 rows and several rows, exact decimal-string round-trip per Principle III) in `libs/export/src/lib/json-exporter.spec.ts`
-- [ ] T013 [P] Unit tests for csv-exporter (RFC 4180 escaping incl. commas/quotes/newlines, decimal round-trip, 0 rows) in `libs/export/src/lib/csv-exporter.spec.ts`
-- [ ] T014 [P] Unit tests for xlsx-exporter, reading the real bytes back via `exceljs` (typed cells, decimal round-trip, 0 rows → header-only) in `libs/export/src/lib/xlsx-exporter.spec.ts`
-- [ ] T015 [P] Unit tests for pdf-exporter (infobox text present, table content, empty-table case) in `libs/export/src/lib/pdf-exporter.spec.ts`
-- [ ] T016 [P] Unit tests for feature-export-registry (duplicate `featureId` throws, `getAll`/`getById`) in `libs/export/src/lib/feature-export-registry.spec.ts`
+- [x] T004 Define shared contract types (`ExportFormat`, `ExportColumn`, `ExportRow`, `FeatureExportDefinition`) per `contracts/export-lib.md` in `libs/export/src/lib/feature-export-definition.ts`
+- [x] T005 Implement `FeatureExportRegistry` class (`register`/`getAll`/`getById`; `register` throws on duplicate `featureId`) in `libs/export/src/lib/feature-export-registry.ts`
+- [x] T006 [P] Implement JSON exporter (`FeatureExportDefinition` + rows → JSON bytes) in `libs/export/src/lib/json-exporter.ts`
+- [x] T007 [P] Implement RFC 4180 CSV exporter (comma/quote/newline escaping, decimal-string passthrough) in `libs/export/src/lib/csv-exporter.ts`
+- [x] T008 [P] Implement XLSX exporter using `exceljs` (typed columns: text/number/decimal/date, decimal strings converted to numeric cells only at serialization) in `libs/export/src/lib/xlsx-exporter.ts`
+- [x] T009 [P] Implement PDF exporter using `pdfmake` (infobox + chart images + data table, per `design.md` layout) in `libs/export/src/lib/pdf-exporter.ts`
+- [x] T010 Implement `exportFeature(definition, format, chartImages?)` dispatcher per `contracts/export-lib.md` in `libs/export/src/lib/export-feature.ts` (depends on T006-T009)
+- [x] T011 [P] Export public API barrel (`ExportFormat`, `ExportColumn`, `FeatureExportDefinition`, `FeatureExportRegistry`, `exportFeature`) in `libs/export/src/index.ts`
+- [x] T012 [P] Unit tests for json-exporter (0 rows and several rows, exact decimal-string round-trip per Principle III) in `libs/export/src/lib/json-exporter.spec.ts`
+- [x] T013 [P] Unit tests for csv-exporter (RFC 4180 escaping incl. commas/quotes/newlines, decimal round-trip, 0 rows) in `libs/export/src/lib/csv-exporter.spec.ts`
+- [x] T014 [P] Unit tests for xlsx-exporter, reading the real bytes back via `exceljs` (typed cells, decimal round-trip, 0 rows → header-only) in `libs/export/src/lib/xlsx-exporter.spec.ts`
+- [x] T015 [P] Unit tests for pdf-exporter (infobox text present, table content, empty-table case) in `libs/export/src/lib/pdf-exporter.spec.ts`
+- [x] T016 [P] Unit tests for feature-export-registry (duplicate `featureId` throws, `getAll`/`getById`) in `libs/export/src/lib/feature-export-registry.spec.ts`
 - [ ] T017 Create export-control Angular component skeleton (split-button + format menu, `severity` input, per `contracts/export-lib.md`'s `<app-export-control>` API) in `libs/frontend/shared-ui/src/lib/export-control/export-control.component.ts` and `.html`
 - [ ] T018 Implement chart-image capture seam (off-screen unattached `echarts.init`, fed an `EChartsOption`, `getDataURL({type:'png',pixelRatio:2})`, `dispose()`) as an injectable function in `libs/frontend/shared-ui/src/lib/export-control/chart-image-capture.ts`
 - [ ] T019 Wire export-control component to look up its `FeatureExportDefinition` from the app-wide registry, resolve `titleKey`/`infoboxKey`/column `labelKey`s via `TranslateService`, capture chart images when `getChartOptions` is present, call `exportFeature`, and trigger the browser download (`<featureId>.<ext>`) in `libs/frontend/shared-ui/src/lib/export-control/export-control.component.ts` (depends on T010, T017, T018)
@@ -136,8 +136,8 @@ exists
 
 ### Implementation for User Story 3
 
-- [ ] T043 [US3] Implement `exportAll(registry, resolveChartImages)` full-export archive assembly per `contracts/export-lib.md` (iterates `registry.getAll()`, builds `<featureId>/<featureId>.<ext>` entries via `jszip`, catches a single format's failure per feature into `failures[]` without stopping the rest, per FR-015) in `libs/export/src/lib/full-export-archive.ts`
-- [ ] T044 [P] [US3] Unit test: a registry with one throwing definition and several succeeding ones — assert the archive still contains every succeeding file and `failures` lists exactly the one that failed, in `libs/export/src/lib/full-export-archive.spec.ts`
+- [x] T043 [US3] Implement `exportAll(registry, resolveChartImages)` full-export archive assembly per `contracts/export-lib.md` (iterates `registry.getAll()`, builds `<featureId>/<featureId>.<ext>` entries via `jszip`, catches a single format's failure per feature into `failures[]` without stopping the rest, per FR-015) in `libs/export/src/lib/full-export-archive.ts`
+- [x] T044 [P] [US3] Unit test: a registry with one throwing definition and several succeeding ones — assert the archive still contains every succeeding file and `failures` lists exactly the one that failed, in `libs/export/src/lib/full-export-archive.spec.ts`
 - [ ] T045 [US3] Wire the "Export my data (optional)" button (`data-testid="profile-export-data"`) to call `exportAll` against the app-wide registry and trigger a `vaultfolio-data-export.zip` download, in `apps/frontend/src/app/settings/profile/profile.component.ts` and `.html` (depends on T022, T043)
 - [ ] T046 [US3] Surface partial-failure messaging (which feature/format failed, hint to retry from that feature's own Export control, per FR-015/Edge Cases) in `apps/frontend/src/app/settings/profile/profile.component.html`
 - [ ] T047 [P] [US3] Component test: clicking "Export my data" triggers `exportAll` and downloads the ZIP; a mocked failure surfaces the failure message, in `apps/frontend/src/app/settings/profile/profile.component.spec.ts`
