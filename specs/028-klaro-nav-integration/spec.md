@@ -8,6 +8,8 @@
 
 **Input**: User description: "I would like to enhance the application with a new navigation item (similar like holdings) for "Klaro" (see https://github.com/mallwang/klaro), which is currently a standalone application also developed by me. The side-nav should show the "Klaro" logo instead of any random icon. The page content should show what Klaro is and that its currently in its own standalone application and show a link to the external website (https://klaro.allwang.family/). It should also list that in the future all funcionalities of Klaro will be integrated into Vaultfolio under this navigation point, but currently users need to create their separate user in Klaro and can later synchronize their data, the requirement is that they use the identical email address in both applications."
 
+**Design**: [design.md](./design.md) — approved layout mockup for the nav entry and info page.
+
 ## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Discover Klaro from the side navigation (Priority: P1)
