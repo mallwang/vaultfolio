@@ -1,4 +1,4 @@
-import { HttpException } from '@nestjs/common';
+import { HttpException, Logger } from '@nestjs/common';
 import { TurnstileService } from './turnstile.service';
 
 const VALID_RESPONSE = {
@@ -23,6 +23,12 @@ describe('TurnstileService', () => {
   beforeEach(() => {
     process.env['TURNSTILE_SECRET_KEY'] = 'test-secret';
     process.env['TURNSTILE_HOSTNAMES'] = 'example.com';
+    // jest.setup.ts silences Logger globally, but only once in a top-level
+    // beforeAll — this file's own afterEach below (jest.restoreAllMocks())
+    // undoes that spy too, so from the second test onward the deliberate
+    // failure-path tests would log for real. Re-apply per test.
+    jest.spyOn(Logger.prototype, 'warn').mockImplementation(() => undefined);
+    jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
   });
 
   afterEach(() => {
