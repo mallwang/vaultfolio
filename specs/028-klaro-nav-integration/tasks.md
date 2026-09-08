@@ -42,7 +42,7 @@ asset, mirroring the existing `insurances` placeholder library exactly in shape.
       https://github.com/mallwang/klaro (`klaro.png` at repo root), per research.md #2
 - [x] T003 [P] Register the new library's path mapping/project reference so
       `@vaultfolio/frontend-domain-klaro` resolves the same way `@vaultfolio/frontend-domain-
-  insurances` does (`tsconfig.base.json` / workspace project references, whichever the
+insurances` does (`tsconfig.base.json` / workspace project references, whichever the
       insurances library uses)
 
 **Checkpoint**: Library builds empty/lints clean; asset is present on disk.
@@ -65,7 +65,7 @@ asset, mirroring the existing `insurances` placeholder library exactly in shape.
       (`id: 'klaro'`, `labelKey: 'nav.klaro'`, `path: 'klaro'`, `icon: 'handshake'`,
       `logoAsset: 'klaro-logo.png'`, `domainId: 'klaro'`)
 - [x] T006 [P] Append the Klaro `DomainDescriptor` entry (`{ id: 'klaro', labelKey: 'nav.klaro',
-  path: 'klaro', icon: 'handshake' }`) to `DOMAIN_REGISTRY` in
+path: 'klaro', icon: 'handshake' }`) to `DOMAIN_REGISTRY` in
       `libs/frontend/domain-access/src/lib/domain-registry.ts`
 - [x] T007 [P] Add `nav.klaro` and `pageTitle.klaro` i18n keys to
       `libs/frontend/shared-ui/src/lib/i18n/translations/en.ts` and `de.ts`
@@ -92,7 +92,7 @@ Klaro logo (not a Material Symbols glyph) in the correct position, select it, an
       `libs/frontend/domain/klaro/src/lib/klaro-page/klaro-page.component.ts` with a minimal hero
       section (title + `heroSubtitle`), modeled on
       `libs/frontend/domain/insurances/src/lib/insurances-placeholder/
-  insurances-placeholder.component.ts` for boilerplate (inline template/styles)
+insurances-placeholder.component.ts` for boilerplate (inline template/styles)
 - [x] T009 [US1] Export `KlaroPageComponent` from
       `libs/frontend/domain/klaro/src/index.ts`
 - [x] T010 [US1] Add the `klaro` route to `apps/frontend/src/app/app.routes.ts`
@@ -100,7 +100,7 @@ Klaro logo (not a Material Symbols glyph) in the correct position, select it, an
       `loadComponent` lazy-importing `KlaroPageComponent` from
       `@vaultfolio/frontend-domain-klaro`), alongside the other domain routes under `/app`
 - [x] T011 [US1] Update `app-sidebar.component.html` to render `<img [src]="'klaro-logo.png' |
-  ..." >` (or `area.logoAsset`) in the icon slot when `area.logoAsset` is set, falling back to
+..." >` (or `area.logoAsset`) in the icon slot when `area.logoAsset` is set, falling back to
       the existing `<app-icon [name]="area.icon">` otherwise, in
       `apps/frontend/src/app/core/layout/app-sidebar/app-sidebar.component.html`
 - [x] T012 [US1] Add sizing rules for the logo-mark slot (matching the existing icon slot's
