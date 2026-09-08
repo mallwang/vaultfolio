@@ -61,12 +61,12 @@ story (single-feature export, per-feature reuse, full export) depends on
 - [x] T014 [P] Unit tests for xlsx-exporter, reading the real bytes back via `exceljs` (typed cells, decimal round-trip, 0 rows → header-only) in `libs/export/src/lib/xlsx-exporter.spec.ts`
 - [x] T015 [P] Unit tests for pdf-exporter (infobox text present, table content, empty-table case) in `libs/export/src/lib/pdf-exporter.spec.ts`
 - [x] T016 [P] Unit tests for feature-export-registry (duplicate `featureId` throws, `getAll`/`getById`) in `libs/export/src/lib/feature-export-registry.spec.ts`
-- [ ] T017 Create export-control Angular component skeleton (split-button + format menu, `severity` input, per `contracts/export-lib.md`'s `<app-export-control>` API) in `libs/frontend/shared-ui/src/lib/export-control/export-control.component.ts` and `.html`
-- [ ] T018 Implement chart-image capture seam (off-screen unattached `echarts.init`, fed an `EChartsOption`, `getDataURL({type:'png',pixelRatio:2})`, `dispose()`) as an injectable function in `libs/frontend/shared-ui/src/lib/export-control/chart-image-capture.ts`
-- [ ] T019 Wire export-control component to look up its `FeatureExportDefinition` from the app-wide registry, resolve `titleKey`/`infoboxKey`/column `labelKey`s via `TranslateService`, capture chart images when `getChartOptions` is present, call `exportFeature`, and trigger the browser download (`<featureId>.<ext>`) in `libs/frontend/shared-ui/src/lib/export-control/export-control.component.ts` (depends on T010, T017, T018)
-- [ ] T020 [P] Unit tests for export-control component (menu opens with JSON/CSV/XLSX/PDF items, mocked `fetchData`/chart-capture, download triggered per format) in `libs/frontend/shared-ui/src/lib/export-control/export-control.component.spec.ts`
-- [ ] T021 [P] Add shared i18n keys (export menu labels, format names, generic "no data" hints) to `libs/frontend/shared-ui/src/lib/i18n/translations/en.ts` and `de.ts`
-- [ ] T022 Create the app-level `FeatureExportRegistry` provider and contribution wiring point (mirrors `apps/frontend/src/app/dashboard/dashboard-widgets.registry.ts`), starting with an empty contributions list, in `apps/frontend/src/app/export/feature-export.registry.ts`
+- [x] T017 Create export-control Angular component skeleton (split-button + format menu, `severity` input, per `contracts/export-lib.md`'s `<app-export-control>` API) in `libs/frontend/shared-ui/src/lib/export-control/export-control.component.ts` and `.html`
+- [x] T018 Implement chart-image capture seam (off-screen unattached `echarts.init`, fed an `EChartsOption`, `getDataURL({type:'png',pixelRatio:2})`, `dispose()`) as an injectable function in `libs/frontend/shared-ui/src/lib/export-control/chart-image-capture.ts`
+- [x] T019 Wire export-control component to look up its `FeatureExportDefinition` from the app-wide registry, resolve `titleKey`/`infoboxKey`/column `labelKey`s via `TranslateService`, capture chart images when `getChartOptions` is present, call `exportFeature`, and trigger the browser download (`<featureId>.<ext>`) in `libs/frontend/shared-ui/src/lib/export-control/export-control.component.ts` (depends on T010, T017, T018)
+- [x] T020 [P] Unit tests for export-control component (menu opens with JSON/CSV/XLSX/PDF items, mocked `fetchData`/chart-capture, download triggered per format) in `libs/frontend/shared-ui/src/lib/export-control/export-control.component.spec.ts`
+- [x] T021 [P] Add shared i18n keys (export menu labels, format names, generic "no data" hints) to `libs/frontend/shared-ui/src/lib/i18n/translations/en.ts` and `de.ts`
+- [x] T022 Create the app-level `FeatureExportRegistry` provider and contribution wiring point (mirrors `apps/frontend/src/app/dashboard/dashboard-widgets.registry.ts`), starting with an empty contributions list, in `apps/frontend/src/app/export/feature-export.registry.ts`
 
 **Checkpoint**: Foundation ready — `libs/export`, the export-control component, and the app-level
 registry all exist; user story work can now begin
@@ -83,13 +83,13 @@ and contains the user's current holdings data (PDF additionally shows charts + i
 
 ### Implementation for User Story 1
 
-- [ ] T023 [US1] Define Holdings `FeatureExportDefinition` (`featureId: 'holdings'`, `titleKey`, `infoboxKey`, `columns` covering every field in the Holdings table, `fetchData` via the existing `HoldingsService` API call, `getChartOptions` sourced from the distribution chart) in `libs/frontend/domain/holdings/src/lib/holdings-export.definition.ts`
-- [ ] T024 [P] [US1] Add Holdings export i18n keys — `titleKey`, `infoboxKey` text reused from `docs/user-guide.md` §4, and column `labelKey`s — to `libs/frontend/shared-ui/src/lib/i18n/translations/en.ts` and `de.ts`
-- [ ] T025 [US1] Expose the current `EChartsOption` from `HoldingsDistributionComponent` as a small seam reusable by the off-screen capture (research.md §3) in `libs/frontend/domain/holdings/src/lib/holdings-distribution/holdings-distribution.component.ts`
-- [ ] T026 [US1] Register the Holdings definition in `apps/frontend/src/app/export/feature-export.registry.ts` (depends on T022, T023)
-- [ ] T027 [US1] Add `<app-export-control featureId="holdings" severity="info" />` immediately left of the "Add holding" action in `libs/frontend/domain/holdings/src/lib/holdings.component.html` (and import in `holdings.component.ts`)
-- [ ] T028 [P] [US1] Unit test asserting `holdings-export.definition`'s `columns` cover every field visible in the Holdings table/detail view (FR-007, SC-002) in `libs/frontend/domain/holdings/src/lib/holdings-export.definition.spec.ts`
-- [ ] T029 [P] [US1] Component test: Holdings page renders the Export control in the correct position/severity, left of "Add holding" in `libs/frontend/domain/holdings/src/lib/holdings.component.spec.ts`
+- [x] T023 [US1] Define Holdings `FeatureExportDefinition` (`featureId: 'holdings'`, `titleKey`, `infoboxKey`, `columns` covering every field in the Holdings table, `fetchData` via the existing `HoldingsService` API call, `getChartOptions` sourced from the distribution chart) in `libs/frontend/domain/holdings/src/lib/holdings-export.definition.ts`
+- [x] T024 [P] [US1] Add Holdings export i18n keys — `titleKey`, `infoboxKey` text reused from `docs/user-guide.md` §4, and column `labelKey`s — to `libs/frontend/shared-ui/src/lib/i18n/translations/en.ts` and `de.ts`
+- [x] T025 [US1] Expose the current `EChartsOption` from `HoldingsDistributionComponent` as a small seam reusable by the off-screen capture (research.md §3) in `libs/frontend/domain/holdings/src/lib/holdings-distribution/holdings-distribution.component.ts`
+- [x] T026 [US1] Register the Holdings definition in `apps/frontend/src/app/export/feature-export.registry.ts` (depends on T022, T023)
+- [x] T027 [US1] Add `<app-export-control featureId="holdings" severity="info" />` immediately left of the "Add holding" action in `libs/frontend/domain/holdings/src/lib/holdings.component.html` (and import in `holdings.component.ts`)
+- [x] T028 [P] [US1] Unit test asserting `holdings-export.definition`'s `columns` cover every field visible in the Holdings table/detail view (FR-007, SC-002) in `libs/frontend/domain/holdings/src/lib/holdings-export.definition.spec.ts`
+- [x] T029 [P] [US1] Component test: Holdings page renders the Export control in the correct position/severity, left of "Add holding" in `libs/frontend/domain/holdings/src/lib/holdings.component.spec.ts`
 - [ ] T030 [US1] Verify via the `verify-ui` skill: quickstart.md US1 steps 1-8 (JSON/CSV/XLSX/PDF downloads, empty-account case, German language switch)
 
 **Checkpoint**: User Story 1 fully functional and independently testable/shippable
@@ -107,17 +107,17 @@ own data and infobox text
 
 ### Implementation for User Story 2
 
-- [ ] T031 [US2] Define Account Overview `FeatureExportDefinition` (`featureId: 'account-overview'`, real `fetchData`, columns covering every on-screen field) in `libs/frontend/domain/account-overview/src/lib/account-overview-export.definition.ts`
-- [ ] T032 [P] [US2] Add Account Overview export i18n keys (infobox text reused from `docs/user-guide.md` §5) to `en.ts`/`de.ts`
-- [ ] T033 [US2] Register the Account Overview definition in `feature-export.registry.ts` and add `<app-export-control featureId="account-overview" severity="info" />` next to its "Add account" action in `libs/frontend/domain/account-overview/src/lib/account-overview-page/`
-- [ ] T034 [P] [US2] Unit test for Account Overview export column coverage + component test for control position, in `account-overview-export.definition.spec.ts` and the account-overview page's `.spec.ts`
-- [ ] T035 [P] [US2] Define Retirement `FeatureExportDefinition` (empty `fetchData`, no `getChartOptions`, per research.md §5) in `libs/frontend/domain/retirement/src/lib/retirement-export.definition.ts`
-- [ ] T036 [P] [US2] Define Insurances `FeatureExportDefinition` (empty) in `libs/frontend/domain/insurances/src/lib/insurances-export.definition.ts`
-- [ ] T037 [P] [US2] Define Haushaltsplaner `FeatureExportDefinition` (empty) in `libs/frontend/domain/haushaltsplaner/src/lib/haushaltsplaner-export.definition.ts`
-- [ ] T038 [P] [US2] Define Historic Wealth Development `FeatureExportDefinition` (empty) in `libs/frontend/domain/historic-wealth-development/src/lib/historic-wealth-development-export.definition.ts`
-- [ ] T039 [P] [US2] Add i18n keys (title + freshly-written infobox text, matching user-guide style) for the 4 placeholder domains to `en.ts`/`de.ts`
-- [ ] T040 [US2] Register the 4 placeholder definitions in `feature-export.registry.ts` and add `<app-export-control severity="info" />` to each placeholder panel's top-right anchor (per research.md §5) in `libs/frontend/domain/{retirement,insurances,haushaltsplaner,historic-wealth-development}/src/lib/*-placeholder/` (depends T035-T038)
-- [ ] T041 [P] [US2] Unit tests: each of the 4 placeholder export definitions produces a valid, empty-but-structured export (FR-014) via `exportFeature`, one spec per domain
+- [x] T031 [US2] Define Account Overview `FeatureExportDefinition` (`featureId: 'account-overview'`, real `fetchData`, columns covering every on-screen field) in `libs/frontend/domain/account-overview/src/lib/account-overview-export.definition.ts`
+- [x] T032 [P] [US2] Add Account Overview export i18n keys (infobox text reused from `docs/user-guide.md` §5) to `en.ts`/`de.ts`
+- [x] T033 [US2] Register the Account Overview definition in `feature-export.registry.ts` and add `<app-export-control featureId="account-overview" severity="info" />` next to its "Add account" action in `libs/frontend/domain/account-overview/src/lib/account-overview-page/`
+- [x] T034 [P] [US2] Unit test for Account Overview export column coverage + component test for control position, in `account-overview-export.definition.spec.ts` and the account-overview page's `.spec.ts`
+- [x] T035 [P] [US2] Define Retirement `FeatureExportDefinition` (empty `fetchData`, no `getChartOptions`, per research.md §5) in `libs/frontend/domain/retirement/src/lib/retirement-export.definition.ts`
+- [x] T036 [P] [US2] Define Insurances `FeatureExportDefinition` (empty) in `libs/frontend/domain/insurances/src/lib/insurances-export.definition.ts`
+- [x] T037 [P] [US2] Define Haushaltsplaner `FeatureExportDefinition` (empty) in `libs/frontend/domain/haushaltsplaner/src/lib/haushaltsplaner-export.definition.ts`
+- [x] T038 [P] [US2] Define Historic Wealth Development `FeatureExportDefinition` (empty) in `libs/frontend/domain/historic-wealth-development/src/lib/historic-wealth-development-export.definition.ts`
+- [x] T039 [P] [US2] Add i18n keys (title + freshly-written infobox text, matching user-guide style) for the 4 placeholder domains to `en.ts`/`de.ts`
+- [x] T040 [US2] Register the 4 placeholder definitions in `feature-export.registry.ts` and add `<app-export-control severity="info" />` to each placeholder panel's top-right anchor (per research.md §5) in `libs/frontend/domain/{retirement,insurances,haushaltsplaner,historic-wealth-development}/src/lib/*-placeholder/` (depends T035-T038)
+- [x] T041 [P] [US2] Unit tests: each of the 4 placeholder export definitions produces a valid, empty-but-structured export (FR-014) via `exportFeature`, one spec per domain
 - [ ] T042 [US2] Verify via the `verify-ui` skill: quickstart.md US2 steps (control position on all 5 pages, PDF infobox names the right feature, valid empty exports on the 4 placeholders)
 
 **Checkpoint**: All 6 features present the Export control; Holdings and Account Overview export
@@ -138,8 +138,8 @@ exists
 
 - [x] T043 [US3] Implement `exportAll(registry, resolveChartImages)` full-export archive assembly per `contracts/export-lib.md` (iterates `registry.getAll()`, builds `<featureId>/<featureId>.<ext>` entries via `jszip`, catches a single format's failure per feature into `failures[]` without stopping the rest, per FR-015) in `libs/export/src/lib/full-export-archive.ts`
 - [x] T044 [P] [US3] Unit test: a registry with one throwing definition and several succeeding ones — assert the archive still contains every succeeding file and `failures` lists exactly the one that failed, in `libs/export/src/lib/full-export-archive.spec.ts`
-- [ ] T045 [US3] Wire the "Export my data (optional)" button (`data-testid="profile-export-data"`) to call `exportAll` against the app-wide registry and trigger a `vaultfolio-data-export.zip` download, in `apps/frontend/src/app/settings/profile/profile.component.ts` and `.html` (depends on T022, T043)
-- [ ] T046 [US3] Surface partial-failure messaging (which feature/format failed, hint to retry from that feature's own Export control, per FR-015/Edge Cases) in `apps/frontend/src/app/settings/profile/profile.component.html`
+- [x] T045 [US3] Wire the "Export my data (optional)" button (`data-testid="profile-export-data"`) to call `exportAll` against the app-wide registry and trigger a `vaultfolio-data-export.zip` download, in `apps/frontend/src/app/settings/profile/profile.component.ts` and `.html` (depends on T022, T043)
+- [x] T046 [US3] Surface partial-failure messaging (which feature/format failed, hint to retry from that feature's own Export control, per FR-015/Edge Cases) in `apps/frontend/src/app/settings/profile/profile.component.html`
 - [ ] T047 [P] [US3] Component test: clicking "Export my data" triggers `exportAll` and downloads the ZIP; a mocked failure surfaces the failure message, in `apps/frontend/src/app/settings/profile/profile.component.spec.ts`
 - [ ] T048 [US3] Verify via the `verify-ui` skill: quickstart.md US3 steps (ZIP structure, one subdirectory per feature, placeholder folders valid-but-empty, real data in `holdings/` and `account-overview/`)
 

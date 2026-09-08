@@ -194,6 +194,9 @@ export const en: TranslationDictionary = {
     dangerZone: 'Danger Zone',
     dangerZoneHint: "Permanently delete your account and everything you own. This can't be undone.",
     exportData: 'Export my data (optional)',
+    exportDataError: 'Export failed. Please try again.',
+    exportPartialFailure:
+      'Some files could not be generated — the rest of the archive still downloaded. Retry from that feature’s own Export control:',
     deleteAccount: 'Delete account',
     deleteYourAccount: 'Delete your account?',
     deleteAdvisory:
@@ -536,5 +539,66 @@ export const en: TranslationDictionary = {
     validUntilInvalid: 'Valid until must be in MM/YY format.',
     notes: 'Notes',
     notesPlaceholder: 'Anything else worth remembering about this account',
+  },
+  export: {
+    buttonLabel: 'Export',
+    formatJson: 'JSON',
+    formatJsonDescription: 'Raw structured data',
+    formatCsv: 'CSV',
+    formatCsvDescription: 'Plain-text table',
+    formatXlsx: 'Excel',
+    formatXlsxDescription: 'Formatted spreadsheet',
+    formatPdf: 'PDF',
+    formatPdfDescription: 'Report with charts',
+    noDataHint: 'No data yet — this export will still download with valid, empty structure.',
+  },
+  holdingsExport: {
+    title: 'Holdings',
+    infobox:
+      'About this export — Holdings. Holdings is the primary tracking domain, letting you record and monitor your investment positions across asset types (ETF, Share, Precious Metal, Crypto, Deposit Money). This file contains every holding currently on your Holdings list.',
+    columnAssetType: 'Type',
+    columnName: 'Asset',
+    columnManagement: 'Management',
+    columnQuantity: 'Quantity',
+    columnWeightGrams: 'Weight (grams)',
+    columnPurchasePrice: 'Purchase price',
+    columnCurrentValue: 'Current value',
+    columnPurchaseDate: 'Purchase date',
+  },
+  accountOverviewExport: {
+    title: 'Account Overview',
+    infobox:
+      'About this export — Account Overview. Account Overview is a reference directory of your financial accounts — bank accounts, credit cards, brokerages, and more. This file contains every account entry currently recorded, including its status, provider, and notes.',
+    columnName: 'Name',
+    columnCategory: 'Category',
+    columnStatus: 'Status',
+    columnProvider: 'Provider / institution',
+    columnWebsite: 'Website',
+    columnPurpose: 'Purpose',
+    columnCardUsage: 'Card usage',
+    columnRequiredMinimum: 'Required minimum',
+    columnCardNumber: 'Card number',
+    columnValidUntil: 'Valid until',
+    columnNotes: 'Notes',
+  },
+  retirementExport: {
+    title: 'Retirement',
+    infobox:
+      'About this export — Retirement. Retirement tracking is not built yet in Vaultfolio, so this file contains no rows today — it will automatically start including your data once that feature ships.',
+  },
+  insurancesExport: {
+    title: 'Insurances',
+    infobox:
+      'About this export — Insurances. Insurance tracking is not built yet in Vaultfolio, so this file contains no rows today — it will automatically start including your data once that feature ships.',
+  },
+  haushaltsplanerExport: {
+    title: 'Haushaltsplaner',
+    infobox:
+      'About this export — Haushaltsplaner. Household budgeting is not built yet in Vaultfolio, so this file contains no rows today — it will automatically start including your data once that feature ships.',
+  },
+  historicWealthDevelopmentExport: {
+    title: 'Wealth Development',
+    infobox:
+      'About this export — Wealth Development. Historic wealth development tracking is not built yet in Vaultfolio, so this file contains no rows today — it will automatically start including your data once that feature ships.',
   },
 };

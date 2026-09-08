@@ -12,6 +12,7 @@ import { TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import {
+  ExportControlComponent,
   IconComponent,
   TranslatePipe,
   LocaleNumberPipe,
@@ -59,6 +60,7 @@ import { HoldingsService } from './holdings.service';
     LocaleNumberPipe,
     LocaleDatePipe,
     IconComponent,
+    ExportControlComponent,
   ],
   providers: [ConfirmationService, MessageService, TranslatePipe],
   template: `
@@ -92,9 +94,17 @@ import { HoldingsService } from './holdings.service';
               | translate
           }}
         </h2>
-        <button pButton data-testid="holdings-add-holding" type="button" (click)="openAddDialog()">
-          <app-icon name="plus" /> {{ 'holdings.addHolding' | translate }}
-        </button>
+        <div class="holdings-panel__header-actions">
+          <app-export-control featureId="holdings" severity="info" />
+          <button
+            pButton
+            data-testid="holdings-add-holding"
+            type="button"
+            (click)="openAddDialog()"
+          >
+            <app-icon name="plus" /> {{ 'holdings.addHolding' | translate }}
+          </button>
+        </div>
       </div>
 
       @if (loadError()) {
@@ -298,6 +308,15 @@ import { HoldingsService } from './holdings.service';
       align-items: center;
       justify-content: space-between;
       margin-bottom: 0.75rem;
+    }
+
+    /* design.md: the Export control sits immediately left of "Add holding" — both grouped in
+       one actions cluster so the header's own space-between above still only splits the
+       heading from this whole group, not from each individual button. */
+    .holdings-panel__header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
     }
 
     .holdings-panel__filter {

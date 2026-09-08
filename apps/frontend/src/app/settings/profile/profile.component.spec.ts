@@ -234,6 +234,10 @@ describe('ProfileComponent', () => {
     });
   });
 
+  // TODO(029-export-data, T047): "Export my data" component test — see
+  // https://github.com/mallwang/vaultfolio/issues (tracking issue) for the vi.mock hoisting
+  // problem this hit and what's left to finish it.
+
   describe('danger zone', () => {
     it('openDangerZone() sets step to advisory', () => {
       fixture.componentInstance['openDangerZone']();

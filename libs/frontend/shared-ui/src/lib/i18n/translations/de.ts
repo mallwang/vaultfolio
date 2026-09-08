@@ -192,6 +192,9 @@ export const de: TranslationDictionary = {
     dangerZoneHint:
       'Löscht Ihr Konto und alles, was Ihnen gehört, dauerhaft. Dies kann nicht rückgängig gemacht werden.',
     exportData: 'Meine Daten exportieren (optional)',
+    exportDataError: 'Export fehlgeschlagen. Bitte versuchen Sie es erneut.',
+    exportPartialFailure:
+      'Einige Dateien konnten nicht erstellt werden — der Rest des Archivs wurde trotzdem heruntergeladen. Erneut versuchen über das Export-Element der jeweiligen Funktion:',
     deleteAccount: 'Konto löschen',
     deleteYourAccount: 'Ihr Konto löschen?',
     deleteAdvisory:
@@ -540,5 +543,67 @@ export const de: TranslationDictionary = {
     validUntilInvalid: 'Gültig bis muss im Format MM/JJ sein.',
     notes: 'Notizen',
     notesPlaceholder: 'Alles andere, was zu diesem Konto wichtig ist',
+  },
+  export: {
+    buttonLabel: 'Exportieren',
+    formatJson: 'JSON',
+    formatJsonDescription: 'Rohe, strukturierte Daten',
+    formatCsv: 'CSV',
+    formatCsvDescription: 'Tabelle als Klartext',
+    formatXlsx: 'Excel',
+    formatXlsxDescription: 'Formatierte Tabellenkalkulation',
+    formatPdf: 'PDF',
+    formatPdfDescription: 'Bericht mit Diagrammen',
+    noDataHint:
+      'Noch keine Daten — dieser Export wird trotzdem mit gültiger, leerer Struktur heruntergeladen.',
+  },
+  holdingsExport: {
+    title: 'Holdings',
+    infobox:
+      'Über diesen Export — Holdings. Holdings ist der zentrale Tracking-Bereich, in dem Sie Ihre Investmentpositionen über verschiedene Anlageklassen hinweg erfassen und verfolgen (ETF, Aktie, Edelmetall, Krypto, Festgeld/Tagesgeld). Diese Datei enthält alle aktuell in Ihrer Holdings-Liste vorhandenen Positionen.',
+    columnAssetType: 'Typ',
+    columnName: 'Anlage',
+    columnManagement: 'Verwaltung',
+    columnQuantity: 'Menge',
+    columnWeightGrams: 'Gewicht (Gramm)',
+    columnPurchasePrice: 'Kaufpreis',
+    columnCurrentValue: 'Aktueller Wert',
+    columnPurchaseDate: 'Kaufdatum',
+  },
+  accountOverviewExport: {
+    title: 'Kontoübersicht',
+    infobox:
+      'Über diesen Export — Kontoübersicht. Die Kontoübersicht ist ein Verzeichnis Ihrer Finanzkonten — Bankkonten, Kreditkarten, Depots und mehr. Diese Datei enthält jeden aktuell erfassten Kontoeintrag inklusive Status, Anbieter und Notizen.',
+    columnName: 'Name',
+    columnCategory: 'Kategorie',
+    columnStatus: 'Status',
+    columnProvider: 'Anbieter / Institut',
+    columnWebsite: 'Website',
+    columnPurpose: 'Zweck',
+    columnCardUsage: 'Kartennutzung',
+    columnRequiredMinimum: 'Mindestbetrag',
+    columnCardNumber: 'Kartennummer',
+    columnValidUntil: 'Gültig bis',
+    columnNotes: 'Notizen',
+  },
+  retirementExport: {
+    title: 'Altersvorsorge',
+    infobox:
+      'Über diesen Export — Altersvorsorge. Die Altersvorsorge-Verfolgung ist in Vaultfolio noch nicht umgesetzt, daher enthält diese Datei heute keine Zeilen — sie wird automatisch Ihre Daten enthalten, sobald diese Funktion verfügbar ist.',
+  },
+  insurancesExport: {
+    title: 'Versicherungen',
+    infobox:
+      'Über diesen Export — Versicherungen. Die Versicherungsverfolgung ist in Vaultfolio noch nicht umgesetzt, daher enthält diese Datei heute keine Zeilen — sie wird automatisch Ihre Daten enthalten, sobald diese Funktion verfügbar ist.',
+  },
+  haushaltsplanerExport: {
+    title: 'Haushaltsplaner',
+    infobox:
+      'Über diesen Export — Haushaltsplaner. Die Haushaltsplanung ist in Vaultfolio noch nicht umgesetzt, daher enthält diese Datei heute keine Zeilen — sie wird automatisch Ihre Daten enthalten, sobald diese Funktion verfügbar ist.',
+  },
+  historicWealthDevelopmentExport: {
+    title: 'Vermögensentwicklung',
+    infobox:
+      'Über diesen Export — Vermögensentwicklung. Die historische Vermögensentwicklung ist in Vaultfolio noch nicht umgesetzt, daher enthält diese Datei heute keine Zeilen — sie wird automatisch Ihre Daten enthalten, sobald diese Funktion verfügbar ist.',
   },
 };

@@ -150,9 +150,24 @@
         {{ 'profile.dangerZone' | translate }}
       </h2>
       <p>{{ 'profile.dangerZoneHint' | translate }}</p>
+      @if (exportFailures(); as failures) {
+        @if (failures.length > 0) {
+          <p class="export-partial-failure" data-testid="profile-export-partial-failure">
+            {{ 'profile.exportPartialFailure' | translate }}
+            <span>{{ formatExportFailures(failures) }}</span>
+          </p>
+        }
+      }
       <div class="danger-actions">
-        <button pButton data-testid="profile-export-data" type="button" severity="secondary">
-          <app-icon name="download" />
+        <button
+          pButton
+          data-testid="profile-export-data"
+          type="button"
+          severity="secondary"
+          [disabled]="exporting()"
+          (click)="exportAllData()"
+        >
+          <app-icon [name]="exporting() ? 'spinner' : 'download'" [spin]="exporting()" />
           {{ 'profile.exportData' | translate }}
         </button>
         <button

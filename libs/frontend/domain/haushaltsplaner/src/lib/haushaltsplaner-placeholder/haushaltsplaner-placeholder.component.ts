@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { CardModule } from 'primeng/card';
-import { TranslatePipe } from '@vaultfolio/frontend-shared-ui';
+import { ExportControlComponent, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
 
 /**
  * Haushaltsplaner placeholder page (022-add-domain-placeholders, FR-003):
@@ -17,9 +17,12 @@ import { TranslatePipe } from '@vaultfolio/frontend-shared-ui';
  */
 @Component({
   selector: 'app-haushaltsplaner-placeholder',
-  imports: [CardModule, TranslatePipe],
+  imports: [CardModule, TranslatePipe, ExportControlComponent],
   template: `
     <p-card>
+      <div class="placeholder-header">
+        <app-export-control featureId="haushaltsplaner" severity="info" />
+      </div>
       <div class="placeholder">
         <strong>{{ 'haushaltsplanerPlaceholder.title' | translate }}</strong>
         <p>{{ 'haushaltsplanerPlaceholder.body' | translate }}</p>
@@ -31,6 +34,13 @@ import { TranslatePipe } from '@vaultfolio/frontend-shared-ui';
       display: block;
       max-width: 640px;
       margin: 0 auto;
+    }
+
+    /* research.md §5: top-right of the placeholder panel — the same relative position the
+       feature's own "Add" action will later occupy once it has real data. */
+    .placeholder-header {
+      display: flex;
+      justify-content: flex-end;
     }
 
     .placeholder {

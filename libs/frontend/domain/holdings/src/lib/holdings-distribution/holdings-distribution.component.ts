@@ -1,37 +1,17 @@
 import { Component, Input, OnChanges, OnInit, computed, inject, signal } from '@angular/core';
 import type { EChartsOption } from 'echarts';
-import type { AssetType, HoldingResponse } from '@vaultfolio/api-contract';
+import type { HoldingResponse } from '@vaultfolio/api-contract';
 import { ASSET_TYPE_LABEL_KEYS } from '../asset-type-fields';
 import { HoldingsService } from '../holdings.service';
 import { groupHoldingsByKey } from '../holdings-valuation';
+import { EchartComponent, I18nService, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
 import {
-  EchartComponent,
-  ASSET_TYPE_COLORS,
-  I18nService,
-  TranslatePipe,
-} from '@vaultfolio/frontend-shared-ui';
+  buildDistributionChartOption,
+  type HoldingsDistributionEntry,
+} from './distribution-chart-option';
 
-/**
- * Picks black or white for a segment's inside label based on the fill
- * color's perceived brightness (YIQ formula), so plain text — no
- * border/glow — stays legible against every fixed `ASSET_TYPE_COLORS`
- * value, including the light gold "precious metal" slice.
- */
-export function contrastTextColor(hexColor: string): string {
-  const r = Number.parseInt(hexColor.slice(1, 3), 16);
-  const g = Number.parseInt(hexColor.slice(3, 5), 16);
-  const b = Number.parseInt(hexColor.slice(5, 7), 16);
-  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-  return brightness > 150 ? '#1f2937' : '#ffffff';
-}
-
-/** data-model.md "Holdings Distribution Chart Entry (revised)" — one aggregate per `AssetType`. */
-interface HoldingsDistributionEntry {
-  /** The sole grouping key — also drives the slice's fixed color (`ASSET_TYPE_COLORS`). */
-  assetType: AssetType;
-  /** Decimal total, converted via `.toNumber()` at the presentation boundary only. */
-  value: number;
-}
+export { contrastTextColor } from './distribution-chart-option';
+export type { HoldingsDistributionEntry } from './distribution-chart-option';
 
 /**
  * FR-012a: each holding's share of total portfolio value, computed
@@ -155,68 +135,11 @@ export class HoldingsDistributionComponent implements OnChanges, OnInit {
   protected readonly excludedCount = signal(0);
   protected readonly hasData = computed(() => this.entries() != null);
 
-  protected readonly chartOption = computed<EChartsOption>(() => {
-    const entries = this.entries() ?? [];
-    const locale = this.i18n.language();
-    const fmt = new Intl.NumberFormat(locale, {
-      style: 'currency',
-      currency: 'EUR',
-      maximumFractionDigits: 2,
-    });
-    const resolveName = (entry: HoldingsDistributionEntry): string =>
-      this.translate.transform(ASSET_TYPE_LABEL_KEYS[entry.assetType]);
-    const pieCenter: [string, string] = ['50%', '42%'];
-    return {
-      // `EchartComponent`'s shared theming fragment merges in its own
-      // `legend: { textStyle }` on every theme change (to keep legend text
-      // readable for charts that DO show one) — since that's a merge, not a
-      // replace, it would otherwise resurrect a default-visible legend here
-      // even though this option has no `legend` key of its own. Explicit
-      // `show: false` survives that merge.
-      legend: { show: false },
-      tooltip: {
-        trigger: 'item',
-        formatter: (params: unknown) => {
-          const p = params as { name: string; value: number; percent: number };
-          return `${p.name}: ${fmt.format(p.value)} (${p.percent}%)`;
-        },
-      },
-      series: [
-        {
-          type: 'pie',
-          radius: ['40%', '65%'],
-          center: pieCenter,
-          padAngle: 2,
-          itemStyle: { borderRadius: 9 },
-          // Name is redundant with the legend and would otherwise get
-          // clipped for longer localized asset-type labels in this small a
-          // chart — percentage only avoids that entirely. Placed inside
-          // each segment (vs. the previous outside label + pointer line)
-          // so there's no separate `labelLine` to configure or clip. Each
-          // data point overrides `label.color` below with whichever of
-          // black/white contrasts with its own fixed `ASSET_TYPE_COLORS`
-          // fill (a single series-level color can't stay legible against
-          // both the light gold "precious metal" slice and the darker
-          // ones) — plain, no text border/glow. One decimal place keeps
-          // the label short enough to fit even the narrowest segment. A
-          // smaller-than-default fontSize keeps the label legible inside
-          // even the narrowest slices instead of overflowing them.
-          label: { position: 'inside', formatter: '{d}%', fontWeight: 'bold', fontSize: 10 },
-          labelLine: { show: false },
-          percentPrecision: 1,
-          data: entries.map((entry) => {
-            const color = ASSET_TYPE_COLORS[entry.assetType];
-            return {
-              name: resolveName(entry),
-              value: entry.value,
-              itemStyle: { color },
-              label: { color: contrastTextColor(color) },
-            };
-          }),
-        },
-      ],
-    };
-  });
+  protected readonly chartOption = computed<EChartsOption>(() =>
+    buildDistributionChartOption(this.entries() ?? [], this.i18n.language(), (entry) =>
+      this.translate.transform(ASSET_TYPE_LABEL_KEYS[entry.assetType]),
+    ),
+  );
 
   /**
    * Rendered as an HTML overlay (holdings-distribution.component.html)
@@ -237,6 +160,18 @@ export class HoldingsDistributionComponent implements OnChanges, OnInit {
       maximumFractionDigits: 0,
     }).format(total);
   });
+
+  /**
+   * Export seam (029-export-data, research.md §3): exposes the exact same `EChartsOption` the
+   * page renders, so the off-screen chart-image capture used by the PDF export can reproduce
+   * this chart without touching the visible DOM. Callers that need the export to reflect a
+   * feature's own dataset (rather than whatever `[holdings]` happens to be bound at capture
+   * time) should ensure `holdings`/`recompute()` has already run — see
+   * `holdings-export.definition.ts`.
+   */
+  getChartOption(): EChartsOption {
+    return this.chartOption();
+  }
 
   ngOnChanges(): void {
     this.inputBound = true;

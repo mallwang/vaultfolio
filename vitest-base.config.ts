@@ -9,6 +9,7 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     testTimeout: 15000,
+    setupFiles: ['./tools/vitest-global-setup.ts'],
     coverage: {
       exclude: [
         '**/main.ts',

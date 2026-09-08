@@ -1,4 +1,3 @@
-import ExcelJS from 'exceljs';
 import type { ExportColumnFormat, ResolvedFeatureExport } from './feature-export-definition.js';
 
 function toCellValue(value: string | number | null, format: ExportColumnFormat) {
@@ -33,8 +32,13 @@ function numFmtFor(format: ExportColumnFormat): string | undefined {
  * `ResolvedFeatureExport` -> `.xlsx` bytes via `exceljs`, with typed columns
  * (text/number/decimal/date). Called with zero rows, produces a header-only sheet with the
  * column formatting still applied (FR-014).
+ *
+ * Deferred `import('exceljs')`: `exceljs` is a large dependency, so every consumer of this
+ * library's public barrel must not pull it into an eagerly-loaded bundle just by importing
+ * `exportFeature`/`exportAll` — matches `pdf-exporter.ts`'s identical treatment of `pdfmake`.
  */
 export async function exportXlsx(resolved: ResolvedFeatureExport): Promise<Blob> {
+  const { default: ExcelJS } = await import('exceljs');
   const workbook = new ExcelJS.Workbook();
   const sheet = workbook.addWorksheet(resolved.title.slice(0, 31) || 'Export');
 
