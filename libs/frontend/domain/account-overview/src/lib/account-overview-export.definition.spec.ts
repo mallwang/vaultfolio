@@ -55,6 +55,8 @@ describe('createAccountOverviewExportDefinition', () => {
   it('fetchData maps AccountOverviewEntry rows via GET /api/account-overview/accounts, resolving category/status to display text', async () => {
     const definition = TestBed.runInInjectionContext(createAccountOverviewExportDefinition);
     const httpMock = TestBed.inject(HttpTestingController);
+    // toSignal() subscribes immediately on factory init — flush that background request first.
+    httpMock.expectOne('/api/account-overview/accounts').flush([]);
 
     const rowsPromise = definition.fetchData();
     httpMock.expectOne('/api/account-overview/accounts').flush([account]);
