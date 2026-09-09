@@ -24,6 +24,7 @@ eigenen Infrastruktur.
    - 4.3 [Anlagetypen und ihre Felder](#43-anlagetypen-und-ihre-felder)
    - 4.4 [Verteilungsdiagramme](#44-verteilungsdiagramme)
    - 4.5 [Positionen bearbeiten und löschen](#45-positionen-bearbeiten-und-löschen)
+   - 4.6 [Holdings-Daten exportieren](#46-holdings-daten-exportieren)
 5. [Kontenübersicht](#5-kontenübersicht)
 6. [Klaro](#6-klaro)
 7. [Einstellungen](#7-einstellungen)
@@ -163,6 +164,22 @@ Jede Zeile hat zwei Schaltflächen rechts:
 
 Das Löschen kann nicht rückgängig gemacht werden.
 
+### 4.6 Holdings-Daten exportieren
+
+Der **Export**-Splitbutton (oben rechts im Holdings-Panel, neben **Position hinzufügen**) ermöglicht
+den Download deiner Positionen in vier Formaten:
+
+| Format | Verwendungszweck                                   |
+| ------ | -------------------------------------------------- |
+| JSON   | Strukturierte Rohdaten für Skripte oder Backups    |
+| CSV    | Tabellenimport (Excel, LibreOffice usw.)           |
+| Excel  | Formatierte `.xlsx`-Datei mit typisierten Spalten  |
+| PDF    | Druckbarer Bericht mit eingebettetem Kreisdiagramm |
+
+Klicke auf die Schaltfläche, um das Formatmenü zu öffnen, und wähle dann dein Format aus. Die
+Datei wird sofort heruntergeladen. Eine leere Holdings-Liste erzeugt eine gültige, aber zeilenlose
+Datei (CSV/JSON/Excel) bzw. ein PDF mit nur dem Kopfbereich.
+
 ---
 
 ## 5. Kontenübersicht
@@ -179,6 +196,9 @@ Kategorien: Allgemein, Freizeit, Sparen, Depot, Kreditkarte, Sonstige.
 Nutze die Schaltfläche **Konto hinzufügen**, um einen Eintrag zu erstellen. Bearbeiten und
 Löschen funktionieren genauso wie bei Holdings. Das Deaktivieren eines Kontos markiert es als
 inaktiv, ohne es zu löschen – nützlich für das Führen historischer Aufzeichnungen.
+
+Der **Export**-Splitbutton (oben rechts) funktioniert genauso wie bei Holdings – JSON, CSV,
+Excel und PDF stehen zur Verfügung.
 
 ---
 
@@ -209,6 +229,10 @@ gesendet. Deine aktuelle Adresse bleibt aktiv, bis die neue bestätigt wurde (Li
 
 **Passwort** – Erfordert dein aktuelles Passwort. Eine Änderung meldet alle anderen aktiven
 Sitzungen ab; deine aktuelle Sitzung bleibt angemeldet.
+
+**Daten exportieren** – Lädt ein ZIP-Archiv mit deinen Daten aus allen Domänen in allen
+unterstützten Formaten (JSON, CSV, Excel, PDF) herunter. Nutze diese Funktion vor dem Löschen
+deines Kontos oder für ein Offline-Backup.
 
 **Gefahrenzone – Konto löschen** – Löscht dein Konto und alle zugehörigen Daten dauerhaft.
 Der Ablauf hat drei Schritte: ein Hinweisbildschirm, eine Option zum vorherigen Datenexport und

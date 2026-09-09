@@ -90,7 +90,7 @@ and contains the user's current holdings data (PDF additionally shows charts + i
 - [x] T027 [US1] Add `<app-export-control featureId="holdings" severity="info" />` immediately left of the "Add holding" action in `libs/frontend/domain/holdings/src/lib/holdings.component.html` (and import in `holdings.component.ts`)
 - [x] T028 [P] [US1] Unit test asserting `holdings-export.definition`'s `columns` cover every field visible in the Holdings table/detail view (FR-007, SC-002) in `libs/frontend/domain/holdings/src/lib/holdings-export.definition.spec.ts`
 - [x] T029 [P] [US1] Component test: Holdings page renders the Export control in the correct position/severity, left of "Add holding" in `libs/frontend/domain/holdings/src/lib/holdings.component.spec.ts`
-- [ ] T030 [US1] Verify via the `verify-ui` skill: quickstart.md US1 steps 1-8 (JSON/CSV/XLSX/PDF downloads, empty-account case, German language switch)
+- [x] T030 [US1] Verify via the `verify-ui` skill: quickstart.md US1 steps 1-8 (JSON/CSV/XLSX/PDF downloads, empty-account case, German language switch)
 
 **Checkpoint**: User Story 1 fully functional and independently testable/shippable
 
@@ -118,7 +118,7 @@ own data and infobox text
 - [x] T039 [P] [US2] Add i18n keys (title + freshly-written infobox text, matching user-guide style) for the 4 placeholder domains to `en.ts`/`de.ts`
 - [x] T040 [US2] Register the 4 placeholder definitions in `feature-export.registry.ts` and add `<app-export-control severity="info" />` to each placeholder panel's top-right anchor (per research.md §5) in `libs/frontend/domain/{retirement,insurances,haushaltsplaner,historic-wealth-development}/src/lib/*-placeholder/` (depends T035-T038)
 - [x] T041 [P] [US2] Unit tests: each of the 4 placeholder export definitions produces a valid, empty-but-structured export (FR-014) via `exportFeature`, one spec per domain
-- [ ] T042 [US2] Verify via the `verify-ui` skill: quickstart.md US2 steps (control position on all 5 pages, PDF infobox names the right feature, valid empty exports on the 4 placeholders)
+- [x] T042 [US2] Verify via the `verify-ui` skill: quickstart.md US2 steps (control position on all 5 pages, PDF infobox names the right feature, valid empty exports on the 4 placeholders)
 
 **Checkpoint**: All 6 features present the Export control; Holdings and Account Overview export
 real data, the 4 placeholders export valid-but-empty data
@@ -140,8 +140,8 @@ exists
 - [x] T044 [P] [US3] Unit test: a registry with one throwing definition and several succeeding ones — assert the archive still contains every succeeding file and `failures` lists exactly the one that failed, in `libs/export/src/lib/full-export-archive.spec.ts`
 - [x] T045 [US3] Wire the "Export my data (optional)" button (`data-testid="profile-export-data"`) to call `exportAll` against the app-wide registry and trigger a `vaultfolio-data-export.zip` download, in `apps/frontend/src/app/settings/profile/profile.component.ts` and `.html` (depends on T022, T043)
 - [x] T046 [US3] Surface partial-failure messaging (which feature/format failed, hint to retry from that feature's own Export control, per FR-015/Edge Cases) in `apps/frontend/src/app/settings/profile/profile.component.html`
-- [ ] T047 [P] [US3] Component test: clicking "Export my data" triggers `exportAll` and downloads the ZIP; a mocked failure surfaces the failure message, in `apps/frontend/src/app/settings/profile/profile.component.spec.ts`
-- [ ] T048 [US3] Verify via the `verify-ui` skill: quickstart.md US3 steps (ZIP structure, one subdirectory per feature, placeholder folders valid-but-empty, real data in `holdings/` and `account-overview/`)
+- [x] T047 [P] [US3] Component test: clicking "Export my data" triggers `exportAll` and downloads the ZIP; a mocked failure surfaces the failure message, in `apps/frontend/src/app/settings/profile/profile.component.spec.ts`
+- [x] T048 [US3] Verify via the `verify-ui` skill: quickstart.md US3 steps (ZIP structure, one subdirectory per feature, placeholder folders valid-but-empty, real data in `holdings/` and `account-overview/`)
 
 **Checkpoint**: All three user stories functional end-to-end; a newly-registered feature appears in
 the full export automatically (FR-012, SC-004)
@@ -152,11 +152,11 @@ the full export automatically (FR-012, SC-004)
 
 **Purpose**: Improvements that span all three stories
 
-- [ ] T049 [P] Add `data-testid` attributes to the export split-button and its menu items per `docs/frontend/testid-conventions.md`, across `export-control.component.html` and the profile "Export my data" flow
-- [ ] T050 [P] Confirm `libs/export` has zero Angular/DOM/`TranslateService` imports (Principle I framework-independence) via Nx module-boundary lint
+- [x] T049 [P] Add `data-testid` attributes to the export split-button and its menu items per `docs/frontend/testid-conventions.md`, across `export-control.component.html` and the profile "Export my data" flow
+- [x] T050 [P] Confirm `libs/export` has zero Angular/DOM/`TranslateService` imports (Principle I framework-independence) via Nx module-boundary lint
 - [ ] T051 Manual performance check: single-feature export completes under 5s for a few hundred records (SC-001); full "Export my data" completes under 30s for a typical account (SC-005)
-- [ ] T052 [P] Run `speckit-docs-update` review to confirm `docs/user-guide.md` reflects the new Export control and functional "Export my data" action
-- [ ] T053 Run full `quickstart.md` validation end-to-end (US1 + US2 + US3 together) via the `verify-ui` skill
+- [x] T052 [P] Run `speckit-docs-update` review to confirm `docs/user-guide.md` reflects the new Export control and functional "Export my data" action
+- [x] T053 Run full `quickstart.md` validation end-to-end (US1 + US2 + US3 together) via the `verify-ui` skill
 
 ---
 
