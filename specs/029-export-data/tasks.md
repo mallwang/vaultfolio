@@ -160,6 +160,41 @@ the full export automatically (FR-012, SC-004)
 
 ---
 
+## Phase 7: Bug Fixes & Polish (Post-Verification Findings)
+
+**Purpose**: Defects and gaps found during local testing after Phase 6 verification.
+Tasks are ordered by fix priority (blocker → data layer → all formats → format-specific).
+
+- [x] T054 Fix export split-button becoming unresponsive after 3–4 consecutive exports: investigate
+      state/subscription leak in `export-control.component.ts` (loading flag stuck, completed observable
+      not reset, or event listener accumulation) and restore clickability after repeated use
+- [x] T055 [P] Add ISIN column to all export definitions that include ETF/stock rows: update
+      `holdings-export.definition.ts` (and any other definition that exposes security rows) so the ISIN
+      field appears as an explicit `ExportColumn` and is included in every format's output (JSON, CSV,
+      XLSX, PDF)
+- [x] T056 [P] Localize downloaded file names to the user's active language: resolve the i18n key
+      for each feature's title at download time in `export-control.component.ts` and use it as the file
+      stem (e.g. `Bestände.json` / `Holdings.json`) instead of the bare `featureId`
+- [x] T057 [P] Fix XLSX exporter decimal display: ensure amount/decimal columns render with visible
+      decimal places in the spreadsheet (cell format `#,##0.00` or equivalent via `exceljs` `numFmt`)
+      rather than being stored as plain integers in `libs/export/src/lib/xlsx-exporter.ts`
+- [x] T058 Fix PDF table overflowing page width: audit column widths in `pdf-exporter.ts` and switch
+      to proportional (`'*'`) or explicitly narrowed widths so all columns fit within the page margins;
+      verify "Aktueller Wert" / monetary amounts are never truncated (e.g. "10000" must not show as "10")
+- [x] T059 [P] Apply locale-aware number and date formatting in PDF output: format decimal/amount
+      cells and the "Exported YYYY-MM-DD" header date according to the locale passed to `exportFeature`
+      (e.g. `de-DE` → `10.000,00` and `09.09.2026`) in `libs/export/src/lib/pdf-exporter.ts`
+- [x] T060 [P] Translate PDF title and footer: resolve `titleKey` and `infoboxKey` (already in the
+      `FeatureExportDefinition`) as well as the static footer string "This export is scoped to your own
+      account data only" via the locale/translation mechanism before passing them to `pdf-exporter.ts`;
+      add the German footer translation to `de.ts`
+- [x] T061 Fix PDF chart images not rendering: trace why `chartImages` passed to `pdf-exporter.ts`
+      are empty or ignored — check the off-screen capture seam in `chart-image-capture.ts`, the
+      `getChartOptions` wiring in `holdings-export.definition.ts`, and the `pdfmake` image embedding in
+      `pdf-exporter.ts`; ensure at least the Holdings distribution chart appears in the PDF output
+
+---
+
 ## Dependencies & Execution Order
 
 ### Phase Dependencies

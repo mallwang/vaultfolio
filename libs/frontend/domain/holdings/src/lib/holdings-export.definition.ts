@@ -7,12 +7,16 @@ import { I18nService } from '@vaultfolio/frontend-shared-ui';
 import { HoldingsService } from './holdings.service';
 import { groupHoldingsByKey } from './holdings-valuation';
 import { ASSET_TYPE_LABEL_KEYS } from './asset-type-fields';
-import { buildDistributionChartOption } from './holdings-distribution/distribution-chart-option';
+import {
+  buildDistributionChartOption,
+  buildTypeBreakdownChartOption,
+} from './holdings-distribution/distribution-chart-option';
 
 function toRow(holding: HoldingResponse): ExportRow {
   return {
     assetType: holding.assetType,
     name: holding.name,
+    isin: holding.isin,
     management: holding.management,
     quantity: holding.quantity,
     weightGrams: holding.weightGrams,
@@ -45,11 +49,12 @@ export function createHoldingsExportDefinition(): FeatureExportDefinition {
     columns: [
       { key: 'assetType', labelKey: 'holdingsExport.columnAssetType', format: 'text' },
       { key: 'name', labelKey: 'holdingsExport.columnName', format: 'text' },
+      { key: 'isin', labelKey: 'holdingsExport.columnIsin', format: 'text' },
       { key: 'management', labelKey: 'holdingsExport.columnManagement', format: 'text' },
       { key: 'quantity', labelKey: 'holdingsExport.columnQuantity', format: 'decimal' },
       { key: 'weightGrams', labelKey: 'holdingsExport.columnWeightGrams', format: 'decimal' },
-      { key: 'purchasePrice', labelKey: 'holdingsExport.columnPurchasePrice', format: 'decimal' },
-      { key: 'currentValue', labelKey: 'holdingsExport.columnCurrentValue', format: 'decimal' },
+      { key: 'purchasePrice', labelKey: 'holdingsExport.columnPurchasePrice', format: 'currency' },
+      { key: 'currentValue', labelKey: 'holdingsExport.columnCurrentValue', format: 'currency' },
       { key: 'purchaseDate', labelKey: 'holdingsExport.columnPurchaseDate', format: 'date' },
     ],
     async fetchData(): Promise<ExportRow[]> {
@@ -63,10 +68,23 @@ export function createHoldingsExportDefinition(): FeatureExportDefinition {
         assetType: entry.key,
         value: entry.value.toNumber(),
       }));
-      const option = buildDistributionChartOption(distributionEntries, i18n.language(), (entry) =>
-        i18n.translate(ASSET_TYPE_LABEL_KEYS[entry.assetType]),
+      const mainChart = buildDistributionChartOption(
+        distributionEntries,
+        i18n.language(),
+        (entry) => i18n.translate(ASSET_TYPE_LABEL_KEYS[entry.assetType]),
       );
-      return [option];
+      const typeCharts = entries.map((entry) => {
+        const { entries: nameEntries } = groupHoldingsByKey(
+          lastFetchedHoldings.filter((h) => h.assetType === entry.key),
+          (h) => h.name,
+        );
+        return buildTypeBreakdownChartOption(
+          nameEntries.map((e) => ({ name: e.key, value: e.value.toNumber() })),
+          i18n.translate(ASSET_TYPE_LABEL_KEYS[entry.key]),
+          i18n.language(),
+        );
+      });
+      return [mainChart, ...typeCharts];
     },
   };
 }

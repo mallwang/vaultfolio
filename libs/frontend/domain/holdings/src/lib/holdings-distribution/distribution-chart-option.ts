@@ -24,6 +24,43 @@ export interface HoldingsDistributionEntry {
   value: number;
 }
 
+/** Per-type breakdown chart (individual holdings within one `AssetType`). */
+export function buildTypeBreakdownChartOption(
+  entries: { name: string; value: number }[],
+  title: string,
+  locale: string,
+): EChartsOption {
+  const fmt = new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency: 'EUR',
+    maximumFractionDigits: 2,
+  });
+  return {
+    title: { text: title, left: 'center', textStyle: { fontSize: 11 } },
+    legend: { show: false },
+    tooltip: {
+      trigger: 'item',
+      formatter: (params: unknown) => {
+        const p = params as { name: string; value: number; percent: number };
+        return `${p.name}: ${fmt.format(p.value)} (${p.percent}%)`;
+      },
+    },
+    series: [
+      {
+        type: 'pie',
+        radius: ['35%', '60%'],
+        center: ['50%', '55%'],
+        padAngle: 2,
+        itemStyle: { borderRadius: 8 },
+        label: { position: 'inside', formatter: '{d}%', fontWeight: 'bold', fontSize: 9 },
+        labelLine: { show: false },
+        percentPrecision: 1,
+        data: entries.map((e) => ({ name: e.name, value: e.value })),
+      },
+    ],
+  };
+}
+
 /**
  * Pure chart-option builder (no Angular import beyond plain constants), kept in its own,
  * framework-thin file — deliberately NOT colocated with `HoldingsDistributionComponent` — so

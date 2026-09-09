@@ -12,7 +12,7 @@ export type EChartsOption = Record<string, any>;
 
 export type ExportFormat = 'json' | 'csv' | 'xlsx' | 'pdf';
 
-export type ExportColumnFormat = 'text' | 'number' | 'decimal' | 'date';
+export type ExportColumnFormat = 'text' | 'number' | 'decimal' | 'date' | 'currency';
 
 export interface ExportColumn {
   /** Property name read off each `ExportRow`. */
@@ -47,6 +47,13 @@ export interface FeatureExportDefinition {
   fetchData(): Promise<ExportRow[]>;
   /** One `EChartsOption` per chart to render for the PDF (FR-004); omitted for chartless features. */
   getChartOptions?(): EChartsOption[];
+  /**
+   * Returns `false` to disable the export button. Omit (or return `true`) when always available.
+   * May read Angular signals — the component calls this inside `computed()`.
+   */
+  isEnabled?(): boolean;
+  /** Translation key for the disabled-state tooltip (shown when `isEnabled()` returns false). */
+  disabledTooltipKey?: string;
 }
 
 /**
@@ -63,4 +70,10 @@ export interface ResolvedFeatureExport {
   rows: ExportRow[];
   /** Pre-captured PNG data URLs, PDF only. */
   chartImages?: string[];
+  /** BCP 47 language tag (e.g. 'de', 'en') for locale-aware number/date formatting in PDF. */
+  locale?: string;
+  /** Translated subtitle line shown below the title (e.g. "exportiert am 09.09.2026"). */
+  subtitle?: string;
+  /** Translated footer line shown at the bottom of PDF exports. */
+  footer?: string;
 }

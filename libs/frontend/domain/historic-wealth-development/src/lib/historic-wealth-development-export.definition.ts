@@ -15,4 +15,6 @@ export const HISTORIC_WEALTH_DEVELOPMENT_EXPORT_DEFINITION: FeatureExportDefinit
   fetchData(): Promise<ExportRow[]> {
     return Promise.resolve([]);
   },
+  isEnabled: () => false,
+  disabledTooltipKey: 'export.tooltipNotImplemented',
 };

@@ -1,6 +1,5 @@
-import { Component, Input, inject } from '@angular/core';
+import { Component, Input, computed, inject, signal } from '@angular/core';
 import { SplitButtonModule } from 'primeng/splitbutton';
-import type { MenuItem } from 'primeng/api';
 import type { ButtonSeverity } from 'primeng/types/button';
 import {
   FeatureExportRegistry,
@@ -10,6 +9,8 @@ import {
 } from '@vaultfolio/export';
 import { I18nService } from '../i18n/i18n.service';
 import { TranslatePipe } from '../i18n/translate.pipe';
+import { IconComponent } from '../icon/icon.component';
+import { ICON_NAME_MAP } from '../icon/icon-name.map';
 import { CHART_IMAGE_CAPTURE } from './chart-image-capture';
 import { FEATURE_EXPORT_REGISTRY } from './feature-export-registry.token';
 
@@ -71,17 +72,21 @@ function triggerDownload(blob: Blob, fileName: string): void {
  */
 @Component({
   selector: 'app-export-control',
-  imports: [SplitButtonModule, TranslatePipe],
+  imports: [SplitButtonModule, TranslatePipe, IconComponent],
   template: `
     <p-splitbutton
-      [label]="'export.buttonLabel' | translate"
-      icon="download"
       [severity]="severity"
-      [model]="menuItems"
-      [disabled]="exporting"
+      [model]="menuItems()"
+      [disabled]="isDisabled() || exporting()"
+      [tooltip]="disabledTooltip()"
       data-testid="export-control"
       (onClick)="onDefaultAction()"
-    />
+    >
+      <ng-template #content>
+        <app-icon name="file-export" />
+        <span class="p-button-label">{{ 'export.buttonLabel' | translate }}</span>
+      </ng-template>
+    </p-splitbutton>
   `,
 })
 export class ExportControlComponent {
@@ -95,19 +100,34 @@ export class ExportControlComponent {
   private readonly i18n = inject(I18nService);
   private readonly captureChartImage = inject(CHART_IMAGE_CAPTURE);
 
-  protected exporting = false;
+  protected readonly exporting = signal(false);
 
-  protected get menuItems(): MenuItem[] {
-    return FORMAT_MENU.map((entry) => ({
-      label: this.i18n.translate(entry.labelKey),
-      icon: entry.icon,
-      // PrimeNG's MenuItem doesn't have a description slot out of the box; the format's
-      // description text (design.md's "Raw structured data" etc.) surfaces as a title
-      // tooltip until a dedicated item template is warranted.
-      title: this.i18n.translate(entry.descriptionKey),
-      command: () => this.export(entry.format),
-    }));
-  }
+  protected readonly isDisabled = computed(() => {
+    const definition = this.registry.getById(this.featureId);
+    return definition?.isEnabled ? !definition.isEnabled() : false;
+  });
+
+  protected readonly disabledTooltip = computed(() => {
+    if (!this.isDisabled()) return undefined;
+    const definition = this.registry.getById(this.featureId);
+    return definition?.disabledTooltipKey
+      ? this.i18n.translate(definition.disabledTooltipKey)
+      : undefined;
+  });
+
+  protected readonly menuItems = computed(() =>
+    FORMAT_MENU.map((entry) => {
+      const glyph = ICON_NAME_MAP[entry.icon] ?? '';
+      return {
+        // PrimeNG menu items use CSS-class-based icons, incompatible with Material Symbols
+        // ligatures — embed the glyph as inline HTML with escape:false instead.
+        label: `<span style="display:flex;align-items:center;gap:6px"><span class="material-symbols-outlined" style="font-size:1rem">${glyph}</span>${this.i18n.translate(entry.labelKey)}</span>`,
+        escape: false,
+        title: this.i18n.translate(entry.descriptionKey),
+        command: () => this.export(entry.format),
+      };
+    }),
+  );
 
   /** Default (non-caret) click: no single default format per design.md — just opens the menu. */
   protected onDefaultAction(): void {
@@ -121,7 +141,7 @@ export class ExportControlComponent {
       return;
     }
 
-    this.exporting = true;
+    this.exporting.set(true);
     try {
       const rows = await definition.fetchData();
       const chartImages =
@@ -131,9 +151,12 @@ export class ExportControlComponent {
             )
           : undefined;
 
+      const title = this.i18n.translate(definition.titleKey);
+      const lang = this.i18n.language();
+      const subtitleDate = new Intl.DateTimeFormat(lang).format(new Date());
       const resolved: ResolvedFeatureExport = {
         featureId: definition.featureId,
-        title: this.i18n.translate(definition.titleKey),
+        title,
         infobox: this.i18n.translate(definition.infoboxKey),
         columns: definition.columns.map((column) => ({
           key: column.key,
@@ -142,12 +165,16 @@ export class ExportControlComponent {
         })),
         rows,
         chartImages,
+        locale: lang,
+        subtitle: `${this.i18n.translate('export.subtitlePrefix')} ${subtitleDate}`,
+        footer: this.i18n.translate('export.footerText'),
       };
 
+      const safeTitle = title.replace(/[/\\:*?"<>|]/g, '_');
       const blob = await exportFeature(resolved, format);
-      triggerDownload(blob, `${definition.featureId}.${format}`);
+      triggerDownload(blob, `${safeTitle}.${format}`);
     } finally {
-      this.exporting = false;
+      this.exporting.set(false);
     }
   }
 }

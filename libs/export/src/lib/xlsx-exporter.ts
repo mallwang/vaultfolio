@@ -7,6 +7,7 @@ function toCellValue(value: string | number | null, format: ExportColumnFormat) 
   switch (format) {
     case 'number':
     case 'decimal':
+    case 'currency':
       // Decimal strings are converted to a native numeric cell only here, at final
       // serialization (Principle III) — never earlier in the pipeline.
       return typeof value === 'number' ? value : Number(value);
@@ -23,7 +24,10 @@ function numFmtFor(format: ExportColumnFormat): string | undefined {
     return 'yyyy-mm-dd';
   }
   if (format === 'decimal') {
-    return '0.####################';
+    return '#,##0.00';
+  }
+  if (format === 'currency') {
+    return '€#,##0.00';
   }
   return undefined;
 }

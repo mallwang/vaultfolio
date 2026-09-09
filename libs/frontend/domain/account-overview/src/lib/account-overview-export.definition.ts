@@ -1,4 +1,5 @@
 import { inject } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
 import type { FeatureExportDefinition, ExportRow } from '@vaultfolio/export';
 import type { AccountOverviewEntry } from '@vaultfolio/api-contract';
@@ -30,6 +31,9 @@ function toRow(entry: AccountOverviewEntry, i18n: I18nService): ExportRow {
 export function createAccountOverviewExportDefinition(): FeatureExportDefinition {
   const accountOverviewService = inject(AccountOverviewService);
   const i18n = inject(I18nService);
+  const accounts = toSignal(accountOverviewService.list(), {
+    initialValue: [] as AccountOverviewEntry[],
+  });
 
   return {
     featureId: 'account-overview',
@@ -52,9 +56,11 @@ export function createAccountOverviewExportDefinition(): FeatureExportDefinition
       { key: 'validUntil', labelKey: 'accountOverviewExport.columnValidUntil', format: 'text' },
       { key: 'notes', labelKey: 'accountOverviewExport.columnNotes', format: 'text' },
     ],
+    isEnabled: () => accounts().length > 0,
+    disabledTooltipKey: 'export.tooltipNoData',
     async fetchData(): Promise<ExportRow[]> {
-      const accounts = await firstValueFrom(accountOverviewService.list());
-      return accounts.map((entry) => toRow(entry, i18n));
+      const rows = await firstValueFrom(accountOverviewService.list());
+      return rows.map((entry) => toRow(entry, i18n));
     },
   };
 }

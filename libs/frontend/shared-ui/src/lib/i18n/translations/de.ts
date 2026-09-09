@@ -556,13 +556,18 @@ export const de: TranslationDictionary = {
     formatPdfDescription: 'Bericht mit Diagrammen',
     noDataHint:
       'Noch keine Daten — dieser Export wird trotzdem mit gültiger, leerer Struktur heruntergeladen.',
+    footerText: 'Dieser Export enthält ausschließlich Daten Ihres eigenen Kontos.',
+    subtitlePrefix: 'exportiert am',
+    tooltipNotImplemented: 'Noch nicht implementiert',
+    tooltipNoData: 'Keine Daten vorhanden',
   },
   holdingsExport: {
-    title: 'Holdings',
+    title: 'Bestände',
     infobox:
       'Über diesen Export — Holdings. Holdings ist der zentrale Tracking-Bereich, in dem Sie Ihre Investmentpositionen über verschiedene Anlageklassen hinweg erfassen und verfolgen (ETF, Aktie, Edelmetall, Krypto, Festgeld/Tagesgeld). Diese Datei enthält alle aktuell in Ihrer Holdings-Liste vorhandenen Positionen.',
     columnAssetType: 'Typ',
     columnName: 'Anlage',
+    columnIsin: 'ISIN',
     columnManagement: 'Verwaltung',
     columnQuantity: 'Menge',
     columnWeightGrams: 'Gewicht (Gramm)',

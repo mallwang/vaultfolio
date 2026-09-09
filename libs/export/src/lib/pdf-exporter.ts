@@ -4,15 +4,32 @@ import type { ResolvedFeatureExport } from './feature-export-definition.js';
 const INFO_BLUE = '#0284c7';
 const INFO_BG = '#e0f2fe';
 
-function cellToText(value: string | number | null): string {
-  return value === null ? '' : String(value);
+function cellToText(value: string | number | null, format: string, locale: string): string {
+  if (value === null) return '';
+  if (format === 'currency') {
+    const n = typeof value === 'number' ? value : Number(value);
+    return Number.isNaN(n)
+      ? String(value)
+      : new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR' }).format(n);
+  }
+  if (format === 'decimal' || format === 'number') {
+    const n = typeof value === 'number' ? value : Number(value);
+    return Number.isNaN(n) ? String(value) : new Intl.NumberFormat(locale).format(n);
+  }
+  if (format === 'date' && typeof value === 'string' && value) {
+    const d = new Date(value);
+    return Number.isNaN(d.getTime()) ? value : new Intl.DateTimeFormat(locale).format(d);
+  }
+  return String(value);
 }
 
 function buildDocDefinition(resolved: ResolvedFeatureExport): TDocumentDefinitions {
+  const locale = resolved.locale ?? 'en';
+  const subtitle = resolved.subtitle ?? new Intl.DateTimeFormat(locale).format(new Date());
   const content: Content[] = [
     { text: resolved.title, style: 'title' },
     {
-      text: `Vaultfolio — exported ${new Date().toISOString().slice(0, 10)}`,
+      text: `Vaultfolio — ${subtitle}`,
       style: 'meta',
       margin: [0, 0, 0, 16],
     },
@@ -31,7 +48,11 @@ function buildDocDefinition(resolved: ResolvedFeatureExport): TDocumentDefinitio
 
   if (resolved.chartImages && resolved.chartImages.length > 0) {
     content.push({
-      columns: resolved.chartImages.map((dataUrl) => ({ image: dataUrl, width: 160 })),
+      // pdfmake runtime supports '*' for dynamic column widths but @types/pdfmake types width as
+      // number on ContentImage — cast through unknown to satisfy the type checker.
+      columns: resolved.chartImages.map(
+        (dataUrl) => ({ image: dataUrl, width: '*' }) as unknown as Content,
+      ),
       columnGap: 12,
       margin: [0, 0, 0, 16],
     });
@@ -43,7 +64,9 @@ function buildDocDefinition(resolved: ResolvedFeatureExport): TDocumentDefinitio
   }));
   const body =
     resolved.rows.length > 0
-      ? resolved.rows.map((row) => resolved.columns.map((column) => cellToText(row[column.key])))
+      ? resolved.rows.map((row) =>
+          resolved.columns.map((column) => cellToText(row[column.key], column.format, locale)),
+        )
       : [resolved.columns.map(() => '')];
 
   content.push({
@@ -56,21 +79,22 @@ function buildDocDefinition(resolved: ResolvedFeatureExport): TDocumentDefinitio
   });
 
   content.push({
-    text: 'This export is scoped to your own account data only.',
+    text: resolved.footer ?? 'This export is scoped to your own account data only.',
     style: 'footer',
     margin: [0, 16, 0, 0],
   });
 
   return {
     content,
+    pageOrientation: 'landscape',
     styles: {
       title: { fontSize: 20, bold: true },
       meta: { fontSize: 9, color: '#666666' },
       infoboxBody: { fontSize: 10 },
-      tableHeader: { bold: true, fontSize: 10 },
+      tableHeader: { bold: true, fontSize: 9 },
       footer: { fontSize: 8, color: '#666666', italics: true },
     },
-    defaultStyle: { fontSize: 9 },
+    defaultStyle: { fontSize: 8 },
   };
 }
 

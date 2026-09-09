@@ -16,13 +16,13 @@ export async function captureChartImage(option: EChartsOption): Promise<string> 
   host.style.position = 'fixed';
   host.style.left = '-10000px';
   host.style.top = '0';
-  host.style.width = '640px';
-  host.style.height = '400px';
+  host.style.width = '800px';
+  host.style.height = '500px';
   document.body.appendChild(host);
 
   const instance = echarts.init(host, undefined, { renderer: 'canvas' });
   try {
-    instance.setOption(option, true);
+    instance.setOption({ ...option, animation: false }, true);
     return instance.getDataURL({ type: 'png', pixelRatio: 2, backgroundColor: '#ffffff' });
   } finally {
     instance.dispose();

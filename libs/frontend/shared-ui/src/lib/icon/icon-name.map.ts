@@ -74,7 +74,8 @@ export const ICON_NAME_MAP: Record<string, string> = {
   // Klaro nav entry (028-klaro-nav-integration): broken-logo-image fallback glyph
   // (research.md #4) and the admin domain-scopes multiselect's DomainDescriptor icon.
   handshake: 'handshake',
-  // Export control format menu (029-export-data, design.md's format menu icons).
+  // Export control (029-export-data, design.md's format menu icons and split-button icon).
+  'file-export': 'file_export',
   'file-json': 'data_object',
   'file-csv': 'csv',
   'file-excel': 'table_view',

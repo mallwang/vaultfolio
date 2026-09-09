@@ -14,4 +14,6 @@ export const INSURANCES_EXPORT_DEFINITION: FeatureExportDefinition = {
   fetchData(): Promise<ExportRow[]> {
     return Promise.resolve([]);
   },
+  isEnabled: () => false,
+  disabledTooltipKey: 'export.tooltipNotImplemented',
 };

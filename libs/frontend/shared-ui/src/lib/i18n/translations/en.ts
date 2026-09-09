@@ -551,6 +551,10 @@ export const en: TranslationDictionary = {
     formatPdf: 'PDF',
     formatPdfDescription: 'Report with charts',
     noDataHint: 'No data yet — this export will still download with valid, empty structure.',
+    footerText: 'This export is scoped to your own account data only.',
+    subtitlePrefix: 'exported',
+    tooltipNotImplemented: 'Not implemented yet',
+    tooltipNoData: 'No data available',
   },
   holdingsExport: {
     title: 'Holdings',
@@ -558,6 +562,7 @@ export const en: TranslationDictionary = {
       'About this export — Holdings. Holdings is the primary tracking domain, letting you record and monitor your investment positions across asset types (ETF, Share, Precious Metal, Crypto, Deposit Money). This file contains every holding currently on your Holdings list.',
     columnAssetType: 'Type',
     columnName: 'Asset',
+    columnIsin: 'ISIN',
     columnManagement: 'Management',
     columnQuantity: 'Quantity',
     columnWeightGrams: 'Weight (grams)',
