@@ -21,19 +21,12 @@ interface FormatMenuEntry {
   descriptionKey: string;
 }
 
-/** design.md's format menu, top to bottom: JSON, CSV, Excel, then PDF (the "report" format). */
 const FORMAT_MENU: FormatMenuEntry[] = [
   {
-    format: 'json',
-    icon: 'file-json',
-    labelKey: 'export.formatJson',
-    descriptionKey: 'export.formatJsonDescription',
-  },
-  {
-    format: 'csv',
-    icon: 'file-csv',
-    labelKey: 'export.formatCsv',
-    descriptionKey: 'export.formatCsvDescription',
+    format: 'pdf',
+    icon: 'file-pdf',
+    labelKey: 'export.formatPdf',
+    descriptionKey: 'export.formatPdfDescription',
   },
   {
     format: 'xlsx',
@@ -42,10 +35,16 @@ const FORMAT_MENU: FormatMenuEntry[] = [
     descriptionKey: 'export.formatXlsxDescription',
   },
   {
-    format: 'pdf',
-    icon: 'file-pdf',
-    labelKey: 'export.formatPdf',
-    descriptionKey: 'export.formatPdfDescription',
+    format: 'csv',
+    icon: 'file-csv',
+    labelKey: 'export.formatCsv',
+    descriptionKey: 'export.formatCsvDescription',
+  },
+  {
+    format: 'json',
+    icon: 'file-json',
+    labelKey: 'export.formatJson',
+    descriptionKey: 'export.formatJsonDescription',
   },
 ];
 
@@ -121,7 +120,7 @@ export class ExportControlComponent {
       return {
         // PrimeNG menu items use CSS-class-based icons, incompatible with Material Symbols
         // ligatures — embed the glyph as inline HTML with escape:false instead.
-        label: `<span class="material-symbols-outlined" style="font-size:1.1em;vertical-align:-0.15em;margin-right:6px">${glyph}</span>${this.i18n.translate(entry.labelKey)}`,
+        label: `<span class="export-menu-item"><span class="material-symbols-outlined">${glyph}</span>${this.i18n.translate(entry.labelKey)}</span>`,
         escape: false,
         title: this.i18n.translate(entry.descriptionKey),
         command: () => this.export(entry.format),
@@ -151,6 +150,11 @@ export class ExportControlComponent {
             )
           : undefined;
 
+      const chartSideTable =
+        format === 'pdf' && definition.getChartSideTable
+          ? definition.getChartSideTable()
+          : undefined;
+
       const title = this.i18n.translate(definition.titleKey);
       const lang = this.i18n.language();
       const subtitleDate = new Intl.DateTimeFormat(lang).format(new Date());
@@ -162,9 +166,11 @@ export class ExportControlComponent {
           key: column.key,
           label: this.i18n.translate(column.labelKey),
           format: column.format,
+          summable: column.summable,
         })),
         rows,
         chartImages,
+        chartSideTable,
         locale: lang,
         subtitle: `${this.i18n.translate('export.subtitlePrefix')} ${subtitleDate}`,
         footer: this.i18n.translate('export.footerText'),

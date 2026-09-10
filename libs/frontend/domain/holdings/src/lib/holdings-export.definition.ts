@@ -3,14 +3,11 @@ import { firstValueFrom } from 'rxjs';
 import type { EChartsOption } from 'echarts';
 import type { FeatureExportDefinition, ExportRow } from '@vaultfolio/export';
 import type { HoldingResponse } from '@vaultfolio/api-contract';
-import { I18nService } from '@vaultfolio/frontend-shared-ui';
+import { I18nService, ASSET_TYPE_COLORS } from '@vaultfolio/frontend-shared-ui';
 import { HoldingsService } from './holdings.service';
 import { groupHoldingsByKey } from './holdings-valuation';
 import { ASSET_TYPE_LABEL_KEYS } from './asset-type-fields';
-import {
-  buildDistributionChartOption,
-  buildTypeBreakdownChartOption,
-} from './holdings-distribution/distribution-chart-option';
+import { buildDistributionChartOption } from './holdings-distribution/distribution-chart-option';
 
 function toRow(holding: HoldingResponse): ExportRow {
   return {
@@ -40,7 +37,7 @@ export function createHoldingsExportDefinition(): FeatureExportDefinition {
   const holdingsService = inject(HoldingsService);
   const i18n = inject(I18nService);
 
-  let lastFetchedHoldings: HoldingResponse[] = [];
+  let lastDistributionEntries: { assetType: HoldingResponse['assetType']; value: number }[] = [];
 
   return {
     featureId: 'holdings',
@@ -54,38 +51,42 @@ export function createHoldingsExportDefinition(): FeatureExportDefinition {
       { key: 'quantity', labelKey: 'holdingsExport.columnQuantity', format: 'decimal' },
       { key: 'weightGrams', labelKey: 'holdingsExport.columnWeightGrams', format: 'decimal' },
       { key: 'purchasePrice', labelKey: 'holdingsExport.columnPurchasePrice', format: 'currency' },
-      { key: 'currentValue', labelKey: 'holdingsExport.columnCurrentValue', format: 'currency' },
+      {
+        key: 'currentValue',
+        labelKey: 'holdingsExport.columnCurrentValue',
+        format: 'currency',
+        summable: true,
+      },
       { key: 'purchaseDate', labelKey: 'holdingsExport.columnPurchaseDate', format: 'date' },
     ],
     async fetchData(): Promise<ExportRow[]> {
       const holdings = await firstValueFrom(holdingsService.list());
-      lastFetchedHoldings = holdings;
+      const { entries } = groupHoldingsByKey(holdings, (h) => h.assetType);
+      lastDistributionEntries = entries.map((e) => ({
+        assetType: e.key,
+        value: e.value.toNumber(),
+      }));
       return holdings.map(toRow);
     },
     getChartOptions(): EChartsOption[] {
-      const { entries } = groupHoldingsByKey(lastFetchedHoldings, (holding) => holding.assetType);
-      const distributionEntries = entries.map((entry) => ({
-        assetType: entry.key,
-        value: entry.value.toNumber(),
-      }));
-      const mainChart = buildDistributionChartOption(
-        distributionEntries,
-        i18n.language(),
-        (entry) => i18n.translate(ASSET_TYPE_LABEL_KEYS[entry.assetType]),
-        i18n.translate('holdingsExport.chartDistribution'),
-      );
-      const typeCharts = entries.map((entry) => {
-        const { entries: nameEntries } = groupHoldingsByKey(
-          lastFetchedHoldings.filter((h) => h.assetType === entry.key),
-          (h) => h.name,
-        );
-        return buildTypeBreakdownChartOption(
-          nameEntries.map((e) => ({ name: e.key, value: e.value.toNumber() })),
-          i18n.translate(ASSET_TYPE_LABEL_KEYS[entry.key]),
-          i18n.language(),
-        );
-      });
-      return [mainChart, ...typeCharts];
+      // No title — section heading is rendered above the chart section in the PDF layout.
+      return [
+        buildDistributionChartOption(lastDistributionEntries, i18n.language(), (entry) =>
+          i18n.translate(ASSET_TYPE_LABEL_KEYS[entry.assetType]),
+        ),
+      ];
+    },
+    getChartSideTable() {
+      const total = lastDistributionEntries.reduce((sum, e) => sum + e.value, 0);
+      return {
+        sectionTitle: i18n.translate('holdingsExport.chartDistribution'),
+        rows: lastDistributionEntries.map((entry) => ({
+          label: i18n.translate(ASSET_TYPE_LABEL_KEYS[entry.assetType]),
+          value: entry.value,
+          percentage: total > 0 ? (entry.value / total) * 100 : 0,
+          color: ASSET_TYPE_COLORS[entry.assetType],
+        })),
+      };
     },
   };
 }

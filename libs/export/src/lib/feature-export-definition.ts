@@ -6,6 +6,21 @@
  * constitution's Library-First principle.
  */
 
+/** One row in the allocation table shown beside the chart image in the PDF. */
+export interface ChartSideTableRow {
+  label: string;
+  value: number;
+  percentage: number;
+  /** Hex color string for the small color indicator cell (e.g. '#3b82f6'). */
+  color?: string;
+}
+
+/** Optional distribution/allocation table rendered to the right of the first chart image. */
+export interface ChartSideTable {
+  sectionTitle: string;
+  rows: ChartSideTableRow[];
+}
+
 /** An `EChartsOption` object, as computed by the feature's own on-screen chart component. */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- ECharts option shape is owned by the `echarts` package, not this library.
 export type EChartsOption = Record<string, any>;
@@ -24,6 +39,8 @@ export interface ExportColumn {
    * their canonical decimal string (never a native float) until the final serialization step.
    */
   format: ExportColumnFormat;
+  /** When true, the PDF exporter appends a bold sum row for this column. Omit to skip summation. */
+  summable?: boolean;
 }
 
 /** One row per record. Decimal-typed values are canonical decimal strings, never native floats. */
@@ -48,6 +65,11 @@ export interface FeatureExportDefinition {
   /** One `EChartsOption` per chart to render for the PDF (FR-004); omitted for chartless features. */
   getChartOptions?(): EChartsOption[];
   /**
+   * Optional allocation/distribution table shown to the right of the first chart image in the PDF.
+   * Called after `fetchData()` (same contract as `getChartOptions`).
+   */
+  getChartSideTable?(): ChartSideTable | undefined;
+  /**
    * Returns `false` to disable the export button. Omit (or return `true`) when always available.
    * May read Angular signals — the component calls this inside `computed()`.
    */
@@ -66,10 +88,12 @@ export interface ResolvedFeatureExport {
   featureId: string;
   title: string;
   infobox: string;
-  columns: { key: string; label: string; format: ExportColumnFormat }[];
+  columns: { key: string; label: string; format: ExportColumnFormat; summable?: boolean }[];
   rows: ExportRow[];
   /** Pre-captured PNG data URLs, PDF only. */
   chartImages?: string[];
+  /** Allocation table rendered to the right of the first chart image, PDF only. */
+  chartSideTable?: ChartSideTable;
   /** BCP 47 language tag (e.g. 'de', 'en') for locale-aware number/date formatting in PDF. */
   locale?: string;
   /** Translated subtitle line shown below the title (e.g. "exportiert am 09.09.2026"). */

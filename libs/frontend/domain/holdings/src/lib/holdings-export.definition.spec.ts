@@ -70,7 +70,7 @@ describe('createHoldingsExportDefinition', () => {
     ]);
   });
 
-  it('getChartOptions returns one option, built from the data fetchData last resolved', async () => {
+  it('getChartOptions returns exactly 1 distribution chart after fetchData', async () => {
     const definition = TestBed.runInInjectionContext(createHoldingsExportDefinition);
     const httpMock = TestBed.inject(HttpTestingController);
 
@@ -79,7 +79,20 @@ describe('createHoldingsExportDefinition', () => {
     await rowsPromise;
 
     const options = definition.getChartOptions?.() ?? [];
-    // 1 distribution chart (all types) + 1 type-breakdown chart (one per distinct assetType).
-    expect(options).toHaveLength(2);
+    expect(options).toHaveLength(1);
+  });
+
+  it('getChartSideTable returns sectionTitle and one row per distinct assetType', async () => {
+    const definition = TestBed.runInInjectionContext(createHoldingsExportDefinition);
+    const httpMock = TestBed.inject(HttpTestingController);
+
+    const rowsPromise = definition.fetchData();
+    httpMock.expectOne('/api/holdings').flush([holding]);
+    await rowsPromise;
+
+    const sideTable = definition.getChartSideTable?.();
+    expect(sideTable?.sectionTitle).toBeTruthy();
+    expect(sideTable?.rows).toHaveLength(1);
+    expect(sideTable?.rows[0].percentage).toBeCloseTo(100, 1);
   });
 });
