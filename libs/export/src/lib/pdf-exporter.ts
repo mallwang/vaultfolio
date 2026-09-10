@@ -10,7 +10,12 @@ function cellToText(value: string | number | null, format: string, locale: strin
     const n = typeof value === 'number' ? value : Number(value);
     return Number.isNaN(n)
       ? String(value)
-      : new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR' }).format(n);
+      : new Intl.NumberFormat(locale, {
+          style: 'currency',
+          currency: 'EUR',
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }).format(n);
   }
   if (format === 'decimal' || format === 'number') {
     const n = typeof value === 'number' ? value : Number(value);

@@ -569,6 +569,7 @@ export const en: TranslationDictionary = {
     columnPurchasePrice: 'Purchase price',
     columnCurrentValue: 'Current value',
     columnPurchaseDate: 'Purchase date',
+    chartDistribution: 'Portfolio Distribution',
   },
   accountOverviewExport: {
     title: 'Account Overview',

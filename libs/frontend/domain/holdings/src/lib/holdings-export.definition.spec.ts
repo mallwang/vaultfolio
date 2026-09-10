@@ -59,6 +59,7 @@ describe('createHoldingsExportDefinition', () => {
       {
         assetType: 'ETF',
         name: 'iShares Core MSCI World',
+        isin: 'IE00B4L5Y983',
         management: 'Roboadvisor',
         quantity: '12.5',
         weightGrams: null,
@@ -78,6 +79,7 @@ describe('createHoldingsExportDefinition', () => {
     await rowsPromise;
 
     const options = definition.getChartOptions?.() ?? [];
-    expect(options).toHaveLength(1);
+    // 1 distribution chart (all types) + 1 type-breakdown chart (one per distinct assetType).
+    expect(options).toHaveLength(2);
   });
 });

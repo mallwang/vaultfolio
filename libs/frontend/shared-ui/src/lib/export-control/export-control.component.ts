@@ -121,7 +121,7 @@ export class ExportControlComponent {
       return {
         // PrimeNG menu items use CSS-class-based icons, incompatible with Material Symbols
         // ligatures — embed the glyph as inline HTML with escape:false instead.
-        label: `<span style="display:flex;align-items:center;gap:6px"><span class="material-symbols-outlined" style="font-size:1rem">${glyph}</span>${this.i18n.translate(entry.labelKey)}</span>`,
+        label: `<span style="display:inline-flex;align-items:center;gap:6px"><span class="material-symbols-outlined" style="font-size:1rem;line-height:1">${glyph}</span>${this.i18n.translate(entry.labelKey)}</span>`,
         escape: false,
         title: this.i18n.translate(entry.descriptionKey),
         command: () => this.export(entry.format),

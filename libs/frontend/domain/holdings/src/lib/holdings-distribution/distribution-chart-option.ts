@@ -36,7 +36,7 @@ export function buildTypeBreakdownChartOption(
     maximumFractionDigits: 2,
   });
   return {
-    title: { text: title, left: 'center', textStyle: { fontSize: 11 } },
+    title: { text: title, left: 'center', textStyle: { fontSize: 16 } },
     legend: { show: false },
     tooltip: {
       trigger: 'item',
@@ -52,7 +52,7 @@ export function buildTypeBreakdownChartOption(
         center: ['50%', '55%'],
         padAngle: 2,
         itemStyle: { borderRadius: 8 },
-        label: { position: 'inside', formatter: '{d}%', fontWeight: 'bold', fontSize: 9 },
+        label: { position: 'inside', formatter: '{d}%', fontWeight: 'bold', fontSize: 13 },
         labelLine: { show: false },
         percentPrecision: 1,
         data: entries.map((e) => ({ name: e.name, value: e.value })),
@@ -73,14 +73,16 @@ export function buildDistributionChartOption(
   entries: HoldingsDistributionEntry[],
   locale: string,
   resolveName: (entry: HoldingsDistributionEntry) => string,
+  title?: string,
 ): EChartsOption {
   const fmt = new Intl.NumberFormat(locale, {
     style: 'currency',
     currency: 'EUR',
     maximumFractionDigits: 2,
   });
-  const pieCenter: [string, string] = ['50%', '42%'];
+  const pieCenter: [string, string] = title ? ['50%', '55%'] : ['50%', '42%'];
   return {
+    ...(title ? { title: { text: title, left: 'center', textStyle: { fontSize: 16 } } } : {}),
     // `EchartComponent`'s shared theming fragment merges in its own
     // `legend: { textStyle }` on every theme change (to keep legend text
     // readable for charts that DO show one) — since that's a merge, not a
@@ -115,7 +117,7 @@ export function buildDistributionChartOption(
         // the label short enough to fit even the narrowest segment. A
         // smaller-than-default fontSize keeps the label legible inside
         // even the narrowest slices instead of overflowing them.
-        label: { position: 'inside', formatter: '{d}%', fontWeight: 'bold', fontSize: 10 },
+        label: { position: 'inside', formatter: '{d}%', fontWeight: 'bold', fontSize: 13 },
         labelLine: { show: false },
         percentPrecision: 1,
         data: entries.map((entry) => {

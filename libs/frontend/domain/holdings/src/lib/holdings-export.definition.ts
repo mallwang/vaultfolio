@@ -72,6 +72,7 @@ export function createHoldingsExportDefinition(): FeatureExportDefinition {
         distributionEntries,
         i18n.language(),
         (entry) => i18n.translate(ASSET_TYPE_LABEL_KEYS[entry.assetType]),
+        i18n.translate('holdingsExport.chartDistribution'),
       );
       const typeCharts = entries.map((entry) => {
         const { entries: nameEntries } = groupHoldingsByKey(
