@@ -44,19 +44,24 @@ describe('ExportControlComponent', () => {
   });
 
   it('renders the split-button with JSON/CSV/XLSX/PDF menu items', () => {
-    const items = fixture.componentInstance['menuItems'];
-    expect(items.map((item) => item.label)).toEqual(['JSON', 'CSV', 'Excel', 'PDF']);
+    const items = fixture.componentInstance['menuItems']();
+    // Labels are HTML strings (escape:false with embedded icon glyph) — check containment.
+    expect(items).toHaveLength(4);
+    expect(items.every((item) => item.escape === false)).toBe(true);
+    expect(items[0].label).toContain('JSON');
+    expect(items[1].label).toContain('CSV');
+    expect(items[2].label).toContain('Excel');
+    expect(items[3].label).toContain('PDF');
   });
 
   it.each([
-    ['JSON', 'holdings.json'],
-    ['CSV', 'holdings.csv'],
-    ['Excel', 'holdings.xlsx'],
-    ['PDF', 'holdings.pdf'],
-  ])('triggers a %s download named %s', async (label, expectedFileName) => {
-    const items = fixture.componentInstance['menuItems'];
-    const item = items.find((i) => i.label === label);
-    await item?.command?.({} as never);
+    ['JSON', 0, 'Holdings.json'],
+    ['CSV', 1, 'Holdings.csv'],
+    ['Excel', 2, 'Holdings.xlsx'],
+    ['PDF', 3, 'Holdings.pdf'],
+  ])('triggers a %s download named %s', async (label, index, expectedFileName) => {
+    const items = fixture.componentInstance['menuItems']();
+    await items[index]?.command?.();
 
     expect(downloadedFileNames).toEqual([expectedFileName]);
   });
