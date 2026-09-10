@@ -3,6 +3,10 @@ import { FeatureExportRegistry } from './feature-export-registry.js';
 import { exportAll } from './full-export-archive.js';
 import type { FeatureExportDefinition } from './feature-export-definition.js';
 
+// Minimal 1×1 transparent PNG — same as in pdf-exporter.spec.ts
+const DUMMY_PNG =
+  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+
 function makeDefinition(featureId: string, throwOnFetch = false): FeatureExportDefinition {
   return {
     featureId,
@@ -43,6 +47,20 @@ describe('exportAll', () => {
         expect(zip.file(`${featureId}/${featureId}.${ext}`)).not.toBeNull();
       }
     }
+  });
+
+  it('calls resolveChartImages when a definition has getChartOptions', async () => {
+    const registry = new FeatureExportRegistry();
+    registry.register({
+      ...makeDefinition('holdings'),
+      getChartOptions: () => [],
+    });
+    const resolveChartImagesSpy = jest.fn().mockResolvedValue([DUMMY_PNG]);
+
+    const { failures } = await exportAll(registry, resolveLabels, resolveChartImagesSpy);
+
+    expect(failures).toEqual([]);
+    expect(resolveChartImagesSpy).toHaveBeenCalledTimes(1);
   });
 
   it('records exactly the one throwing feature/format and still includes every succeeding file', async () => {

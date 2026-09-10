@@ -52,4 +52,43 @@ describe('exportXlsx', () => {
     expect(dataRow.getCell(2).value).toBe(10.5);
     expect(dataRow.getCell(3).value).toBeInstanceOf(Date);
   });
+
+  it('converts null to null cell, currency strings to numbers, and number format to numbers', async () => {
+    const resolved: ResolvedFeatureExport = {
+      featureId: 'test',
+      title: 'Test',
+      infobox: 'Info',
+      columns: [
+        { key: 'price', label: 'Price', format: 'currency' },
+        { key: 'amount', label: 'Amount', format: 'number' },
+        { key: 'empty', label: 'Empty', format: 'text' },
+      ],
+      rows: [{ price: '99.99', amount: 5, empty: null }],
+    };
+
+    const blob = await exportXlsx(resolved);
+    const workbook = await readWorkbook(blob);
+    const sheet = workbook.worksheets[0];
+    const dataRow = sheet.getRow(2);
+
+    expect(dataRow.getCell(1).value).toBe(99.99);
+    expect(dataRow.getCell(2).value).toBe(5);
+    expect(dataRow.getCell(3).value).toBeNull();
+  });
+
+  it('applies currency number format to header column style', async () => {
+    const resolved: ResolvedFeatureExport = {
+      featureId: 'test',
+      title: 'Test',
+      infobox: 'Info',
+      columns: [{ key: 'value', label: 'Value', format: 'currency' }],
+      rows: [],
+    };
+
+    const blob = await exportXlsx(resolved);
+    const workbook = await readWorkbook(blob);
+    const sheet = workbook.worksheets[0];
+
+    expect(sheet.columns[0].numFmt).toBe('€#,##0.00');
+  });
 });

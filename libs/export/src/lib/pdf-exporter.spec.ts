@@ -117,6 +117,22 @@ describe('exportPdf', () => {
     expect(await isPdf(await exportPdf(resolved))).toBe(true);
   });
 
+  it('formats number format cells like decimal (shared branch)', async () => {
+    const resolved: ResolvedFeatureExport = {
+      featureId: 'holdings',
+      title: 'Test',
+      infobox: 'Info.',
+      columns: [
+        { key: 'count', label: 'Count', format: 'number' },
+        { key: 'rate', label: 'Rate', format: 'decimal' },
+      ],
+      rows: [{ count: 42, rate: '3.14' }],
+      locale: 'en',
+    };
+
+    expect(await isPdf(await exportPdf(resolved))).toBe(true);
+  });
+
   it('produces a valid PDF with a chart image but no side table', async () => {
     const resolved: ResolvedFeatureExport = {
       featureId: 'holdings',
