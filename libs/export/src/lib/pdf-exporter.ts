@@ -52,15 +52,20 @@ function buildDocDefinition(resolved: ResolvedFeatureExport): TDocumentDefinitio
   ];
 
   if (resolved.chartImages && resolved.chartImages.length > 0) {
+    // First image = main overview chart → full width so text stays readable.
+    // Remaining images = per-type breakdowns → up to 2 per row.
+    const [mainImage, ...typeImages] = resolved.chartImages;
     content.push({
-      // pdfmake runtime supports '*' for dynamic column widths but @types/pdfmake types width as
-      // number on ContentImage — cast through unknown to satisfy the type checker.
-      columns: resolved.chartImages.map(
-        (dataUrl) => ({ image: dataUrl, width: '*' }) as unknown as Content,
-      ),
-      columnGap: 12,
-      margin: [0, 0, 0, 16],
+      columns: [{ image: mainImage, width: '*' } as unknown as Content],
+      margin: [0, 0, 0, 8],
     });
+    for (let i = 0; i < typeImages.length; i += 2) {
+      const pair = typeImages
+        .slice(i, i + 2)
+        .map((dataUrl) => ({ image: dataUrl, width: '*' }) as unknown as Content);
+      content.push({ columns: pair, columnGap: 12, margin: [0, 0, 0, 8] });
+    }
+    (content[content.length - 1] as { margin: number[] }).margin = [0, 0, 0, 16];
   }
 
   const header = resolved.columns.map((column) => ({
