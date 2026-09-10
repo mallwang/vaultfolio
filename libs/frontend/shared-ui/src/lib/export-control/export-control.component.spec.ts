@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { vi } from 'vitest';
 import type { FeatureExportDefinition } from '@vaultfolio/export';
 import { ExportControlComponent } from './export-control.component';
 import { FEATURE_EXPORT_REGISTRY } from './feature-export-registry.token';
@@ -20,6 +21,14 @@ describe('ExportControlComponent', () => {
   let downloadedFileNames: string[];
 
   beforeEach(async () => {
+    // PrimeNG's TieredMenu (inside SplitButton) calls matchMedia().addEventListener() on init;
+    // jsdom doesn't implement matchMedia, so we stub it.
+    window.matchMedia = vi.fn().mockReturnValue({
+      matches: false,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    }) as unknown as typeof window.matchMedia;
+
     await TestBed.configureTestingModule({
       imports: [ExportControlComponent],
       providers: [

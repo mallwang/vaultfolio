@@ -108,6 +108,9 @@
     "libs/frontend/*",
     "libs/frontend/domain/*"
   ],
+  "overrides": {
+    "uuid": "9.0.1"
+  },
   "dependencies": {
     "@angular/common": "~22.1.0",
     "@angular/compiler": "~22.1.0",
