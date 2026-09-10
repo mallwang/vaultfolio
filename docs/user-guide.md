@@ -170,10 +170,10 @@ download your holdings in four formats:
 
 | Format | Use case                                      |
 | ------ | --------------------------------------------- |
-| JSON   | Raw structured data for scripts or backups    |
-| CSV    | Spreadsheet import (Excel, LibreOffice, etc.) |
-| Excel  | Formatted `.xlsx` file with typed columns     |
 | PDF    | Printable report with an embedded pie chart   |
+| Excel  | Formatted `.xlsx` file with typed columns     |
+| CSV    | Spreadsheet import (Excel, LibreOffice, etc.) |
+| JSON   | Raw structured data for scripts or backups    |
 
 Click the button label to open the format menu, then select your format. The file downloads
 immediately. An empty holdings list produces a valid but row-free file (CSV/JSON/Excel) or a

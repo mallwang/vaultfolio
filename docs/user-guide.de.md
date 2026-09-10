@@ -171,10 +171,10 @@ den Download deiner Positionen in vier Formaten:
 
 | Format | Verwendungszweck                                   |
 | ------ | -------------------------------------------------- |
-| JSON   | Strukturierte Rohdaten für Skripte oder Backups    |
-| CSV    | Tabellenimport (Excel, LibreOffice usw.)           |
-| Excel  | Formatierte `.xlsx`-Datei mit typisierten Spalten  |
 | PDF    | Druckbarer Bericht mit eingebettetem Kreisdiagramm |
+| Excel  | Formatierte `.xlsx`-Datei mit typisierten Spalten  |
+| CSV    | Tabellenimport (Excel, LibreOffice usw.)           |
+| JSON   | Strukturierte Rohdaten für Skripte oder Backups    |
 
 Klicke auf die Schaltfläche, um das Formatmenü zu öffnen, und wähle dann dein Format aus. Die
 Datei wird sofort heruntergeladen. Eine leere Holdings-Liste erzeugt eine gültige, aber zeilenlose
