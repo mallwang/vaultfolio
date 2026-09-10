@@ -24,6 +24,7 @@ infrastructure.
    - 4.3 [Asset Types and Their Fields](#43-asset-types-and-their-fields)
    - 4.4 [Distribution Charts](#44-distribution-charts)
    - 4.5 [Editing and Deleting Holdings](#45-editing-and-deleting-holdings)
+   - 4.6 [Exporting Holdings Data](#46-exporting-holdings-data)
 5. [Account Overview](#5-account-overview)
 6. [Klaro](#6-klaro)
 7. [Settings](#7-settings)
@@ -162,6 +163,22 @@ Each row has two icon buttons on the right:
 
 Deletion cannot be undone.
 
+### 4.6 Exporting Holdings Data
+
+The **Export** split-button (top right of the Holdings panel, next to **Add holding**) lets you
+download your holdings in four formats:
+
+| Format | Use case                                      |
+| ------ | --------------------------------------------- |
+| PDF    | Printable report with an embedded pie chart   |
+| Excel  | Formatted `.xlsx` file with typed columns     |
+| CSV    | Spreadsheet import (Excel, LibreOffice, etc.) |
+| JSON   | Raw structured data for scripts or backups    |
+
+Click the button label to open the format menu, then select your format. The file downloads
+immediately. An empty holdings list produces a valid but row-free file (CSV/JSON/Excel) or a
+header-only PDF.
+
 ---
 
 ## 5. Account Overview
@@ -178,6 +195,9 @@ Categories: General, Leisure, Savings, Depot, Credit Card, Other.
 Use the **Add account** button to create an entry. Edit and delete work the same as
 in Holdings. Decommissioning an account marks it as inactive without deleting it —
 useful for keeping historical records.
+
+The **Export** split-button (top right) works the same as in Holdings — JSON, CSV,
+Excel, and PDF formats are available.
 
 ---
 
@@ -208,6 +228,10 @@ address. Your current address stays active until the new one is confirmed (link 
 
 **Password** — Requires your current password. Changing it signs out all other active
 sessions; your current session stays signed in.
+
+**Export my data** — Downloads a ZIP archive containing your data from all domains
+in all supported formats (JSON, CSV, Excel, PDF). Use this before deleting your
+account or for an offline backup.
 
 **Danger Zone — Delete account** — Permanently deletes your account and all owned
 data. The flow has three steps: an advisory screen, an option to export data first,

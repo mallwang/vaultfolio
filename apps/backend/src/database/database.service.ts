@@ -50,6 +50,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       this.migrateAccountDepotCategory();
       this.migrateAccountCardFields();
       this.migrateAccountStatus();
+      this.migrateHoldingsAssetTypes();
       await this.ensureBootstrapAdmin();
       this.ready = true;
     } catch (error) {
@@ -371,6 +372,95 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       db.exec(
         "ALTER TABLE accounts ADD COLUMN status TEXT NOT NULL CHECK (status IN ('ACTIVE','DECOMMISSIONED')) DEFAULT 'ACTIVE'",
       );
+    }
+  }
+
+  /**
+   * 017-restructure-asset-types: renames GOLD → PRECIOUS_METAL and
+   * BITCOIN → CRYPTO in a DB created before that spec shipped. The old schema
+   * had no `name` column for GOLD/BITCOIN rows; the new schema requires
+   * `name IS NOT NULL` for both replacement types, so 'Gold' / 'Bitcoin' are
+   * used as default names. Idempotent: guarded by checking the stored CREATE
+   * TABLE SQL for the old 'GOLD' literal.
+   */
+  private migrateHoldingsAssetTypes(): void {
+    const db = this.requireDb();
+    const table = db
+      .prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'holdings'")
+      .get() as { sql: string } | undefined;
+    if (!table || !table.sql.includes("'GOLD'")) {
+      return;
+    }
+    db.exec('BEGIN');
+    try {
+      db.exec('ALTER TABLE holdings RENAME TO holdings_pre_asset_type_rename');
+      db.exec(`
+        CREATE TABLE holdings (
+          id             TEXT PRIMARY KEY,
+          asset_type     TEXT NOT NULL CHECK (asset_type IN ('ETF', 'SHARE', 'PRECIOUS_METAL', 'CRYPTO', 'DEPOSIT_MONEY')),
+          management     TEXT NOT NULL CHECK (management <> ''),
+          quantity       TEXT NULL CHECK (quantity IS NULL OR CAST(quantity AS REAL) > 0),
+          purchase_price TEXT NULL CHECK (purchase_price IS NULL OR CAST(purchase_price AS REAL) > 0),
+          purchase_date  TEXT NULL,
+          isin           TEXT NULL,
+          name           TEXT NULL,
+          weight_grams   TEXT NULL CHECK (weight_grams IS NULL OR CAST(weight_grams AS REAL) > 0),
+          current_value  TEXT NULL CHECK (current_value IS NULL OR CAST(current_value AS REAL) >= 0),
+          created_at     TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')),
+          updated_at     TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')),
+          owner_id       TEXT NULL,
+          CONSTRAINT holdings_fields_match_asset_type CHECK (
+            (asset_type = 'ETF' AND isin IS NOT NULL AND name IS NOT NULL AND quantity IS NOT NULL
+              AND purchase_price IS NOT NULL AND purchase_date IS NULL
+              AND weight_grams IS NULL AND current_value IS NULL)
+            OR
+            (asset_type = 'SHARE' AND isin IS NOT NULL AND name IS NOT NULL AND quantity IS NOT NULL
+              AND purchase_price IS NOT NULL AND weight_grams IS NULL AND current_value IS NULL)
+            OR
+            (asset_type = 'PRECIOUS_METAL' AND name IS NOT NULL AND weight_grams IS NOT NULL
+              AND isin IS NULL AND quantity IS NULL AND purchase_price IS NULL
+              AND purchase_date IS NULL)
+            OR
+            (asset_type = 'CRYPTO' AND name IS NOT NULL AND quantity IS NOT NULL
+              AND purchase_price IS NOT NULL AND isin IS NULL AND weight_grams IS NULL
+              AND current_value IS NULL)
+            OR
+            (asset_type = 'DEPOSIT_MONEY' AND name IS NOT NULL AND current_value IS NOT NULL
+              AND isin IS NULL AND quantity IS NULL AND purchase_price IS NULL
+              AND purchase_date IS NULL AND weight_grams IS NULL)
+          )
+        )
+      `);
+      db.exec(`
+        INSERT INTO holdings
+          (id, asset_type, management, quantity, purchase_price, purchase_date,
+           isin, name, weight_grams, current_value, created_at, updated_at, owner_id)
+        SELECT
+          id,
+          CASE asset_type WHEN 'GOLD' THEN 'PRECIOUS_METAL' WHEN 'BITCOIN' THEN 'CRYPTO' ELSE asset_type END,
+          management,
+          quantity,
+          purchase_price,
+          purchase_date,
+          isin,
+          COALESCE(name, CASE asset_type WHEN 'GOLD' THEN 'Gold' WHEN 'BITCOIN' THEN 'Bitcoin' END),
+          weight_grams,
+          current_value,
+          created_at,
+          updated_at,
+          owner_id
+        FROM holdings_pre_asset_type_rename
+      `);
+      db.exec('DROP TABLE holdings_pre_asset_type_rename');
+      db.exec(`
+        CREATE INDEX IF NOT EXISTS holdings_upsert_lookup_idx
+          ON holdings (asset_type, management, isin)
+      `);
+      db.exec('CREATE INDEX IF NOT EXISTS holdings_owner_id_idx ON holdings (owner_id)');
+      db.exec('COMMIT');
+    } catch (error) {
+      db.exec('ROLLBACK');
+      throw error;
     }
   }
 

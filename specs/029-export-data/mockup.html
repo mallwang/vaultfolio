@@ -1,0 +1,1486 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Data Export Review</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    />
+    <style>
+      :root {
+        color-scheme: light;
+
+        /* App tokens — approximating PrimeNG's Aura preset (light), matching the tokens used in
+           prior mockups (e.g. specs/028-klaro-nav-integration/mockup.html) since Vaultfolio has
+           no theme file wired up yet. See design.md for the mapping note. */
+        --p-content-background: #ffffff;
+        --p-text-color: #1f2430;
+        --p-text-muted-color: #6b7280;
+        --p-content-border-color: #e5e7eb;
+        --p-content-hover-background: #f4f4f6;
+        --p-highlight-background: #eef1ff;
+        --p-primary-color: #6366f1;
+        --p-primary-600: #4f46e5;
+
+        /* "info" severity — PrimeNG Aura's sky/blue info palette, used for the Export control so
+           it reads as a neutral/informational action, distinct from the primary "Add" button and
+           from the destructive "Delete" button. */
+        --p-info-color: #0284c7;
+        --p-info-600: #0369a1;
+        --p-info-bg: #e0f2fe;
+
+        /* Review-tool-only tokens */
+        --review-bg: #f3f2ee;
+        --review-ink: #2c2a25;
+        --review-muted: #7a7669;
+        --review-line: #ddd9d0;
+        --review-accent: #b45f2c;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--review-bg);
+        color: var(--review-ink);
+        font-family:
+          'Inter',
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        text-wrap: balance;
+      }
+
+      /* ============ Review-tool chrome (reusable as-is) ============ */
+
+      .review-header {
+        padding: 1.5rem 2rem 1rem;
+        border-bottom: 1px solid var(--review-line);
+      }
+      .review-eyebrow {
+        font-size: 0.72rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--review-accent);
+        font-weight: 700;
+        margin: 0 0 0.25rem;
+      }
+      .review-header h1 {
+        margin: 0 0 0.35rem;
+        font-size: 1.35rem;
+        font-weight: 800;
+      }
+      .review-header p {
+        margin: 0;
+        color: var(--review-muted);
+        font-size: 0.9rem;
+        max-width: 72ch;
+        line-height: 1.5;
+      }
+
+      .review-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.25rem;
+        align-items: center;
+        padding: 0.85rem 2rem;
+        background: #fff;
+        border-bottom: 1px solid var(--review-line);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+      .control-group {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .control-group span.label {
+        font-size: 0.72rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--review-muted);
+        font-weight: 700;
+      }
+
+      .segmented {
+        display: inline-flex;
+        border: 1px solid var(--review-line);
+        border-radius: 8px;
+        overflow: hidden;
+        flex-wrap: wrap;
+      }
+      .segmented button {
+        appearance: none;
+        border: none;
+        background: #fff;
+        color: var(--review-ink);
+        font: inherit;
+        font-size: 0.83rem;
+        font-weight: 600;
+        padding: 0.4rem 0.75rem;
+        cursor: pointer;
+        border-right: 1px solid var(--review-line);
+      }
+      .segmented button:last-child {
+        border-right: none;
+      }
+      .segmented button:hover {
+        background: #f1efe9;
+      }
+      .segmented button:focus-visible {
+        outline: 2px solid var(--review-accent);
+        outline-offset: -2px;
+      }
+      .segmented button[aria-pressed='true'] {
+        background: var(--review-accent);
+        color: #fff;
+      }
+
+      .review-stage {
+        padding: 2rem;
+        display: flex;
+        justify-content: center;
+      }
+
+      .stage-frame {
+        width: 100%;
+        max-width: 1180px;
+        background: #d9d4c8;
+        border-radius: 14px;
+        padding: 1.25rem;
+        transition: max-width 0.2s ease;
+      }
+      .stage-frame[data-viewport='mobile'] {
+        max-width: 400px;
+      }
+
+      .stage-frame-label {
+        font-size: 0.72rem;
+        color: var(--review-muted);
+        text-align: center;
+        margin: 0 0 0.5rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .canvas {
+        background: var(--p-content-background);
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+        color: var(--p-text-color);
+        position: relative;
+      }
+
+      .review-footer {
+        padding: 0 2rem 2rem;
+        max-width: 1180px;
+        margin: 0 auto;
+        font-size: 0.85rem;
+        color: var(--review-muted);
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+      }
+      .review-footer code {
+        background: #fff;
+        border: 1px solid var(--review-line);
+        border-radius: 4px;
+        padding: 0.1em 0.4em;
+        font-size: 0.8em;
+      }
+      .review-footer h3 {
+        margin: 0.5rem 0 0;
+        font-size: 0.8rem;
+        color: var(--review-ink);
+      }
+      .review-footer ul {
+        margin: 0.25rem 0 0.5rem;
+        padding-left: 1.1rem;
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+
+      /* ============ feature styles (authored fresh per feature) ============ */
+
+      /* ---- Screen: Holdings (app shell + panel) ---- */
+
+      .app-shell {
+        display: grid;
+        grid-template-columns: 232px 1fr;
+        min-height: 660px;
+      }
+      .stage-frame[data-viewport='mobile'] .app-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .app-sidebar {
+        background: var(--p-content-background);
+        border-right: 1px solid var(--p-content-border-color);
+        display: flex;
+        flex-direction: column;
+        padding: 1.1rem 0.85rem;
+        gap: 1.5rem;
+      }
+      .stage-frame[data-viewport='mobile'] .app-sidebar {
+        flex-direction: row;
+        align-items: center;
+        border-right: none;
+        border-bottom: 1px solid var(--p-content-border-color);
+        padding: 0.65rem 0.85rem;
+        gap: 0.75rem;
+        overflow-x: auto;
+      }
+
+      .app-brand {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        padding: 0 0.4rem;
+      }
+      .stage-frame[data-viewport='mobile'] .app-brand {
+        padding: 0;
+      }
+      .app-brand__mark {
+        width: 26px;
+        height: 26px;
+        border-radius: 7px;
+        background: linear-gradient(135deg, var(--p-primary-color), var(--p-primary-600));
+        flex: 0 0 auto;
+      }
+      .app-brand__name {
+        font-weight: 800;
+        font-size: 0.98rem;
+        letter-spacing: -0.01em;
+      }
+      .stage-frame[data-viewport='mobile'] .app-brand__name {
+        display: none;
+      }
+
+      .app-nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+      }
+      .stage-frame[data-viewport='mobile'] .app-nav {
+        flex-direction: row;
+        gap: 0.3rem;
+      }
+      .app-nav__item {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        padding: 0.55rem 0.6rem;
+        border-radius: 8px;
+        font-size: 0.86rem;
+        font-weight: 600;
+        color: var(--p-text-muted-color);
+        position: relative;
+      }
+      .app-nav__item svg {
+        width: 17px;
+        height: 17px;
+        flex: 0 0 auto;
+      }
+      .app-nav__item--active {
+        background: var(--p-highlight-background);
+        color: var(--p-primary-color);
+      }
+      .app-nav__item--active::before {
+        content: '';
+        position: absolute;
+        left: -0.85rem;
+        top: 0.35rem;
+        bottom: 0.35rem;
+        width: 3px;
+        border-radius: 2px;
+        background: var(--p-primary-color);
+      }
+      .stage-frame[data-viewport='mobile'] .app-nav__item {
+        flex-direction: column;
+        gap: 0.2rem;
+        min-width: 60px;
+        padding: 0.45rem 0.4rem;
+        font-size: 0.64rem;
+        text-align: center;
+      }
+      .stage-frame[data-viewport='mobile'] .app-nav__item--active::before {
+        display: none;
+      }
+
+      .app-main {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+      }
+      .app-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--p-content-border-color);
+      }
+      .app-header__crumb {
+        font-size: 0.75rem;
+        color: var(--p-text-muted-color);
+        margin: 0 0 0.15rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+      }
+      .app-header__title {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 800;
+      }
+      .app-header__meta {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+        color: var(--p-text-muted-color);
+      }
+      .role-badge {
+        font-size: 0.68rem;
+        font-weight: 700;
+        color: var(--p-primary-600);
+        background: var(--p-highlight-background);
+        padding: 0.15rem 0.5rem;
+        border-radius: 999px;
+      }
+      .avatar {
+        width: 28px;
+        height: 28px;
+        border-radius: 999px;
+        background: var(--p-primary-color);
+        color: #fff;
+        font-size: 0.72rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .theme-toggle,
+      .btn-signout {
+        appearance: none;
+        border: none;
+        background: none;
+        color: var(--p-text-muted-color);
+        font: inherit;
+        cursor: pointer;
+      }
+      .theme-toggle {
+        width: 30px;
+        height: 30px;
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+      }
+      .theme-toggle svg {
+        width: 16px;
+        height: 16px;
+      }
+      .theme-toggle:hover,
+      .btn-signout:hover {
+        background: var(--p-content-hover-background);
+        color: var(--p-text-color);
+      }
+      .btn-signout {
+        font-size: 0.8rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.35rem 0.5rem;
+        border-radius: 6px;
+      }
+      .btn-signout svg {
+        width: 15px;
+        height: 15px;
+      }
+
+      .app-content {
+        flex: 1;
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.1rem;
+        overflow-y: auto;
+      }
+
+      /* ---- Holdings charts row (echoes holdings.component.ts's .holdings-charts-grid) ---- */
+      .charts-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.6rem;
+      }
+      .stage-frame[data-viewport='mobile'] .charts-row {
+        grid-template-columns: 1fr;
+      }
+      .chart-card {
+        border: 1px solid var(--p-content-border-color);
+        border-radius: 10px;
+        padding: 0.7rem 0.8rem 0.9rem;
+      }
+      .chart-card h4 {
+        margin: 0 0 0.5rem;
+        font-size: 0.76rem;
+        font-weight: 700;
+        text-align: center;
+        color: var(--p-text-muted-color);
+      }
+      .chart-placeholder {
+        height: 90px;
+        border-radius: 50%;
+        margin: 0 auto;
+        width: 90px;
+        background: conic-gradient(
+          var(--p-primary-color) 0% 40%,
+          #34d399 40% 65%,
+          #fbbf24 65% 85%,
+          #f87171 85% 100%
+        );
+      }
+
+      /* ---- Holdings panel header + Export control ---- */
+      .panel-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+      }
+      .panel-header h2 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 700;
+      }
+      .panel-header__actions {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        position: relative;
+      }
+
+      .btn {
+        appearance: none;
+        border: none;
+        font: inherit;
+        font-size: 0.84rem;
+        font-weight: 600;
+        padding: 0.55rem 0.9rem;
+        border-radius: 7px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        cursor: pointer;
+      }
+      .btn svg {
+        width: 15px;
+        height: 15px;
+      }
+      .btn-primary {
+        background: var(--p-primary-color);
+        color: #fff;
+      }
+      .btn-primary:hover {
+        background: var(--p-primary-600);
+      }
+
+      /* Export split-button, "info" severity — two joined segments: a plain click action (left)
+         and a caret that opens the format menu (right). Matches PrimeNG SplitButton's shape. */
+      .split-btn {
+        display: inline-flex;
+        border-radius: 7px;
+        overflow: hidden;
+        box-shadow: 0 0 0 0 transparent;
+      }
+      .split-btn__main,
+      .split-btn__caret {
+        appearance: none;
+        border: none;
+        background: var(--p-info-color);
+        color: #fff;
+        font: inherit;
+        font-size: 0.84rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+      .split-btn__main {
+        padding: 0.55rem 0.85rem;
+        border-right: 1px solid rgba(255, 255, 255, 0.25);
+      }
+      .split-btn__caret {
+        padding: 0.55rem 0.6rem;
+      }
+      .split-btn__main:hover,
+      .split-btn__caret:hover,
+      .split-btn[data-open='true'] .split-btn__caret {
+        background: var(--p-info-600);
+      }
+      .split-btn svg {
+        width: 15px;
+        height: 15px;
+      }
+      .split-btn__caret svg {
+        width: 12px;
+        height: 12px;
+        transition: transform 0.15s ease;
+      }
+      .split-btn[data-open='true'] .split-btn__caret svg {
+        transform: rotate(180deg);
+      }
+
+      .export-menu {
+        position: absolute;
+        top: calc(100% + 0.4rem);
+        right: 0;
+        min-width: 220px;
+        background: #fff;
+        border: 1px solid var(--p-content-border-color);
+        border-radius: 9px;
+        box-shadow: 0 8px 24px rgba(20, 20, 30, 0.14);
+        padding: 0.35rem;
+        z-index: 20;
+      }
+      .export-menu button {
+        width: 100%;
+        appearance: none;
+        border: none;
+        background: none;
+        font: inherit;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--p-text-color);
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.55rem 0.6rem;
+        border-radius: 6px;
+        cursor: pointer;
+        text-align: left;
+      }
+      .export-menu button:hover {
+        background: var(--p-content-hover-background);
+      }
+      .export-menu button svg {
+        width: 17px;
+        height: 17px;
+        color: var(--p-info-600);
+        flex: 0 0 auto;
+      }
+      .export-menu button .fmt-desc {
+        display: block;
+        font-size: 0.72rem;
+        font-weight: 500;
+        color: var(--p-text-muted-color);
+        margin-top: 0.1rem;
+      }
+      .export-menu hr {
+        border: none;
+        border-top: 1px solid var(--p-content-border-color);
+        margin: 0.3rem 0.2rem;
+      }
+
+      /* ---- Holdings table (abbreviated) ---- */
+      .holdings-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.82rem;
+      }
+      .holdings-table th,
+      .holdings-table td {
+        text-align: left;
+        padding: 0.55rem 0.7rem;
+        border-bottom: 1px solid var(--p-content-border-color);
+      }
+      .holdings-table th {
+        color: var(--p-text-muted-color);
+        font-weight: 700;
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+      }
+
+      /* ---- Screen: Settings / danger zone ---- */
+      .settings-page {
+        max-width: 640px;
+        margin: 0 auto;
+        width: 100%;
+      }
+      .danger-zone {
+        border: 1px solid #fecaca;
+        background: #fff5f5;
+        border-radius: 10px;
+        padding: 1rem 1.1rem 1.2rem;
+      }
+      .danger-zone h2 {
+        margin: 0 0 0.3rem;
+        font-size: 0.92rem;
+        font-weight: 800;
+        color: #b91c1c;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+      .danger-zone h2 svg {
+        width: 16px;
+        height: 16px;
+      }
+      .danger-zone > p {
+        margin: 0 0 0.9rem;
+        font-size: 0.82rem;
+        color: var(--p-text-muted-color);
+      }
+      .danger-actions {
+        display: flex;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+      }
+      .btn-info-outline {
+        background: #fff;
+        border: 1px solid var(--p-info-color);
+        color: var(--p-info-600);
+      }
+      .btn-info-outline:hover {
+        background: var(--p-info-bg);
+      }
+      .btn-danger {
+        background: #dc2626;
+        color: #fff;
+      }
+      .btn-danger:hover {
+        background: #b91c1c;
+      }
+
+      /* ---- Screen: PDF export preview ---- */
+      .pdf-preview-wrap {
+        display: flex;
+        justify-content: center;
+        padding: 1.5rem;
+        background: #eceae4;
+        min-height: 660px;
+      }
+      .pdf-page {
+        width: 100%;
+        max-width: 620px;
+        background: #fff;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+        padding: 2rem 2.2rem;
+        font-size: 0.82rem;
+      }
+      .pdf-page__title {
+        margin: 0 0 0.15rem;
+        font-size: 1.15rem;
+        font-weight: 800;
+      }
+      .pdf-page__meta {
+        margin: 0 0 1.1rem;
+        font-size: 0.74rem;
+        color: var(--p-text-muted-color);
+      }
+      .pdf-infobox {
+        display: flex;
+        gap: 0.65rem;
+        padding: 0.85rem 0.95rem;
+        border-radius: 8px;
+        background: var(--p-info-bg);
+        border: 1px solid color-mix(in srgb, var(--p-info-color) 35%, transparent);
+        margin-bottom: 1.2rem;
+      }
+      .pdf-infobox svg {
+        width: 18px;
+        height: 18px;
+        color: var(--p-info-600);
+        flex: 0 0 auto;
+        margin-top: 0.1rem;
+      }
+      .pdf-infobox p {
+        margin: 0 0 0.3rem;
+        font-size: 0.78rem;
+        line-height: 1.5;
+        color: var(--p-text-color);
+      }
+      .pdf-infobox p:first-child {
+        font-weight: 700;
+      }
+      .pdf-page h3 {
+        font-size: 0.82rem;
+        font-weight: 700;
+        margin: 1.1rem 0 0.5rem;
+      }
+      .pdf-charts {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+      }
+      .pdf-charts .chart-card {
+        padding: 0.5rem;
+      }
+      .pdf-charts .chart-card h4 {
+        font-size: 0.66rem;
+      }
+      .pdf-charts .chart-placeholder {
+        width: 64px;
+        height: 64px;
+      }
+      .pdf-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.72rem;
+      }
+      .pdf-table th,
+      .pdf-table td {
+        border: 1px solid var(--p-content-border-color);
+        padding: 0.35rem 0.5rem;
+        text-align: left;
+      }
+      .pdf-table th {
+        background: var(--p-content-hover-background);
+      }
+      .pdf-footer {
+        margin-top: 1.3rem;
+        font-size: 0.68rem;
+        color: var(--p-text-muted-color);
+        border-top: 1px solid var(--p-content-border-color);
+        padding-top: 0.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="review-header">
+      <p class="review-eyebrow">Non-functional review mockup</p>
+      <h1>Data Export — layout</h1>
+      <p>
+        A reusable Export control (split-button, "info" severity) placed to the left of each
+        feature's primary "Add" action — shown here on Holdings, but the same control/menu is reused
+        on Account Overview, Retirement, Insurances, Haushaltsplaner and Wealth Development
+        (US1/US2). Also shown: the resulting PDF's layout (charts + table + infobox, US1) and the
+        "Export my data" full-account export entry point in Account Settings (US3). Use "Screen" to
+        switch between them, "Language" to check translated labels (FR-006), and "Viewport" for the
+        mobile layout.
+      </p>
+    </header>
+
+    <div class="review-controls">
+      <div class="control-group">
+        <span class="label">Screen</span>
+        <div class="segmented" id="screen-toggle">
+          <button type="button" data-screen="holdings" aria-pressed="true">
+            Holdings (menu closed)
+          </button>
+          <button type="button" data-screen="holdings-open" aria-pressed="false">
+            Holdings (menu open)
+          </button>
+          <button type="button" data-screen="pdf" aria-pressed="false">PDF export preview</button>
+          <button type="button" data-screen="settings" aria-pressed="false">
+            Settings · Export my data
+          </button>
+        </div>
+      </div>
+      <div class="control-group">
+        <span class="label">Language</span>
+        <div class="segmented" id="lang-toggle">
+          <button type="button" data-lang="en" aria-pressed="true">English</button>
+          <button type="button" data-lang="de" aria-pressed="false">Deutsch</button>
+        </div>
+      </div>
+      <div class="control-group">
+        <span class="label">Viewport</span>
+        <div class="segmented" id="viewport-toggle">
+          <button type="button" data-viewport="desktop" aria-pressed="true">Desktop</button>
+          <button type="button" data-viewport="mobile" aria-pressed="false">Mobile</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="review-stage">
+      <div class="stage-frame" id="stage-frame" data-viewport="desktop">
+        <p class="stage-frame-label" id="stage-frame-label">Desktop — 1180px+</p>
+        <div class="canvas" id="canvas">
+          <!-- ===== Screen: Holdings (menu closed / menu open share this markup) ===== -->
+          <div class="app-shell" data-show="holdings holdings-open">
+            <nav class="app-sidebar" aria-label="Primary">
+              <div class="app-brand">
+                <span class="app-brand__mark" aria-hidden="true"></span>
+                <span class="app-brand__name">Vaultfolio</span>
+              </div>
+              <div class="app-nav">
+                <span class="app-nav__item">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M3 11l9-7 9 7" />
+                    <path d="M5 10v9a1 1 0 0 0 1 1h3v-6h6v6h3a1 1 0 0 0 1-1v-9" />
+                  </svg>
+                  <span data-lang="en">Dashboard</span><span data-lang="de" hidden>Übersicht</span>
+                </span>
+                <span class="app-nav__item app-nav__item--active">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M4 19V9l8-5 8 5v10" />
+                    <path d="M9 19v-6h6v6" />
+                  </svg>
+                  <span data-lang="en">Holdings</span
+                  ><span data-lang="de" hidden>Vermögenswerte</span>
+                </span>
+                <span class="app-nav__item">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <circle cx="12" cy="8" r="3.2" />
+                    <path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6" />
+                  </svg>
+                  <span data-lang="en">Retirement</span
+                  ><span data-lang="de" hidden>Altersvorsorge</span>
+                </span>
+                <span class="app-nav__item">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M12 3l7 3v6c0 4.4-3 7.7-7 9-4-1.3-7-4.6-7-9V6l7-3Z" />
+                  </svg>
+                  <span data-lang="en">Insurances</span
+                  ><span data-lang="de" hidden>Versicherungen</span>
+                </span>
+                <span class="app-nav__item">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M6 3h9l3 3v15H6z" />
+                    <path d="M9 8h6M9 12h6M9 16h4" />
+                  </svg>
+                  <span>Haushaltsplaner</span>
+                </span>
+                <span class="app-nav__item">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M3 17l5-5 4 4 8-9" />
+                  </svg>
+                  <span data-lang="en">Wealth Development</span
+                  ><span data-lang="de" hidden>Vermögensentwicklung</span>
+                </span>
+                <span class="app-nav__item">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <rect x="3" y="6" width="18" height="13" rx="2" />
+                    <path d="M3 10h18" />
+                    <path d="M7 15h4" />
+                  </svg>
+                  <span data-lang="en">Account Overview</span
+                  ><span data-lang="de" hidden>Kontoübersicht</span>
+                </span>
+                <span class="app-nav__item">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M12 3v4M12 17v4M3 12h4M17 12h4" />
+                    <circle cx="12" cy="12" r="4" />
+                  </svg>
+                  <span data-lang="en">Settings</span
+                  ><span data-lang="de" hidden>Einstellungen</span>
+                </span>
+              </div>
+            </nav>
+
+            <div class="app-main">
+              <div class="app-header">
+                <div>
+                  <p class="app-header__crumb">Vaultfolio</p>
+                  <h1 class="app-header__title">
+                    <span data-lang="en">Holdings</span
+                    ><span data-lang="de" hidden>Vermögenswerte</span>
+                  </h1>
+                </div>
+                <div class="app-header__meta">
+                  <span>markus.allwang</span>
+                  <span class="role-badge">Owner</span>
+                  <span class="avatar">MA</span>
+                  <button
+                    type="button"
+                    class="theme-toggle"
+                    aria-pressed="false"
+                    aria-label="Switch to dark theme"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                      <circle cx="12" cy="12" r="4" />
+                      <path
+                        d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"
+                      />
+                    </svg>
+                  </button>
+                  <button type="button" class="btn-signout">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                      <path d="M16 17l5-5-5-5" />
+                      <path d="M21 12H9" />
+                    </svg>
+                    <span data-lang="en">Sign out</span><span data-lang="de" hidden>Abmelden</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="app-content">
+                <div class="charts-row">
+                  <div class="chart-card">
+                    <h4>
+                      <span data-lang="en">Distribution</span
+                      ><span data-lang="de" hidden>Verteilung</span>
+                    </h4>
+                    <div class="chart-placeholder"></div>
+                  </div>
+                  <div class="chart-card">
+                    <h4>
+                      <span data-lang="en">Stocks</span><span data-lang="de" hidden>Aktien</span>
+                    </h4>
+                    <div class="chart-placeholder"></div>
+                  </div>
+                  <div class="chart-card">
+                    <h4>
+                      <span data-lang="en">Real Estate</span
+                      ><span data-lang="de" hidden>Immobilien</span>
+                    </h4>
+                    <div class="chart-placeholder"></div>
+                  </div>
+                </div>
+
+                <div class="panel-header">
+                  <h2>
+                    12 <span data-lang="en">holdings</span
+                    ><span data-lang="de" hidden>Vermögenswerte</span>
+                  </h2>
+                  <div class="panel-header__actions">
+                    <!-- ===== Export control (US1/US2, FR-001/FR-002) — "info" severity split-button,
+                         positioned immediately left of "Add holding" (FR-001) ===== -->
+                    <div
+                      class="split-btn"
+                      id="export-split-btn"
+                      data-open="false"
+                      data-testid="holdings-export"
+                    >
+                      <button type="button" class="split-btn__main" id="export-main-btn">
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="1.8"
+                        >
+                          <path d="M12 3v12M7 10l5 5 5-5" />
+                          <path d="M4 19h16" />
+                        </svg>
+                        <span data-lang="en">Export</span
+                        ><span data-lang="de" hidden>Exportieren</span>
+                      </button>
+                      <button
+                        type="button"
+                        class="split-btn__caret"
+                        id="export-caret-btn"
+                        aria-haspopup="menu"
+                        aria-expanded="false"
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2.2"
+                        >
+                          <path d="M6 9l6 6 6-6" />
+                        </svg>
+                      </button>
+
+                      <!-- Format menu — shown as a "Holdings (menu open)" screen state -->
+                      <div
+                        class="export-menu"
+                        id="export-menu"
+                        role="menu"
+                        data-show-only="holdings-open"
+                      >
+                        <button type="button" role="menuitem">
+                          <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                          >
+                            <path d="M4 4v16h16V8l-4-4z" />
+                            <path d="M13 4v5h5" />
+                          </svg>
+                          <span>
+                            JSON
+                            <span class="fmt-desc" data-lang="en">Raw structured data</span
+                            ><span class="fmt-desc" data-lang="de" hidden
+                              >Rohdaten, strukturiert</span
+                            >
+                          </span>
+                        </button>
+                        <button type="button" role="menuitem">
+                          <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                          >
+                            <rect x="3" y="4" width="18" height="16" rx="2" />
+                            <path d="M3 10h18M9 10v10" />
+                          </svg>
+                          <span>
+                            CSV
+                            <span class="fmt-desc" data-lang="en">Plain-text table</span
+                            ><span class="fmt-desc" data-lang="de" hidden
+                              >Textbasierte Tabelle</span
+                            >
+                          </span>
+                        </button>
+                        <button type="button" role="menuitem">
+                          <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                          >
+                            <rect x="3" y="4" width="18" height="16" rx="2" />
+                            <path d="M8 4v16M3 9h18M3 15h18" />
+                          </svg>
+                          <span>
+                            Excel
+                            <span class="fmt-desc" data-lang="en">Formatted spreadsheet</span
+                            ><span class="fmt-desc" data-lang="de" hidden>Formatierte Tabelle</span>
+                          </span>
+                        </button>
+                        <hr />
+                        <button type="button" role="menuitem">
+                          <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                          >
+                            <rect x="4" y="2.5" width="16" height="19" rx="1.5" />
+                            <path d="M8 8h8M8 12h8M8 16h5" />
+                          </svg>
+                          <span>
+                            PDF
+                            <span class="fmt-desc" data-lang="en">Report with charts</span
+                            ><span class="fmt-desc" data-lang="de" hidden
+                              >Bericht mit Diagrammen</span
+                            >
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      class="btn btn-primary"
+                      data-testid="holdings-add-holding"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <path d="M12 5v14M5 12h14" />
+                      </svg>
+                      <span data-lang="en">Add holding</span
+                      ><span data-lang="de" hidden>Vermögenswert hinzufügen</span>
+                    </button>
+                  </div>
+                </div>
+
+                <table class="holdings-table">
+                  <thead>
+                    <tr>
+                      <th>
+                        <span data-lang="en">Type</span><span data-lang="de" hidden>Art</span>
+                      </th>
+                      <th>
+                        <span data-lang="en">Asset</span
+                        ><span data-lang="de" hidden>Vermögenswert</span>
+                      </th>
+                      <th>
+                        <span data-lang="en">Quantity</span><span data-lang="de" hidden>Menge</span>
+                      </th>
+                      <th>
+                        <span data-lang="en">Price</span><span data-lang="de" hidden>Preis</span>
+                      </th>
+                      <th>
+                        <span data-lang="en">Purchase Date</span
+                        ><span data-lang="de" hidden>Kaufdatum</span>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <span data-lang="en">Stock</span><span data-lang="de" hidden>Aktie</span>
+                      </td>
+                      <td>Apple Inc.</td>
+                      <td>25</td>
+                      <td>€ 178.20</td>
+                      <td>2023-03-14</td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <span data-lang="en">Real Estate</span
+                        ><span data-lang="de" hidden>Immobilie</span>
+                      </td>
+                      <td>
+                        <span data-lang="en">Apartment, Vienna</span
+                        ><span data-lang="de" hidden>Wohnung, Wien</span>
+                      </td>
+                      <td>1</td>
+                      <td>€ 310,000.00</td>
+                      <td>2019-07-01</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== Screen: PDF export preview (US1, FR-004/FR-005) ===== -->
+          <div class="pdf-preview-wrap" data-show="pdf">
+            <div class="pdf-page">
+              <p class="pdf-page__title">
+                <span data-lang="en">Holdings</span
+                ><span data-lang="de" hidden>Vermögenswerte</span>
+              </p>
+              <p class="pdf-page__meta">
+                <span data-lang="en">Vaultfolio · Exported 2026-09-08 for markus.allwang</span
+                ><span data-lang="de" hidden
+                  >Vaultfolio · Exportiert am 08.09.2026 für markus.allwang</span
+                >
+              </p>
+
+              <!-- Infobox (FR-005): names the feature, explains the data and what the export
+                   contains — reusing wording close to docs/user-guide.md §4 where suitable. -->
+              <div class="pdf-infobox">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M12 8v.01M12 11v5" />
+                </svg>
+                <div>
+                  <p data-lang="en">About this export — Holdings</p>
+                  <p data-lang="de" hidden>Über diesen Export — Vermögenswerte</p>
+                  <p data-lang="en">
+                    Holdings is where you record and track the assets you own — stocks, funds, real
+                    estate, and more. This export contains every holding you have recorded, with the
+                    same fields shown on the Holdings page, plus the distribution charts below
+                    reflecting your portfolio at the time of export.
+                  </p>
+                  <p data-lang="de" hidden>
+                    Unter Vermögenswerte erfassen und verfolgen Sie Ihr Vermögen — Aktien, Fonds,
+                    Immobilien und mehr. Dieser Export enthält alle erfassten Vermögenswerte mit
+                    denselben Feldern wie auf der Seite „Vermögenswerte“ sowie die unten gezeigten
+                    Verteilungsdiagramme zum Zeitpunkt des Exports.
+                  </p>
+                </div>
+              </div>
+
+              <h3>
+                <span data-lang="en">Distribution</span
+                ><span data-lang="de" hidden>Verteilung</span>
+              </h3>
+              <div class="pdf-charts">
+                <div class="chart-card">
+                  <h4>
+                    <span data-lang="en">By type</span><span data-lang="de" hidden>Nach Art</span>
+                  </h4>
+                  <div class="chart-placeholder"></div>
+                </div>
+                <div class="chart-card">
+                  <h4>
+                    <span data-lang="en">Stocks</span><span data-lang="de" hidden>Aktien</span>
+                  </h4>
+                  <div class="chart-placeholder"></div>
+                </div>
+                <div class="chart-card">
+                  <h4>
+                    <span data-lang="en">Real Estate</span
+                    ><span data-lang="de" hidden>Immobilien</span>
+                  </h4>
+                  <div class="chart-placeholder"></div>
+                </div>
+              </div>
+
+              <h3>
+                <span data-lang="en">Holdings (12)</span
+                ><span data-lang="de" hidden>Vermögenswerte (12)</span>
+              </h3>
+              <table class="pdf-table">
+                <thead>
+                  <tr>
+                    <th><span data-lang="en">Type</span><span data-lang="de" hidden>Art</span></th>
+                    <th>
+                      <span data-lang="en">Asset</span
+                      ><span data-lang="de" hidden>Vermögenswert</span>
+                    </th>
+                    <th>
+                      <span data-lang="en">Quantity</span><span data-lang="de" hidden>Menge</span>
+                    </th>
+                    <th>
+                      <span data-lang="en">Price</span><span data-lang="de" hidden>Preis</span>
+                    </th>
+                    <th>
+                      <span data-lang="en">Purchase Date</span
+                      ><span data-lang="de" hidden>Kaufdatum</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <span data-lang="en">Stock</span><span data-lang="de" hidden>Aktie</span>
+                    </td>
+                    <td>Apple Inc.</td>
+                    <td>25</td>
+                    <td>€ 178.20</td>
+                    <td>2023-03-14</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <span data-lang="en">Real Estate</span
+                      ><span data-lang="de" hidden>Immobilie</span>
+                    </td>
+                    <td>
+                      <span data-lang="en">Apartment, Vienna</span
+                      ><span data-lang="de" hidden>Wohnung, Wien</span>
+                    </td>
+                    <td>1</td>
+                    <td>€ 310,000.00</td>
+                    <td>2019-07-01</td>
+                  </tr>
+                  <tr>
+                    <td colspan="5" style="color: var(--p-text-muted-color); font-style: italic">
+                      … 10 <span data-lang="en">more rows</span
+                      ><span data-lang="de" hidden>weitere Zeilen</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <p class="pdf-footer">
+                <span data-lang="en"
+                  >Generated by Vaultfolio · Contains only data owned by markus.allwang · Page 1 of
+                  1</span
+                ><span data-lang="de" hidden
+                  >Erstellt von Vaultfolio · Enthält nur Daten von markus.allwang · Seite 1 von
+                  1</span
+                >
+              </p>
+            </div>
+          </div>
+
+          <!-- ===== Screen: Settings — "Export my data" (US3, FR-010) ===== -->
+          <div class="app-shell" data-show="settings">
+            <nav class="app-sidebar" aria-label="Primary">
+              <div class="app-brand">
+                <span class="app-brand__mark" aria-hidden="true"></span>
+                <span class="app-brand__name">Vaultfolio</span>
+              </div>
+              <div class="app-nav">
+                <span class="app-nav__item app-nav__item--active">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M12 3v4M12 17v4M3 12h4M17 12h4" />
+                    <circle cx="12" cy="12" r="4" />
+                  </svg>
+                  <span data-lang="en">Settings</span
+                  ><span data-lang="de" hidden>Einstellungen</span>
+                </span>
+              </div>
+            </nav>
+            <div class="app-main">
+              <div class="app-header">
+                <div>
+                  <p class="app-header__crumb">Vaultfolio</p>
+                  <h1 class="app-header__title">
+                    <span data-lang="en">Profile</span><span data-lang="de" hidden>Profil</span>
+                  </h1>
+                </div>
+                <div class="app-header__meta">
+                  <span>markus.allwang</span>
+                  <span class="role-badge">Owner</span>
+                  <span class="avatar">MA</span>
+                </div>
+              </div>
+              <div class="app-content">
+                <div class="settings-page">
+                  <div class="danger-zone">
+                    <h2>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <path
+                          d="M10.3 3.8 2.6 17a1.8 1.8 0 0 0 1.5 2.7h15.8A1.8 1.8 0 0 0 21.4 17L13.7 3.8a1.8 1.8 0 0 0-3.4 0Z"
+                        />
+                        <path d="M12 9.5v4M12 16.2v.01" />
+                      </svg>
+                      <span data-lang="en">Danger Zone</span
+                      ><span data-lang="de" hidden>Gefahrenzone</span>
+                    </h2>
+                    <p data-lang="en">
+                      Permanently deleting your account removes every holding and setting you own.
+                      You can export a full copy of your data first — it's optional, not required.
+                    </p>
+                    <p data-lang="de" hidden>
+                      Das endgültige Löschen Ihres Kontos entfernt alle Ihnen gehörenden
+                      Vermögenswerte und Einstellungen. Sie können zuvor eine vollständige Kopie
+                      Ihrer Daten exportieren — dies ist optional, nicht erforderlich.
+                    </p>
+                    <div class="danger-actions">
+                      <button
+                        type="button"
+                        class="btn btn-info-outline"
+                        data-testid="profile-export-data"
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="1.8"
+                        >
+                          <path d="M12 3v12M7 10l5 5 5-5" />
+                          <path d="M4 19h16" />
+                        </svg>
+                        <span data-lang="en">Export my data (optional)</span
+                        ><span data-lang="de" hidden>Meine Daten exportieren (optional)</span>
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-danger"
+                        data-testid="profile-delete-account"
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="1.8"
+                        >
+                          <path d="M4 7h16M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
+                          <path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13" />
+                        </svg>
+                        <span data-lang="en">Delete account</span
+                        ><span data-lang="de" hidden>Konto löschen</span>
+                      </button>
+                    </div>
+                    <p style="margin: 0.9rem 0 0; font-size: 0.72rem; color: var(--review-muted)">
+                      <span data-lang="en"
+                        >Downloads
+                        <code style="font-size: 0.95em">vaultfolio-data-export.zip</code> — one
+                        subdirectory per feature, each with json/csv/xlsx/pdf files.</span
+                      ><span data-lang="de" hidden
+                        >Lädt
+                        <code style="font-size: 0.95em">vaultfolio-data-export.zip</code> herunter —
+                        ein Unterordner je Bereich, jeweils mit json-/csv-/xlsx-/pdf-Dateien.</span
+                      >
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="review-footer">
+      <p>
+        This is a static, non-functional mockup for design review — no file is actually generated or
+        downloaded, and the format menu/language toggle here are simulated via the review controls
+        above rather than real interactivity.
+      </p>
+      <h3>What this covers</h3>
+      <ul>
+        <li>
+          US1 (P1): the Export split-button ("info" severity) to the left of "Add holding", its
+          format menu (JSON/CSV/Excel/PDF with distinct icons), and the PDF's charts + table +
+          infobox (FR-001–FR-005, FR-003a).
+        </li>
+        <li>
+          US2 (P2): the same control reused verbatim in position/behavior on the other five features
+          — shown here structurally via the shared markup/classes, not as five separate screens.
+        </li>
+        <li>
+          US3 (P3): "Export my data (optional)" in the Settings danger zone, wired to a real action
+          instead of the current no-op placeholder (FR-010–FR-012).
+        </li>
+        <li>Language switching for headers/labels/PDF text (FR-006), via the "Language" toggle.</li>
+      </ul>
+      <h3>Not shown here (out of scope for this mockup)</h3>
+      <ul>
+        <li>
+          The five other features' own screens — each adopts the identical control/menu/PDF shape
+          shown here, scoped to that feature's own data and infobox text (FR-008/FR-009); mocking up
+          all six would only repeat this same layout.
+        </li>
+        <li>
+          Empty-state exports, partial-export-failure messaging, and the exact archive/folder
+          contents (FR-014, FR-015) — data/logic behavior, not layout.
+        </li>
+        <li>
+          Real chart rendering — the conic-gradient circles stand in for the actual ECharts
+          distribution charts already used on the Holdings page.
+        </li>
+      </ul>
+    </footer>
+
+    <script>
+      const stageFrame = document.getElementById('stage-frame');
+      const stageLabel = document.getElementById('stage-frame-label');
+      const canvas = document.getElementById('canvas');
+      const splitBtn = document.getElementById('export-split-btn');
+
+      function applyScreen(screen) {
+        canvas.querySelectorAll('[data-show]').forEach((el) => {
+          const screens = el.getAttribute('data-show').split(' ');
+          el.hidden = !screens.includes(screen);
+        });
+        canvas.querySelectorAll('[data-show-only]').forEach((el) => {
+          el.hidden = el.getAttribute('data-show-only') !== screen;
+        });
+        splitBtn.setAttribute('data-open', String(screen === 'holdings-open'));
+        document
+          .getElementById('export-caret-btn')
+          .setAttribute('aria-expanded', String(screen === 'holdings-open'));
+      }
+
+      document.getElementById('screen-toggle').addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-screen]');
+        if (!btn) return;
+        applyScreen(btn.getAttribute('data-screen'));
+        [...document.getElementById('screen-toggle').querySelectorAll('button')].forEach((b) =>
+          b.setAttribute('aria-pressed', String(b === btn)),
+        );
+      });
+
+      document.getElementById('lang-toggle').addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-lang]');
+        if (!btn) return;
+        const lang = btn.getAttribute('data-lang');
+        canvas.querySelectorAll('[data-lang]').forEach((el) => {
+          el.hidden = el.getAttribute('data-lang') !== lang;
+        });
+        [...document.getElementById('lang-toggle').querySelectorAll('button')].forEach((b) =>
+          b.setAttribute('aria-pressed', String(b === btn)),
+        );
+      });
+
+      document.getElementById('viewport-toggle').addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-viewport]');
+        if (!btn) return;
+        const value = btn.getAttribute('data-viewport');
+        stageFrame.setAttribute('data-viewport', value);
+        stageLabel.textContent = value === 'mobile' ? 'Mobile — 400px' : 'Desktop — 1180px+';
+        [...document.getElementById('viewport-toggle').querySelectorAll('button')].forEach((b) =>
+          b.setAttribute('aria-pressed', String(b === btn)),
+        );
+      });
+
+      applyScreen('holdings');
+    </script>
+  </body>
+</html>

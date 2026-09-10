@@ -555,6 +555,7 @@ export class HoldingFormComponent implements OnChanges {
 
   private applyFieldSet(assetType: AssetType, options: { resetInapplicable: boolean }): void {
     const fieldSet = ASSET_TYPE_FIELD_SETS[assetType];
+    if (!fieldSet) return;
     this.fieldSet.set(fieldSet);
     const { controls } = this.form;
 

@@ -14,6 +14,9 @@
   "references": [
     {
       "path": "../../shared-ui/tsconfig.lib.json"
+    },
+    {
+      "path": "../../../export/tsconfig.lib.json"
     }
   ]
 }

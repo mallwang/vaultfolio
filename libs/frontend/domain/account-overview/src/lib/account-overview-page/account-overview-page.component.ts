@@ -9,7 +9,12 @@ import { DialogModule } from 'primeng/dialog';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
-import { IconComponent, LocaleNumberPipe, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
+import {
+  ExportControlComponent,
+  IconComponent,
+  LocaleNumberPipe,
+  TranslatePipe,
+} from '@vaultfolio/frontend-shared-ui';
 import { AccountOverviewFormComponent } from '../account-overview-form/account-overview-form.component';
 import { AccountOverviewService } from '../account-overview.service';
 
@@ -61,6 +66,7 @@ function sortByStatus(accounts: AccountOverviewEntry[]): AccountOverviewEntry[] 
     TranslatePipe,
     LocaleNumberPipe,
     IconComponent,
+    ExportControlComponent,
   ],
   providers: [ConfirmationService, MessageService, TranslatePipe],
   template: `
@@ -90,16 +96,19 @@ function sortByStatus(accounts: AccountOverviewEntry[]): AccountOverviewEntry[] 
             {{ 'accountOverview.subtitle' | translate }}
           </p>
         </div>
-        @if (accounts().length > 0) {
-          <button
-            pButton
-            data-testid="account-overview-add-account"
-            type="button"
-            (click)="openAddDialog()"
-          >
-            <app-icon name="plus" /> {{ 'accountOverview.addAccount' | translate }}
-          </button>
-        }
+        <div class="account-overview-panel__header-actions">
+          <app-export-control featureId="account-overview" severity="info" />
+          @if (accounts().length > 0) {
+            <button
+              pButton
+              data-testid="account-overview-add-account"
+              type="button"
+              (click)="openAddDialog()"
+            >
+              <app-icon name="plus" /> {{ 'accountOverview.addAccount' | translate }}
+            </button>
+          }
+        </div>
       </div>
 
       @if (loadError()) {
@@ -332,6 +341,15 @@ function sortByStatus(accounts: AccountOverviewEntry[]): AccountOverviewEntry[] 
       margin: 0.25rem 0 0;
       color: var(--p-text-muted-color);
       font-size: 0.85rem;
+    }
+
+    /* design.md/FR-008: the Export control sits immediately left of "Add account" — both
+       grouped in one actions cluster so the header's own space-between still only splits the
+       heading block from this whole group. */
+    .account-overview-panel__header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
     }
 
     .account-group {

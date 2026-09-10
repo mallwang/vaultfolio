@@ -1,6 +1,7 @@
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import {
   ApplicationConfig,
+  EnvironmentInjector,
   inject,
   provideAppInitializer,
   provideBrowserGlobalErrorListeners,
@@ -11,12 +12,14 @@ import Aura from '@primeuix/themes/aura';
 import { catchError, of, tap } from 'rxjs';
 import { providePrimeNG } from 'primeng/config';
 import { CURRENT_USER_SOURCE } from '@vaultfolio/frontend-domain-access';
+import { FEATURE_EXPORT_REGISTRY } from '@vaultfolio/frontend-shared-ui';
 import { environment } from '../environments/environment';
 import { routes } from './app.routes';
 import { AuthService } from './auth/auth.service';
 import { authInterceptor } from './auth/auth.interceptor';
 import { CurrentUserStore } from './auth/current-user.store';
 import { VaultfolioTitleStrategy } from './core/title.strategy';
+import { registerFeatureExports } from './export/feature-export.registry';
 
 /**
  * Swaps Aura's default emerald primary palette for teal, and pins the
@@ -69,6 +72,15 @@ export const appConfig: ApplicationConfig = {
           return of(null);
         }),
       );
+    }),
+    // FR-008/FR-009/FR-012: populate the shared FeatureExportRegistry once at bootstrap, the
+    // same way DASHBOARD_WIDGET_CONTRIBUTIONS/SETTINGS_TAB_CONTRIBUTIONS wire per-domain
+    // contributions in — but as an app initializer (not a bare constant import) since two of the
+    // registrations need `inject()` (see feature-export.registry.ts).
+    provideAppInitializer(() => {
+      const registry = inject(FEATURE_EXPORT_REGISTRY);
+      const injector = inject(EnvironmentInjector);
+      return registerFeatureExports(registry, injector);
     }),
     providePrimeNG({
       theme: { preset: VaultfolioPreset, options: { darkModeSelector: '.app-dark' } },

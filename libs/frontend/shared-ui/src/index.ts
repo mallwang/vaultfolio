@@ -14,3 +14,6 @@ export { EchartComponent } from './lib/chart/echart.component';
 export { DynamicOutletComponent } from './lib/dynamic-outlet/dynamic-outlet.component';
 export { ASSET_TYPE_COLORS, resolveChartPalette } from './lib/chart/chart-palette';
 export type { ChartPalette } from './lib/chart/chart-palette';
+export { ExportControlComponent } from './lib/export-control/export-control.component';
+export { FEATURE_EXPORT_REGISTRY } from './lib/export-control/feature-export-registry.token';
+export { captureChartImage, CHART_IMAGE_CAPTURE } from './lib/export-control/chart-image-capture';

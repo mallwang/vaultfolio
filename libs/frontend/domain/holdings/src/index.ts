@@ -8,3 +8,4 @@ export { HoldingsDistributionComponent } from './lib/holdings-distribution/holdi
 export { HoldingsService } from './lib/holdings.service.js';
 export { ImportsComponent } from './lib/imports/imports.component.js';
 export { HoldingsAreaComponent } from './lib/holdings-area/holdings-area.component.js';
+export { createHoldingsExportDefinition } from './lib/holdings-export.definition.js';

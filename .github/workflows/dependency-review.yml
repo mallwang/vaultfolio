@@ -23,3 +23,7 @@ jobs:
       - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
         with:
           comment-summary-in-pr: on-failure
+          # uuid@9 (transitive via exceljs) is flagged by GHSA-w5hq-g745-h8pq (missing buffer
+          # bounds check in v3/v5/v6 when buf is provided). The vulnerable code path is not used
+          # here; upgrading to uuid@11 (the fix) breaks exceljs's CommonJS require.
+          allow-ghsas: GHSA-w5hq-g745-h8pq

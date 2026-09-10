@@ -47,6 +47,25 @@ describe('AccountOverviewPageComponent', () => {
 
   afterEach(() => httpMock.verify());
 
+  describe('Export control (029-export-data, FR-008/FR-009)', () => {
+    it('renders left of "Add account", with info severity', () => {
+      const header = (fixture.nativeElement as HTMLElement).querySelector(
+        '.account-overview-panel__header-actions',
+      );
+      expect(header).not.toBeNull();
+      const exportControl = header?.querySelector(
+        'app-export-control[featureId="account-overview"]',
+      );
+      const addButton = header?.querySelector('[data-testid="account-overview-add-account"]');
+      expect(exportControl).not.toBeNull();
+      expect(exportControl?.getAttribute('severity')).toBe('info');
+      expect(addButton).not.toBeNull();
+      expect(exportControl?.compareDocumentPosition(addButton as Node)).toBe(
+        Node.DOCUMENT_POSITION_FOLLOWING,
+      );
+    });
+  });
+
   describe('ngOnInit / refresh()', () => {
     it('loads accounts and sets loading=false', () => {
       const comp = fixture.componentInstance;

@@ -14,7 +14,13 @@
   "exclude": ["src/**/*.spec.ts", "src/**/*.test.ts"],
   "references": [
     {
+      "path": "../../libs/export/tsconfig.lib.json"
+    },
+    {
       "path": "../../libs/frontend/admin/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/frontend/domain/klaro/tsconfig.lib.json"
     },
     {
       "path": "../../libs/frontend/domain/account-overview/tsconfig.lib.json"
@@ -27,9 +33,6 @@
     },
     {
       "path": "../../libs/frontend/domain/insurances/tsconfig.lib.json"
-    },
-    {
-      "path": "../../libs/frontend/domain/klaro/tsconfig.lib.json"
     },
     {
       "path": "../../libs/frontend/domain/retirement/tsconfig.lib.json"

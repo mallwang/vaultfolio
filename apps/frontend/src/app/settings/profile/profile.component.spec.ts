@@ -3,6 +3,8 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import type { ProfileSummary } from '@vaultfolio/api-contract';
+import * as ExportLib from '@vaultfolio/export';
+import { CHART_IMAGE_CAPTURE } from '@vaultfolio/frontend-shared-ui';
 import { ProfileComponent } from './profile.component';
 import { CurrentUserStore } from '../../auth/current-user.store';
 import { FakeCurrentUserStore } from '../../auth/testing/current-user-store.testing';
@@ -287,5 +289,77 @@ describe('ProfileComponent', () => {
       httpMock.expectOne('/api/profile/account').error(new ProgressEvent('error'), { status: 500 });
       expect(fixture.componentInstance['deleteErrorMessage']()).toBeTruthy();
     });
+  });
+});
+
+// T047 (029-export-data): vi.spyOn (not vi.mock) avoids the hoisting / circular-init issue —
+// the component test verifies the wiring (exportAll called → download triggered, failures surfaced)
+// without re-testing ZIP generation (covered by full-export-archive.spec.ts / T044).
+describe('ProfileComponent – exportAllData()', () => {
+  let fixture: ComponentFixture<ProfileComponent>;
+  let httpMock: HttpTestingController;
+  let downloadedFileNames: string[];
+
+  beforeEach(async () => {
+    const fakeStore = new FakeCurrentUserStore();
+    fakeStore.setAuthenticated({
+      id: 'user-1',
+      email: 'user@example.com',
+      displayName: 'Test User',
+      role: 'MEMBER',
+      domainScopes: [],
+    });
+
+    await TestBed.configureTestingModule({
+      imports: [ProfileComponent],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        { provide: CurrentUserStore, useValue: fakeStore },
+        { provide: CHART_IMAGE_CAPTURE, useValue: () => Promise.resolve('') },
+      ],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(ProfileComponent);
+    httpMock = TestBed.inject(HttpTestingController);
+    fixture.detectChanges();
+    httpMock.expectOne('/api/profile').flush(PROFILE);
+    fixture.detectChanges();
+
+    downloadedFileNames = [];
+    HTMLAnchorElement.prototype.click = function (this: HTMLAnchorElement) {
+      downloadedFileNames.push(this.download);
+    };
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    httpMock.verify();
+  });
+
+  it('triggers a ZIP download and clears failures on success', async () => {
+    vi.spyOn(ExportLib, 'exportAll').mockResolvedValue({
+      archive: new Blob(['zip']),
+      failures: [],
+    });
+
+    await fixture.componentInstance['exportAllData']();
+
+    expect(downloadedFileNames).toEqual(['vaultfolio-data-export.zip']);
+    expect(fixture.componentInstance['exportFailures']()).toHaveLength(0);
+  });
+
+  it('surfaces partial failures returned by exportAll', async () => {
+    vi.spyOn(ExportLib, 'exportAll').mockResolvedValue({
+      archive: new Blob(['zip']),
+      failures: [{ featureId: 'holdings', format: 'pdf' as const }],
+    });
+
+    await fixture.componentInstance['exportAllData']();
+
+    expect(fixture.componentInstance['exportFailures']()).toEqual([
+      { featureId: 'holdings', format: 'pdf' },
+    ]);
   });
 });

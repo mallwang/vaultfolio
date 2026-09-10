@@ -9,7 +9,14 @@ import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
-import { IconComponent, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
+import { exportAll, type ExportFormat, type FeatureExportDefinition } from '@vaultfolio/export';
+import {
+  CHART_IMAGE_CAPTURE,
+  FEATURE_EXPORT_REGISTRY,
+  I18nService,
+  IconComponent,
+  TranslatePipe,
+} from '@vaultfolio/frontend-shared-ui';
 import { CurrentUserStore } from '../../auth/current-user.store';
 import { ProfileService } from './profile.service';
 
@@ -55,6 +62,9 @@ export class ProfileComponent implements OnInit {
   private readonly messageService = inject(MessageService);
   private readonly router = inject(Router);
   private readonly translate = inject(TranslatePipe);
+  private readonly featureExportRegistry = inject(FEATURE_EXPORT_REGISTRY);
+  private readonly i18n = inject(I18nService);
+  private readonly captureChartImage = inject(CHART_IMAGE_CAPTURE);
 
   protected readonly loading = signal(true);
   protected readonly profile = signal<ProfileSummary | null>(null);
@@ -81,6 +91,10 @@ export class ProfileComponent implements OnInit {
   protected readonly deleteConfirmText = signal('');
   protected readonly deleting = signal(false);
   protected readonly deleteErrorMessage = signal<string | null>(null);
+
+  // "Export my data" (User Story 3, FR-010–FR-012)
+  protected readonly exporting = signal(false);
+  protected readonly exportFailures = signal<{ featureId: string; format: ExportFormat }[]>([]);
 
   ngOnInit(): void {
     this.refresh();
@@ -230,6 +244,63 @@ export class ProfileComponent implements OnInit {
           this.passwordErrorMessage.set(this.translate.transform('profile.passwordChangeError'));
         },
       });
+  }
+
+  /**
+   * US3 (FR-010–FR-012): builds `vaultfolio-data-export.zip` from every registered feature and
+   * triggers its download. A single feature/format failure is surfaced (FR-015, Edge Cases) —
+   * see `formatExportFailures` — rather than blocking the rest of the archive, which `exportAll`
+   * itself already guarantees.
+   */
+  protected async exportAllData(): Promise<void> {
+    if (this.exporting()) {
+      return;
+    }
+    this.exporting.set(true);
+    this.exportFailures.set([]);
+
+    const resolveLabels = (definition: FeatureExportDefinition) => ({
+      title: this.i18n.translate(definition.titleKey),
+      infobox: this.i18n.translate(definition.infoboxKey),
+      columns: definition.columns.map((column) => ({
+        key: column.key,
+        label: this.i18n.translate(column.labelKey),
+        format: column.format,
+      })),
+    });
+    const resolveChartImages = async (definition: FeatureExportDefinition) =>
+      definition.getChartOptions
+        ? Promise.all(definition.getChartOptions().map((option) => this.captureChartImage(option)))
+        : [];
+
+    try {
+      const { archive, failures } = await exportAll(
+        this.featureExportRegistry,
+        resolveLabels,
+        resolveChartImages,
+      );
+      this.exportFailures.set(failures);
+      const url = URL.createObjectURL(archive);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'vaultfolio-data-export.zip';
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      this.messageService.add({
+        severity: 'error',
+        summary: this.translate.transform('profile.exportDataError'),
+      });
+    } finally {
+      this.exporting.set(false);
+    }
+  }
+
+  /** FR-015: e.g. "Retirement (PDF), Holdings (CSV)" — the hint to retry lives in the i18n string. */
+  protected formatExportFailures(failures: { featureId: string; format: ExportFormat }[]): string {
+    return failures
+      .map((failure) => `${failure.featureId} (${failure.format.toUpperCase()})`)
+      .join(', ');
   }
 
   protected openDangerZone(): void {
