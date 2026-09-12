@@ -1,4 +1,4 @@
-import type { UserRole } from '@vaultfolio/api-contract';
+import { UserRole } from '@vaultfolio/api-contract';
 
 /**
  * Single source of truth for the app's top-level Application Areas — the
@@ -122,6 +122,6 @@ export const APPLICATION_AREAS: ApplicationArea[] = [
     labelKey: 'nav.admin',
     path: 'admin',
     icon: 'manage-accounts',
-    roles: ['ADMIN'],
+    roles: [UserRole.ADMIN],
   },
 ];

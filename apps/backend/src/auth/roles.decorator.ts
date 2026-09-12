@@ -1,5 +1,5 @@
 import { SetMetadata } from '@nestjs/common';
-import type { UserRole } from './users.repository';
+import type { UserRole } from '@vaultfolio/api-contract';
 
 export const ROLES_KEY = 'roles';
 

@@ -3,7 +3,7 @@ import { Reflector } from '@nestjs/core';
 import type { Request } from 'express';
 import { ROLES_KEY } from './roles.decorator';
 import type { RequestUser } from './current-user.decorator';
-import type { UserRole } from './users.repository';
+import type { UserRole } from '@vaultfolio/api-contract';
 
 /** `@Roles('ADMIN')` check against `request.user.role` (set by `AuthGuard`, which runs first). */
 @Injectable()

@@ -4,11 +4,28 @@
  * TypeScript interfaces, no runtime dependency (Principle II).
  */
 
+import { UserRole } from './auth.js';
+
+/**
+ * Invitation lifecycle states (data-model.md's Invitation "Lifecycle" — see
+ * `@vaultfolio/domain-invitations`' `isLegalTransition` for the legal
+ * transition graph between them). Same const-object pattern as `UserRole`.
+ */
+export const InvitationStatus = {
+  PENDING: 'PENDING',
+  ACCEPTED: 'ACCEPTED',
+  EXPIRED: 'EXPIRED',
+  CANCELLED: 'CANCELLED',
+  SUPERSEDED: 'SUPERSEDED',
+} as const;
+
+export type InvitationStatus = (typeof InvitationStatus)[keyof typeof InvitationStatus];
+
 export interface InvitationSummary {
   id: string;
   email: string;
-  role: 'ADMIN' | 'MEMBER';
-  status: 'PENDING' | 'ACCEPTED' | 'EXPIRED' | 'CANCELLED' | 'SUPERSEDED';
+  role: UserRole;
+  status: InvitationStatus;
   invitedBy: string;
   createdAt: string;
   expiresAt: string;
@@ -16,12 +33,12 @@ export interface InvitationSummary {
 
 export interface CreateInvitationRequest {
   email: string;
-  role: 'ADMIN' | 'MEMBER';
+  role: UserRole;
 }
 
 export interface InvitationTokenLookup {
   email: string;
-  role: 'ADMIN' | 'MEMBER';
+  role: UserRole;
 }
 
 export interface AcceptInvitationRequest {

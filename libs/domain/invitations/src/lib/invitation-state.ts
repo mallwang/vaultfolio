@@ -1,3 +1,5 @@
+import { InvitationStatus } from '@vaultfolio/api-contract';
+
 /**
  * Invitation lifecycle state machine (data-model.md "Lifecycle"):
  *
@@ -13,9 +15,11 @@
  * repository layer enforces this same rule again at the SQL level via
  * status-guarded `UPDATE ... WHERE status = $expected` (research.md #4) so a
  * race can never apply an illegal transition even if this check were
- * bypassed.
+ * bypassed. `InvitationStatus` itself is the shared const/type from
+ * `@vaultfolio/api-contract` — re-exported here so existing importers of
+ * this module keep working without reaching into `api-contract` themselves.
  */
-export type InvitationStatus = 'PENDING' | 'ACCEPTED' | 'EXPIRED' | 'CANCELLED' | 'SUPERSEDED';
+export { InvitationStatus };
 
 const LEGAL_TRANSITIONS: Record<InvitationStatus, readonly InvitationStatus[]> = {
   PENDING: ['ACCEPTED', 'EXPIRED', 'CANCELLED', 'SUPERSEDED'],

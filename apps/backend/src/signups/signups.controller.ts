@@ -11,6 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import type { Response } from 'express';
+import { UserRole } from '@vaultfolio/api-contract';
 import type {
   CreateSignupRequest,
   RejectSignupRequest,
@@ -153,13 +154,13 @@ export class SignupsController {
     return { email: result.request.email, status: 'VERIFIED' };
   }
 
-  @Roles('ADMIN')
+  @Roles(UserRole.ADMIN)
   @Get()
   async list(): Promise<SignupSummary[]> {
     return this.signupsService.list();
   }
 
-  @Roles('ADMIN')
+  @Roles(UserRole.ADMIN)
   @Post(':id/approve')
   @HttpCode(HttpStatus.OK)
   async approve(
@@ -171,7 +172,7 @@ export class SignupsController {
     return this.mapResolveResult(result, res, APPROVE_EMAIL_DELIVERY_FAILED);
   }
 
-  @Roles('ADMIN')
+  @Roles(UserRole.ADMIN)
   @Post(':id/reject')
   @HttpCode(HttpStatus.OK)
   async reject(
@@ -184,7 +185,7 @@ export class SignupsController {
     return this.mapResolveResult(result, res, REJECT_EMAIL_DELIVERY_FAILED);
   }
 
-  @Roles('ADMIN')
+  @Roles(UserRole.ADMIN)
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
   async delete(
