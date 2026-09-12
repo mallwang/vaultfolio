@@ -7,7 +7,7 @@
  */
 
 /** One row in the allocation table shown beside the chart image in the PDF. */
-export interface ChartSideTableRow {
+interface ChartSideTableRow {
   label: string;
   value: number;
   percentage: number;
@@ -16,7 +16,7 @@ export interface ChartSideTableRow {
 }
 
 /** Optional distribution/allocation table rendered to the right of the first chart image. */
-export interface ChartSideTable {
+interface ChartSideTable {
   sectionTitle: string;
   rows: ChartSideTableRow[];
 }

@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
 
 export type AccountActionTokenPurpose = 'EMAIL_CHANGE' | 'PASSWORD_RESET';
-export type AccountActionTokenStatus = 'PENDING' | 'USED' | 'EXPIRED' | 'SUPERSEDED';
+type AccountActionTokenStatus = 'PENDING' | 'USED' | 'EXPIRED' | 'SUPERSEDED';
 
 export interface AccountActionToken {
   id: string;

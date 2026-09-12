@@ -24,7 +24,7 @@ export function computeHoldingValue(holding: HoldingResponse): Decimal | null {
 }
 
 /** data-model.md "GroupedValueEntry<K>" — one aggregated segment. */
-export interface GroupedValueEntry<K> {
+interface GroupedValueEntry<K> {
   key: K;
   value: Decimal;
 }

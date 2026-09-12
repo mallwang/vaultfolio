@@ -1,0 +1,52 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "workspaces": {
+    ".": {
+      "entry": ["tools/*.mjs", "vitest-base.config.ts"],
+      "ignoreUnresolved": ["apps/backend/", "^\\*$"],
+      "ignoreDependencies": [
+        "@angular/cli",
+        "@angular/language-service",
+        "@colbymchenry/codegraph",
+        "@eslint/js",
+        "@nestjs/schematics",
+        "@nx/devkit",
+        "@nx/nest",
+        "@nx/node",
+        "@secretlint/secretlint-rule-preset-recommend",
+        "@typescript-eslint/utils",
+        "@vitest/coverage-v8",
+        "angular-eslint",
+        "jest-environment-jsdom",
+        "jest-environment-node",
+        "typescript-eslint"
+      ]
+    },
+    "apps/backend": {
+      "webpack": false,
+      "ignoreDependencies": ["handlebars"]
+    },
+    "apps/frontend": {
+      "ignoreDependencies": ["echarts", "exceljs", "jszip", "pdfmake"]
+    },
+    "libs/account-fields": {},
+    "libs/api-contract": {},
+    "libs/export": {},
+    "libs/market-data": {},
+    "libs/notifications": {},
+    "libs/domain/accounts": {},
+    "libs/domain/auth": {},
+    "libs/domain/holdings": {},
+    "libs/domain/invitations": {},
+    "libs/frontend/admin": {},
+    "libs/frontend/domain-access": {},
+    "libs/frontend/shared-ui": {},
+    "libs/frontend/domain/*": {}
+  },
+  "ignore": [
+    "apps/backend/webpack.config.js",
+    "apps/frontend/src/environments/environment.local.example.ts",
+    "tools/vitest-global-setup.ts",
+    ".claude/skills/verify-ui/templates/verify-template.mjs"
+  ]
+}

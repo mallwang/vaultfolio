@@ -155,6 +155,12 @@ npm exec nx serve frontend
 npm exec nx serve backend
 ```
 
+### Local development tooling
+
+Linting, formatting, dependency hygiene (knip), secret scanning, and the git hooks that run them
+automatically are documented separately in
+[docs/development.md](docs/development.md) ([Deutsche Version](docs/development.de.md)).
+
 ## Deploying with Portainer (or any Docker Hub-based host)
 
 `docker-compose.yml` builds images locally from source, which isn't a great fit for Portainer on

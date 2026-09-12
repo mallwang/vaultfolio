@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
 
-export type SignupStatus = 'PENDING' | 'VERIFIED' | 'APPROVED' | 'REJECTED';
+type SignupStatus = 'PENDING' | 'VERIFIED' | 'APPROVED' | 'REJECTED';
 
 export interface SignupRequest {
   id: string;

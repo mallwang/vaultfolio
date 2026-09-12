@@ -20,5 +20,7 @@
     },
     "./package.json": "./package.json"
   },
-  "dependencies": {}
+  "dependencies": {
+    "echarts": "^6.1.0"
+  }
 }
