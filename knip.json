@@ -1,0 +1,31 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "workspaces": {
+    ".": {
+      "entry": ["tools/*.mjs", "vitest-base.config.ts"]
+    },
+    "apps/backend": {
+      "webpack": false
+    },
+    "apps/frontend": {},
+    "libs/account-fields": {},
+    "libs/api-contract": {},
+    "libs/export": {},
+    "libs/market-data": {},
+    "libs/notifications": {},
+    "libs/domain/accounts": {},
+    "libs/domain/auth": {},
+    "libs/domain/holdings": {},
+    "libs/domain/invitations": {},
+    "libs/frontend/admin": {},
+    "libs/frontend/domain-access": {},
+    "libs/frontend/shared-ui": {},
+    "libs/frontend/domain/*": {}
+  },
+  "ignore": [
+    "apps/backend/webpack.config.js",
+    "apps/frontend/src/environments/environment.local.example.ts",
+    "tools/vitest-global-setup.ts",
+    ".claude/skills/verify-ui/templates/verify-template.mjs"
+  ]
+}
