@@ -3,6 +3,7 @@
   "workspaces": {
     ".": {
       "entry": ["tools/*.mjs", "vitest-base.config.ts"],
+      "ignoreUnresolved": ["apps/backend/", "^\\*$"],
       "ignoreDependencies": [
         "@angular/cli",
         "@angular/language-service",
