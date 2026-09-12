@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
 
 export type UserRole = 'ADMIN' | 'MEMBER';
-export type UserStatus = 'ACTIVE' | 'ARCHIVED';
+type UserStatus = 'ACTIVE' | 'ARCHIVED';
 
 export interface User {
   id: string;
