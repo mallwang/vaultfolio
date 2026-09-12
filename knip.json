@@ -5,9 +5,12 @@
       "entry": ["tools/*.mjs", "vitest-base.config.ts"]
     },
     "apps/backend": {
-      "webpack": false
+      "webpack": false,
+      "ignoreDependencies": ["handlebars"]
     },
-    "apps/frontend": {},
+    "apps/frontend": {
+      "ignoreDependencies": ["echarts", "exceljs", "jszip", "pdfmake"]
+    },
     "libs/account-fields": {},
     "libs/api-contract": {},
     "libs/export": {},
