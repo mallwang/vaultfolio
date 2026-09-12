@@ -1,6 +1,7 @@
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import type { CanActivateFn } from '@angular/router';
+import { UserRole } from '@vaultfolio/api-contract';
 import { CurrentUserStore } from './current-user.store';
 
 /**
@@ -15,5 +16,5 @@ export const adminGuard: CanActivateFn = () => {
   const currentUser = inject(CurrentUserStore);
   const router = inject(Router);
 
-  return currentUser.current()?.role === 'ADMIN' ? true : router.parseUrl('/app/dashboard');
+  return currentUser.current()?.role === UserRole.ADMIN ? true : router.parseUrl('/app/dashboard');
 };

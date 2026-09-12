@@ -4,7 +4,7 @@ import { randomUUID } from 'node:crypto';
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import Database from 'better-sqlite3';
 import * as argon2 from 'argon2';
-import { SUPPORTED_LANGUAGES } from '@vaultfolio/api-contract';
+import { SUPPORTED_LANGUAGES, UserRole } from '@vaultfolio/api-contract';
 
 /**
  * Thin wrapper around a `better-sqlite3` database handle. Deliberately not an
@@ -492,8 +492,8 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     const passwordHash = await argon2.hash(password);
     db.prepare(
       `INSERT INTO users (id, email, display_name, password_hash, role)
-       VALUES (?, ?, 'Administrator', ?, 'ADMIN')`,
-    ).run(id, email, passwordHash);
+       VALUES (?, ?, 'Administrator', ?, ?)`,
+    ).run(id, email, passwordHash, UserRole.ADMIN);
 
     this.logger.log(`Bootstrap admin account created (${email}).`);
     return id;

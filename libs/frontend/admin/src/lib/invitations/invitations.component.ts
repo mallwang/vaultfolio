@@ -1,4 +1,5 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { InvitationStatus, UserRole } from '@vaultfolio/api-contract';
 import type { InvitationSummary } from '@vaultfolio/api-contract';
 import { ButtonModule } from 'primeng/button';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -10,8 +11,6 @@ import { TooltipModule } from 'primeng/tooltip';
 import { IconComponent, LocaleDatePipe, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
 import { InviteDialogComponent } from './invite-dialog/invite-dialog.component';
 import { InvitationsService } from './invitations.service';
-
-type InvitationStatus = InvitationSummary['status'];
 
 const STATUS_SEVERITY: Record<
   InvitationStatus,
@@ -104,7 +103,7 @@ const STATUS_LABEL_KEY: Record<InvitationStatus, string> = {
               <td>{{ invitation.email }}</td>
               <td>
                 {{
-                  (invitation.role === 'ADMIN' ? 'header.roleAdmin' : 'header.roleMember')
+                  (invitation.role === UserRole.ADMIN ? 'header.roleAdmin' : 'header.roleMember')
                     | translate
                 }}
               </td>
@@ -118,7 +117,7 @@ const STATUS_LABEL_KEY: Record<InvitationStatus, string> = {
               </td>
               <td>
                 <div class="row-actions">
-                  @if (invitation.status === 'PENDING') {
+                  @if (invitation.status === InvitationStatus.PENDING) {
                     <button
                       pButton
                       type="button"
@@ -220,6 +219,9 @@ export class InvitationsComponent implements OnInit {
   protected readonly loading = signal(true);
   protected readonly loadError = signal<string | null>(null);
   protected readonly dialogVisible = signal(false);
+  /** Exposed for the template, which can only read component members, not imported symbols. */
+  protected readonly UserRole = UserRole;
+  protected readonly InvitationStatus = InvitationStatus;
 
   /**
    * A resend supersedes the prior invitation and creates a new row for the

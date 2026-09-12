@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Input, Output, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { UserRole } from '@vaultfolio/api-contract';
 import type { InvitationsErrorResponse } from '@vaultfolio/api-contract';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
@@ -9,16 +10,14 @@ import { SelectModule } from 'primeng/select';
 import { IconComponent, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
 import { InvitationsService } from '../invitations.service';
 
-type UserRole = 'ADMIN' | 'MEMBER';
-
 interface RoleOption {
   label: string;
   value: UserRole;
 }
 
 const ROLE_OPTIONS: RoleOption[] = [
-  { label: 'Member', value: 'MEMBER' },
-  { label: 'Administrator', value: 'ADMIN' },
+  { label: 'Member', value: UserRole.MEMBER },
+  { label: 'Administrator', value: UserRole.ADMIN },
 ];
 
 /**
@@ -139,7 +138,7 @@ export class InviteDialogComponent {
 
   protected readonly roleOptions = ROLE_OPTIONS;
   protected readonly email = signal('');
-  protected readonly role = signal<UserRole>('MEMBER');
+  protected readonly role = signal<UserRole>(UserRole.MEMBER);
   protected readonly submitting = signal(false);
   protected readonly errorMessage = signal<string | null>(null);
 
@@ -154,7 +153,7 @@ export class InviteDialogComponent {
 
   private reset(): void {
     this.email.set('');
-    this.role.set('MEMBER');
+    this.role.set(UserRole.MEMBER);
     this.errorMessage.set(null);
     this.submitting.set(false);
   }

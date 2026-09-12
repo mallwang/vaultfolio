@@ -11,7 +11,21 @@ export interface SignInRequest {
   password: string;
 }
 
-export type UserRole = 'ADMIN' | 'MEMBER';
+/**
+ * The two account roles (data-model.md's User/Invitation) — the single
+ * source of truth both tiers import from, rather than each redeclaring its
+ * own `'ADMIN' | 'MEMBER'` union. A const object, not a TS `enum`: `UserRole
+ * .ADMIN` still resolves to the plain string `'ADMIN'` at compile time (so
+ * it round-trips through SQL bind params and JSON exactly like the raw
+ * literal always did), while the `as const` + `typeof` pairing lets this one
+ * declaration serve as both the value namespace and the `UserRole` type.
+ */
+export const UserRole = {
+  ADMIN: 'ADMIN',
+  MEMBER: 'MEMBER',
+} as const;
+
+export type UserRole = (typeof UserRole)[keyof typeof UserRole];
 
 /**
  * Also the shape returned by GET /api/auth/session. Never includes

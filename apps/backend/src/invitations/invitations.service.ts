@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import * as argon2 from 'argon2';
 import { validatePassword } from '@vaultfolio/domain-auth';
 import { computeExpiry, generateInvitationToken } from '@vaultfolio/domain-invitations';
+import { InvitationStatus, UserRole } from '@vaultfolio/api-contract';
 import type { InvitationSummary, SessionUser } from '@vaultfolio/api-contract';
 import { UsersRepository } from '../auth/users.repository';
 import { SessionsRepository } from '../auth/sessions.repository';
@@ -9,7 +10,7 @@ import { toSessionUser } from '../auth/auth.service';
 import type { Session } from '../auth/sessions.repository';
 import { EmailAvailabilityService } from '../shared/email-availability.service';
 import { InvitationsRepository } from './invitations.repository';
-import type { Invitation, InvitationRole } from './invitations.repository';
+import type { Invitation } from './invitations.repository';
 import { EmailService } from './email.service';
 
 const DEFAULT_EXPIRY_DAYS = 7;
@@ -48,7 +49,7 @@ export type ResendInvitationResult =
   | { kind: 'email_delivery_failed'; invitation: Invitation };
 
 export type LookupTokenResult =
-  { kind: 'success'; email: string; role: InvitationRole } | { kind: 'invalid' };
+  { kind: 'success'; email: string; role: UserRole } | { kind: 'invalid' };
 
 export type AcceptInvitationResult =
   | { kind: 'success'; user: SessionUser; session: Session }
@@ -73,11 +74,7 @@ export class InvitationsService {
     private readonly emailAvailability: EmailAvailabilityService,
   ) {}
 
-  async create(
-    email: string,
-    role: InvitationRole,
-    invitedBy: string,
-  ): Promise<CreateInvitationResult> {
+  async create(email: string, role: UserRole, invitedBy: string): Promise<CreateInvitationResult> {
     const availability = await this.emailAvailability.check(email);
     if (availability.kind === 'has_account') {
       return { kind: 'account_exists' };
@@ -167,7 +164,7 @@ export class InvitationsService {
     if (!invitation) {
       return { kind: 'invalid' };
     }
-    if (invitation.status !== 'PENDING') {
+    if (invitation.status !== InvitationStatus.PENDING) {
       return { kind: 'invalid' };
     }
     if (new Date(invitation.expiresAt).getTime() <= Date.now()) {

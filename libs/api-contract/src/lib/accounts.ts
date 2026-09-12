@@ -4,12 +4,22 @@
  * TypeScript interfaces, no runtime dependency (Principle II).
  */
 
+import { UserRole } from './auth.js';
+
+/** The two lifecycle states for a user account (006, data-model.md's User). Same const-object pattern as `UserRole`. */
+export const UserStatus = {
+  ACTIVE: 'ACTIVE',
+  ARCHIVED: 'ARCHIVED',
+} as const;
+
+export type UserStatus = (typeof UserStatus)[keyof typeof UserStatus];
+
 export interface AccountSummary {
   id: string;
   email: string;
   displayName: string;
-  role: 'ADMIN' | 'MEMBER';
-  status: 'ACTIVE' | 'ARCHIVED';
+  role: UserRole;
+  status: UserStatus;
   archivedAt: string | null;
   retentionExpiresAt: string | null;
   isLastActiveAdmin: boolean;
@@ -18,7 +28,7 @@ export interface AccountSummary {
 }
 
 export interface ChangeRoleRequest {
-  role: 'ADMIN' | 'MEMBER';
+  role: UserRole;
 }
 
 export interface ChangeDomainScopesRequest {
