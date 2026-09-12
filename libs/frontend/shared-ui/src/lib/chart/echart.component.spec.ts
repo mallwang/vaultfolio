@@ -33,7 +33,7 @@ async function flushEchartsInit(): Promise<void> {
 }
 
 class FakeResizeObserver {
-  static instances: FakeResizeObserver[] = [];
+  static readonly instances: FakeResizeObserver[] = [];
   readonly observe = vi.fn();
   readonly disconnect = vi.fn();
   readonly unobserve = vi.fn();
@@ -53,7 +53,7 @@ describe('EchartComponent', () => {
 
   beforeEach(async () => {
     vi.clearAllMocks();
-    FakeResizeObserver.instances = [];
+    FakeResizeObserver.instances.length = 0;
     vi.stubGlobal('ResizeObserver', FakeResizeObserver);
 
     await TestBed.configureTestingModule({

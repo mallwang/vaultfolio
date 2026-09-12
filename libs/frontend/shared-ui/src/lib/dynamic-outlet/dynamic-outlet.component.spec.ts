@@ -30,8 +30,9 @@ describe('DynamicOutletComponent', () => {
     fixture.detectChanges();
 
     expect((fixture.nativeElement as HTMLElement).textContent?.trim()).toBe('');
-    // Keep the resolver reachable so the pending promise doesn't dangle past the test.
-    void resolveLoader;
+    // Assert on the resolver so the pending promise it belongs to doesn't
+    // dangle past the test, instead of merely referencing the variable.
+    expect(resolveLoader).toBeDefined();
   });
 
   it('renders the resolved component after the loader resolves', async () => {

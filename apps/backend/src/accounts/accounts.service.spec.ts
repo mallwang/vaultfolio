@@ -1,6 +1,27 @@
 import type { User } from '../auth/users.repository';
 import { AccountsService } from './accounts.service';
 
+function makeUser(overrides: Partial<User>): User {
+  return {
+    id: 'u1',
+    email: 'user@example.com',
+    displayName: 'User',
+    passwordHash: 'hash',
+    role: 'MEMBER',
+    status: 'ACTIVE',
+    failedAttempts: 0,
+    lockedUntil: null,
+    archivedAt: null,
+    retentionExpiresAt: null,
+    pendingEmail: null,
+    emailLanguage: null,
+    domainScopes: ['holdings'],
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+    ...overrides,
+  };
+}
+
 /**
  * T056: isolated unit tests (mocked repositories) for the `isLastActiveAdmin`
  * flag `AccountsService.listAll()` computes per account — the last-admin
@@ -10,27 +31,6 @@ import { AccountsService } from './accounts.service';
  * `AccountsService` combines it with account status/role/active-admin-count.
  */
 describe('AccountsService — isLastActiveAdmin computation', () => {
-  function makeUser(overrides: Partial<User>): User {
-    return {
-      id: 'u1',
-      email: 'user@example.com',
-      displayName: 'User',
-      passwordHash: 'hash',
-      role: 'MEMBER',
-      status: 'ACTIVE',
-      failedAttempts: 0,
-      lockedUntil: null,
-      archivedAt: null,
-      retentionExpiresAt: null,
-      pendingEmail: null,
-      emailLanguage: null,
-      domainScopes: ['holdings'],
-      createdAt: '2026-01-01T00:00:00.000Z',
-      updatedAt: '2026-01-01T00:00:00.000Z',
-      ...overrides,
-    };
-  }
-
   function service(users: User[], activeAdminCount: number) {
     const usersRepo = {
       findAll: jest.fn().mockResolvedValue(users),
@@ -84,27 +84,6 @@ describe('AccountsService — isLastActiveAdmin computation', () => {
  * already present on the account.
  */
 describe('AccountsService#changeDomainScopes — per-domain independence', () => {
-  function makeUser(overrides: Partial<User>): User {
-    return {
-      id: 'u1',
-      email: 'user@example.com',
-      displayName: 'User',
-      passwordHash: 'hash',
-      role: 'MEMBER',
-      status: 'ACTIVE',
-      failedAttempts: 0,
-      lockedUntil: null,
-      archivedAt: null,
-      retentionExpiresAt: null,
-      pendingEmail: null,
-      emailLanguage: null,
-      domainScopes: ['holdings'],
-      createdAt: '2026-01-01T00:00:00.000Z',
-      updatedAt: '2026-01-01T00:00:00.000Z',
-      ...overrides,
-    };
-  }
-
   function service(user: User) {
     const usersRepo = {
       findById: jest.fn().mockImplementation(() => Promise.resolve(user)),

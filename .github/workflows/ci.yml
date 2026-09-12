@@ -44,6 +44,8 @@ jobs:
 
       - run: npx nx affected -t lint --base=$NX_BASE --head=$NX_HEAD
 
+      - run: npx secretlint "**/*"
+
   typecheck:
     runs-on: ubuntu-latest
     steps:

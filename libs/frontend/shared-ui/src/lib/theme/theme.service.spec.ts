@@ -63,6 +63,8 @@ describe('ThemeService', () => {
 
   it('applies the resolved theme class on document.documentElement synchronously at construction', () => {
     localStorage.setItem(STORAGE_KEY, 'dark');
+    // Only the constructor's side effect on the document is under test here.
+    // eslint-disable-next-line sonarjs/constructor-for-side-effects
     new ThemeService();
     expect(document.documentElement.classList.contains('app-dark')).toBe(true);
   });
