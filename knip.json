@@ -2,7 +2,24 @@
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "workspaces": {
     ".": {
-      "entry": ["tools/*.mjs", "vitest-base.config.ts"]
+      "entry": ["tools/*.mjs", "vitest-base.config.ts"],
+      "ignoreDependencies": [
+        "@angular/cli",
+        "@angular/language-service",
+        "@colbymchenry/codegraph",
+        "@eslint/js",
+        "@nestjs/schematics",
+        "@nx/devkit",
+        "@nx/nest",
+        "@nx/node",
+        "@secretlint/secretlint-rule-preset-recommend",
+        "@typescript-eslint/utils",
+        "@vitest/coverage-v8",
+        "angular-eslint",
+        "jest-environment-jsdom",
+        "jest-environment-node",
+        "typescript-eslint"
+      ]
     },
     "apps/backend": {
       "webpack": false,
