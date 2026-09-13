@@ -27,7 +27,6 @@ export class GlobalErrorHandler implements ErrorHandler {
   handleError(error: unknown): void {
     const httpError = extractHttpErrorResponse(error);
     if (httpError) {
-       
       console.error('Unhandled backend error', httpError);
       this.messageService.add({
         severity: 'error',
@@ -38,7 +37,6 @@ export class GlobalErrorHandler implements ErrorHandler {
       return;
     }
 
-     
     console.error('Unhandled application error', error);
     this.messageService.add({
       severity: 'error',

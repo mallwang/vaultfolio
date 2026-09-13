@@ -27,7 +27,6 @@ export const httpErrorInterceptor: HttpInterceptorFn = (req, next) =>
   next(req).pipe(
     catchError((error: unknown) => {
       if (error instanceof HttpErrorResponse) {
-         
         console.debug('Backend request failed', {
           url: req.urlWithParams,
           status: error.status,
