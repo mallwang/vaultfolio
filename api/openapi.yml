@@ -40,7 +40,7 @@ paths:
         '204':
           description: Signed out.
       security:
-        - vaultfolio_session: []
+        - sessionCookie: []
       summary: End the current session, clearing the session cookie.
       tags: *ref_0
   /auth/session:
@@ -61,7 +61,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/AuthErrorResponseDto'
       security:
-        - vaultfolio_session: []
+        - sessionCookie: []
       summary: Get the current signed-in user.
       tags: *ref_0
   /health:
@@ -122,7 +122,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/HoldingResponseDto'
       security: &ref_1
-        - vaultfolio_session: []
+        - sessionCookie: []
       summary: List the caller's holdings.
       tags: &ref_2
         - holdings
@@ -238,7 +238,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
       security: &ref_4
-        - vaultfolio_session: []
+        - sessionCookie: []
       summary: List every account (admin only).
       tags: &ref_5
         - accounts
@@ -440,7 +440,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/InvitationsErrorResponseDto'
       security:
-        - vaultfolio_session: []
+        - sessionCookie: []
       summary: Invite a new user by email (admin only).
       tags: &ref_6
         - invitations
@@ -463,7 +463,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
       security:
-        - vaultfolio_session: []
+        - sessionCookie: []
       summary: List every invitation (admin only).
       tags: *ref_6
   /invitations/{id}/cancel:
@@ -501,7 +501,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/InvitationsErrorResponseDto'
       security:
-        - vaultfolio_session: []
+        - sessionCookie: []
       summary: Cancel a pending invitation (admin only).
       tags: *ref_6
   /invitations/{id}/resend:
@@ -545,7 +545,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/InvitationsErrorResponseDto'
       security:
-        - vaultfolio_session: []
+        - sessionCookie: []
       summary: Resend a pending invitation email (admin only).
       tags: *ref_6
   /invitations/token/{token}:
@@ -672,7 +672,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
       security:
-        - vaultfolio_session: []
+        - sessionCookie: []
       summary: List every sign-up request (admin only).
       tags: *ref_7
   /signups/token/{token}:
@@ -786,7 +786,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/SignupsErrorResponseDto'
       security:
-        - vaultfolio_session: []
+        - sessionCookie: []
       summary: Approve a verified sign-up request, creating its account (admin only).
       tags: *ref_7
   /signups/{id}/reject:
@@ -842,7 +842,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/SignupsErrorResponseDto'
       security:
-        - vaultfolio_session: []
+        - sessionCookie: []
       summary: Reject a verified sign-up request (admin only).
       tags: *ref_7
   /signups/{id}:
@@ -879,7 +879,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/SignupsErrorResponseDto'
       security:
-        - vaultfolio_session: []
+        - sessionCookie: []
       summary: Delete a resolved sign-up request (admin only).
       tags: *ref_7
   /profile:
@@ -894,7 +894,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProfileSummaryDto'
       security:
-        - vaultfolio_session: []
+        - sessionCookie: []
       summary: Get the caller's own profile.
       tags: &ref_8
         - profile
@@ -922,7 +922,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProfileErrorResponseDto'
       security:
-        - vaultfolio_session: []
+        - sessionCookie: []
       summary: Update the caller's display name.
       tags: *ref_8
   /profile/email-language:
@@ -949,7 +949,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProfileErrorResponseDto'
       security:
-        - vaultfolio_session: []
+        - sessionCookie: []
       summary: Update the caller's notification email language.
       tags: *ref_8
   /profile/email-change:
@@ -985,7 +985,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProfileErrorResponseDto'
       security:
-        - vaultfolio_session: []
+        - sessionCookie: []
       summary: Request an email change, sending a confirmation link to the new address.
       tags: *ref_8
   /profile/email-change/cancel:
@@ -996,7 +996,7 @@ paths:
         '204':
           description: Cancelled.
       security:
-        - vaultfolio_session: []
+        - sessionCookie: []
       summary: Cancel a pending email change.
       tags: *ref_8
   /profile/email-change/token/{token}:
@@ -1088,7 +1088,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProfileErrorResponseDto'
       security:
-        - vaultfolio_session: []
+        - sessionCookie: []
       summary: Change the caller's password.
       tags: *ref_8
   /profile/forgot-password:
@@ -1201,7 +1201,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProfileErrorResponseDto'
       security:
-        - vaultfolio_session: []
+        - sessionCookie: []
       summary: Delete the caller's own account.
       tags: *ref_8
   /account-overview/accounts:
@@ -1218,7 +1218,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/AccountOverviewEntryDto'
       security: &ref_9
-        - vaultfolio_session: []
+        - sessionCookie: []
       summary: List the caller's account-overview entries.
       tags: &ref_10
         - account-overview
@@ -1309,20 +1309,40 @@ paths:
 info:
   title: Vaultfolio API
   description: >-
-    Generated directly from the backend controllers/DTOs — see
-    specs/031-openapi-swagger-integration. "Try it out" reuses the
-    vaultfolio_session session cookie from a normal app login; it is not a
-    separate credential scheme.
+    Vaultfolio is a self-hosted personal finance tracker for manually tracking
+    investments across ETFs, shares, precious metals, crypto, and more. Source,
+    issues, and the full README live at https://github.com/mallwang/vaultfolio.
+
+
+    This document is generated directly from the backend controllers and DTOs,
+    so it always matches what is actually running.
+
+
+    ### Authentication
+
+
+    Every endpoint below except `/health` and `/auth/sign-in` requires the
+    vaultfolio_session session cookie set by signing in (via the app, or via
+    `POST /auth/sign-in` below) — it is not a separate credential scheme. That
+    cookie is httpOnly, so it rides along automatically on every "Try it out"
+    call once you are signed in; there is nothing to enter in the "Authorize"
+    dialog below, which exists only to mark which endpoints require it.
   version: 0.0.9
   contact: {}
 tags: []
-servers: []
+servers:
+  - url: /api
 components:
   securitySchemes:
-    cookie:
+    sessionCookie:
       type: apiKey
       in: cookie
       name: vaultfolio_session
+      description: >-
+        Set automatically by your browser after signing in (via the app, or via
+        `POST /auth/sign-in` below) — this cookie is httpOnly, so there is
+        nothing to paste here; it will be sent with "Try it out" requests
+        regardless of this dialog.
   schemas:
     SignInRequestDto:
       type: object

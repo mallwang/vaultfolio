@@ -79,6 +79,13 @@ docker compose up --build
 
 - Frontend: <http://localhost:4200>
 - Backend Health-Check: <http://localhost:3000/health>
+- Interaktive API-Dokumentation: <http://localhost:4200/swagger> — Schema jedes Endpunkts, direkt
+  aus den Backend-Controllern/DTOs generiert, mit „Try it out“ unter Verwendung deiner echten
+  Browser-Sitzung (melde dich zuerst in der App an). Dasselbe Dokument steht auch unter
+  <http://localhost:4200/api/openapi.yml> zum Download bereit, und eine eingecheckte
+  [Bruno](https://www.usebruno.com/)-Collection liegt unter [api/bruno/](api/bruno/) zum
+  Ausprobieren der API außerhalb des Browsers — siehe
+  specs/031-openapi-swagger-integration/quickstart.md für eine vollständige Anleitung.
 - Datenbank: einzelne SQLite-Datei unter `./data` auf dem Host
 
 Stack stoppen mit `docker compose down` – `./data` ist ein Host-Bind-Mount und überlebt `down`

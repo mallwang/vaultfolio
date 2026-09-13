@@ -3,7 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AppModule } from '../app/app.module';
 import { DatabaseService } from '../database/database.service';
 import { buildOpenApiDocument } from './openapi.setup';
-import { SESSION_COOKIE_NAME } from '../auth/session-cookie';
+import { SESSION_COOKIE_SECURITY_SCHEME_NAME } from './api-vaultfolio-auth.decorator';
 
 interface ExpressLayer {
   route?: {
@@ -52,7 +52,7 @@ function registeredRoutes(app: INestApplication): { method: string; path: string
  * Integration test for data-model.md's API Specification Document validation
  * rule: every route NestJS actually registers must appear in the generated
  * OpenAPIObject's `paths`, and every non-`@Public()` route's operation must
- * carry the `vaultfolio_session` cookie security requirement (research.md
+ * carry the `sessionCookie` security requirement (research.md
  * #2). Exercises the real generation pipeline against the real, currently
  * registered routes (Principle IV) — not a mocked subset.
  */
@@ -129,11 +129,11 @@ describe('OpenAPI document completeness (US1)', () => {
         }
         const security = (operation as { security?: Record<string, unknown>[] }).security;
         const hasSessionCookieRequirement = security?.some(
-          (requirement) => SESSION_COOKIE_NAME in requirement,
+          (requirement) => SESSION_COOKIE_SECURITY_SCHEME_NAME in requirement,
         );
         if (!hasSessionCookieRequirement) {
           throw new Error(
-            `${method.toUpperCase()} ${path} is missing the ${SESSION_COOKIE_NAME} security requirement`,
+            `${method.toUpperCase()} ${path} is missing the ${SESSION_COOKIE_SECURITY_SCHEME_NAME} security requirement`,
           );
         }
       }
