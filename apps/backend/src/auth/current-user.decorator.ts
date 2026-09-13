@@ -1,9 +1,10 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 import type { Request } from 'express';
+import type { UserRole } from '@vaultfolio/api-contract';
 
 export interface RequestUser {
   id: string;
-  role: 'ADMIN' | 'MEMBER';
+  role: UserRole;
   domainScopes: string[];
 }
 

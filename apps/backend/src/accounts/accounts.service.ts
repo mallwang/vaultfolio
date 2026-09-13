@@ -1,9 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { canRemoveLastAdmin } from '@vaultfolio/domain-auth';
+import { UserRole, UserStatus } from '@vaultfolio/api-contract';
 import type { AccountSummary } from '@vaultfolio/api-contract';
 import { UsersRepository } from '../auth/users.repository';
 import { SessionsRepository } from '../auth/sessions.repository';
-import type { User, UserRole } from '../auth/users.repository';
+import type { User } from '../auth/users.repository';
 
 const DEFAULT_RETENTION_DAYS = 30;
 
@@ -42,7 +43,8 @@ function toSummary(user: User, activeAdminCount: number): AccountSummary {
     status: user.status,
     archivedAt: user.archivedAt,
     retentionExpiresAt: user.retentionExpiresAt,
-    isLastActiveAdmin: user.status === 'ACTIVE' && user.role === 'ADMIN' && activeAdminCount === 1,
+    isLastActiveAdmin:
+      user.status === UserStatus.ACTIVE && user.role === UserRole.ADMIN && activeAdminCount === 1,
     domainScopes: user.domainScopes,
   };
 }
@@ -108,7 +110,7 @@ export class AccountsService {
     }
 
     const wouldLoseActiveAdmin =
-      user.status === 'ACTIVE' && user.role === 'ADMIN' && role !== 'ADMIN';
+      user.status === UserStatus.ACTIVE && user.role === UserRole.ADMIN && role !== UserRole.ADMIN;
     if (wouldLoseActiveAdmin) {
       const activeAdminCount = await this.users.countActiveAdmins();
       if (!canRemoveLastAdmin(activeAdminCount, true)) {
@@ -168,11 +170,11 @@ export class AccountsService {
     if (!user) {
       return { kind: 'not_found' };
     }
-    if (user.status === 'ARCHIVED') {
+    if (user.status === UserStatus.ARCHIVED) {
       return { kind: 'already_archived' };
     }
 
-    const isTargetActiveAdmin = user.role === 'ADMIN';
+    const isTargetActiveAdmin = user.role === UserRole.ADMIN;
     if (isTargetActiveAdmin) {
       const activeAdminCount = await this.users.countActiveAdmins();
       if (!canRemoveLastAdmin(activeAdminCount, true)) {
@@ -196,7 +198,7 @@ export class AccountsService {
 
   async reactivate(actorId: string, id: string): Promise<ReactivateResult> {
     const user = await this.users.findById(id);
-    if (user?.status !== 'ARCHIVED') {
+    if (user?.status !== UserStatus.ARCHIVED) {
       return { kind: 'not_found' };
     }
 
@@ -226,7 +228,7 @@ export class AccountsService {
     }
 
     const user = await this.users.findById(actorId);
-    const isActiveAdmin = user?.status === 'ACTIVE' && user.role === 'ADMIN';
+    const isActiveAdmin = user?.status === UserStatus.ACTIVE && user.role === UserRole.ADMIN;
     if (isActiveAdmin) {
       const activeAdminCount = await this.users.countActiveAdmins();
       if (!canRemoveLastAdmin(activeAdminCount, true)) {

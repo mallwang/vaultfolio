@@ -1,6 +1,7 @@
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import type { Request } from 'express';
+import { UserRole } from '@vaultfolio/api-contract';
 import { DOMAIN_KEY } from './domain.decorator';
 import type { RequestUser } from './current-user.decorator';
 
@@ -25,7 +26,7 @@ export class DomainGuard implements CanActivate {
 
     const request = context.switchToHttp().getRequest<Request & { user?: RequestUser }>();
     const user = request.user;
-    if (user?.role === 'ADMIN' || user?.domainScopes.includes(requiredDomain)) {
+    if (user?.role === UserRole.ADMIN || user?.domainScopes.includes(requiredDomain)) {
       return true;
     }
 

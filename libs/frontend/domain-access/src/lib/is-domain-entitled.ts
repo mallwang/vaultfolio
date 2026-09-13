@@ -1,3 +1,4 @@
+import { UserRole } from '@vaultfolio/api-contract';
 import type { SessionUser } from '@vaultfolio/api-contract';
 
 /**
@@ -19,7 +20,7 @@ export function isDomainEntitled(user: SessionUser | null, domainId: string): bo
   if (!user) {
     return false;
   }
-  if (user.role === 'ADMIN') {
+  if (user.role === UserRole.ADMIN) {
     return true;
   }
   return user.domainScopes.includes(domainId);

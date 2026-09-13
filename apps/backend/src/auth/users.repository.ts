@@ -1,9 +1,9 @@
 import { randomUUID } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
+import { UserRole, UserStatus } from '@vaultfolio/api-contract';
 import { DatabaseService } from '../database/database.service';
 
-export type UserRole = 'ADMIN' | 'MEMBER';
-type UserStatus = 'ACTIVE' | 'ARCHIVED';
+export { UserRole, UserStatus };
 
 export interface User {
   id: string;
@@ -158,8 +158,8 @@ export class UsersRepository {
   /** All `ACTIVE` accounts with the given role — e.g. the admin-notification recipient list (007). */
   async findAllByRole(role: UserRole): Promise<User[]> {
     const rows = await this.database.query<UserRow>(
-      `SELECT * FROM users WHERE role = $1 AND status = 'ACTIVE' ORDER BY created_at ASC`,
-      [role],
+      `SELECT * FROM users WHERE role = $1 AND status = $2 ORDER BY created_at ASC`,
+      [role, UserStatus.ACTIVE],
     );
     return rows.map(rowToUser);
   }
@@ -168,8 +168,9 @@ export class UsersRepository {
   async findArchivedPastRetention(): Promise<User[]> {
     const rows = await this.database.query<UserRow>(
       `SELECT * FROM users
-       WHERE status = 'ARCHIVED' AND retention_expires_at IS NOT NULL
+       WHERE status = $1 AND retention_expires_at IS NOT NULL
          AND retention_expires_at <= STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')`,
+      [UserStatus.ARCHIVED],
     );
     return rows.map(rowToUser);
   }
@@ -183,8 +184,8 @@ export class UsersRepository {
   async countActiveAdmins(excludingUserId?: string): Promise<number> {
     const rows = await this.database.query<{ count: number }>(
       `SELECT COUNT(*) as count FROM users
-       WHERE status = 'ACTIVE' AND role = 'ADMIN' AND ($1 IS NULL OR id <> $1)`,
-      [excludingUserId ?? null],
+       WHERE status = $2 AND role = $3 AND ($1 IS NULL OR id <> $1)`,
+      [excludingUserId ?? null, UserStatus.ACTIVE, UserRole.ADMIN],
     );
     return Number(rows[0]?.count ?? 0);
   }
@@ -221,13 +222,13 @@ export class UsersRepository {
   async archive(id: string, retentionExpiresAt: string): Promise<User | null> {
     const rows = await this.database.query<UserRow>(
       `UPDATE users
-       SET status = 'ARCHIVED',
+       SET status = $3,
            archived_at = STRFTIME('%Y-%m-%dT%H:%M:%fZ','now'),
            retention_expires_at = $2,
            updated_at = STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')
-       WHERE id = $1 AND status = 'ACTIVE'
+       WHERE id = $1 AND status = $4
        RETURNING *`,
-      [id, retentionExpiresAt],
+      [id, retentionExpiresAt, UserStatus.ARCHIVED, UserStatus.ACTIVE],
     );
     return rows[0] ? rowToUser(rows[0]) : null;
   }
@@ -241,11 +242,11 @@ export class UsersRepository {
   async reactivate(id: string): Promise<User | null> {
     const rows = await this.database.query<UserRow>(
       `UPDATE users
-       SET status = 'ACTIVE', archived_at = NULL, retention_expires_at = NULL,
+       SET status = $2, archived_at = NULL, retention_expires_at = NULL,
            updated_at = STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')
-       WHERE id = $1 AND status = 'ARCHIVED'
+       WHERE id = $1 AND status = $3
        RETURNING *`,
-      [id],
+      [id, UserStatus.ACTIVE, UserStatus.ARCHIVED],
     );
     return rows[0] ? rowToUser(rows[0]) : null;
   }

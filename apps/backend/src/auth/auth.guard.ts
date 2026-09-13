@@ -1,6 +1,7 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import type { Request } from 'express';
+import { UserStatus } from '@vaultfolio/api-contract';
 import { IS_PUBLIC_KEY } from './public.decorator';
 import { SessionsRepository } from './sessions.repository';
 import { UsersRepository } from './users.repository';
@@ -66,7 +67,7 @@ export class AuthGuard implements CanActivate {
     }
 
     const user = await this.users.findById(session.userId);
-    if (user?.status !== 'ACTIVE') {
+    if (user?.status !== UserStatus.ACTIVE) {
       await this.sessions.deleteById(session.id);
       throw unauthenticated();
     }

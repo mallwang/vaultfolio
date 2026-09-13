@@ -11,7 +11,7 @@ import {
   I18nService,
   TranslatePipe,
 } from '@vaultfolio/frontend-shared-ui';
-import { SUPPORTED_LANGUAGES } from '@vaultfolio/api-contract';
+import { SUPPORTED_LANGUAGES, UserRole } from '@vaultfolio/api-contract';
 import type { LanguageCode } from '@vaultfolio/api-contract';
 import { filter, map, startWith } from 'rxjs';
 import { APPLICATION_AREAS } from '../application-areas';
@@ -95,7 +95,7 @@ export class AppHeaderComponent {
 
   /** FR-004 (008): reflects role next to the display name — `SessionUser.role` already exists. */
   protected readonly roleLabelKey = computed(() =>
-    this.user()?.role === 'ADMIN' ? 'header.roleAdmin' : 'header.roleMember',
+    this.user()?.role === UserRole.ADMIN ? 'header.roleAdmin' : 'header.roleMember',
   );
 
   protected toggleTheme(): void {

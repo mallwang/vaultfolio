@@ -1,6 +1,7 @@
 import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { UserRole, UserStatus } from '@vaultfolio/api-contract';
 import type { AccountSummary } from '@vaultfolio/api-contract';
 import { ButtonModule } from 'primeng/button';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -16,16 +17,14 @@ import { CURRENT_USER_SOURCE, DOMAIN_REGISTRY } from '@vaultfolio/frontend-domai
 import { IconComponent, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
 import { AccountsService } from './accounts.service';
 
-type UserRole = AccountSummary['role'];
-
 interface RoleOption {
   label: string;
   value: UserRole;
 }
 
 const ROLE_OPTIONS: RoleOption[] = [
-  { label: 'Member', value: 'MEMBER' },
-  { label: 'Administrator', value: 'ADMIN' },
+  { label: 'Member', value: UserRole.MEMBER },
+  { label: 'Administrator', value: UserRole.ADMIN },
 ];
 
 /**
@@ -140,10 +139,12 @@ const ROLE_OPTIONS: RoleOption[] = [
                     optionLabel="labelKey"
                     optionValue="id"
                     [multiple]="true"
-                    [ngModel]="account.role === 'ADMIN' ? [] : account.domainScopes"
-                    [disabled]="account.role === 'ADMIN' || account.status === 'ARCHIVED'"
+                    [ngModel]="account.role === UserRole.ADMIN ? [] : account.domainScopes"
+                    [disabled]="
+                      account.role === UserRole.ADMIN || account.status === UserStatus.ARCHIVED
+                    "
                     [placeholder]="
-                      account.role === 'ADMIN'
+                      account.role === UserRole.ADMIN
                         ? ('accounts.allDomains' | translate)
                         : ('accounts.noDomains' | translate)
                     "
@@ -158,7 +159,7 @@ const ROLE_OPTIONS: RoleOption[] = [
                       </div>
                     </ng-template>
                     <ng-template #selectedItem>
-                      @if (account.role !== 'ADMIN' && account.domainScopes?.length) {
+                      @if (account.role !== UserRole.ADMIN && account.domainScopes?.length) {
                         <div class="domain-chips">
                           @for (domainId of account.domainScopes; track domainId) {
                             <span
@@ -177,7 +178,7 @@ const ROLE_OPTIONS: RoleOption[] = [
                 </span>
               </td>
               <td>
-                @if (account.status === 'ACTIVE') {
+                @if (account.status === UserStatus.ACTIVE) {
                   <p-tag
                     severity="success"
                     [value]="'accounts.active' | translate"
@@ -198,7 +199,7 @@ const ROLE_OPTIONS: RoleOption[] = [
               </td>
               <td>
                 <div class="row-actions">
-                  @if (account.status === 'ACTIVE') {
+                  @if (account.status === UserStatus.ACTIVE) {
                     <span [pTooltip]="archiveLabel(account)" tooltipPosition="top" appendTo="body">
                       <button
                         pButton
@@ -325,6 +326,9 @@ export class AccountsComponent implements OnInit {
   protected readonly roleOptions = ROLE_OPTIONS;
   /** Drives the domain-scopes multi-select (T030, contracts/domain-access.md). */
   protected readonly domainRegistry = DOMAIN_REGISTRY;
+  /** Exposed for the template, which can only read component members, not imported symbols. */
+  protected readonly UserRole = UserRole;
+  protected readonly UserStatus = UserStatus;
 
   ngOnInit(): void {
     this.refresh();
@@ -362,7 +366,7 @@ export class AccountsComponent implements OnInit {
     if (account.isLastActiveAdmin) {
       return this.translate.transform('accounts.cannotChangeRoleLastAdmin');
     }
-    if (account.status === 'ARCHIVED') {
+    if (account.status === UserStatus.ARCHIVED) {
       return this.translate.transform('accounts.cannotChangeRoleArchived');
     }
     return '';
@@ -374,10 +378,10 @@ export class AccountsComponent implements OnInit {
 
   /** Reason the domain-scopes multiselect is disabled, or '' when it isn't — drives the wrapper's tooltip, mirroring `roleSelectDisabledReason`. */
   protected domainScopesDisabledReason(account: AccountSummary): string {
-    if (account.role === 'ADMIN') {
+    if (account.role === UserRole.ADMIN) {
       return this.translate.transform('accounts.domainScopesDisabledAdmin');
     }
-    if (account.status === 'ARCHIVED') {
+    if (account.status === UserStatus.ARCHIVED) {
       return this.translate.transform('accounts.domainScopesDisabledArchived');
     }
     return '';

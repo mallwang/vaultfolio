@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import * as argon2 from 'argon2';
 import { validatePassword } from '@vaultfolio/domain-auth';
 import { generateInvitationToken } from '@vaultfolio/domain-invitations';
+import { UserRole } from '@vaultfolio/api-contract';
 import type { SignupSummary } from '@vaultfolio/api-contract';
 import { UsersRepository } from '../auth/users.repository';
 import { EmailAvailabilityService } from '../shared/email-availability.service';
@@ -135,7 +136,7 @@ export class SignupsService {
     }
 
     try {
-      const admins = await this.users.findAllByRole('ADMIN');
+      const admins = await this.users.findAllByRole(UserRole.ADMIN);
       await this.emailService.sendAdminNotification(
         admins.map((admin) => ({ email: admin.email, emailLanguage: admin.emailLanguage })),
         verified.email,
@@ -177,7 +178,7 @@ export class SignupsService {
       email: approved.email,
       displayName: approved.email,
       passwordHash: approved.passwordHash,
-      role: 'MEMBER',
+      role: UserRole.MEMBER,
     });
 
     try {

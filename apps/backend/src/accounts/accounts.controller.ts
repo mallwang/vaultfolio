@@ -11,6 +11,7 @@ import {
   Res,
 } from '@nestjs/common';
 import type { Response } from 'express';
+import { UserRole } from '@vaultfolio/api-contract';
 import type {
   AccountsErrorResponse,
   AccountSummary,
@@ -46,7 +47,7 @@ const FORBIDDEN: AccountsErrorResponse = {
 
 /** REST surface for `/accounts`, per contracts/accounts-api.md (Principle II). All routes are `@Roles('ADMIN')` — `AuthGuard`/`RolesGuard` run globally (AuthModule). */
 @Controller('accounts')
-@Roles('ADMIN')
+@Roles(UserRole.ADMIN)
 export class AccountsController {
   constructor(private readonly accounts: AccountsService) {}
 

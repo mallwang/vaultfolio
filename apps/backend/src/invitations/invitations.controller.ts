@@ -1,5 +1,6 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Res } from '@nestjs/common';
 import type { Response } from 'express';
+import { UserRole } from '@vaultfolio/api-contract';
 import type {
   AcceptInvitationRequest,
   CreateInvitationRequest,
@@ -14,6 +15,7 @@ import { CurrentUser } from '../auth/current-user.decorator';
 import type { RequestUser } from '../auth/current-user.decorator';
 import { setSessionCookie } from '../auth/session-cookie';
 import { InvitationsService } from './invitations.service';
+import type { Invitation } from './invitations.repository';
 
 const ACCOUNT_EXISTS: InvitationsErrorResponse = {
   error: 'account_exists',
@@ -51,7 +53,7 @@ const INVALID_PASSWORD: InvitationsErrorResponse = {
 export class InvitationsController {
   constructor(private readonly invitationsService: InvitationsService) {}
 
-  @Roles('ADMIN')
+  @Roles(UserRole.ADMIN)
   @Post()
   async create(
     @CurrentUser() currentUser: RequestUser,
@@ -60,7 +62,7 @@ export class InvitationsController {
   ): Promise<InvitationSummary | InvitationsErrorResponse> {
     const result = await this.invitationsService.create(
       body?.email ?? '',
-      body?.role ?? 'MEMBER',
+      body?.role ?? UserRole.MEMBER,
       currentUser.id,
     );
 
@@ -76,13 +78,13 @@ export class InvitationsController {
     return toSummary(result.invitation);
   }
 
-  @Roles('ADMIN')
+  @Roles(UserRole.ADMIN)
   @Get()
   async list(): Promise<InvitationSummary[]> {
     return this.invitationsService.list();
   }
 
-  @Roles('ADMIN')
+  @Roles(UserRole.ADMIN)
   @Post(':id/cancel')
   @HttpCode(HttpStatus.OK)
   async cancel(
@@ -103,7 +105,7 @@ export class InvitationsController {
     return toSummary(result.invitation);
   }
 
-  @Roles('ADMIN')
+  @Roles(UserRole.ADMIN)
   @Post(':id/resend')
   async resend(
     @CurrentUser() currentUser: RequestUser,
@@ -170,15 +172,7 @@ export class InvitationsController {
   }
 }
 
-function toSummary(invitation: {
-  id: string;
-  email: string;
-  role: 'ADMIN' | 'MEMBER';
-  status: 'PENDING' | 'ACCEPTED' | 'EXPIRED' | 'CANCELLED' | 'SUPERSEDED';
-  invitedBy: string;
-  createdAt: string;
-  expiresAt: string;
-}): InvitationSummary {
+function toSummary(invitation: Invitation): InvitationSummary {
   return {
     id: invitation.id,
     email: invitation.email,

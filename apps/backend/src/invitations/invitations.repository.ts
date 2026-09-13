@@ -1,15 +1,15 @@
 import { randomUUID } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
+import { InvitationStatus, UserRole } from '@vaultfolio/api-contract';
 import { DatabaseService } from '../database/database.service';
 
-export type InvitationRole = 'ADMIN' | 'MEMBER';
-type InvitationStatus = 'PENDING' | 'ACCEPTED' | 'EXPIRED' | 'CANCELLED' | 'SUPERSEDED';
+export { InvitationStatus };
 
 export interface Invitation {
   id: string;
   email: string;
   token: string;
-  role: InvitationRole;
+  role: UserRole;
   status: InvitationStatus;
   invitedBy: string;
   createdAt: string;
@@ -21,7 +21,7 @@ interface InvitationRow {
   id: string;
   email: string;
   token: string;
-  role: InvitationRole;
+  role: UserRole;
   status: InvitationStatus;
   invited_by: string;
   created_at: string;
@@ -57,7 +57,7 @@ export class InvitationsRepository {
   async create(input: {
     email: string;
     token: string;
-    role: InvitationRole;
+    role: UserRole;
     invitedBy: string;
     expiresAt: string;
   }): Promise<Invitation> {
@@ -90,8 +90,8 @@ export class InvitationsRepository {
   /** Case-insensitive per `invitations_email_idx` (COLLATE NOCASE) — the current PENDING row, if any. */
   async findPendingByEmail(email: string): Promise<Invitation | null> {
     const rows = await this.database.query<InvitationRow>(
-      `SELECT * FROM invitations WHERE email = $1 COLLATE NOCASE AND status = 'PENDING'`,
-      [email],
+      `SELECT * FROM invitations WHERE email = $1 COLLATE NOCASE AND status = $2`,
+      [email, InvitationStatus.PENDING],
     );
     return rows[0] ? rowToInvitation(rows[0]) : null;
   }
@@ -107,8 +107,8 @@ export class InvitationsRepository {
   /** `PENDING -> SUPERSEDED` (new invite to the same email, or a resend). Race-guarded. */
   async supersede(id: string): Promise<Invitation | null> {
     const rows = await this.database.query<InvitationRow>(
-      `UPDATE invitations SET status = 'SUPERSEDED' WHERE id = $1 AND status = 'PENDING' RETURNING *`,
-      [id],
+      `UPDATE invitations SET status = $2 WHERE id = $1 AND status = $3 RETURNING *`,
+      [id, InvitationStatus.SUPERSEDED, InvitationStatus.PENDING],
     );
     return rows[0] ? rowToInvitation(rows[0]) : null;
   }
@@ -116,8 +116,8 @@ export class InvitationsRepository {
   /** `PENDING -> CANCELLED`. Race-guarded. */
   async cancel(id: string): Promise<Invitation | null> {
     const rows = await this.database.query<InvitationRow>(
-      `UPDATE invitations SET status = 'CANCELLED' WHERE id = $1 AND status = 'PENDING' RETURNING *`,
-      [id],
+      `UPDATE invitations SET status = $2 WHERE id = $1 AND status = $3 RETURNING *`,
+      [id, InvitationStatus.CANCELLED, InvitationStatus.PENDING],
     );
     return rows[0] ? rowToInvitation(rows[0]) : null;
   }
@@ -130,10 +130,10 @@ export class InvitationsRepository {
   async markAccepted(id: string): Promise<Invitation | null> {
     const rows = await this.database.query<InvitationRow>(
       `UPDATE invitations
-       SET status = 'ACCEPTED', accepted_at = STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')
-       WHERE id = $1 AND status = 'PENDING' AND expires_at > STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')
+       SET status = $2, accepted_at = STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')
+       WHERE id = $1 AND status = $3 AND expires_at > STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')
        RETURNING *`,
-      [id],
+      [id, InvitationStatus.ACCEPTED, InvitationStatus.PENDING],
     );
     return rows[0] ? rowToInvitation(rows[0]) : null;
   }
@@ -148,9 +148,9 @@ export class InvitationsRepository {
   async markExpired(id: string): Promise<void> {
     await this.database.query(
       `UPDATE invitations
-       SET status = 'EXPIRED'
-       WHERE id = $1 AND status = 'PENDING' AND expires_at <= STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')`,
-      [id],
+       SET status = $2
+       WHERE id = $1 AND status = $3 AND expires_at <= STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')`,
+      [id, InvitationStatus.EXPIRED, InvitationStatus.PENDING],
     );
   }
 }

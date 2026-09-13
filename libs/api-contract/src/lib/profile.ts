@@ -8,12 +8,13 @@
  */
 
 import type { LanguageCode } from './i18n.js';
+import type { UserRole } from './auth.js';
 
 export interface ProfileSummary {
   id: string;
   email: string;
   displayName: string;
-  role: 'ADMIN' | 'MEMBER';
+  role: UserRole;
   pendingEmail: string | null;
   /** `null` = not explicitly set; falls back to the default language (013, FR-008). */
   emailLanguage: LanguageCode | null;

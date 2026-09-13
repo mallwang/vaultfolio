@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import * as argon2 from 'argon2';
 import { computeLockout } from '@vaultfolio/domain-auth';
+import { UserStatus } from '@vaultfolio/api-contract';
 import type { SessionUser } from '@vaultfolio/api-contract';
 import { UsersRepository } from './users.repository';
 import { SessionsRepository } from './sessions.repository';
@@ -53,7 +54,7 @@ export class AuthService {
   async signIn(email: string, password: string): Promise<SignInResult> {
     const user = await this.users.findByEmail(email);
 
-    if (user?.status !== 'ACTIVE') {
+    if (user?.status !== UserStatus.ACTIVE) {
       // Deliberately identical to a wrong-password failure below — no
       // account-existence signal (FR-008/SC-005). Nothing to lock/increment
       // for a nonexistent account.

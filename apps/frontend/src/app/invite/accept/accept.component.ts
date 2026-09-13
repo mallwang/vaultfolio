@@ -1,6 +1,7 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { UserRole } from '@vaultfolio/api-contract';
 import type { AcceptInvitationRequest, InvitationsErrorResponse } from '@vaultfolio/api-contract';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
@@ -17,9 +18,9 @@ import { IconComponent, I18nService, TranslatePipe } from '@vaultfolio/frontend-
    bundler still code-splits them into their own chunk regardless of this static import. */
 import { InvitationsService } from '@vaultfolio/frontend-admin';
 
-const ROLE_KEY: Record<'ADMIN' | 'MEMBER', 'roleAdmin' | 'roleMember'> = {
-  ADMIN: 'roleAdmin',
-  MEMBER: 'roleMember',
+const ROLE_KEY: Record<UserRole, 'roleAdmin' | 'roleMember'> = {
+  [UserRole.ADMIN]: 'roleAdmin',
+  [UserRole.MEMBER]: 'roleMember',
 };
 
 /** Mirrors `libs/domain/auth/password-policy.ts` (spec 005) — a client-side
