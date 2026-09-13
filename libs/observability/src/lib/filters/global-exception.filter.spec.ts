@@ -1,9 +1,11 @@
 import { HttpException, Logger } from '@nestjs/common';
 import { GlobalExceptionFilter } from './global-exception.filter.js';
 import { RequestContextService } from '../context/request-context.service.js';
-import { ValidationException } from '../exceptions/validation.exception.js';
-import { ExternalServiceException } from '../exceptions/external-service.exception.js';
-import { AccessDeniedException } from '../exceptions/access-denied.exception.js';
+import {
+  AccessDeniedException,
+  ExternalServiceException,
+  ValidationException,
+} from '../exceptions/business.exception.js';
 
 function buildHost(request: { method: string; url: string }) {
   const response = {
