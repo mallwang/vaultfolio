@@ -13,17 +13,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
-import type {
-  ChangePasswordRequest,
-  ForgotPasswordRequest,
-  ProfileErrorResponse,
-  ProfileSummary,
-  RequestEmailChangeRequest,
-  ResetPasswordRequest,
-  SessionUser,
-  UpdateDisplayNameRequest,
-  UpdateEmailLanguageRequest,
-} from '@vaultfolio/api-contract';
+import type { ProfileErrorResponse, ProfileSummary, SessionUser } from '@vaultfolio/api-contract';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { RequestUser } from '../auth/current-user.decorator';
 import { Public } from '../auth/public.decorator';
@@ -31,6 +22,18 @@ import { clearSessionCookie, SESSION_COOKIE_NAME, setSessionCookie } from '../au
 import { ProfileService } from './profile.service';
 import { TurnstileAction } from '../turnstile/turnstile-action.decorator';
 import { TurnstileGuard } from '../turnstile/turnstile.guard';
+import { ApiVaultfolioSessionAuth } from '../openapi/api-vaultfolio-auth.decorator';
+import { SessionUserDto } from '../openapi/dto/auth';
+import {
+  ChangePasswordRequestDto,
+  ForgotPasswordRequestDto,
+  ProfileErrorResponseDto,
+  ProfileSummaryDto,
+  RequestEmailChangeRequestDto,
+  ResetPasswordRequestDto,
+  UpdateDisplayNameRequestDto,
+  UpdateEmailLanguageRequestDto,
+} from '../openapi/dto/profile';
 
 const INVALID_DISPLAY_NAME: ProfileErrorResponse = {
   error: 'invalid_display_name',
@@ -79,12 +82,22 @@ function currentSessionId(req: Request): string {
  * or `MEMBER`, may call it (closes research.md #1's reachability gap). The
  * forgot/reset/verify-email routes are `@Public()` since the caller may have
  * no session at that point.
+ *
+ * Not `@ApiVaultfolioSessionAuth()` at the controller level: this controller
+ * mixes protected and `@Public()` routes, and class-level security metadata
+ * would be inherited by every method regardless (`@nestjs/swagger`'s
+ * class/method metadata merge has no way to "unset" it per route) — so each
+ * protected route below carries the decorator itself instead.
  */
+@ApiTags('profile')
 @Controller('profile')
 export class ProfileController {
   constructor(private readonly profile: ProfileService) {}
 
   @Get()
+  @ApiVaultfolioSessionAuth()
+  @ApiOperation({ summary: "Get the caller's own profile." })
+  @ApiResponse({ status: 200, type: ProfileSummaryDto })
   async getProfile(@CurrentUser() currentUser: RequestUser): Promise<ProfileSummary> {
     const summary = await this.profile.getProfile(currentUser.id);
     // currentUser.id always resolves to an existing row — AuthGuard already
@@ -93,9 +106,17 @@ export class ProfileController {
   }
 
   @Patch('display-name')
+  @ApiVaultfolioSessionAuth()
+  @ApiOperation({ summary: "Update the caller's display name." })
+  @ApiResponse({ status: 200, type: ProfileSummaryDto })
+  @ApiResponse({
+    status: 400,
+    description: 'Display name must be 1–100 characters.',
+    type: ProfileErrorResponseDto,
+  })
   async updateDisplayName(
     @CurrentUser() currentUser: RequestUser,
-    @Body() body: UpdateDisplayNameRequest,
+    @Body() body: UpdateDisplayNameRequestDto,
     @Res({ passthrough: true }) res: Response,
   ): Promise<ProfileSummary | ProfileErrorResponse> {
     const result = await this.profile.updateDisplayName(currentUser.id, body?.displayName ?? '');
@@ -107,9 +128,17 @@ export class ProfileController {
   }
 
   @Patch('email-language')
+  @ApiVaultfolioSessionAuth()
+  @ApiOperation({ summary: "Update the caller's notification email language." })
+  @ApiResponse({ status: 200, type: ProfileSummaryDto })
+  @ApiResponse({
+    status: 400,
+    description: 'Email language must be a supported language or unset.',
+    type: ProfileErrorResponseDto,
+  })
   async updateEmailLanguage(
     @CurrentUser() currentUser: RequestUser,
-    @Body() body: UpdateEmailLanguageRequest,
+    @Body() body: UpdateEmailLanguageRequestDto,
     @Res({ passthrough: true }) res: Response,
   ): Promise<ProfileSummary | ProfileErrorResponse> {
     const result = await this.profile.updateEmailLanguage(
@@ -125,9 +154,27 @@ export class ProfileController {
 
   @Post('email-change')
   @HttpCode(HttpStatus.ACCEPTED)
+  @ApiVaultfolioSessionAuth()
+  @ApiOperation({
+    summary: 'Request an email change, sending a confirmation link to the new address.',
+  })
+  @ApiResponse({
+    status: 202,
+    schema: { type: 'object', properties: { pendingEmail: { type: 'string' } } },
+  })
+  @ApiResponse({
+    status: 409,
+    description: "This email can't be used right now.",
+    type: ProfileErrorResponseDto,
+  })
+  @ApiResponse({
+    status: 502,
+    description: 'Request saved, but the email could not be sent.',
+    type: ProfileErrorResponseDto,
+  })
   async requestEmailChange(
     @CurrentUser() currentUser: RequestUser,
-    @Body() body: RequestEmailChangeRequest,
+    @Body() body: RequestEmailChangeRequestDto,
     @Res({ passthrough: true }) res: Response,
   ): Promise<{ pendingEmail: string } | ProfileErrorResponse> {
     const result = await this.profile.requestEmailChange(currentUser.id, body?.newEmail ?? '');
@@ -144,12 +191,25 @@ export class ProfileController {
 
   @Post('email-change/cancel')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiVaultfolioSessionAuth()
+  @ApiOperation({ summary: 'Cancel a pending email change.' })
+  @ApiResponse({ status: 204, description: 'Cancelled.' })
   async cancelEmailChange(@CurrentUser() currentUser: RequestUser): Promise<void> {
     await this.profile.cancelEmailChange(currentUser.id);
   }
 
   @Public()
   @Get('email-change/token/:token')
+  @ApiOperation({ summary: "Look up a pending email change's new address by its token." })
+  @ApiResponse({
+    status: 200,
+    schema: { type: 'object', properties: { newEmail: { type: 'string' } } },
+  })
+  @ApiResponse({
+    status: 410,
+    description: 'This link is no longer valid.',
+    type: ProfileErrorResponseDto,
+  })
   async lookupEmailChangeToken(
     @Param('token') token: string,
     @Res({ passthrough: true }) res: Response,
@@ -165,6 +225,16 @@ export class ProfileController {
   @Public()
   @Post('email-change/token/:token/confirm')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Confirm a pending email change via its emailed token.' })
+  @ApiResponse({
+    status: 200,
+    schema: { type: 'object', properties: { email: { type: 'string' } } },
+  })
+  @ApiResponse({
+    status: 410,
+    description: 'This link is no longer valid.',
+    type: ProfileErrorResponseDto,
+  })
   async confirmEmailChange(
     @Param('token') token: string,
     @Res({ passthrough: true }) res: Response,
@@ -179,10 +249,26 @@ export class ProfileController {
 
   @Post('password')
   @HttpCode(HttpStatus.OK)
+  @ApiVaultfolioSessionAuth()
+  @ApiOperation({ summary: "Change the caller's password." })
+  @ApiResponse({
+    status: 200,
+    schema: { type: 'object', properties: { changed: { type: 'boolean', enum: [true] } } },
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Current password is incorrect.',
+    type: ProfileErrorResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Password must be between 8 and 200 characters.',
+    type: ProfileErrorResponseDto,
+  })
   async changePassword(
     @CurrentUser() currentUser: RequestUser,
     @Req() req: Request,
-    @Body() body: ChangePasswordRequest,
+    @Body() body: ChangePasswordRequestDto,
     @Res({ passthrough: true }) res: Response,
   ): Promise<{ changed: true } | ProfileErrorResponse> {
     const result = await this.profile.changePassword(
@@ -207,13 +293,39 @@ export class ProfileController {
   @UseGuards(TurnstileGuard)
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
-  async forgotPassword(@Body() body: ForgotPasswordRequest): Promise<{ accepted: true }> {
+  @ApiOperation({
+    summary: 'Request a password-reset email.',
+    description: 'Requires a valid Cloudflare Turnstile token (see `turnstileToken`).',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Always returns { accepted: true } regardless of whether the email exists.',
+    schema: { type: 'object', properties: { accepted: { type: 'boolean', enum: [true] } } },
+  })
+  async forgotPassword(@Body() body: ForgotPasswordRequestDto): Promise<{ accepted: true }> {
     await this.profile.requestPasswordReset(body?.email ?? '');
     return { accepted: true };
   }
 
   @Public()
   @Get('reset-password/token/:token')
+  @ApiOperation({ summary: "Look up a password-reset token's associated account." })
+  @ApiResponse({
+    status: 200,
+    schema: {
+      type: 'object',
+      properties: {
+        valid: { type: 'boolean', enum: [true] },
+        displayName: { type: 'string' },
+        email: { type: 'string' },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 410,
+    description: 'This link is no longer valid.',
+    type: ProfileErrorResponseDto,
+  })
   async lookupResetToken(
     @Param('token') token: string,
     @Res({ passthrough: true }) res: Response,
@@ -229,9 +341,21 @@ export class ProfileController {
   @Public()
   @Post('reset-password/token/:token/confirm')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Confirm a password reset via its emailed token, starting a session.' })
+  @ApiResponse({ status: 200, type: SessionUserDto })
+  @ApiResponse({
+    status: 400,
+    description: 'Password must be between 8 and 200 characters.',
+    type: ProfileErrorResponseDto,
+  })
+  @ApiResponse({
+    status: 410,
+    description: 'This link is no longer valid.',
+    type: ProfileErrorResponseDto,
+  })
   async confirmPasswordReset(
     @Param('token') token: string,
-    @Body() body: ResetPasswordRequest,
+    @Body() body: ResetPasswordRequestDto,
     @Res({ passthrough: true }) res: Response,
   ): Promise<SessionUser | ProfileErrorResponse> {
     const result = await this.profile.confirmPasswordReset(token, body?.newPassword ?? '');
@@ -250,6 +374,14 @@ export class ProfileController {
 
   @Delete('account')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiVaultfolioSessionAuth()
+  @ApiOperation({ summary: "Delete the caller's own account." })
+  @ApiResponse({ status: 204, description: 'Deleted.' })
+  @ApiResponse({
+    status: 409,
+    description: 'Would leave no active administrator.',
+    type: ProfileErrorResponseDto,
+  })
   async deleteAccount(
     @CurrentUser() currentUser: RequestUser,
     @Res({ passthrough: true }) res: Response,

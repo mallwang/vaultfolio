@@ -1,0 +1,27 @@
+meta {
+  name: Create Invitation (admin)
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/invitations
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "email": "new-member@example.com",
+    "role": "MEMBER"
+  }
+}
+
+docs {
+  Admin-only request — requires the `vaultfolio_session` cookie of an ADMIN
+  account, captured by `auth/Login`.
+}

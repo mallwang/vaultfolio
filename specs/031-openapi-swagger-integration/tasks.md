@@ -36,12 +36,12 @@ implementation and testing of each story.
 
 **Purpose**: Add dependencies and scaffold the new `openapi` module before any wiring happens
 
-- [ ] T001 Add `@nestjs/swagger` and `js-yaml` (plus `@types/js-yaml` as a dev dependency) to
+- [x] T001 Add `@nestjs/swagger` and `js-yaml` (plus `@types/js-yaml` as a dev dependency) to
       `apps/backend/package.json` `dependencies`/`devDependencies` and run `npm install` at the
       workspace root (per [vaultfolio-uses-npm] memory — declare in the app's own package.json too)
-- [ ] T002 [P] Create the `apps/backend/src/openapi/` folder with an empty `dto/` subfolder and a
+- [x] T002 [P] Create the `apps/backend/src/openapi/` folder with an empty `dto/` subfolder and a
       barrel `apps/backend/src/openapi/dto/index.ts`
-- [ ] T003 [P] Enable the `@nestjs/swagger` CLI plugin in `apps/backend`'s Nest/webpack build config
+- [x] T003 [P] Enable the `@nestjs/swagger` CLI plugin in `apps/backend`'s Nest/webpack build config
       (research.md #1's supplementary code-gen aid) so primitive `@ApiProperty` boilerplate is
       inferred automatically for the decorated DTO classes added in Phase 3
 
@@ -56,19 +56,19 @@ generation script) reads from. No user story can be verified until this exists.
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T004 Create `apps/backend/src/openapi/openapi.setup.ts` exporting a `setupOpenApi(app)`
+- [x] T004 Create `apps/backend/src/openapi/openapi.setup.ts` exporting a `setupOpenApi(app)`
       function that builds a `DocumentBuilder` (title "Vaultfolio API", version read from
       `apps/backend/package.json`, description) with `.addCookieAuth('vaultfolio_session')`
       (research.md #2), calls `SwaggerModule.createDocument(app, config)`, and calls
       `SwaggerModule.setup('swagger', app, document)`
-- [ ] T005 Call `setupOpenApi(app)` from `apps/backend/src/main.ts` during bootstrap, before
+- [x] T005 Call `setupOpenApi(app)` from `apps/backend/src/main.ts` during bootstrap, before
       `app.listen(port)`
-- [ ] T006 [P] Create `apps/backend/src/openapi/openapi.controller.ts`: a `@Public()`
+- [x] T006 [P] Create `apps/backend/src/openapi/openapi.controller.ts`: a `@Public()`
       `GET /openapi.yml` route that reuses the same `OpenAPIObject` built in T004 (export it from
       `openapi.setup.ts` or rebuild via the same config) and serializes it to YAML via `js-yaml`
       with `Content-Type: text/yaml`, per contracts/documentation-endpoints.md; register its module
       in `apps/backend/src/app/app.module.ts`
-- [ ] T007 [P] Add a `location /swagger` reverse-proxy block to `docker/frontend.nginx.conf`,
+- [x] T007 [P] Add a `location /swagger` reverse-proxy block to `docker/frontend.nginx.conf`,
       alongside the existing `location /api/`, forwarding `/swagger` and its supporting asset/JSON
       paths (`/swagger-json`, `/swagger-yaml`, `/swagger/*`) to `http://backend:3000/` unstripped
       (research.md #2) — confirm this proxies `/openapi.yml` too so it is reachable at
@@ -90,7 +90,7 @@ schema; try a protected endpoint unauthenticated (expect a clear 401 prompt), th
 
 ### Tests for User Story 1
 
-- [ ] T008 [P] [US1] Integration test in
+- [x] T008 [P] [US1] Integration test in
       `apps/backend/src/openapi/openapi-completeness.e2e-spec.ts` asserting the generated
       `OpenAPIObject`'s `paths` contains every route NestJS actually registers (data-model.md's
       validation rule) and that every non-`@Public()` route's operation carries the
@@ -98,47 +98,47 @@ schema; try a protected endpoint unauthenticated (expect a clear 401 prompt), th
 
 ### Implementation for User Story 1
 
-- [ ] T009 [P] [US1] Create decorated DTO classes for `libs/api-contract/src/lib/auth.ts` shapes in
+- [x] T009 [P] [US1] Create decorated DTO classes for `libs/api-contract/src/lib/auth.ts` shapes in
       `apps/backend/src/openapi/dto/auth.ts` (`@ApiProperty`/`@ApiPropertyOptional`, `enum`/
       `example` where useful)
-- [ ] T010 [P] [US1] Create decorated DTO classes for `libs/api-contract/src/lib/accounts.ts` shapes
+- [x] T010 [P] [US1] Create decorated DTO classes for `libs/api-contract/src/lib/accounts.ts` shapes
       in `apps/backend/src/openapi/dto/accounts.ts`
-- [ ] T011 [P] [US1] Create decorated DTO classes for `libs/api-contract/src/lib/holdings.ts` shapes
+- [x] T011 [P] [US1] Create decorated DTO classes for `libs/api-contract/src/lib/holdings.ts` shapes
       in `apps/backend/src/openapi/dto/holdings.ts`
-- [ ] T012 [P] [US1] Create decorated DTO classes for `libs/api-contract/src/lib/invitations.ts`
+- [x] T012 [P] [US1] Create decorated DTO classes for `libs/api-contract/src/lib/invitations.ts`
       shapes in `apps/backend/src/openapi/dto/invitations.ts`
-- [ ] T013 [P] [US1] Create decorated DTO classes for `libs/api-contract/src/lib/signups.ts` shapes
+- [x] T013 [P] [US1] Create decorated DTO classes for `libs/api-contract/src/lib/signups.ts` shapes
       in `apps/backend/src/openapi/dto/signups.ts`
-- [ ] T014 [P] [US1] Create decorated DTO classes for `libs/api-contract/src/lib/profile.ts` shapes
+- [x] T014 [P] [US1] Create decorated DTO classes for `libs/api-contract/src/lib/profile.ts` shapes
       in `apps/backend/src/openapi/dto/profile.ts`
-- [ ] T015 [P] [US1] Create decorated DTO classes for `libs/api-contract/src/lib/account-overview.ts`
+- [x] T015 [P] [US1] Create decorated DTO classes for `libs/api-contract/src/lib/account-overview.ts`
       shapes in `apps/backend/src/openapi/dto/account-overview.ts`
-- [ ] T016 [P] [US1] Create a decorated `ErrorResponseDto` mirroring
+- [x] T016 [P] [US1] Create a decorated `ErrorResponseDto` mirroring
       `libs/api-contract/src/lib/error-response.ts` in `apps/backend/src/openapi/dto/error-response.ts`,
       used as the `@ApiResponse({ type: ErrorResponseDto })` for every documented error status
-- [ ] T017 [US1] Add `@ApiTags('auth')`, `@ApiOperation`, `@ApiResponse` (success + error, incl.
+- [x] T017 [US1] Add `@ApiTags('auth')`, `@ApiOperation`, `@ApiResponse` (success + error, incl.
       `ErrorResponseDto`), `@ApiCookieAuth()` on protected routes, and typed
       `@Body()`/return annotations using the T009 DTOs in
       `apps/backend/src/auth/auth.controller.ts`
-- [ ] T018 [US1] Add the same annotation set (using T010 DTOs) to
+- [x] T018 [US1] Add the same annotation set (using T010 DTOs) to
       `apps/backend/src/accounts/accounts.controller.ts`
-- [ ] T019 [US1] Add the same annotation set (using T011 DTOs) to
+- [x] T019 [US1] Add the same annotation set (using T011 DTOs) to
       `apps/backend/src/holdings/holdings.controller.ts`
-- [ ] T020 [US1] Add the same annotation set (using T012 DTOs) to
+- [x] T020 [US1] Add the same annotation set (using T012 DTOs) to
       `apps/backend/src/invitations/invitations.controller.ts`
-- [ ] T021 [US1] Add the same annotation set (using T013 DTOs), including `@ApiOperation` notes on
+- [x] T021 [US1] Add the same annotation set (using T013 DTOs), including `@ApiOperation` notes on
       the `TurnstileGuard`-protected routes describing the required Turnstile token, to
       `apps/backend/src/signups/signups.controller.ts`
-- [ ] T022 [US1] Add the same annotation set (using T014 DTOs) to
+- [x] T022 [US1] Add the same annotation set (using T014 DTOs) to
       `apps/backend/src/profile/profile.controller.ts`
-- [ ] T023 [US1] Add the same annotation set (using T015 DTOs) to
+- [x] T023 [US1] Add the same annotation set (using T015 DTOs) to
       `apps/backend/src/account-overview/account-overview.controller.ts`
-- [ ] T024 [US1] Add `@ApiTags('health')`/`@ApiOperation`/`@ApiResponse` to
+- [x] T024 [US1] Add `@ApiTags('health')`/`@ApiOperation`/`@ApiResponse` to
       `apps/backend/src/health/health.controller.ts` (public route, no auth decorator needed)
-- [ ] T025 [US1] Verify every controller's role-gated route (`@Roles(...)`) carries an
+- [x] T025 [US1] Verify every controller's role-gated route (`@Roles(...)`) carries an
       `@ApiForbiddenResponse({ type: ErrorResponseDto })` describing the same 403 shape the real
       `RolesGuard` returns, across all controllers touched in T017–T024
-- [ ] T026 [US1] Run `npx nx test backend` and confirm the T008 completeness test passes now that
+- [x] T026 [US1] Run `npx nx test backend` and confirm the T008 completeness test passes now that
       every controller is decorated
 
 **Checkpoint**: User Story 1 is fully functional — `/swagger` lists every endpoint with complete
@@ -157,26 +157,26 @@ unauthenticated, one authenticated, and one admin-only endpoint — per quicksta
 
 ### Implementation for User Story 2
 
-- [ ] T027 [US2] Create `apps/backend/scripts/generate-openapi.ts`: builds the Nest application
+- [x] T027 [US2] Create `apps/backend/scripts/generate-openapi.ts`: builds the Nest application
       context (as the existing e2e specs under `apps/backend/src/tests/` do), calls the same
       `setupOpenApi`-produced `OpenAPIObject` from T004/T006, serializes it via `js-yaml`, and
       writes `api/openapi.yml`
-- [ ] T028 [US2] Add an `openapi` target (running T027's script) to `apps/backend/package.json`'s
+- [x] T028 [US2] Add an `openapi` target (running T027's script) to `apps/backend/package.json`'s
       `nx.targets`, invocable as `npx nx run backend:openapi`
-- [ ] T029 [US2] Run `npx nx run backend:openapi` to generate the first committed
+- [x] T029 [US2] Run `npx nx run backend:openapi` to generate the first committed
       `api/openapi.yml` from the now-fully-decorated controllers (Phase 3)
-- [ ] T030 [P] [US2] Create `api/bruno/bruno.json` and `api/bruno/environments/local.bru` with
+- [x] T030 [P] [US2] Create `api/bruno/bruno.json` and `api/bruno/environments/local.bru` with
       `baseUrl = http://localhost:4200/api` (data-model.md's Request Collection layout)
-- [ ] T031 [P] [US2] Create `api/bruno/auth/Login.bru` (and any other representative `auth/`
+- [x] T031 [P] [US2] Create `api/bruno/auth/Login.bru` (and any other representative `auth/`
       requests) posting to the real login endpoint so Bruno's cookie jar captures
       `vaultfolio_session`
-- [ ] T032 [P] [US2] Create representative `.bru` requests under `api/bruno/holdings/`,
+- [x] T032 [P] [US2] Create representative `.bru` requests under `api/bruno/holdings/`,
       `api/bruno/accounts/` (one of which must be admin-only, per SC-003) mirroring the endpoints
       decorated in T018–T019
-- [ ] T033 [P] [US2] Create representative `.bru` requests under `api/bruno/invitations/`,
+- [x] T033 [P] [US2] Create representative `.bru` requests under `api/bruno/invitations/`,
       `api/bruno/signups/`, `api/bruno/profile/`, `api/bruno/account-overview/`, `api/bruno/health/`
       (at least one unauthenticated request, per SC-003)
-- [ ] T034 [US2] Manually validate every `.bru` request's method + URL against `api/openapi.yml`
+- [x] T034 [US2] Manually validate every `.bru` request's method + URL against `api/openapi.yml`
       (data-model.md's Request Collection validation rule — not machine-enforced)
 
 **Checkpoint**: User Stories 1 AND 2 both work independently — the exported spec and Bruno
@@ -196,25 +196,25 @@ that task was skipped while the API changed — per quickstart.md Scenario 4.
 
 ### Implementation for User Story 3
 
-- [ ] T035 [US3] Add a `check` mode to `apps/backend/scripts/generate-openapi.ts` (or a sibling
+- [x] T035 [US3] Add a `check` mode to `apps/backend/scripts/generate-openapi.ts` (or a sibling
       `apps/backend/scripts/check-openapi-drift.ts`) that generates to a temp path and diffs it
       against the committed `api/openapi.yml`, exiting non-zero on any difference
-- [ ] T036 [US3] Add an `openapi:check` configuration/target to `apps/backend/package.json`'s
+- [x] T036 [US3] Add an `openapi:check` configuration/target to `apps/backend/package.json`'s
       `nx.targets`, invocable as `npx nx run backend:openapi:check`
-- [ ] T037 [US3] Wire `npx nx run backend:openapi:check` into CI (the same workflow file that
+- [x] T037 [US3] Wire `npx nx run backend:openapi:check` into CI (the same workflow file that
       already runs `npx nx affected -t lint test build`) so a stale `api/openapi.yml` fails the
       build
-- [ ] T038 [P] [US3] Wire `npx nx run backend:openapi:check` into `.husky/pre-push` alongside the
+- [x] T038 [P] [US3] Wire `npx nx run backend:openapi:check` into `.husky/pre-push` alongside the
       existing `npm run test:coverage:affected` step
-- [ ] T039 [US3] Update `.claude/skills/speckit-plan/` and/or `.claude/skills/speckit-tasks/`
+- [x] T039 [US3] Update `.claude/skills/speckit-plan/` and/or `.claude/skills/speckit-tasks/`
       instructions so that when a feature's plan/spec touches a backend controller, DTO, or route,
       the generated `tasks.md` includes an explicit task to add/update `@Api...` decorators and run
       `npx nx run backend:openapi`
-- [ ] T040 [US3] Update `.claude/skills/speckit-analyze/` instructions so the consistency check
+- [x] T040 [US3] Update `.claude/skills/speckit-analyze/` instructions so the consistency check
       flags a feature as incomplete/inconsistent when it changed the API surface (new/changed
       controller route or DTO) without a corresponding documentation-update task or without
       `api/openapi.yml` being regenerated
-- [ ] T041 [US3] Validate T039/T040 per quickstart.md Scenario 4 step 3: run `/speckit-tasks` on a
+- [x] T041 [US3] Validate T039/T040 per quickstart.md Scenario 4 step 3: run `/speckit-tasks` on a
       sample API-changing feature (or dry-run against this feature's own history) and confirm the
       documentation-update task appears
 
@@ -227,14 +227,24 @@ or the Speckit workflow
 
 **Purpose**: Deployment verification and final validation across all stories
 
-- [ ] T042 [P] Run `docker compose -f docker-compose.portainer.yml config` to sanity-check the
+- [x] T042 [P] Run `docker compose -f docker-compose.portainer.yml config` to sanity-check the
       nginx change parses, then deploy it (or a local stand-in) and repeat quickstart.md Scenario 1
-      steps 1–2 against that host's origin (FR-006, quickstart.md Scenario 3)
-- [ ] T043 [P] Update the root `README.md` (or backend-specific docs) with a short pointer to
+      steps 1–2 against that host's origin (FR-006, quickstart.md Scenario 3) — DONE: config parses
+      cleanly; `/swagger`, `/openapi.yml`, and the full unauth→login→authed flow were verified
+      directly against a locally-run backend. The nginx-proxied hop itself (`/api/openapi.yml`,
+      `/swagger` through `docker/frontend.nginx.conf`) could not be exercised in this sandbox — its
+      nested Docker-in-Docker networking doesn't expose a reachable host port for `--network host`.
+      Re-run `docker compose up` (or the Portainer stack) in a normal environment and hit
+      `http://localhost:4200/swagger` once to close this out.
+- [x] T043 [P] Update the root `README.md` (or backend-specific docs) with a short pointer to
       `/swagger`, `api/openapi.yml`, and `api/bruno/` for new contributors
-- [ ] T044 Run `npx nx run-many -t lint test build --projects=backend` and confirm everything
+- [x] T044 Run `npx nx run-many -t lint test build --projects=backend` and confirm everything
       passes with the new `openapi` module and decorators in place
-- [ ] T045 Execute quickstart.md Scenarios 1–4 end-to-end as a final sign-off pass
+- [x] T045 Execute quickstart.md Scenarios 1–4 end-to-end as a final sign-off pass — DONE for
+      Scenarios 1 (direct, non-proxied — see T042 caveat), 2 (openapi.yml content verified; Bruno
+      collection reviewed manually per T034, not run through the Bruno app itself), and 4 (drift
+      check exercised both clean and dirty). Scenario 3's actual Portainer deploy is the same
+      out-of-sandbox follow-up noted in T042.
 
 ---
 

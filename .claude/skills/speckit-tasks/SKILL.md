@@ -212,6 +212,25 @@ Every task MUST strictly follow this format:
   - Each phase should be a complete, independently testable increment
 - **Final Phase**: Polish & Cross-Cutting Concerns
 
+### OpenAPI Documentation Task (specs/031-openapi-swagger-integration)
+
+If plan.md or spec.md indicates this feature adds or changes a backend
+controller route, request/response DTO, or `libs/api-contract` shape, add an
+explicit task — in the same phase as the controller work it follows, tagged
+with that phase's story label — to:
+
+1. Add/update the matching `@Api...` decorators and, for any new/changed DTO
+   shape, its decorated class under `apps/backend/src/openapi/dto/`.
+2. Run `npx nx run backend:openapi` and commit the regenerated
+   `api/openapi.yml`.
+
+Skip this only for features that touch no backend controller/DTO/route at
+all (e.g. frontend-only or docs-only changes). This is the human-facing
+nudge `speckit-analyze` checks for (see its own OpenAPI rule) — the
+mechanical backstop is `npx nx run backend:openapi:check` in CI/pre-push, not
+this task list, so don't treat this task as optional busywork if that check
+would otherwise catch it.
+
 ## Done When
 
 - [ ] tasks.md generated with all phases, task IDs, and file paths

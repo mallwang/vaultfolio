@@ -138,6 +138,12 @@ jobs:
 
       - run: npx nx affected -t build --base=$NX_BASE --head=$NX_HEAD
 
+      # Fails the build if a controller/DTO change wasn't followed by
+      # regenerating api/openapi.yml (specs/031-openapi-swagger-integration
+      # research.md #6, User Story 3) — the mechanical backstop behind the
+      # Speckit task-list reminder, not a substitute for it.
+      - run: npx nx affected -t openapi -c check --base=$NX_BASE --head=$NX_HEAD
+
   sonar:
     runs-on: ubuntu-latest
     steps:

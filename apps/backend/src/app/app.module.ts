@@ -10,6 +10,7 @@ import { ProfileModule } from '../profile/profile.module';
 import { AccountOverviewModule } from '../account-overview/account-overview.module';
 import { TurnstileModule } from '../turnstile/turnstile.module';
 import { ObservabilityModule } from '@vaultfolio/observability';
+import { OpenApiModule } from '../openapi/openapi.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { ObservabilityModule } from '@vaultfolio/observability';
     ProfileModule,
     AccountOverviewModule,
     TurnstileModule,
+    OpenApiModule,
   ],
 })
 export class AppModule {}

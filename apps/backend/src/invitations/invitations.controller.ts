@@ -1,9 +1,8 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Res } from '@nestjs/common';
+import { ApiForbiddenResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import type { Response } from 'express';
 import { UserRole } from '@vaultfolio/api-contract';
 import type {
-  AcceptInvitationRequest,
-  CreateInvitationRequest,
   InvitationsErrorResponse,
   InvitationSummary,
   InvitationTokenLookup,
@@ -16,6 +15,16 @@ import type { RequestUser } from '../auth/current-user.decorator';
 import { setSessionCookie } from '../auth/session-cookie';
 import { InvitationsService } from './invitations.service';
 import type { Invitation } from './invitations.repository';
+import { ApiVaultfolioSessionAuth } from '../openapi/api-vaultfolio-auth.decorator';
+import { ErrorResponseDto } from '../openapi/dto/error-response';
+import { SessionUserDto } from '../openapi/dto/auth';
+import {
+  AcceptInvitationRequestDto,
+  CreateInvitationRequestDto,
+  InvitationsErrorResponseDto,
+  InvitationSummaryDto,
+  InvitationTokenLookupDto,
+} from '../openapi/dto/invitations';
 
 const ACCOUNT_EXISTS: InvitationsErrorResponse = {
   error: 'account_exists',
@@ -49,15 +58,30 @@ const INVALID_PASSWORD: InvitationsErrorResponse = {
  * lookup/accept endpoints must never leak which failure case applied
  * (FR-012), so both collapse to the identical `410 invalid_invitation` body.
  */
+@ApiTags('invitations')
 @Controller('invitations')
 export class InvitationsController {
   constructor(private readonly invitationsService: InvitationsService) {}
 
   @Roles(UserRole.ADMIN)
   @Post()
+  @ApiVaultfolioSessionAuth()
+  @ApiForbiddenResponse({ description: 'Caller is not an administrator.', type: ErrorResponseDto })
+  @ApiOperation({ summary: 'Invite a new user by email (admin only).' })
+  @ApiResponse({ status: 201, type: InvitationSummaryDto })
+  @ApiResponse({
+    status: 409,
+    description: 'This email already has an account.',
+    type: InvitationsErrorResponseDto,
+  })
+  @ApiResponse({
+    status: 502,
+    description: 'Invitation saved, but the email could not be sent.',
+    type: InvitationsErrorResponseDto,
+  })
   async create(
     @CurrentUser() currentUser: RequestUser,
-    @Body() body: CreateInvitationRequest,
+    @Body() body: CreateInvitationRequestDto,
     @Res({ passthrough: true }) res: Response,
   ): Promise<InvitationSummary | InvitationsErrorResponse> {
     const result = await this.invitationsService.create(
@@ -80,6 +104,10 @@ export class InvitationsController {
 
   @Roles(UserRole.ADMIN)
   @Get()
+  @ApiVaultfolioSessionAuth()
+  @ApiForbiddenResponse({ description: 'Caller is not an administrator.', type: ErrorResponseDto })
+  @ApiOperation({ summary: 'List every invitation (admin only).' })
+  @ApiResponse({ status: 200, type: [InvitationSummaryDto] })
   async list(): Promise<InvitationSummary[]> {
     return this.invitationsService.list();
   }
@@ -87,6 +115,20 @@ export class InvitationsController {
   @Roles(UserRole.ADMIN)
   @Post(':id/cancel')
   @HttpCode(HttpStatus.OK)
+  @ApiVaultfolioSessionAuth()
+  @ApiForbiddenResponse({ description: 'Caller is not an administrator.', type: ErrorResponseDto })
+  @ApiOperation({ summary: 'Cancel a pending invitation (admin only).' })
+  @ApiResponse({ status: 200, type: InvitationSummaryDto })
+  @ApiResponse({
+    status: 404,
+    description: 'Invitation not found.',
+    type: InvitationsErrorResponseDto,
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'This invitation was already accepted, cancelled, or superseded.',
+    type: InvitationsErrorResponseDto,
+  })
   async cancel(
     @CurrentUser() currentUser: RequestUser,
     @Param('id') id: string,
@@ -107,6 +149,25 @@ export class InvitationsController {
 
   @Roles(UserRole.ADMIN)
   @Post(':id/resend')
+  @ApiVaultfolioSessionAuth()
+  @ApiForbiddenResponse({ description: 'Caller is not an administrator.', type: ErrorResponseDto })
+  @ApiOperation({ summary: 'Resend a pending invitation email (admin only).' })
+  @ApiResponse({ status: 201, type: InvitationSummaryDto })
+  @ApiResponse({
+    status: 404,
+    description: 'Invitation not found.',
+    type: InvitationsErrorResponseDto,
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'This invitation was already accepted, cancelled, or superseded.',
+    type: InvitationsErrorResponseDto,
+  })
+  @ApiResponse({
+    status: 502,
+    description: 'Invitation could not be re-sent.',
+    type: InvitationsErrorResponseDto,
+  })
   async resend(
     @CurrentUser() currentUser: RequestUser,
     @Param('id') id: string,
@@ -132,6 +193,13 @@ export class InvitationsController {
 
   @Public()
   @Get('token/:token')
+  @ApiOperation({ summary: "Look up a pending invitation's email/role by its token." })
+  @ApiResponse({ status: 200, type: InvitationTokenLookupDto })
+  @ApiResponse({
+    status: 410,
+    description: 'This invitation link is no longer valid.',
+    type: InvitationsErrorResponseDto,
+  })
   async lookupToken(
     @Param('token') token: string,
     @Res({ passthrough: true }) res: Response,
@@ -146,9 +214,21 @@ export class InvitationsController {
 
   @Public()
   @Post('token/:token/accept')
+  @ApiOperation({ summary: 'Accept an invitation, creating the account and starting a session.' })
+  @ApiResponse({ status: 201, type: SessionUserDto })
+  @ApiResponse({
+    status: 400,
+    description: 'Password must be between 8 and 200 characters.',
+    type: InvitationsErrorResponseDto,
+  })
+  @ApiResponse({
+    status: 410,
+    description: 'This invitation link is no longer valid.',
+    type: InvitationsErrorResponseDto,
+  })
   async accept(
     @Param('token') token: string,
-    @Body() body: AcceptInvitationRequest,
+    @Body() body: AcceptInvitationRequestDto,
     @Res({ passthrough: true }) res: Response,
   ): Promise<SessionUser | InvitationsErrorResponse> {
     const result = await this.invitationsService.accept(

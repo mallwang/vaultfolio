@@ -1,0 +1,16 @@
+meta {
+  name: List Signups (admin)
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/signups
+  body: none
+  auth: none
+}
+
+docs {
+  Admin-only request — requires the `vaultfolio_session` cookie of an ADMIN
+  account, captured by `auth/Login`.
+}

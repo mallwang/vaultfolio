@@ -1,1 +1,2 @@
 npm run test:coverage:affected
+npx nx affected -t openapi -c check --base=main

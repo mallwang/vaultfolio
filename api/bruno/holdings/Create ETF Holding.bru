@@ -1,0 +1,31 @@
+meta {
+  name: Create ETF Holding
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/holdings
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "assetType": "ETF",
+    "management": "Broker X",
+    "isin": "IE00B4L5Y983",
+    "name": "iShares Core MSCI World",
+    "quantity": "10",
+    "purchasePrice": "75.30"
+  }
+}
+
+docs {
+  Authenticated request — requires the `vaultfolio_session` cookie captured
+  by `auth/Login`.
+}

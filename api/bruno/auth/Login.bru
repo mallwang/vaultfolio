@@ -1,0 +1,30 @@
+meta {
+  name: Login
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/auth/sign-in
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "email": "admin@example.com",
+    "password": "change-me"
+  }
+}
+
+docs {
+  Run this first — Bruno's cookie jar captures the `vaultfolio_session` cookie
+  from the response and replays it automatically on every subsequent request
+  in this collection, exactly like a real browser session
+  (specs/031-openapi-swagger-integration/research.md #4). Replace the email/
+  password with a real account's credentials before running.
+}

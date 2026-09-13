@@ -155,6 +155,17 @@ Focus on high-signal findings. Limit to 50 findings total; aggregate remainder i
 - Data entities referenced in plan but absent in spec (or vice versa)
 - Task ordering contradictions (e.g., integration tasks before foundational setup tasks without dependency note)
 - Conflicting requirements (e.g., one requires Next.js while other specifies Vue)
+- **OpenAPI documentation drift** (specs/031-openapi-swagger-integration): if
+  plan.md/spec.md indicates this feature adds or changes a backend
+  controller route, request/response DTO, or `libs/api-contract` shape,
+  flag the feature as inconsistent when tasks.md has no task to add/update
+  the matching `@Api...` decorators and regenerate `api/openapi.yml` (per
+  speckit-tasks's own OpenAPI Documentation Task rule), OR such a task
+  exists but `api/openapi.yml` was never regenerated for this branch (check
+  `git log --oneline -- api/openapi.yml` against the feature's commits, or
+  run `npx nx run backend:openapi:check`). This is a CRITICAL finding — a
+  stale `api/openapi.yml` is exactly the silent-drift failure mode User
+  Story 3 of that feature exists to prevent.
 
 ### 5. Severity Assignment
 

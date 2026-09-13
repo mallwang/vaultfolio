@@ -13,12 +13,11 @@ import {
 import type { Response } from 'express';
 import { UserRole } from '@vaultfolio/api-contract';
 import type {
-  CreateSignupRequest,
-  RejectSignupRequest,
   SignupsErrorResponse,
   SignupSubmitted,
   SignupSummary,
 } from '@vaultfolio/api-contract';
+import { ApiForbiddenResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Roles } from '../auth/roles.decorator';
 import { Public } from '../auth/public.decorator';
 import { CurrentUser } from '../auth/current-user.decorator';
@@ -26,6 +25,15 @@ import type { RequestUser } from '../auth/current-user.decorator';
 import { SignupsService } from './signups.service';
 import { TurnstileAction } from '../turnstile/turnstile-action.decorator';
 import { TurnstileGuard } from '../turnstile/turnstile.guard';
+import { ApiVaultfolioSessionAuth } from '../openapi/api-vaultfolio-auth.decorator';
+import { ErrorResponseDto } from '../openapi/dto/error-response';
+import {
+  CreateSignupRequestDto,
+  RejectSignupRequestDto,
+  SignupsErrorResponseDto,
+  SignupSubmittedDto,
+  SignupSummaryDto,
+} from '../openapi/dto/signups';
 
 const SIGNUP_DISABLED: SignupsErrorResponse = {
   error: 'signup_disabled',
@@ -85,6 +93,7 @@ function isSignupEnabled(): boolean {
  * available regardless of the toggle so queued requests can still be
  * resolved.
  */
+@ApiTags('signups')
 @Controller('signups')
 export class SignupsController {
   constructor(private readonly signupsService: SignupsService) {}
@@ -93,8 +102,33 @@ export class SignupsController {
   @TurnstileAction('signup')
   @UseGuards(TurnstileGuard)
   @Post()
+  @ApiOperation({
+    summary: 'Submit a self-service sign-up request.',
+    description: 'Requires a valid Cloudflare Turnstile token (see `turnstileToken`).',
+  })
+  @ApiResponse({ status: 201, type: SignupSubmittedDto })
+  @ApiResponse({
+    status: 400,
+    description: 'Password must be between 8 and 200 characters.',
+    type: SignupsErrorResponseDto,
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Public sign-up is not available, or the Turnstile check failed.',
+    type: SignupsErrorResponseDto,
+  })
+  @ApiResponse({
+    status: 409,
+    description: "This email can't be used to sign up right now.",
+    type: SignupsErrorResponseDto,
+  })
+  @ApiResponse({
+    status: 502,
+    description: 'Sign-up saved, but the verification email could not be sent.',
+    type: SignupsErrorResponseDto,
+  })
   async submit(
-    @Body() body: CreateSignupRequest,
+    @Body() body: CreateSignupRequestDto,
     @Res({ passthrough: true }) res: Response,
   ): Promise<SignupSubmitted | SignupsErrorResponse> {
     if (!isSignupEnabled()) {
@@ -122,6 +156,16 @@ export class SignupsController {
 
   @Public()
   @Get('token/:token')
+  @ApiOperation({ summary: "Look up a sign-up request's email by its verification token." })
+  @ApiResponse({
+    status: 200,
+    schema: { type: 'object', properties: { email: { type: 'string' } } },
+  })
+  @ApiResponse({
+    status: 410,
+    description: 'This verification link is no longer valid.',
+    type: SignupsErrorResponseDto,
+  })
   async lookupToken(
     @Param('token') token: string,
     @Res({ passthrough: true }) res: Response,
@@ -137,6 +181,24 @@ export class SignupsController {
   @Public()
   @Post('token/:token/verify')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Verify a sign-up request via its emailed token.' })
+  @ApiResponse({
+    status: 200,
+    schema: {
+      type: 'object',
+      properties: { email: { type: 'string' }, status: { type: 'string', enum: ['VERIFIED'] } },
+    },
+  })
+  @ApiResponse({
+    status: 410,
+    description: 'This verification link is no longer valid.',
+    type: SignupsErrorResponseDto,
+  })
+  @ApiResponse({
+    status: 502,
+    description: 'Verified, but admin notification could not be sent.',
+    type: SignupsErrorResponseDto,
+  })
   async verify(
     @Param('token') token: string,
     @Res({ passthrough: true }) res: Response,
@@ -156,6 +218,10 @@ export class SignupsController {
 
   @Roles(UserRole.ADMIN)
   @Get()
+  @ApiVaultfolioSessionAuth()
+  @ApiForbiddenResponse({ description: 'Caller is not an administrator.', type: ErrorResponseDto })
+  @ApiOperation({ summary: 'List every sign-up request (admin only).' })
+  @ApiResponse({ status: 200, type: [SignupSummaryDto] })
   async list(): Promise<SignupSummary[]> {
     return this.signupsService.list();
   }
@@ -163,6 +229,28 @@ export class SignupsController {
   @Roles(UserRole.ADMIN)
   @Post(':id/approve')
   @HttpCode(HttpStatus.OK)
+  @ApiVaultfolioSessionAuth()
+  @ApiForbiddenResponse({ description: 'Caller is not an administrator.', type: ErrorResponseDto })
+  @ApiOperation({
+    summary: 'Approve a verified sign-up request, creating its account (admin only).',
+  })
+  @ApiResponse({ status: 200, type: SignupSummaryDto })
+  @ApiResponse({ status: 404, description: 'Not found.', type: SignupsErrorResponseDto })
+  @ApiResponse({
+    status: 400,
+    description: 'Only verified sign-up requests can be resolved.',
+    type: SignupsErrorResponseDto,
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'This sign-up request was already resolved.',
+    type: SignupsErrorResponseDto,
+  })
+  @ApiResponse({
+    status: 502,
+    description: 'Account created, but the welcome email could not be sent.',
+    type: SignupsErrorResponseDto,
+  })
   async approve(
     @CurrentUser() currentUser: RequestUser,
     @Param('id') id: string,
@@ -175,10 +263,30 @@ export class SignupsController {
   @Roles(UserRole.ADMIN)
   @Post(':id/reject')
   @HttpCode(HttpStatus.OK)
+  @ApiVaultfolioSessionAuth()
+  @ApiForbiddenResponse({ description: 'Caller is not an administrator.', type: ErrorResponseDto })
+  @ApiOperation({ summary: 'Reject a verified sign-up request (admin only).' })
+  @ApiResponse({ status: 200, type: SignupSummaryDto })
+  @ApiResponse({ status: 404, description: 'Not found.', type: SignupsErrorResponseDto })
+  @ApiResponse({
+    status: 400,
+    description: 'Only verified sign-up requests can be resolved.',
+    type: SignupsErrorResponseDto,
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'This sign-up request was already resolved.',
+    type: SignupsErrorResponseDto,
+  })
+  @ApiResponse({
+    status: 502,
+    description: 'Rejected, but the notification email could not be sent.',
+    type: SignupsErrorResponseDto,
+  })
   async reject(
     @CurrentUser() currentUser: RequestUser,
     @Param('id') id: string,
-    @Body() body: RejectSignupRequest,
+    @Body() body: RejectSignupRequestDto,
     @Res({ passthrough: true }) res: Response,
   ): Promise<SignupSummary | SignupsErrorResponse> {
     const result = await this.signupsService.reject(id, currentUser.id, body?.reason);
@@ -188,6 +296,14 @@ export class SignupsController {
   @Roles(UserRole.ADMIN)
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
+  @ApiVaultfolioSessionAuth()
+  @ApiForbiddenResponse({ description: 'Caller is not an administrator.', type: ErrorResponseDto })
+  @ApiOperation({ summary: 'Delete a resolved sign-up request (admin only).' })
+  @ApiResponse({
+    status: 200,
+    schema: { type: 'object', properties: { deleted: { type: 'boolean', enum: [true] } } },
+  })
+  @ApiResponse({ status: 404, description: 'Not found.', type: SignupsErrorResponseDto })
   async delete(
     @Param('id') id: string,
     @Res({ passthrough: true }) res: Response,

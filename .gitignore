@@ -1,6 +1,7 @@
 # Nx / Node / Angular / NestJS build artifacts
 node_modules/
 dist/
+dist-openapi-script/
 tmp/
 out-tsc/
 .nx/cache/
