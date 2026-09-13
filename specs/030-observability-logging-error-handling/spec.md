@@ -1,6 +1,6 @@
 # Feature Specification: Observability — Structured Logging & Consistent Error Handling
 
-**Feature Branch**: `031-observability-logging`
+**Feature Branch**: `030-observability-logging-error-handling`
 
 **Created**: 2026-09-13
 
