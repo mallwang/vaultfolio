@@ -7,3 +7,4 @@ export * from './lib/invitations.js';
 export * from './lib/signups.js';
 export * from './lib/profile.js';
 export * from './lib/i18n.js';
+export * from './lib/error-response.js';

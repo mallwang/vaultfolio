@@ -2,6 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { MessageService } from 'primeng/api';
 import type { SessionUser } from '@vaultfolio/api-contract';
 import { App } from './app';
 import { CurrentUserStore } from './auth/current-user.store';
@@ -27,6 +28,8 @@ describe('App', () => {
         provideHttpClientTesting(),
         provideRouter([]),
         { provide: CurrentUserStore, useValue: fakeCurrentUser },
+        // App now renders a root-level <p-toast/> (specs/030-observability-logging-error-handling, US3).
+        MessageService,
       ],
     }).compileComponents();
   });

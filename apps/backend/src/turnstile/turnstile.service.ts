@@ -1,4 +1,5 @@
-import { HttpException, Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { ExternalServiceException, ValidationException } from '@vaultfolio/observability';
 
 const SITEVERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
 
@@ -24,10 +25,10 @@ export class TurnstileService {
     }
 
     if (!token || token.length > 2048) {
-      throw new HttpException(
-        { error: 'bot_protection_failed', message: 'Bot protection check failed.' },
-        422,
-      );
+      throw new ValidationException({
+        error: 'bot_protection_failed',
+        message: 'Bot protection check failed.',
+      });
     }
 
     const params = new URLSearchParams({ secret, response: token });
@@ -46,10 +47,10 @@ export class TurnstileService {
       result = (await res.json()) as typeof result;
     } catch (err) {
       this.logger.error('Turnstile siteverify network/timeout error', err);
-      throw new HttpException(
-        { error: 'bot_protection_failed', message: 'Bot protection check failed.' },
-        422,
-      );
+      throw new ExternalServiceException({
+        error: 'bot_protection_failed',
+        message: 'Bot protection check failed.',
+      });
     }
 
     const hostnames = allowedHostnames();
@@ -62,10 +63,10 @@ export class TurnstileService {
         hostname: result.hostname,
         errorCodes: result['error-codes'],
       });
-      throw new HttpException(
-        { error: 'bot_protection_failed', message: 'Bot protection check failed.' },
-        422,
-      );
+      throw new ValidationException({
+        error: 'bot_protection_failed',
+        message: 'Bot protection check failed.',
+      });
     }
   }
 }

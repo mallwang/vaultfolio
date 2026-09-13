@@ -115,10 +115,13 @@ describe('/auth', () => {
 
       const withoutCookie = await request(app.getHttpServer()).get('/auth/session');
       expect(withoutCookie.status).toBe(401);
-      expect(withoutCookie.body).toEqual({
+      // Additive correlationId (specs/030-observability-logging-error-handling) — existing
+      // error/message values are unchanged (FR-008).
+      expect(withoutCookie.body).toMatchObject({
         error: 'unauthenticated',
         message: 'Sign in required.',
       });
+      expect(typeof withoutCookie.body.correlationId).toBe('string');
     });
 
     it('protects an existing route (GET /holdings): 401 without cookie, 200 with', async () => {
