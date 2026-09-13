@@ -176,10 +176,10 @@ is adopted at the two known ad hoc throw sites, with existing error behavior ful
 
 **Purpose**: Final verification across all user stories; no new user-facing behavior.
 
-- [ ] T044 [P] Run the full [quickstart.md](./quickstart.md) validation guide end-to-end (all four scenarios) against the running app
-- [ ] T045 [P] Verify SC-007 by inspecting logs from a representative set of test requests (including at least one authenticated call with an `Authorization` header) and confirming no credential, session/auth token, or full request body ever appears in a log entry
-- [ ] T046 Verify SC-005 by re-running (or spot-checking) existing frontend component tests that key off a specific known `error` code (e.g. `accounts.component.ts`, `signup.component.ts`) and confirming none required a code change to keep passing
-- [ ] T047 Update the workspace's `README.md`/relevant docs (only if they document backend error-response shapes or logging conventions) to mention the new `correlationId` field and categorized exception set, via the `speckit-docs-update` skill's selective-update approach
+- [x] T044 [P] Run the full [quickstart.md](./quickstart.md) validation guide end-to-end (all four scenarios) against the running app
+- [x] T045 [P] Verify SC-007 by inspecting logs from a representative set of test requests (including at least one authenticated call with an `Authorization` header) and confirming no credential, session/auth token, or full request body ever appears in a log entry
+- [x] T046 Verify SC-005 by re-running (or spot-checking) existing frontend component tests that key off a specific known `error` code (e.g. `accounts.component.ts`, `signup.component.ts`) and confirming none required a code change to keep passing
+- [x] T047 Update the workspace's `README.md`/relevant docs (only if they document backend error-response shapes or logging conventions) to mention the new `correlationId` field and categorized exception set, via the `speckit-docs-update` skill's selective-update approach
 
 ---
 

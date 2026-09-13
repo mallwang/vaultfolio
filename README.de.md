@@ -46,7 +46,9 @@ Für eine vollständige Beschreibung der Oberfläche siehe [docs/user-guide.de.m
   Bind-Mount aus dem Host-Verzeichnis `./data`
 - **Gemeinsame Bibliotheken**: `libs/api-contract` (Wire-Typen zwischen Backend/Frontend),
   `libs/domain/holdings`, `libs/domain/auth`, `libs/domain/invitations`, `libs/domain/accounts`,
-  `libs/account-fields`, `libs/market-data`, `libs/notifications`
+  `libs/account-fields`, `libs/market-data`, `libs/notifications`, `libs/observability`
+  (Correlation-IDs, strukturiertes Request-Logging und die kategorisierte
+  `BusinessException`-Hierarchie hinter jeder Backend-Fehlerantwort)
 
 ## Frontend-Domänenbibliothek-Architektur
 
