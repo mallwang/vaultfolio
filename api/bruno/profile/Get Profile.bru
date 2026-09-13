@@ -1,0 +1,16 @@
+meta {
+  name: Get Profile
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/profile
+  body: none
+  auth: none
+}
+
+docs {
+  Authenticated request — requires the `vaultfolio_session` cookie captured
+  by `auth/Login`. Every signed-in user (ADMIN or MEMBER) may call it.
+}

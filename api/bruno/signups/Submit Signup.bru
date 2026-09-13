@@ -1,0 +1,29 @@
+meta {
+  name: Submit Signup
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/signups
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "email": "prospective-user@example.com",
+    "password": "a-valid-8-char-password",
+    "turnstileToken": "REPLACE_WITH_REAL_TURNSTILE_TOKEN"
+  }
+}
+
+docs {
+  Unauthenticated request (SC-003). Requires a real Cloudflare Turnstile
+  token to pass `TurnstileGuard` — get one from the real sign-up page, or
+  disable Turnstile in your local dev environment per its own setup docs.
+}

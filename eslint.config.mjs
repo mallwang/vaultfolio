@@ -7,7 +7,7 @@ export default [
   ...nx.configs['flat/typescript'],
   ...nx.configs['flat/javascript'],
   {
-    ignores: ['**/dist', '**/out-tsc', '**/test-output'],
+    ignores: ['**/dist', '**/dist-openapi-script', '**/out-tsc', '**/test-output'],
   },
   {
     files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],

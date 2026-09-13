@@ -7,12 +7,14 @@
     "@nestjs/common": "^11.0.0",
     "@nestjs/core": "^11.0.0",
     "@nestjs/platform-express": "^11.0.0",
+    "@nestjs/swagger": "^11.0.0",
     "@nestjs/throttler": "^6.0.0",
     "argon2": "^0.41.0",
     "better-sqlite3": "^13.0.3",
     "cookie-parser": "^1.4.7",
     "decimal.js": "^10.6.0",
     "handlebars": "^4.7.9",
+    "js-yaml": "^4.1.0",
     "nodemailer": "^9.0.6",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.0"
@@ -92,10 +94,36 @@
             "buildTarget": "backend:build:production"
           }
         }
+      },
+      "build-openapi-script": {
+        "executor": "nx:run-commands",
+        "cache": true,
+        "options": {
+          "command": "webpack-cli build --config webpack.openapi-script.config.js",
+          "cwd": "apps/backend"
+        },
+        "outputs": [
+          "{workspaceRoot}/apps/backend/dist-openapi-script"
+        ]
+      },
+      "openapi": {
+        "executor": "nx:run-commands",
+        "dependsOn": [
+          "build-openapi-script"
+        ],
+        "options": {
+          "command": "node apps/backend/dist-openapi-script/main.js"
+        },
+        "configurations": {
+          "check": {
+            "command": "node apps/backend/dist-openapi-script/main.js --check"
+          }
+        }
       }
     }
   },
   "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
     "@types/nodemailer": "^8.0.1"
   }
 }

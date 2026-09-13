@@ -36,6 +36,15 @@ module.exports = {
       outputHashing: 'none',
       generatePackageJson: true,
       sourceMap: true,
+      // NOTE (research.md #1): the @nestjs/swagger CLI plugin was tried here
+      // as a supplementary code-gen aid, but wiring it into this app's
+      // NxAppWebpackPlugin `transformers` option switches ts-loader out of
+      // transpile-only mode and it then fails with "TypeScript emitted no
+      // output" for this project's tsconfig — a build-breaking regression
+      // for a feature the plugin only ever supplemented, never required
+      // (every DTO field here already carries an explicit @ApiProperty()).
+      // Left disabled; every openapi/dto/* class is fully hand-decorated
+      // instead, so no schema detail actually depends on the plugin running.
     }),
   ],
 };

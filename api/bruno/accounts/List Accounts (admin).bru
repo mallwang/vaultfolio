@@ -1,0 +1,17 @@
+meta {
+  name: List Accounts (admin)
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/accounts
+  body: none
+  auth: none
+}
+
+docs {
+  Admin-only request (SC-003) — requires the `vaultfolio_session` cookie of
+  an ADMIN account, captured by `auth/Login`. A non-admin session gets a
+  `403 forbidden` here, matching the real API.
+}

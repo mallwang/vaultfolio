@@ -1,0 +1,16 @@
+meta {
+  name: List Account Overview Entries
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/account-overview/accounts
+  body: none
+  auth: none
+}
+
+docs {
+  Authenticated request — requires the `vaultfolio_session` cookie captured
+  by `auth/Login`.
+}

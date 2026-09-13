@@ -1,0 +1,2303 @@
+openapi: 3.0.0
+paths:
+  /auth/sign-in:
+    post:
+      operationId: AuthController_signIn
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignInRequestDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionUserDto'
+        '401':
+          description: Invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthErrorResponseDto'
+        '429':
+          description: Too many failed attempts for this account.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthErrorResponseDto'
+      summary: Sign in with email/password, starting a new session.
+      tags: &ref_0
+        - auth
+  /auth/sign-out:
+    post:
+      operationId: AuthController_signOut
+      parameters: []
+      responses:
+        '204':
+          description: Signed out.
+      security:
+        - sessionCookie: []
+      summary: End the current session, clearing the session cookie.
+      tags: *ref_0
+  /auth/session:
+    get:
+      operationId: AuthController_session
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionUserDto'
+        '401':
+          description: No valid session.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthErrorResponseDto'
+      security:
+        - sessionCookie: []
+      summary: Get the current signed-in user.
+      tags: *ref_0
+  /health:
+    get:
+      operationId: HealthController_check
+      parameters: []
+      responses:
+        '200':
+          description: Database reachable.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum:
+                      - ok
+                  database:
+                    type: string
+                    enum:
+                      - connected
+                  timestamp:
+                    type: string
+                    format: date-time
+        '503':
+          description: Database unreachable.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum:
+                      - degraded
+                  database:
+                    type: string
+                    enum:
+                      - unreachable
+                  timestamp:
+                    type: string
+                    format: date-time
+      summary: Report backend/database health.
+      tags:
+        - health
+  /holdings:
+    get:
+      operationId: HoldingsController_list
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HoldingResponseDto'
+      security: &ref_1
+        - sessionCookie: []
+      summary: List the caller's holdings.
+      tags: &ref_2
+        - holdings
+    post:
+      operationId: HoldingsController_create
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/CreateEtfHoldingRequestDto'
+                - $ref: '#/components/schemas/CreateShareHoldingRequestDto'
+                - $ref: '#/components/schemas/CreatePreciousMetalHoldingRequestDto'
+                - $ref: '#/components/schemas/CreateCryptoHoldingRequestDto'
+                - $ref: '#/components/schemas/CreateDepositMoneyHoldingRequestDto'
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HoldingResponseDto'
+        '400':
+          description: One or more fields are invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HoldingValidationErrorResponseDto'
+      security: *ref_1
+      summary: Create a holding — request shape depends on `assetType`.
+      tags: *ref_2
+  /holdings/{id}:
+    put:
+      operationId: HoldingsController_update
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/UpdateEtfHoldingRequestDto'
+                - $ref: '#/components/schemas/UpdateShareHoldingRequestDto'
+                - $ref: '#/components/schemas/UpdatePreciousMetalHoldingRequestDto'
+                - $ref: '#/components/schemas/UpdateCryptoHoldingRequestDto'
+                - $ref: '#/components/schemas/UpdateDepositMoneyHoldingRequestDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HoldingResponseDto'
+        '400':
+          description: One or more fields are invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HoldingValidationErrorResponseDto'
+        '404':
+          description: This holding no longer exists.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HoldingNotFoundErrorResponseDto'
+      security: *ref_1
+      summary: Update a holding — same shape as create, without `assetType`.
+      tags: *ref_2
+    delete:
+      operationId: HoldingsController_delete
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Deleted.
+        '404':
+          description: This holding no longer exists.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HoldingNotFoundErrorResponseDto'
+      security: *ref_1
+      summary: Delete a holding.
+      tags: *ref_2
+  /accounts:
+    get:
+      operationId: AccountsController_listAll
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AccountSummaryDto'
+        '403': &ref_3
+          description: Caller is not an administrator.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+      security: &ref_4
+        - sessionCookie: []
+      summary: List every account (admin only).
+      tags: &ref_5
+        - accounts
+  /accounts/{id}/role:
+    patch:
+      operationId: AccountsController_changeRole
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangeRoleRequestDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountSummaryDto'
+        '403': *ref_3
+        '404':
+          description: Account not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountsErrorResponseDto'
+        '409':
+          description: Would leave no active administrator.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountsErrorResponseDto'
+      security: *ref_4
+      summary: Change an account's role.
+      tags: *ref_5
+  /accounts/{id}/domain-scopes:
+    patch:
+      operationId: AccountsController_changeDomainScopes
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangeDomainScopesRequestDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountSummaryDto'
+        '400':
+          description: One or more domain ids are not recognized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountsErrorResponseDto'
+        '403': *ref_3
+        '404':
+          description: Account not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountsErrorResponseDto'
+      security: *ref_4
+      summary: Change an account's domain scopes.
+      tags: *ref_5
+  /accounts/{id}/archive:
+    post:
+      operationId: AccountsController_archive
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountSummaryDto'
+        '403': *ref_3
+        '404':
+          description: Account not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountsErrorResponseDto'
+        '409':
+          description: Would leave no active administrator, or already archived.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountsErrorResponseDto'
+      security: *ref_4
+      summary: Archive an account.
+      tags: *ref_5
+  /accounts/{id}/reactivate:
+    post:
+      operationId: AccountsController_reactivate
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountSummaryDto'
+        '403': *ref_3
+        '404':
+          description: Account not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountsErrorResponseDto'
+        '410':
+          description: This account's retention window has passed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountsErrorResponseDto'
+      security: *ref_4
+      summary: Reactivate an archived account, within its retention window.
+      tags: *ref_5
+  /accounts/{id}:
+    delete:
+      operationId: AccountsController_deleteSelf
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Deleted.
+        '403': *ref_3
+        '409':
+          description: Would leave no active administrator.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountsErrorResponseDto'
+      security: *ref_4
+      summary: Permanently delete an account past its retention window.
+      tags: *ref_5
+  /invitations:
+    post:
+      operationId: InvitationsController_create
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateInvitationRequestDto'
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvitationSummaryDto'
+        '403':
+          description: Caller is not an administrator.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '409':
+          description: This email already has an account.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvitationsErrorResponseDto'
+        '502':
+          description: Invitation saved, but the email could not be sent.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvitationsErrorResponseDto'
+      security:
+        - sessionCookie: []
+      summary: Invite a new user by email (admin only).
+      tags: &ref_6
+        - invitations
+    get:
+      operationId: InvitationsController_list
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InvitationSummaryDto'
+        '403':
+          description: Caller is not an administrator.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+      security:
+        - sessionCookie: []
+      summary: List every invitation (admin only).
+      tags: *ref_6
+  /invitations/{id}/cancel:
+    post:
+      operationId: InvitationsController_cancel
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvitationSummaryDto'
+        '403':
+          description: Caller is not an administrator.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '404':
+          description: Invitation not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvitationsErrorResponseDto'
+        '409':
+          description: This invitation was already accepted, cancelled, or superseded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvitationsErrorResponseDto'
+      security:
+        - sessionCookie: []
+      summary: Cancel a pending invitation (admin only).
+      tags: *ref_6
+  /invitations/{id}/resend:
+    post:
+      operationId: InvitationsController_resend
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvitationSummaryDto'
+        '403':
+          description: Caller is not an administrator.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '404':
+          description: Invitation not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvitationsErrorResponseDto'
+        '409':
+          description: This invitation was already accepted, cancelled, or superseded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvitationsErrorResponseDto'
+        '502':
+          description: Invitation could not be re-sent.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvitationsErrorResponseDto'
+      security:
+        - sessionCookie: []
+      summary: Resend a pending invitation email (admin only).
+      tags: *ref_6
+  /invitations/token/{token}:
+    get:
+      operationId: InvitationsController_lookupToken
+      parameters:
+        - name: token
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvitationTokenLookupDto'
+        '410':
+          description: This invitation link is no longer valid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvitationsErrorResponseDto'
+      summary: Look up a pending invitation's email/role by its token.
+      tags: *ref_6
+  /invitations/token/{token}/accept:
+    post:
+      operationId: InvitationsController_accept
+      parameters:
+        - name: token
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcceptInvitationRequestDto'
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionUserDto'
+        '400':
+          description: Password must be between 8 and 200 characters.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvitationsErrorResponseDto'
+        '410':
+          description: This invitation link is no longer valid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvitationsErrorResponseDto'
+      summary: Accept an invitation, creating the account and starting a session.
+      tags: *ref_6
+  /signups:
+    post:
+      description: Requires a valid Cloudflare Turnstile token (see `turnstileToken`).
+      operationId: SignupsController_submit
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSignupRequestDto'
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignupSubmittedDto'
+        '400':
+          description: Password must be between 8 and 200 characters.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignupsErrorResponseDto'
+        '403':
+          description: Public sign-up is not available, or the Turnstile check failed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignupsErrorResponseDto'
+        '409':
+          description: This email can't be used to sign up right now.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignupsErrorResponseDto'
+        '502':
+          description: Sign-up saved, but the verification email could not be sent.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignupsErrorResponseDto'
+      summary: Submit a self-service sign-up request.
+      tags: &ref_7
+        - signups
+    get:
+      operationId: SignupsController_list
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SignupSummaryDto'
+        '403':
+          description: Caller is not an administrator.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+      security:
+        - sessionCookie: []
+      summary: List every sign-up request (admin only).
+      tags: *ref_7
+  /signups/token/{token}:
+    get:
+      operationId: SignupsController_lookupToken
+      parameters:
+        - name: token
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  email:
+                    type: string
+        '410':
+          description: This verification link is no longer valid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignupsErrorResponseDto'
+      summary: Look up a sign-up request's email by its verification token.
+      tags: *ref_7
+  /signups/token/{token}/verify:
+    post:
+      operationId: SignupsController_verify
+      parameters:
+        - name: token
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  email:
+                    type: string
+                  status:
+                    type: string
+                    enum:
+                      - VERIFIED
+        '410':
+          description: This verification link is no longer valid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignupsErrorResponseDto'
+        '502':
+          description: Verified, but admin notification could not be sent.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignupsErrorResponseDto'
+      summary: Verify a sign-up request via its emailed token.
+      tags: *ref_7
+  /signups/{id}/approve:
+    post:
+      operationId: SignupsController_approve
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignupSummaryDto'
+        '400':
+          description: Only verified sign-up requests can be resolved.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignupsErrorResponseDto'
+        '403':
+          description: Caller is not an administrator.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '404':
+          description: Not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignupsErrorResponseDto'
+        '409':
+          description: This sign-up request was already resolved.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignupsErrorResponseDto'
+        '502':
+          description: Account created, but the welcome email could not be sent.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignupsErrorResponseDto'
+      security:
+        - sessionCookie: []
+      summary: Approve a verified sign-up request, creating its account (admin only).
+      tags: *ref_7
+  /signups/{id}/reject:
+    post:
+      operationId: SignupsController_reject
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RejectSignupRequestDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignupSummaryDto'
+        '400':
+          description: Only verified sign-up requests can be resolved.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignupsErrorResponseDto'
+        '403':
+          description: Caller is not an administrator.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '404':
+          description: Not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignupsErrorResponseDto'
+        '409':
+          description: This sign-up request was already resolved.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignupsErrorResponseDto'
+        '502':
+          description: Rejected, but the notification email could not be sent.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignupsErrorResponseDto'
+      security:
+        - sessionCookie: []
+      summary: Reject a verified sign-up request (admin only).
+      tags: *ref_7
+  /signups/{id}:
+    delete:
+      operationId: SignupsController_delete
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleted:
+                    type: boolean
+                    enum:
+                      - true
+        '403':
+          description: Caller is not an administrator.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '404':
+          description: Not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignupsErrorResponseDto'
+      security:
+        - sessionCookie: []
+      summary: Delete a resolved sign-up request (admin only).
+      tags: *ref_7
+  /profile:
+    get:
+      operationId: ProfileController_getProfile
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileSummaryDto'
+      security:
+        - sessionCookie: []
+      summary: Get the caller's own profile.
+      tags: &ref_8
+        - profile
+  /profile/display-name:
+    patch:
+      operationId: ProfileController_updateDisplayName
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDisplayNameRequestDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileSummaryDto'
+        '400':
+          description: Display name must be 1–100 characters.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileErrorResponseDto'
+      security:
+        - sessionCookie: []
+      summary: Update the caller's display name.
+      tags: *ref_8
+  /profile/email-language:
+    patch:
+      operationId: ProfileController_updateEmailLanguage
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateEmailLanguageRequestDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileSummaryDto'
+        '400':
+          description: Email language must be a supported language or unset.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileErrorResponseDto'
+      security:
+        - sessionCookie: []
+      summary: Update the caller's notification email language.
+      tags: *ref_8
+  /profile/email-change:
+    post:
+      operationId: ProfileController_requestEmailChange
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestEmailChangeRequestDto'
+      responses:
+        '202':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pendingEmail:
+                    type: string
+        '409':
+          description: This email can't be used right now.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileErrorResponseDto'
+        '502':
+          description: Request saved, but the email could not be sent.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileErrorResponseDto'
+      security:
+        - sessionCookie: []
+      summary: Request an email change, sending a confirmation link to the new address.
+      tags: *ref_8
+  /profile/email-change/cancel:
+    post:
+      operationId: ProfileController_cancelEmailChange
+      parameters: []
+      responses:
+        '204':
+          description: Cancelled.
+      security:
+        - sessionCookie: []
+      summary: Cancel a pending email change.
+      tags: *ref_8
+  /profile/email-change/token/{token}:
+    get:
+      operationId: ProfileController_lookupEmailChangeToken
+      parameters:
+        - name: token
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  newEmail:
+                    type: string
+        '410':
+          description: This link is no longer valid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileErrorResponseDto'
+      summary: Look up a pending email change's new address by its token.
+      tags: *ref_8
+  /profile/email-change/token/{token}/confirm:
+    post:
+      operationId: ProfileController_confirmEmailChange
+      parameters:
+        - name: token
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  email:
+                    type: string
+        '410':
+          description: This link is no longer valid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileErrorResponseDto'
+      summary: Confirm a pending email change via its emailed token.
+      tags: *ref_8
+  /profile/password:
+    post:
+      operationId: ProfileController_changePassword
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequestDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  changed:
+                    type: boolean
+                    enum:
+                      - true
+        '400':
+          description: Password must be between 8 and 200 characters.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileErrorResponseDto'
+        '401':
+          description: Current password is incorrect.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileErrorResponseDto'
+      security:
+        - sessionCookie: []
+      summary: Change the caller's password.
+      tags: *ref_8
+  /profile/forgot-password:
+    post:
+      description: Requires a valid Cloudflare Turnstile token (see `turnstileToken`).
+      operationId: ProfileController_forgotPassword
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForgotPasswordRequestDto'
+      responses:
+        '200':
+          description: >-
+            Always returns { accepted: true } regardless of whether the email
+            exists.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accepted:
+                    type: boolean
+                    enum:
+                      - true
+      summary: Request a password-reset email.
+      tags: *ref_8
+  /profile/reset-password/token/{token}:
+    get:
+      operationId: ProfileController_lookupResetToken
+      parameters:
+        - name: token
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+                    enum:
+                      - true
+                  displayName:
+                    type: string
+                  email:
+                    type: string
+        '410':
+          description: This link is no longer valid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileErrorResponseDto'
+      summary: Look up a password-reset token's associated account.
+      tags: *ref_8
+  /profile/reset-password/token/{token}/confirm:
+    post:
+      operationId: ProfileController_confirmPasswordReset
+      parameters:
+        - name: token
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequestDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionUserDto'
+        '400':
+          description: Password must be between 8 and 200 characters.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileErrorResponseDto'
+        '410':
+          description: This link is no longer valid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileErrorResponseDto'
+      summary: Confirm a password reset via its emailed token, starting a session.
+      tags: *ref_8
+  /profile/account:
+    delete:
+      operationId: ProfileController_deleteAccount
+      parameters: []
+      responses:
+        '204':
+          description: Deleted.
+        '409':
+          description: Would leave no active administrator.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileErrorResponseDto'
+      security:
+        - sessionCookie: []
+      summary: Delete the caller's own account.
+      tags: *ref_8
+  /account-overview/accounts:
+    get:
+      operationId: AccountOverviewController_list
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AccountOverviewEntryDto'
+      security: &ref_9
+        - sessionCookie: []
+      summary: List the caller's account-overview entries.
+      tags: &ref_10
+        - account-overview
+    post:
+      operationId: AccountOverviewController_create
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAccountOverviewEntryRequestDto'
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountOverviewEntryDto'
+        '400':
+          description: One or more fields are invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountOverviewValidationErrorResponseDto'
+      security: *ref_9
+      summary: Create an account-overview entry.
+      tags: *ref_10
+  /account-overview/accounts/{id}:
+    put:
+      operationId: AccountOverviewController_update
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAccountOverviewEntryRequestDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountOverviewEntryDto'
+        '400':
+          description: One or more fields are invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountOverviewValidationErrorResponseDto'
+        '404':
+          description: This account no longer exists.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountOverviewNotFoundErrorResponseDto'
+      security: *ref_9
+      summary: >-
+        Update an account-overview entry. Every field is optional; an omitted
+        field is left unchanged.
+      tags: *ref_10
+    delete:
+      operationId: AccountOverviewController_delete
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Deleted.
+        '404':
+          description: This account no longer exists.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountOverviewNotFoundErrorResponseDto'
+      security: *ref_9
+      summary: Delete an account-overview entry.
+      tags: *ref_10
+info:
+  title: Vaultfolio API
+  description: >-
+    Vaultfolio is a self-hosted personal finance tracker for manually tracking
+    investments across ETFs, shares, precious metals, crypto, and more. Source,
+    issues, and the full README live at https://github.com/mallwang/vaultfolio.
+
+
+    This document is generated directly from the backend controllers and DTOs,
+    so it always matches what is actually running.
+
+
+    ### Authentication
+
+
+    Every endpoint below except `/health` and `/auth/sign-in` requires the
+    vaultfolio_session session cookie set by signing in (via the app, or via
+    `POST /auth/sign-in` below) — it is not a separate credential scheme. That
+    cookie is httpOnly, so it rides along automatically on every "Try it out"
+    call once you are signed in; there is nothing to enter in the "Authorize"
+    dialog below, which exists only to mark which endpoints require it.
+  version: 0.0.9
+  contact: {}
+tags: []
+servers:
+  - url: /api
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: vaultfolio_session
+      description: >-
+        Set automatically by your browser after signing in (via the app, or via
+        `POST /auth/sign-in` below) — this cookie is httpOnly, so there is
+        nothing to paste here; it will be sent with "Try it out" requests
+        regardless of this dialog.
+  schemas:
+    SignInRequestDto:
+      type: object
+      properties:
+        email:
+          type: string
+          example: admin@example.com
+        password:
+          type: string
+          format: password
+      required:
+        - email
+        - password
+    SessionUserDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          example: admin@example.com
+        displayName:
+          type: string
+        role:
+          type: string
+          enum:
+            - ADMIN
+            - MEMBER
+        domainScopes:
+          description: Domain ids this user is entitled to, independent of `role`.
+          type: array
+          items:
+            type: string
+      required:
+        - id
+        - email
+        - displayName
+        - role
+        - domainScopes
+    AuthErrorResponseDto:
+      type: object
+      properties:
+        error:
+          type: string
+          enum:
+            - invalid_credentials
+            - account_locked
+            - unauthenticated
+            - forbidden
+        message:
+          type: string
+      required:
+        - error
+        - message
+    HoldingResponseDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        assetType:
+          type: string
+          enum:
+            - ETF
+            - SHARE
+            - PRECIOUS_METAL
+            - CRYPTO
+            - DEPOSIT_MONEY
+        management:
+          type: string
+          description: Freeform label for who/what manages this holding.
+        quantity:
+          type: object
+          nullable: true
+          example: '10'
+          description: Decimal string.
+        purchasePrice:
+          type: object
+          nullable: true
+          example: '123.45'
+          description: Decimal string.
+        purchaseDate:
+          type: object
+          nullable: true
+          format: date
+        isin:
+          type: object
+          nullable: true
+        name:
+          type: object
+          nullable: true
+        weightGrams:
+          type: object
+          nullable: true
+          example: '15.5'
+          description: Decimal string.
+        currentValue:
+          type: object
+          nullable: true
+          example: '1000.00'
+          description: Decimal string.
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - assetType
+        - management
+        - createdAt
+        - updatedAt
+    CreateEtfHoldingRequestDto:
+      type: object
+      properties:
+        assetType:
+          type: string
+          enum: &ref_11
+            - ETF
+        management:
+          type: string
+        isin:
+          type: string
+        name:
+          type: string
+        quantity:
+          type: string
+          example: '10'
+        purchasePrice:
+          type: string
+          example: '123.45'
+      required:
+        - assetType
+        - management
+        - isin
+        - name
+        - quantity
+        - purchasePrice
+    CreateShareHoldingRequestDto:
+      type: object
+      properties:
+        assetType:
+          type: string
+          enum: &ref_12
+            - SHARE
+        management:
+          type: string
+        isin:
+          type: string
+        name:
+          type: string
+        quantity:
+          type: string
+          example: '10'
+        purchasePrice:
+          type: string
+          example: '123.45'
+        purchaseDate:
+          type: string
+          format: date
+          description: Omit entirely, not "".
+      required:
+        - assetType
+        - management
+        - isin
+        - name
+        - quantity
+        - purchasePrice
+    CreatePreciousMetalHoldingRequestDto:
+      type: object
+      properties:
+        assetType:
+          type: string
+          enum: &ref_13
+            - PRECIOUS_METAL
+        management:
+          type: string
+        name:
+          type: string
+        weightGrams:
+          type: string
+          example: '15.5'
+        currentValue:
+          type: string
+          example: '1000.00'
+          description: Used only by the distribution view.
+      required:
+        - assetType
+        - management
+        - name
+        - weightGrams
+    CreateCryptoHoldingRequestDto:
+      type: object
+      properties:
+        assetType:
+          type: string
+          enum: &ref_14
+            - CRYPTO
+        management:
+          type: string
+        name:
+          type: string
+        quantity:
+          type: string
+          example: '0.5'
+        purchasePrice:
+          type: string
+          example: '30000.00'
+        purchaseDate:
+          type: string
+          format: date
+          description: Omit entirely, not "".
+      required:
+        - assetType
+        - management
+        - name
+        - quantity
+        - purchasePrice
+    CreateDepositMoneyHoldingRequestDto:
+      type: object
+      properties:
+        assetType:
+          type: string
+          enum: &ref_15
+            - DEPOSIT_MONEY
+        management:
+          type: string
+        name:
+          type: string
+        currentValue:
+          type: string
+          example: '5000.00'
+      required:
+        - assetType
+        - management
+        - name
+        - currentValue
+    HoldingValidationErrorResponseDto:
+      type: object
+      properties:
+        error:
+          type: string
+          enum:
+            - VALIDATION_FAILED
+        message:
+          type: string
+        fieldErrors:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string
+      required:
+        - error
+        - message
+        - fieldErrors
+    UpdateEtfHoldingRequestDto:
+      type: object
+      properties:
+        assetType:
+          type: string
+          enum: *ref_11
+        management:
+          type: string
+        isin:
+          type: string
+        name:
+          type: string
+        quantity:
+          type: string
+          example: '10'
+        purchasePrice:
+          type: string
+          example: '123.45'
+      required:
+        - assetType
+        - management
+        - isin
+        - name
+        - quantity
+        - purchasePrice
+    UpdateShareHoldingRequestDto:
+      type: object
+      properties:
+        assetType:
+          type: string
+          enum: *ref_12
+        management:
+          type: string
+        isin:
+          type: string
+        name:
+          type: string
+        quantity:
+          type: string
+          example: '10'
+        purchasePrice:
+          type: string
+          example: '123.45'
+        purchaseDate:
+          type: string
+          format: date
+          description: Omit entirely, not "".
+      required:
+        - assetType
+        - management
+        - isin
+        - name
+        - quantity
+        - purchasePrice
+    UpdatePreciousMetalHoldingRequestDto:
+      type: object
+      properties:
+        assetType:
+          type: string
+          enum: *ref_13
+        management:
+          type: string
+        name:
+          type: string
+        weightGrams:
+          type: string
+          example: '15.5'
+        currentValue:
+          type: string
+          example: '1000.00'
+          description: Used only by the distribution view.
+      required:
+        - assetType
+        - management
+        - name
+        - weightGrams
+    UpdateCryptoHoldingRequestDto:
+      type: object
+      properties:
+        assetType:
+          type: string
+          enum: *ref_14
+        management:
+          type: string
+        name:
+          type: string
+        quantity:
+          type: string
+          example: '0.5'
+        purchasePrice:
+          type: string
+          example: '30000.00'
+        purchaseDate:
+          type: string
+          format: date
+          description: Omit entirely, not "".
+      required:
+        - assetType
+        - management
+        - name
+        - quantity
+        - purchasePrice
+    UpdateDepositMoneyHoldingRequestDto:
+      type: object
+      properties:
+        assetType:
+          type: string
+          enum: *ref_15
+        management:
+          type: string
+        name:
+          type: string
+        currentValue:
+          type: string
+          example: '5000.00'
+      required:
+        - assetType
+        - management
+        - name
+        - currentValue
+    HoldingNotFoundErrorResponseDto:
+      type: object
+      properties:
+        error:
+          type: string
+          enum:
+            - HOLDING_NOT_FOUND
+        message:
+          type: string
+      required:
+        - error
+        - message
+    ErrorResponseDetailDto:
+      type: object
+      properties:
+        field:
+          type: string
+          example: quantity
+        message:
+          type: string
+          example: Must be a positive number.
+      required:
+        - field
+        - message
+    ErrorResponseDto:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Stable machine-readable error code.
+          example: not_found
+        message:
+          type: string
+          example: Account not found.
+        correlationId:
+          type: string
+          description: >-
+            UUID for end-to-end tracing; matches the X-Correlation-Id response
+            header.
+          format: uuid
+        details:
+          description: >-
+            Only present for field-level validation errors; non-empty when
+            present.
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorResponseDetailDto'
+      required:
+        - error
+        - message
+        - correlationId
+    AccountSummaryDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          example: member@example.com
+        displayName:
+          type: string
+        role:
+          type: string
+          enum:
+            - ADMIN
+            - MEMBER
+        status:
+          type: string
+          enum:
+            - ACTIVE
+            - ARCHIVED
+        archivedAt:
+          type: object
+          format: date-time
+          nullable: true
+        retentionExpiresAt:
+          type: object
+          format: date-time
+          nullable: true
+        isLastActiveAdmin:
+          type: boolean
+        domainScopes:
+          description: Domain ids this account is entitled to, independent of `role`.
+          type: array
+          items:
+            type: string
+      required:
+        - id
+        - email
+        - displayName
+        - role
+        - status
+        - isLastActiveAdmin
+        - domainScopes
+    ChangeRoleRequestDto:
+      type: object
+      properties:
+        role:
+          type: string
+          enum:
+            - ADMIN
+            - MEMBER
+      required:
+        - role
+    AccountsErrorResponseDto:
+      type: object
+      properties:
+        error:
+          type: string
+          enum:
+            - not_found
+            - last_admin
+            - already_archived
+            - retention_expired
+            - forbidden
+            - invalid_domain
+        message:
+          type: string
+      required:
+        - error
+        - message
+    ChangeDomainScopesRequestDto:
+      type: object
+      properties:
+        domainScopes:
+          type: array
+          items:
+            type: string
+      required:
+        - domainScopes
+    CreateInvitationRequestDto:
+      type: object
+      properties:
+        email:
+          type: string
+        role:
+          type: string
+          enum:
+            - ADMIN
+            - MEMBER
+      required:
+        - email
+        - role
+    InvitationSummaryDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+        role:
+          type: string
+          enum:
+            - ADMIN
+            - MEMBER
+        status:
+          type: string
+          enum:
+            - PENDING
+            - ACCEPTED
+            - EXPIRED
+            - CANCELLED
+            - SUPERSEDED
+        invitedBy:
+          type: string
+          format: uuid
+          description: Id of the admin who sent this invitation.
+        createdAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - email
+        - role
+        - status
+        - invitedBy
+        - createdAt
+        - expiresAt
+    InvitationsErrorResponseDto:
+      type: object
+      properties:
+        error:
+          type: string
+          enum:
+            - account_exists
+            - not_found
+            - already_resolved
+            - email_delivery_failed
+            - invalid_invitation
+            - invalid_password
+        message:
+          type: string
+      required:
+        - error
+        - message
+    InvitationTokenLookupDto:
+      type: object
+      properties:
+        email:
+          type: string
+        role:
+          type: string
+          enum:
+            - ADMIN
+            - MEMBER
+      required:
+        - email
+        - role
+    AcceptInvitationRequestDto:
+      type: object
+      properties:
+        password:
+          type: string
+          format: password
+        displayName:
+          type: string
+      required:
+        - password
+        - displayName
+    CreateSignupRequestDto:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+          format: password
+        turnstileToken:
+          type: string
+          description: Cloudflare Turnstile challenge token.
+      required:
+        - email
+        - password
+        - turnstileToken
+    SignupSubmittedDto:
+      type: object
+      properties:
+        email:
+          type: string
+      required:
+        - email
+    SignupsErrorResponseDto:
+      type: object
+      properties:
+        error:
+          type: string
+          enum:
+            - invalid_password
+            - email_unavailable
+            - signup_disabled
+            - email_delivery_failed
+            - invalid_token
+            - not_found
+            - not_verified
+            - already_resolved
+            - bot_protection_failed
+        message:
+          type: string
+      required:
+        - error
+        - message
+    SignupSummaryDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+        status:
+          type: string
+          enum:
+            - PENDING
+            - VERIFIED
+            - APPROVED
+            - REJECTED
+        createdAt:
+          type: string
+          format: date-time
+        verifiedAt:
+          type: object
+          format: date-time
+          nullable: true
+        resolvedAt:
+          type: object
+          format: date-time
+          nullable: true
+        accountDeletedAt:
+          type: object
+          format: date-time
+          nullable: true
+          description: >-
+            Set once the account this (APPROVED) request produced is later
+            deleted.
+      required:
+        - id
+        - email
+        - status
+        - createdAt
+    RejectSignupRequestDto:
+      type: object
+      properties:
+        reason:
+          type: string
+    ProfileSummaryDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+        displayName:
+          type: string
+        role:
+          type: string
+          enum:
+            - ADMIN
+            - MEMBER
+        pendingEmail:
+          type: object
+          nullable: true
+        emailLanguage:
+          type: string
+          enum: &ref_16
+            - en
+            - de
+          nullable: true
+          description: null = not explicitly set; falls back to the default language.
+      required:
+        - id
+        - email
+        - displayName
+        - role
+    UpdateDisplayNameRequestDto:
+      type: object
+      properties:
+        displayName:
+          type: string
+      required:
+        - displayName
+    ProfileErrorResponseDto:
+      type: object
+      properties:
+        error:
+          type: string
+          enum:
+            - invalid_display_name
+            - email_unavailable
+            - email_delivery_failed
+            - invalid_token
+            - invalid_password
+            - invalid_current_password
+            - last_admin
+            - deletion_failed
+            - invalid_email_language
+            - bot_protection_failed
+        message:
+          type: string
+      required:
+        - error
+        - message
+    UpdateEmailLanguageRequestDto:
+      type: object
+      properties:
+        emailLanguage:
+          type: string
+          enum: *ref_16
+          nullable: true
+      required:
+        - emailLanguage
+    RequestEmailChangeRequestDto:
+      type: object
+      properties:
+        newEmail:
+          type: string
+      required:
+        - newEmail
+    ChangePasswordRequestDto:
+      type: object
+      properties:
+        currentPassword:
+          type: string
+          format: password
+        newPassword:
+          type: string
+          format: password
+      required:
+        - currentPassword
+        - newPassword
+    ForgotPasswordRequestDto:
+      type: object
+      properties:
+        email:
+          type: string
+        turnstileToken:
+          type: string
+          description: Cloudflare Turnstile challenge token.
+      required:
+        - email
+        - turnstileToken
+    ResetPasswordRequestDto:
+      type: object
+      properties:
+        newPassword:
+          type: string
+          format: password
+      required:
+        - newPassword
+    AccountOverviewEntryDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        category:
+          type: string
+          enum: &ref_17
+            - GENERAL
+            - LEISURE
+            - SAVINGS
+            - DEPOT
+            - CREDIT_CARD
+            - OTHER
+        status:
+          type: string
+          enum: &ref_18
+            - ACTIVE
+            - DECOMMISSIONED
+          description: >-
+            A decommissioned account stays listed, sorted after the active ones
+            within its category.
+        provider:
+          type: object
+          nullable: true
+        website:
+          type: object
+          nullable: true
+        purpose:
+          type: object
+          nullable: true
+        cardUsage:
+          type: object
+          nullable: true
+        requiredMinimum:
+          type: object
+          nullable: true
+        notes:
+          type: object
+          nullable: true
+        cardNumber:
+          type: object
+          nullable: true
+          description: Full card number as entered (CREDIT_CARD accounts only).
+        validUntil:
+          type: object
+          nullable: true
+          example: 12/29
+          description: MM/YY.
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - category
+        - status
+        - createdAt
+        - updatedAt
+    CreateAccountOverviewEntryRequestDto:
+      type: object
+      properties:
+        name:
+          type: string
+        category:
+          type: string
+          enum: *ref_17
+          description: Omit to default to 'OTHER'.
+        status:
+          type: string
+          enum: *ref_18
+          description: Omit to default to 'ACTIVE'.
+        provider:
+          type: string
+        website:
+          type: string
+        purpose:
+          type: string
+        cardUsage:
+          type: string
+        requiredMinimum:
+          type: string
+        notes:
+          type: string
+        cardNumber:
+          type: string
+        validUntil:
+          type: string
+          example: 12/29
+      required:
+        - name
+    AccountOverviewValidationErrorResponseDto:
+      type: object
+      properties:
+        error:
+          type: string
+          enum:
+            - VALIDATION_FAILED
+        message:
+          type: string
+        fieldErrors:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string
+      required:
+        - error
+        - message
+        - fieldErrors
+    UpdateAccountOverviewEntryRequestDto:
+      type: object
+      properties:
+        name:
+          type: string
+        category:
+          type: string
+          enum: *ref_17
+          description: Omit to default to 'OTHER'.
+        status:
+          type: string
+          enum: *ref_18
+          description: Omit to default to 'ACTIVE'.
+        provider:
+          type: string
+        website:
+          type: string
+        purpose:
+          type: string
+        cardUsage:
+          type: string
+        requiredMinimum:
+          type: string
+        notes:
+          type: string
+        cardNumber:
+          type: string
+        validUntil:
+          type: string
+          example: 12/29
+      required:
+        - name
+    AccountOverviewNotFoundErrorResponseDto:
+      type: object
+      properties:
+        error:
+          type: string
+          enum:
+            - ACCOUNT_NOT_FOUND
+        message:
+          type: string
+      required:
+        - error
+        - message

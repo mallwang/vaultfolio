@@ -96,6 +96,12 @@ docker compose up --build
 
 - Frontend: <http://localhost:4200>
 - Backend health check: <http://localhost:3000/health>
+- Interactive API documentation: <http://localhost:4200/swagger> — every endpoint's schema,
+  generated directly from the backend controllers/DTOs, with "try it out" reusing your real browser
+  session (log into the app first). The same document is downloadable as
+  <http://localhost:4200/api/openapi.yml>, and a checked-in [Bruno](https://www.usebruno.com/)
+  collection lives at [api/bruno/](api/bruno/) for exercising the API outside the browser — see
+  specs/031-openapi-swagger-integration/quickstart.md for a full walkthrough.
 - Database: a single SQLite file under `./data` on the host (`./data/vaultfolio.db`, plus its
   `-wal`/`-shm` WAL-mode siblings while the stack is running) — inspect or back it up directly,
   e.g. `cp -r ./data /backup/`.

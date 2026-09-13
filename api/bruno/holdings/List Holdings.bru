@@ -1,0 +1,16 @@
+meta {
+  name: List Holdings
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/holdings
+  body: none
+  auth: none
+}
+
+docs {
+  Authenticated request — requires the `vaultfolio_session` cookie captured
+  by `auth/Login`.
+}

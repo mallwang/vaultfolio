@@ -1,0 +1,16 @@
+meta {
+  name: List Invitations (admin)
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/invitations
+  body: none
+  auth: none
+}
+
+docs {
+  Admin-only request — requires the `vaultfolio_session` cookie of an ADMIN
+  account, captured by `auth/Login`.
+}
