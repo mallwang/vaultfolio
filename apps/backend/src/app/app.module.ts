@@ -9,9 +9,11 @@ import { SignupsModule } from '../signups/signups.module';
 import { ProfileModule } from '../profile/profile.module';
 import { AccountOverviewModule } from '../account-overview/account-overview.module';
 import { TurnstileModule } from '../turnstile/turnstile.module';
+import { ObservabilityModule } from '@vaultfolio/observability';
 
 @Module({
   imports: [
+    ObservabilityModule,
     DatabaseModule,
     AuthModule,
     HealthModule,

@@ -379,6 +379,13 @@ describe('/accounts', () => {
 
       for (const response of responses) {
         expect(response.status).toBe(403);
+        // Migrated to AccessDeniedException (specs/030-observability-logging-error-handling,
+        // US4/T041) — existing error/message unchanged (FR-008), now additionally correlationId.
+        expect(response.body).toMatchObject({
+          error: 'forbidden',
+          message: 'You do not have access to this resource.',
+        });
+        expect(typeof response.body.correlationId).toBe('string');
       }
     });
   });

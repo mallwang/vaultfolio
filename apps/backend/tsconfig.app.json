@@ -22,16 +22,19 @@
       "path": "../../libs/domain/holdings/tsconfig.lib.json"
     },
     {
+      "path": "../../libs/observability/tsconfig.lib.json"
+    },
+    {
       "path": "../../libs/domain/auth/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/account-fields/tsconfig.lib.json"
     },
     {
       "path": "../../libs/api-contract/tsconfig.lib.json"
     },
     {
       "path": "../../libs/domain/accounts/tsconfig.lib.json"
-    },
-    {
-      "path": "../../libs/account-fields/tsconfig.lib.json"
     }
   ]
 }

@@ -1,6 +1,7 @@
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import {
   ApplicationConfig,
+  ErrorHandler,
   EnvironmentInjector,
   inject,
   provideAppInitializer,
@@ -11,6 +12,7 @@ import { definePreset } from '@primeuix/themes';
 import Aura from '@primeuix/themes/aura';
 import { catchError, of, tap } from 'rxjs';
 import { providePrimeNG } from 'primeng/config';
+import { MessageService } from 'primeng/api';
 import { CURRENT_USER_SOURCE } from '@vaultfolio/frontend-domain-access';
 import { FEATURE_EXPORT_REGISTRY } from '@vaultfolio/frontend-shared-ui';
 import { environment } from '../environments/environment';
@@ -19,6 +21,8 @@ import { AuthService } from './auth/auth.service';
 import { authInterceptor } from './auth/auth.interceptor';
 import { CurrentUserStore } from './auth/current-user.store';
 import { VaultfolioTitleStrategy } from './core/title.strategy';
+import { httpErrorInterceptor } from './core/http-error.interceptor';
+import { GlobalErrorHandler } from './core/global-error-handler';
 import { registerFeatureExports } from './export/feature-export.registry';
 
 /**
@@ -51,9 +55,13 @@ const VaultfolioPreset = definePreset(Aura, {
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideHttpClient(withInterceptors([authInterceptor])),
+    provideHttpClient(withInterceptors([authInterceptor, httpErrorInterceptor])),
     provideRouter(routes),
     { provide: TitleStrategy, useClass: VaultfolioTitleStrategy },
+    { provide: ErrorHandler, useClass: GlobalErrorHandler },
+    // Root-level singleton backing the app-wide <p-toast/> in app.html
+    // (specs/030-observability-logging-error-handling, US3).
+    MessageService,
     // `domainGuard`/`isDomainEntitled` (`@vaultfolio/frontend-domain-access`,
     // `scope:shared`) may not import `CurrentUserStore` directly (it lives
     // in `scope:frontend`, contracts/module-boundaries.md) — this binding is

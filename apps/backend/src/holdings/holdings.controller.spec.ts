@@ -460,6 +460,14 @@ describe('/holdings — domain scope enforcement (020-domain-library-architectur
 
     const list = await request(app.getHttpServer()).get('/holdings').set('Cookie', memberCookie);
     expect(list.status).toBe(403);
+    // Migrated to AccessDeniedException (specs/030-observability-logging-error-handling,
+    // US4/T042, DomainGuard) — existing error/message unchanged (FR-008), now additionally
+    // correlationId.
+    expect(list.body).toMatchObject({
+      error: 'forbidden',
+      message: 'You do not have access to this resource.',
+    });
+    expect(typeof list.body.correlationId).toBe('string');
 
     const create = await request(app.getHttpServer())
       .post('/holdings')

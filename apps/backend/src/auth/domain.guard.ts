@@ -1,9 +1,10 @@
-import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import type { Request } from 'express';
 import { UserRole } from '@vaultfolio/api-contract';
 import { DOMAIN_KEY } from './domain.decorator';
 import type { RequestUser } from './current-user.decorator';
+import { AccessDeniedException } from '@vaultfolio/observability';
 
 /**
  * `@RequiresDomain('holdings')` check against `request.user.domainScopes`
@@ -30,7 +31,7 @@ export class DomainGuard implements CanActivate {
       return true;
     }
 
-    throw new ForbiddenException({
+    throw new AccessDeniedException({
       error: 'forbidden',
       message: 'You do not have access to this resource.',
     });

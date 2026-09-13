@@ -1,11 +1,17 @@
 import { HttpException, Logger } from '@nestjs/common';
 import { TurnstileService } from './turnstile.service';
+import { ExternalServiceException, ValidationException } from '@vaultfolio/observability';
 
 const VALID_RESPONSE = {
   success: true,
   action: 'signup',
   hostname: 'example.com',
   'error-codes': [],
+};
+
+const BOT_PROTECTION_FAILED_BODY = {
+  error: 'bot_protection_failed',
+  message: 'Bot protection check failed.',
 };
 
 function makeService(): TurnstileService {
@@ -40,38 +46,75 @@ describe('TurnstileService', () => {
     await expect(makeService().verify('valid-token', 'signup', '1.2.3.4')).resolves.toBeUndefined();
   });
 
-  it('throws 422 when success is false', async () => {
+  // Migrated to categorized BusinessException subclasses
+  // (specs/030-observability-logging-error-handling, US4/T040) — the existing `error`/`message`
+  // body values (relied on by existing callers, FR-008) are unchanged; only the HTTP status and
+  // exception class are now consistent with the rest of the app's categorized failures.
+
+  it('throws a ValidationException (unchanged body) when success is false', async () => {
     mockFetch({ ...VALID_RESPONSE, success: false, 'error-codes': ['invalid-input-response'] });
-    await expect(makeService().verify('bad-token', 'signup')).rejects.toThrow(HttpException);
+    const promise = makeService().verify('bad-token', 'signup');
+    await expect(promise).rejects.toBeInstanceOf(ValidationException);
+    await expect(promise).rejects.toMatchObject({
+      status: 400,
+      response: BOT_PROTECTION_FAILED_BODY,
+    });
   });
 
-  it('throws 422 when action does not match', async () => {
+  it('throws a ValidationException when action does not match', async () => {
     mockFetch({ ...VALID_RESPONSE, action: 'other-action' });
-    await expect(makeService().verify('tok', 'signup')).rejects.toThrow(HttpException);
+    const promise = makeService().verify('tok', 'signup');
+    await expect(promise).rejects.toBeInstanceOf(ValidationException);
+    await expect(promise).rejects.toMatchObject({
+      status: 400,
+      response: BOT_PROTECTION_FAILED_BODY,
+    });
   });
 
-  it('throws 422 when hostname not in allow-list', async () => {
+  it('throws a ValidationException when hostname not in allow-list', async () => {
     mockFetch({ ...VALID_RESPONSE, hostname: 'attacker.com' });
-    await expect(makeService().verify('tok', 'signup')).rejects.toThrow(HttpException);
+    const promise = makeService().verify('tok', 'signup');
+    await expect(promise).rejects.toBeInstanceOf(ValidationException);
+    await expect(promise).rejects.toMatchObject({
+      status: 400,
+      response: BOT_PROTECTION_FAILED_BODY,
+    });
   });
 
-  it('throws 422 on network error', async () => {
+  it('throws an ExternalServiceException (unchanged body) on network error', async () => {
     jest.spyOn(globalThis, 'fetch').mockRejectedValueOnce(new Error('network failure'));
-    await expect(makeService().verify('tok', 'signup')).rejects.toThrow(HttpException);
+    const promise = makeService().verify('tok', 'signup');
+    await expect(promise).rejects.toBeInstanceOf(ExternalServiceException);
+    await expect(promise).rejects.toMatchObject({
+      status: 502,
+      response: BOT_PROTECTION_FAILED_BODY,
+    });
   });
 
-  it('throws 422 on timeout (AbortError)', async () => {
+  it('throws an ExternalServiceException on timeout (AbortError)', async () => {
     const err = Object.assign(new Error('aborted'), { name: 'AbortError' });
     jest.spyOn(globalThis, 'fetch').mockRejectedValueOnce(err);
-    await expect(makeService().verify('tok', 'signup')).rejects.toThrow(HttpException);
+    const promise = makeService().verify('tok', 'signup');
+    await expect(promise).rejects.toBeInstanceOf(ExternalServiceException);
+    await expect(promise).rejects.toMatchObject({
+      status: 502,
+      response: BOT_PROTECTION_FAILED_BODY,
+    });
   });
 
-  it('throws 422 pre-flight: empty token', async () => {
-    await expect(makeService().verify('', 'signup')).rejects.toThrow(HttpException);
+  it('throws a ValidationException pre-flight: empty token', async () => {
+    const promise = makeService().verify('', 'signup');
+    await expect(promise).rejects.toBeInstanceOf(ValidationException);
+    await expect(promise).rejects.toMatchObject({
+      status: 400,
+      response: BOT_PROTECTION_FAILED_BODY,
+    });
   });
 
-  it('throws 422 pre-flight: token > 2048 chars', async () => {
-    await expect(makeService().verify('x'.repeat(2049), 'signup')).rejects.toThrow(HttpException);
+  it('throws a ValidationException pre-flight: token > 2048 chars', async () => {
+    const promise = makeService().verify('x'.repeat(2049), 'signup');
+    await expect(promise).rejects.toBeInstanceOf(ValidationException);
+    await expect(promise).rejects.toBeInstanceOf(HttpException);
   });
 
   it('allows any hostname when TURNSTILE_HOSTNAMES is unset', async () => {

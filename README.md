@@ -55,7 +55,9 @@ For a full walkthrough of the UI, see [docs/user-guide.md](docs/user-guide.md)
   `libs/domain/accounts` (account overview domain shape and validation),
   `libs/account-fields` (shared `AccountCategory`/`AccountStatus` literals for the account overview feature, `scope:shared`),
   `libs/market-data` (reserved, empty — see `TODO(MARKET_DATA_PROVIDER)`),
-  `libs/notifications` (localized email notifications)
+  `libs/notifications` (localized email notifications),
+  `libs/observability` (correlation IDs, structured request logging, and the categorized
+  `BusinessException` hierarchy behind every backend error response)
 
 ## Frontend domain-library architecture
 

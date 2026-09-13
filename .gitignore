@@ -47,3 +47,8 @@ test-output
 
 # CodeGraph local index (per-project, rebuilt by `npx codegraph init`/sync)
 .codegraph/
+
+# Imported reference docs from another project (ADR-003 + linked TDRs) — local
+# context for specs/030-observability-logging-error-handling only, not meant
+# to be committed to this repo.
+/docs/external/reference/
