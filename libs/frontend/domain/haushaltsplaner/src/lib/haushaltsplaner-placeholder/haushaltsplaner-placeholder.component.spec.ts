@@ -15,7 +15,7 @@ describe('HaushaltsplanerPlaceholderComponent', () => {
 
   it('renders the domain name and "not yet available" copy', () => {
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
-    expect(text).toContain('Haushaltsplaner');
+    expect(text).toContain('Budget Planner');
     expect(text).toContain('not yet available');
   });
 });

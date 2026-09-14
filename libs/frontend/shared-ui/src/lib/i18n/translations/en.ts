@@ -33,7 +33,7 @@ export const en: TranslationDictionary = {
     imports: 'Imports',
     retirement: 'Retirement',
     insurances: 'Insurances',
-    haushaltsplaner: 'Haushaltsplaner',
+    haushaltsplaner: 'Budget Planner',
     historicWealthDevelopment: 'Wealth Development',
     accountOverview: 'Account Overview',
     klaro: 'Klaro',
@@ -411,8 +411,8 @@ export const en: TranslationDictionary = {
     body: 'Insurances is not yet available. This area will be built out in a future update.',
   },
   haushaltsplanerPlaceholder: {
-    title: 'Haushaltsplaner',
-    body: 'Haushaltsplaner is not yet available. This area will be built out in a future update.',
+    title: 'Budget Planner',
+    body: 'Budget Planner is not yet available. This area will be built out in a future update.',
   },
   historicWealthDevelopmentPlaceholder: {
     title: 'Wealth Development',
@@ -500,7 +500,7 @@ export const en: TranslationDictionary = {
     holdingsImports: 'Holdings · Imports',
     retirement: 'Retirement',
     insurances: 'Insurances',
-    haushaltsplaner: 'Haushaltsplaner',
+    haushaltsplaner: 'Budget Planner',
     wealthDevelopment: 'Wealth Development',
     accountOverview: 'Account Overview',
     klaro: 'Klaro',
@@ -598,9 +598,9 @@ export const en: TranslationDictionary = {
       'About this export — Insurances. Insurance tracking is not built yet in Vaultfolio, so this file contains no rows today — it will automatically start including your data once that feature ships.',
   },
   haushaltsplanerExport: {
-    title: 'Haushaltsplaner',
+    title: 'Budget Planner',
     infobox:
-      'About this export — Haushaltsplaner. Household budgeting is not built yet in Vaultfolio, so this file contains no rows today — it will automatically start including your data once that feature ships.',
+      'About this export — Budget Planner. Household budgeting is not built yet in Vaultfolio, so this file contains no rows today — it will automatically start including your data once that feature ships.',
   },
   historicWealthDevelopmentExport: {
     title: 'Wealth Development',
