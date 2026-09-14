@@ -18,9 +18,8 @@ Vaultfolio is organized around independent domains (see
 tracking _what you've invested_ (ETFs, shares, gold, and other holdings) — is the first, fully
 built domain; it does not connect to any bank or brokerage APIs, all data is entered manually
 through the UI, with CSV/JSON import as a convenience for bulk entry. Planned domains extend this
-beyond investing into a broader personal finance app: Retirement, Insurances, Haushaltsplaner
-(household/budget planning — day-to-day spending vs. income), Historic Wealth Development, and
-Account Overview (see [constitution](.specify/memory/constitution.md#product-scope) for the
+beyond investing into a broader personal finance app: Retirement, Insurances, Budget Planner
+(day-to-day spending vs. income), Historic Wealth Development, and Account Overview (see [constitution](.specify/memory/constitution.md#product-scope) for the
 per-domain scope rules — e.g., no domain connects to a bank/brokerage API directly, even Account
 Overview).
 
