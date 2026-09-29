@@ -56,5 +56,5 @@
 
 ## Current Feature Plan
 
-Active implementation plan: [specs/026-turnstile-bot-protection/plan.md](specs/026-turnstile-bot-protection/plan.md)
+Active implementation plan: [specs/032-earnings-domain/plan.md](specs/032-earnings-domain/plan.md)
 <!-- SPECKIT END -->
