@@ -1,31 +1,36 @@
 <!--
 Sync Impact Report
-- Version change: 3.3.0 → 3.4.0 (MINOR: Product Scope materially expanded — a new domain-scoped
-  in-scope carve-out added and an existing Out of Scope exclusion narrowed to accommodate it —
-  without removing or redefining any Core Principle)
-- Modified principles: none
-- Added sections: none
+- Version change: 3.4.0 → 3.5.0 (MINOR: new domain added to Product Scope, a new Sensitive
+  Personal Data section added, and Principles IV/V plus the Money/decimal Stack Decision
+  materially expanded with scoped carve-outs — no principle removed or redefined)
+- Modified principles:
+  - IV. Integration Testing: added that real personal documents MUST NOT be committed as
+    fixtures; synthetic documents reproducing the real layout satisfy the real-format requirement.
+  - V. Observability, Versioning & Simplicity: for sensitive-data domains, traceability is
+    achieved by logging import metadata (import id, content fingerprint, parser id/version,
+    counts, outcome) instead of amounts or document content.
+- Added sections:
+  - Product Scope → Sensitive Personal Data (data minimization, no document transmission or
+    storage, owner-only access, encryption at rest, log hygiene, deterministic on-device document
+    interpretation without external/LLM services).
 - Removed sections: none
 - Modified sections:
-  - Product Scope: added an intro framing Vaultfolio as a multi-domain personal finance app
-    (Holdings built; Retirement, Insurances, Haushaltsplaner, Historic Wealth Development, Account
-    Overview planned/placeholder, per 022-add-domain-placeholders) and noting scope rules are
-    per-domain unless stated otherwise.
-  - Product Scope → In Scope: reworded existing bullets as explicitly Holdings-domain-scoped;
-    added a bullet putting day-to-day expense/budget tracking in scope for the Haushaltsplaner
-    domain specifically.
-  - Product Scope → Out of Scope: narrowed the day-to-day expense/budget tracking exclusion to
-    the Holdings domain and non-domain-scoped shell features (it no longer blanket-prohibits the
-    whole product), since that exclusion conflicted with the already-decided Haushaltsplaner
-    domain (a household/budget planner, per the microfrontend-architecture assessment's intake.md)
-    ; extended the no-bank/brokerage-API-integration rule to explicitly cover Account Overview,
-    since that domain aggregates account data across banks/neobrokers/depots.
-- Rationale for this amendment: features 020-022 committed Vaultfolio to a multi-domain pivot,
-  including a Haushaltsplaner (household/budget planner) domain, without reconciling it against
-  the constitution's existing blanket ban on budget-tracking features — an oversight in the prior
-  assess/decide workflow (.specify/assessments/microfrontend-architecture/) that left the
-  constitution and the accepted domain roadmap in direct conflict. This amendment resolves that
-  conflict deliberately rather than leaving it latent until Haushaltsplaner is specified.
+  - Product Scope intro: Earnings added as a planned domain (032-earnings-domain).
+  - Product Scope → In Scope: Earnings-domain bullets (employment income history; upload-only
+    document import).
+  - Product Scope → Out of Scope: the data-origin rule now names Earnings' document import as the
+    one permitted exception to "manual UI entry or CSV/JSON import", and forbids manual entry of
+    monetary figures in Earnings; payroll-system APIs added to the prohibited integrations.
+  - Stack Decision → Money/decimal handling: encrypted-at-rest carve-out for sensitive-data
+    domains (exact decimal at the application layer; ciphertext as the storage form).
+  - Stack Decision → Frontend domain libraries: earnings added to the example list.
+- Rationale for this amendment: spec 032-earnings-domain introduces a domain whose data
+  (payslips, tax certificates) is far more sensitive than holdings and whose correctness depends
+  on figures printed by employers rather than typed by users. The prior constitution only allowed
+  manual entry or CSV/JSON import, required logging calculation inputs, and required plain decimal
+  TEXT storage — all three conflict with that design, so they are reconciled here explicitly.
+- Previous amendment (3.3.0 → 3.4.0): Haushaltsplaner budget tracking carved out of the general
+  exclusion; Account Overview covered by the no-bank-API rule.
 - Templates requiring updates:
   - .specify/templates/constitution-template.md ✅ no change needed (generic placeholder
     template, no product-scope-specific language to update)
@@ -40,6 +45,8 @@ Sync Impact Report
   - Consider whether Account Overview's "planned cash flow" (per the intake) implies any
     forecasting/projection logic that would need its own Core Principle or Stack Decision entry —
     unresolved until that domain is actually specified via /speckit-specify.
+  - Encryption-key rotation for sensitive-data domains is not yet defined; resolve when a
+    rotation need arises (not part of 032-earnings-domain).
 -->
 
 # Vaultfolio Constitution
@@ -106,7 +113,9 @@ any change to an existing contract; communication between services or modules (e
 pipeline → valuation → storage, or market-data fetch → price cache → portfolio overview); and any
 shared schema (holding records, transaction records, ETF composition data). Integration tests
 MUST exercise real serialization formats (e.g., actual JSON/CSV import files, real market-data API
-response payloads captured as fixtures) not just in-memory objects.
+response payloads captured as fixtures) not just in-memory objects. Real personal documents (e.g.,
+payslips, tax certificates) MUST NOT be committed as fixtures; for such formats the requirement is
+met by synthetic documents that reproduce the real layout and structure with invented figures.
 
 **Rationale**: Portfolio data flows through multiple stages (import or manual entry, price/
 composition lookup, valuation, aggregation). Most real-world defects in such pipelines occur at
@@ -118,6 +127,10 @@ them.
 Text-based I/O and structured logging are required throughout so behavior is debuggable from
 logs alone, without a debugger attached. All financial calculations and imports MUST log
 sufficient context (inputs, source, timestamp) to reconstruct how a stored value was derived.
+Exception for data covered by the Sensitive Personal Data rules (Product Scope): logs MUST NOT
+contain amounts, document content, or personal identifiers; traceability is instead provided by
+import metadata (import id, content fingerprint, parser identity and version, record counts,
+outcome/error codes) together with the stored, per-import provenance of each record.
 Libraries and any external-facing contracts (APIs, file formats, CLI flags for ops tooling) follow
 MAJOR.MINOR.BUILD versioning; breaking changes to a contract require a MAJOR bump and a documented
 migration path.
@@ -134,7 +147,8 @@ Vaultfolio is a multi-domain personal finance app, organized as an app-shell plu
 domains per the Frontend domain libraries Stack Decision below. **Holdings** (investment tracking)
 is the first fully-built domain; **Retirement**, **Insurances**, **Haushaltsplaner** (household/
 budget planning), **Historic Wealth Development**, and **Account Overview** are planned domains
-(registered today as placeholders — see 022-add-domain-placeholders). The scope rules below apply
+(registered today as placeholders — see 022-add-domain-placeholders), as is **Earnings**
+(employment income history — see 032-earnings-domain). The scope rules below apply
 per domain as noted; a rule scoped to "the Holdings domain" does not extend to other domains unless
 stated.
 
@@ -152,6 +166,14 @@ stated.
 - Haushaltsplaner domain: day-to-day expense/budget tracking — income, spending categories, bills,
   recurring payments, and monthly budget planning. This is the express purpose of this domain, once
   specified; it is a deliberate exception to the general exclusion below, confined to this domain.
+- Earnings domain: a user's employment income history — payslips (gross, net, payout, bonuses and
+  one-off payments), wage tax, solidarity surcharge, church tax, employee social-insurance
+  contributions, and annual wage-tax certificates — with yearly/monthly analysis and consistency
+  checks against the printed year-to-date totals and certificates.
+- Earnings domain: data enters exclusively by document import — text-based payslip and wage-tax
+  certificate PDFs interpreted on the user's own device, or the companion local tool's versioned,
+  whitelisted JSON export. Every imported record MUST pass the domain's arithmetic checks, re-run
+  by the backend; a file containing any failing record MUST be rejected as a whole.
 
 ### Out of Scope
 
@@ -160,12 +182,17 @@ stated.
   This remains explicitly not a goal of Holdings and MUST NOT be added to it — it belongs
   exclusively to the Haushaltsplaner domain (see In Scope above) so the two domains' data and
   concerns stay separated per the Frontend domain libraries Stack Decision.
-- Any integration with personal banking or brokerage account APIs to read the user's account or
-  transaction data. All personal holdings/transaction and expense/budget data MUST originate from
-  manual UI entry or explicit CSV/JSON import — it MUST NOT be pulled automatically from a linked
-  bank or brokerage account. This applies across all domains, including Account Overview: it MAY
-  aggregate manually entered or imported balances across accounts, but MUST NOT itself integrate
-  with a bank/brokerage API to fetch them live.
+- Any integration with personal banking, brokerage, or payroll-system account APIs to read the
+  user's account, transaction, or payroll data. All personal holdings/transaction and
+  expense/budget data MUST originate from manual UI entry or explicit CSV/JSON import — it MUST
+  NOT be pulled automatically from a linked bank or brokerage account. This applies across all
+  domains, including Account Overview: it MAY aggregate manually entered or imported balances
+  across accounts, but MUST NOT itself integrate with a bank/brokerage API to fetch them live. The
+  one exception to the "manual UI entry or CSV/JSON import" origin rule is the Earnings domain's
+  document import (see In Scope), which is still an explicit, user-initiated upload.
+- Manual entry or editing of monetary figures in the Earnings domain. Payroll and tax figures
+  MUST come from the documents that printed them; users MAY only rename display labels (e.g., an
+  employer's display name).
 
 ### External Market Data (Permitted)
 
@@ -181,6 +208,36 @@ data provider); isolated behind a dedicated module/service so a provider can be 
 touching core domain logic (per Principle I); and resilient to unavailability — the application
 MUST remain usable with manually entered or last-known prices/composition if a market-data
 provider is unreachable, since a user's recorded holdings are the source of truth, not the prices.
+
+### Sensitive Personal Data
+
+The Earnings domain, and any future domain holding comparably sensitive personal data (e.g.,
+salary, tax, or health-related records), MUST follow these rules in addition to the rest of this
+constitution:
+
+- **Data minimization**: only an explicitly whitelisted set of figures and labels is transmitted
+  and stored. Personal identifiers printed on source documents (tax ID, social-security number,
+  bank account/IBAN, name, address, personnel number) MUST NOT be transmitted or stored; the
+  backend MUST reject any payload containing fields outside the whitelist.
+- **No document handling on the server**: original documents and their extracted text MUST NOT be
+  transmitted to or stored by the backend. Document interpretation happens on the user's device.
+- **Deterministic interpretation, no external services**: document interpretation MUST be
+  deterministic and reproducible for a given input and parser version, and MUST NOT use any
+  external, cloud, or AI/LLM service.
+- **Owner-only access**: every record belongs to exactly one user and is only ever visible to,
+  modifiable by, or deletable by that user. No administrative view, report, or endpoint may expose
+  another user's data — role-based access (including Administrator) never overrides ownership.
+- **Encryption at rest**: monetary amounts MUST be stored encrypted with a server-held key
+  configured by the instance operator, so the database file or a backup alone reveals no amount.
+  Non-monetary lookup fields (e.g., period, employer, kind) MAY remain in plain form. If the key is
+  missing or invalid, the domain MUST fail closed (report unavailability; never show wrong/partial
+  figures or accept new data).
+- **Log hygiene**: logs, error reports, and diagnostics MUST NOT contain amounts, document
+  content, or personal identifiers (see Principle V's exception).
+- **User control and transparency**: users MUST be able to delete a single import and all of
+  their data in the domain; the data MUST follow the account lifecycle of other owned data; and the
+  domain MUST explain in-app what is stored, what is encrypted, and that the instance operator
+  runs the server and holds the key.
 
 ## Technology & Architecture Constraints
 
@@ -218,7 +275,11 @@ provider is unreachable, since a user's recorded holdings are the source of trut
   SQLite's `REAL` storage class (IEEE-754 float, unsafe for exact decimals) and never native
   JavaScript/TypeScript `number`. At the application layer, monetary values MUST be represented
   with an exact decimal type/library end-to-end through backend calculations and API responses,
-  consistent with Principle III's ban on approximate assertions for monetary values.
+  consistent with Principle III's ban on approximate assertions for monetary values. Carve-out for
+  data under the Sensitive Personal Data rules: the storage form of such amounts is ciphertext
+  (encrypting the canonical decimal string) rather than plain decimal `TEXT`; values MUST still be
+  exact decimals before encryption and after decryption, and MUST NOT pass through a float at any
+  point.
 - **Market-data provider**: Not yet selected — see `TODO(MARKET_DATA_PROVIDER)` in the Sync Impact
   Report above. Whichever provider is chosen MUST be isolated behind a dedicated Nx library/module
   per Principle I and the Product Scope's External Market Data rules, so it can be swapped without
@@ -233,7 +294,7 @@ provider is unreachable, since a user's recorded holdings are the source of trut
   dependency) MUST NOT be used anywhere in the application UI — new and existing chart usage alike
   MUST be migrated to ECharts, with no partial/mixed charting libraries left in place.
 - **Frontend domain libraries**: Every frontend domain (e.g., holdings, retirement, insurances,
-  household planning, historic wealth development, account overview) MUST be its own standalone
+  household planning, historic wealth development, account overview, earnings) MUST be its own standalone
   Nx library under `libs/frontend/domain/<name>`, tagged `scope:frontend-domain`, independently
   testable per Principle I. Domain boundaries MUST be enforced by Nx project tags via
   `@nx/enforce-module-boundaries`, not by discipline alone:
@@ -278,4 +339,4 @@ alignment with the Core Principles; unresolved violations MUST be justified in t
 Complexity Tracking section or the plan MUST be revised to comply. Reviewers MUST treat this
 constitution as authoritative over informal team conventions.
 
-**Version**: 3.4.0 | **Ratified**: 2026-08-13 | **Last Amended**: 2026-09-05
+**Version**: 3.5.0 | **Ratified**: 2026-08-13 | **Last Amended**: 2026-09-29
