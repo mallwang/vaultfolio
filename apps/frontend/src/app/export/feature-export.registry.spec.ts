@@ -5,6 +5,7 @@ import type { FeatureExportDefinition } from '@vaultfolio/export';
 import { registerFeatureExports } from './feature-export.registry';
 
 const {
+  mockCreateEarnings,
   mockCreateHoldings,
   mockCreateAccountOverview,
   mockRetirementDef,
@@ -22,7 +23,9 @@ const {
   const mockHistoricDef = {
     featureId: 'historic-wealth-development',
   } as unknown as FeatureExportDefinition;
+  const mockEarningsDef = { featureId: 'earnings' } as unknown as FeatureExportDefinition;
   return {
+    mockCreateEarnings: vi.fn(() => mockEarningsDef),
     mockCreateHoldings: vi.fn(() => mockHoldingsDef),
     mockCreateAccountOverview: vi.fn(() => mockAccountDef),
     mockRetirementDef,
@@ -49,6 +52,9 @@ vi.mock('@vaultfolio/frontend-domain-insurances', () => ({
 vi.mock('@vaultfolio/frontend-domain-haushaltsplaner', () => ({
   HAUSHALTSPLANER_EXPORT_DEFINITION: mockHaushaltsplanerDef,
 }));
+vi.mock('@vaultfolio/frontend-domain-earnings', () => ({
+  createEarningsExportDefinition: mockCreateEarnings,
+}));
 vi.mock('@vaultfolio/frontend-domain-historic-wealth-development', () => ({
   HISTORIC_WEALTH_DEVELOPMENT_EXPORT_DEFINITION: mockHistoricDef,
 }));
@@ -64,15 +70,16 @@ describe('registerFeatureExports', () => {
     register = vi.fn();
   });
 
-  it('registers all 6 feature export definitions', async () => {
+  it('registers all 7 feature export definitions', async () => {
     await registerFeatureExports({ register } as never, injector);
-    expect(register).toHaveBeenCalledTimes(6);
+    expect(register).toHaveBeenCalledTimes(7);
   });
 
-  it('resolves factory-based definitions via runInInjectionContext (holdings, account-overview)', async () => {
+  it('resolves factory-based definitions via runInInjectionContext (holdings, account-overview, earnings)', async () => {
     await registerFeatureExports({ register } as never, injector);
     expect(mockCreateHoldings).toHaveBeenCalledTimes(1);
     expect(mockCreateAccountOverview).toHaveBeenCalledTimes(1);
+    expect(mockCreateEarnings).toHaveBeenCalledTimes(1);
   });
 
   it('registers placeholder constants directly without a factory', async () => {

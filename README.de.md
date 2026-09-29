@@ -31,8 +31,65 @@ gewachsen – Authentifizierung/Sitzungen, Administration (Konten, Einladungen, 
 Selbstregistrierung, Profil-/Passwort-/Präferenzeinstellungen, mehrsprachige Oberfläche,
 Thema-Umschaltung und ein Dashboard – mit Holdings als erster von mehreren geplanten Domänen.
 
+Die Domäne **Einkommensentwicklung** (Gehaltsabrechnungen und Lohnsteuerbescheinigungen) ist
+ebenfalls ausgebaut – siehe [Einkommensentwicklung](#einkommensentwicklung).
+
 Für eine vollständige Beschreibung der Oberfläche siehe [docs/user-guide.de.md](docs/user-guide.de.md)
 ([English](docs/user-guide.md)).
+
+## Einkommensentwicklung
+
+Die Einkommensentwicklung (032-earnings-domain) macht aus Gehaltsabrechnungen einen Überblick über
+das ganze Berufsleben – Brutto, Netto, Steuern und Sozialversicherung: Gesamtverdienst, das
+aktuelle Jahr im Vergleich zu denselben Monaten des Vorjahres, Monats- und Jahresdiagramme,
+Tabellen, ein Monatsdetail und eine **Datenprüfung**, die die Summen der Abrechnungen mit den
+Jahressummen und der Lohnsteuerbescheinigung vergleicht.
+
+**Unterstützte Dokumente** (Iteration 1):
+
+| Dokument                                              | Gelesen von                                         |
+| ----------------------------------------------------- | --------------------------------------------------- |
+| SAP-Entgeltnachweis                                   | Parser `sap-entgeltnachweis`                        |
+| Lohnsteuerbescheinigung                               | Parser `lohnsteuerbescheinigung` (alle Arbeitgeber) |
+| Export des Begleit-Tools (`earnings-export`, Vers. 1) | JSON-Leser – der Weg für andere Layouts und Scans   |
+
+Alle anderen Layouts sowie gescannte PDFs (nur Bild) werden mit klarer Begründung abgelehnt; aus
+einer abgelehnten Datei wird nichts gespeichert. Jeder Wert durchläuft vor dem Import
+Rechenprüfungen (Brutto − Steuern − Sozialversicherung = Netto, Netto ± Sonstiges = Auszahlung).
+
+**Datenschutz und Bedrohungsmodell**
+
+- PDFs werden **im Browser** gelesen (PDF.js). Weder die Datei noch ihr Text wird hochgeladen –
+  nur die freigegebenen Werte aus der Importvorschau („Werte, die gesendet werden“) sowie
+  Dateiname, SHA-256-Fingerabdruck und Parser-ID/-Version. Steuer-ID, Sozialversicherungsnummer,
+  IBAN, Name oder Adresse werden weder gelesen noch gesendet.
+- Jeder Betrag wird **verschlüsselt gespeichert** (AES-256-GCM) – mit einem Schlüssel, den der
+  Betreiber der Instanz konfiguriert (`EARNINGS_ENCRYPTION_KEY`). Eine Kopie der Datenbankdatei
+  oder ein Backup allein verrät keinen Betrag; Zeitraum, Arbeitgeber, Art und Jahr bleiben für
+  Abfragen im Klartext.
+- Die Daten sieht **nur ihr Eigentümer** – auch Administratoren sehen die Einkommensdaten anderer
+  nicht. Der Betreiber betreibt den Server und hält den Schlüssel; ihm wird also vertraut, und der
+  Datenschutzhinweis in der App sagt das offen.
+- Logs enthalten nur Import-Metadaten (Import-ID, Hash, Parser, Anzahlen, Ergebnis) – nie einen
+  Betrag oder Dokumenttext.
+- Nutzer können einzelne Importe oder alle Einkommensdaten jederzeit löschen; die Daten sind Teil
+  des vollständigen Archivs „Meine Daten exportieren“.
+
+**Freischaltung** – Die Einkommensentwicklung ist für Mitglieder **nicht** standardmäßig
+freigeschaltet. Ein Administrator aktiviert sie pro Mitglied im Administrationsbereich (Reiter _Konten_,
+Domänen-Schalter). Administratoren können die Domäne für ihre eigenen Daten nutzen.
+
+**Schlüsselverwaltung und -verlust** – siehe
+[Schlüssel für die Einkommensentwicklung](#schlüssel-für-die-einkommensentwicklung). Fehlt der
+Schlüssel oder ist er ungültig, zeigt die Domäne „Einkommensdaten sind vorübergehend nicht
+verfügbar“, die API antwortet mit `503 EARNINGS_UNAVAILABLE` und es werden keine Importe
+angenommen; alle anderen Domänen funktionieren weiter. **Geht der Schlüssel verloren oder wird er
+geändert, sind alle gespeicherten Einkommensbeträge unwiederbringlich verloren** – sichern Sie ihn
+getrennt von der Datenbank. Eine Schlüsselrotation wird noch nicht unterstützt.
+
+Die Übereinstimmung der Parser mit dem Begleit-Tool lässt sich lokal prüfen (nie in der CI, echte
+Abrechnungen verlassen den Rechner nicht) mit `tools/earnings/parity-check.mjs` – siehe
+[specs/032-earnings-domain/quickstart.md](specs/032-earnings-domain/quickstart.md) §6.
 
 ## Tech-Stack
 
@@ -114,6 +171,21 @@ Datenbanken werden diese Variablen ignoriert.
 
 `.env` ist in `.gitignore` eingetragen (nur `.env.example` ist eingecheckt). Docker Compose lädt
 sie automatisch; Nx lädt sie automatisch in `process.env` für jeden Target, den es ausführt.
+
+### Schlüssel für die Einkommensentwicklung
+
+Die Einkommensentwicklung verschlüsselt jeden gespeicherten Betrag mit `EARNINGS_ENCRYPTION_KEY`
+(Base64 von genau 32 Zufallsbytes). Erzeugen Sie ihn einmalig und tragen Sie ihn in `.env` ein
+(bzw. in die Umgebung des Stacks in Portainer):
+
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+```
+
+Sichern Sie den Schlüssel **getrennt** von `./data`: Ein Datenbank-Backup ohne seinen Schlüssel
+lässt sich nicht entschlüsseln, und ein verlorener oder geänderter Schlüssel macht alle
+gespeicherten Einkommensbeträge unwiederbringlich. Ohne gültigen Schlüssel startet das Backend
+trotzdem; nur die Einkommensentwicklung meldet „vorübergehend nicht verfügbar“.
 
 ### Hot-Reload-Entwicklungsmodus
 

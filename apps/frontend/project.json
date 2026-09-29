@@ -19,6 +19,11 @@
           {
             "glob": "**/*",
             "input": "apps/frontend/public"
+          },
+          {
+            "glob": "pdf.worker.min.mjs",
+            "input": "node_modules/pdfjs-dist/build",
+            "output": "assets/pdfjs"
           }
         ],
         "styles": ["apps/frontend/src/styles.css"]
@@ -67,7 +72,9 @@
             "@vaultfolio/api-contract",
             "@vaultfolio/frontend-admin",
             "@vaultfolio/frontend-domain-access",
+            "@vaultfolio/earnings",
             "@vaultfolio/frontend-domain-account-overview",
+            "@vaultfolio/frontend-domain-earnings",
             "@vaultfolio/frontend-domain-haushaltsplaner",
             "@vaultfolio/frontend-domain-historic-wealth-development",
             "@vaultfolio/frontend-domain-holdings",

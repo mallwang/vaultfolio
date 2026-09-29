@@ -59,3 +59,39 @@ export const ASSET_TYPE_COLORS: Readonly<Record<AssetType, string>> = {
   CRYPTO: '#7c3aed', // purple
   DEPOSIT_MONEY: '#0d9488', // teal
 };
+
+/** The five named series roles of the Earnings domain (032-earnings-domain design.md). */
+export type EarningsSeriesRole = 'net' | 'taxes' | 'social' | 'regular' | 'bonus';
+
+/**
+ * Fixed Earnings series colors per theme. Validated with the dataviz skill's palette validator
+ * (lightness band, chroma, CVD and normal-vision separation, >= 3:1 against the chart surface)
+ * for the groups that share a chart — net/taxes/social (month-by-month stack, deduction ratios)
+ * and regular/bonus (gross per year) — against `#ffffff` (light) and `#1e293b` (dark). Net
+ * (blue) and regular (indigo = app primary) never share a chart. Dark mode uses its own steps
+ * for net and bonus to stay inside the dark lightness band.
+ */
+const EARNINGS_SERIES_COLORS: Readonly<
+  Record<Theme, Readonly<Record<EarningsSeriesRole, string>>>
+> = {
+  light: {
+    net: '#2563eb',
+    taxes: '#ea580c',
+    social: '#0d9488',
+    regular: '#6366f1',
+    bonus: '#dc2626',
+  },
+  dark: {
+    net: '#3b82f6',
+    taxes: '#ea580c',
+    social: '#0d9488',
+    regular: '#6366f1',
+    bonus: '#ef4444',
+  },
+};
+
+export function resolveEarningsSeriesColors(
+  theme: Theme,
+): Readonly<Record<EarningsSeriesRole, string>> {
+  return EARNINGS_SERIES_COLORS[theme];
+}

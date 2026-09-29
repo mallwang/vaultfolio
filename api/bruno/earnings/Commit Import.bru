@@ -1,0 +1,51 @@
+meta {
+  name: Commit Import
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/earnings/imports
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "files": [
+      {
+        "clientFileId": "f1",
+        "fileName": "2026_08_Entgeltnachweis.pdf",
+        "sourceType": "PAYSLIP_PDF",
+        "fileSha256": "0000000000000000000000000000000000000000000000000000000000000001",
+        "parserId": "sap-entgeltnachweis",
+        "parserVersion": "1.0.0",
+        "records": [
+          {
+            "employer": "Brightline Software GmbH",
+            "period": "2026-08",
+            "issued": "2026-08",
+            "kind": "REGULAR",
+            "seq": 1,
+            "amounts": {
+              "gross": "5000.00", "taxGross": "5000.00", "svGrossKv": "5000.00", "svGrossRv": "5000.00",
+              "wageTax": "800.00", "soli": "0.00", "churchTax": "64.00",
+              "health": "400.00", "care": "90.00", "pension": "465.00", "unemployment": "65.00",
+              "net": "3116.00", "other": "-40.00", "payout": "3076.00",
+              "oneOff": {}, "employerSubsidy": null, "ytd": null
+            }
+          }
+        ],
+        "certificates": []
+      }
+    ]
+  }
+}
+
+docs {
+  Re-validates and saves each NEW/REPLACES file in its own transaction. Invented figures only.
+}

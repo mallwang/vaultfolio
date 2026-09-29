@@ -1,3 +1,5 @@
+import { earningsEn } from './earnings.en';
+
 /**
  * Default-language (`en`) dictionary — every other dictionary
  * (`translations/de.ts`) is validated against this one's key shape, and the
@@ -37,6 +39,7 @@ export const en: TranslationDictionary = {
     historicWealthDevelopment: 'Wealth Development',
     accountOverview: 'Account Overview',
     klaro: 'Klaro',
+    earnings: 'Earnings',
     settings: 'Settings',
     admin: 'Admin',
     accounts: 'Accounts',
@@ -57,6 +60,7 @@ export const en: TranslationDictionary = {
     genericError: 'Sign in failed. Please try again.',
   },
   dashboard: {
+    earnings: 'Earnings',
     totalValue: 'Total value',
     todaysChange: "Today's change",
     allocation: 'Allocation',
@@ -504,6 +508,12 @@ export const en: TranslationDictionary = {
     wealthDevelopment: 'Wealth Development',
     accountOverview: 'Account Overview',
     klaro: 'Klaro',
+    earnings: 'Earnings',
+    earningsOverview: 'Earnings · Overview',
+    earningsTables: 'Earnings · Tables',
+    earningsCheck: 'Earnings · Data check',
+    earningsImports: 'Earnings · Imports',
+    earningsImport: 'Import documents',
     settings: 'Settings',
     settingsProfile: 'Settings · Profile',
     settingsPreferences: 'Settings · Preferences',
@@ -607,4 +617,5 @@ export const en: TranslationDictionary = {
     infobox:
       'About this export — Wealth Development. Historic wealth development tracking is not built yet in Vaultfolio, so this file contains no rows today — it will automatically start including your data once that feature ships.',
   },
+  earnings: earningsEn,
 };

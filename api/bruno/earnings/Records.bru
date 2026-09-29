@@ -1,0 +1,16 @@
+meta {
+  name: Records
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{baseUrl}}/earnings/records?period=2026-08
+  body: none
+  auth: none
+}
+
+
+docs {
+  Month detail; omit period for all records.
+}

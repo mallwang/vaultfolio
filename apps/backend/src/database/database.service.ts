@@ -264,6 +264,81 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     db.exec(
       'CREATE INDEX IF NOT EXISTS account_action_tokens_user_purpose_idx ON account_action_tokens (user_id, purpose)',
     );
+
+    this.initializeEarningsSchema(db);
+  }
+
+  /**
+   * 032-earnings-domain (data-model.md). Every monetary value lives only in the AES-256-GCM
+   * encrypted `amounts_enc` payload; plain columns exist for lookup only (FR-041). Every table
+   * carries `owner_id` and every repository query filters by it (FR-003).
+   */
+  private initializeEarningsSchema(db: Database.Database): void {
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS earnings_imports (
+        id             TEXT PRIMARY KEY,
+        owner_id       TEXT NOT NULL,
+        file_name      TEXT NOT NULL,
+        source_type    TEXT NOT NULL CHECK (source_type IN ('PAYSLIP_PDF', 'CERTIFICATE_PDF', 'EXPORT_JSON')),
+        file_sha256    TEXT NOT NULL CHECK (length(file_sha256) = 64),
+        parser_id      TEXT NOT NULL,
+        parser_version TEXT NOT NULL,
+        imported_at    TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')),
+        UNIQUE (owner_id, file_sha256)
+      )
+    `);
+    db.exec('CREATE INDEX IF NOT EXISTS earnings_imports_owner_idx ON earnings_imports (owner_id)');
+
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS earnings_employers (
+        id            TEXT PRIMARY KEY,
+        owner_id      TEXT NOT NULL,
+        detected_name TEXT NOT NULL CHECK (detected_name <> ''),
+        display_name  TEXT NULL,
+        created_at    TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')),
+        UNIQUE (owner_id, detected_name)
+      )
+    `);
+
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS earnings_records (
+        id          TEXT PRIMARY KEY,
+        owner_id    TEXT NOT NULL,
+        import_id   TEXT NOT NULL,
+        employer_id TEXT NOT NULL,
+        period      TEXT NOT NULL CHECK (period GLOB '[0-9][0-9][0-9][0-9]-[0-1][0-9]'),
+        issued      TEXT NOT NULL CHECK (issued GLOB '[0-9][0-9][0-9][0-9]-[0-1][0-9]'),
+        kind        TEXT NOT NULL CHECK (kind IN ('REGULAR', 'CORRECTION', 'PAYOUT_ONLY')),
+        seq         INTEGER NOT NULL CHECK (seq >= 1),
+        amounts_enc TEXT NOT NULL,
+        key_version INTEGER NOT NULL DEFAULT 1,
+        created_at  TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')),
+        UNIQUE (owner_id, employer_id, period, kind, seq)
+      )
+    `);
+    db.exec(
+      'CREATE INDEX IF NOT EXISTS earnings_records_owner_period_idx ON earnings_records (owner_id, period)',
+    );
+    db.exec(
+      'CREATE INDEX IF NOT EXISTS earnings_records_import_idx ON earnings_records (import_id)',
+    );
+
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS earnings_certificates (
+        id          TEXT PRIMARY KEY,
+        owner_id    TEXT NOT NULL,
+        import_id   TEXT NOT NULL,
+        employer_id TEXT NOT NULL,
+        year        INTEGER NOT NULL,
+        amounts_enc TEXT NOT NULL,
+        key_version INTEGER NOT NULL DEFAULT 1,
+        created_at  TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')),
+        UNIQUE (owner_id, employer_id, year)
+      )
+    `);
+    db.exec(
+      'CREATE INDEX IF NOT EXISTS earnings_certificates_import_idx ON earnings_certificates (import_id)',
+    );
   }
 
   /**
@@ -533,6 +608,14 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     text: string,
     params: readonly unknown[] = [],
   ): Promise<T[]> {
+    return this.querySync<T>(text, params);
+  }
+
+  /**
+   * Synchronous form of {@link query} (same `$N` placeholder translation), for work that must run
+   * inside {@link transaction} — `better-sqlite3` transactions cannot span an `await`.
+   */
+  querySync<T = Record<string, unknown>>(text: string, params: readonly unknown[] = []): T[] {
     const db = this.requireDb();
     const reorderedParams: unknown[] = [];
     const sqliteSql = text.replace(/\$(\d+)/g, (_match, index: string) => {
@@ -547,6 +630,22 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
 
     statement.run(...reorderedParams);
     return [];
+  }
+
+  /**
+   * Runs `fn` atomically (research R13): commits when it returns, rolls back when it throws. `fn`
+   * must be synchronous — use {@link querySync} inside it. Foreign keys stay disabled app-wide, so
+   * cascades are explicit deletes inside the transaction.
+   */
+  transaction<T>(fn: () => T): T {
+    const db = this.requireDb();
+    return db.transaction(() => {
+      const result = fn();
+      if (result instanceof Promise) {
+        throw new Error('DatabaseService.transaction() needs a synchronous function');
+      }
+      return result;
+    })();
   }
 
   private requireDb(): Database.Database {

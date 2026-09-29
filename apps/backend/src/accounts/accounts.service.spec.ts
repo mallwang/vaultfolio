@@ -106,6 +106,7 @@ describe('AccountsService#changeDomainScopes — per-domain independence', () =>
     'haushaltsplaner',
     'historic-wealth-development',
     'account-overview',
+    'earnings',
   ])('granting %s keeps the existing "holdings" scope intact', async (domainId) => {
     const { svc, user } = service(makeUser({ domainScopes: ['holdings'] }));
 
@@ -121,6 +122,7 @@ describe('AccountsService#changeDomainScopes — per-domain independence', () =>
     'haushaltsplaner',
     'historic-wealth-development',
     'account-overview',
+    'earnings',
   ])('revoking %s leaves other existing scopes untouched', async (domainId) => {
     const { svc, user } = service(makeUser({ domainScopes: ['holdings', domainId] }));
 

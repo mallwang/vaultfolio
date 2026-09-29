@@ -1,4 +1,8 @@
-import { ASSET_TYPE_COLORS, resolveChartPalette } from './chart-palette';
+import {
+  ASSET_TYPE_COLORS,
+  resolveChartPalette,
+  resolveEarningsSeriesColors,
+} from './chart-palette';
 
 describe('resolveChartPalette', () => {
   it.each(['light', 'dark'] as const)('returns a defined palette for theme "%s"', (theme) => {
@@ -28,5 +32,19 @@ describe('ASSET_TYPE_COLORS', () => {
       ASSET_TYPE_COLORS.CRYPTO,
     ];
     expect(otherColors).not.toContain(ASSET_TYPE_COLORS.DEPOSIT_MONEY);
+  });
+});
+
+describe('resolveEarningsSeriesColors', () => {
+  it.each(['light', 'dark'] as const)('defines five distinct roles for theme "%s"', (theme) => {
+    const colors = resolveEarningsSeriesColors(theme);
+    const values = Object.values(colors);
+    expect(Object.keys(colors).sort()).toEqual(['bonus', 'net', 'regular', 'social', 'taxes']);
+    expect(new Set(values).size).toBe(5);
+    values.forEach((c) => expect(c).toMatch(/^#[0-9a-f]{6}$/));
+  });
+
+  it('uses the app primary indigo for regular pay', () => {
+    expect(resolveEarningsSeriesColors('light').regular).toBe('#6366f1');
   });
 });

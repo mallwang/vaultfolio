@@ -340,6 +340,15 @@ export class UsersRepository {
     const user = await this.findById(id);
     await this.database.query('DELETE FROM sessions WHERE user_id = $1', [id]);
     await this.database.query('DELETE FROM holdings WHERE owner_id = $1', [id]);
+    // 032-earnings-domain: purge every earnings table on account deletion (FR-039).
+    for (const table of [
+      'earnings_records',
+      'earnings_certificates',
+      'earnings_imports',
+      'earnings_employers',
+    ]) {
+      await this.database.query(`DELETE FROM ${table} WHERE owner_id = $1`, [id]);
+    }
     // account_action_tokens (password reset / email change tokens) are
     // short-lived and hold no audit value once the account is gone.
     await this.database.query('DELETE FROM account_action_tokens WHERE user_id = $1', [id]);

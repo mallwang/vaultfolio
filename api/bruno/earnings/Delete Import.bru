@@ -1,0 +1,16 @@
+meta {
+  name: Delete Import
+  type: http
+  seq: 11
+}
+
+delete {
+  url: {{baseUrl}}/earnings/imports/{{importId}}
+  body: none
+  auth: none
+}
+
+
+docs {
+  Removes the import and exactly its remaining records/certificates.
+}

@@ -13,4 +13,12 @@ export const DASHBOARD_WIDGET_CONTRIBUTIONS: DashboardWidgetContribution[] = [
     loadComponent: () =>
       import('@vaultfolio/frontend-domain-holdings').then((m) => m.HoldingsDistributionComponent),
   },
+  {
+    domainId: 'earnings',
+    titleKey: 'dashboard.earnings',
+    loadComponent: () =>
+      import('@vaultfolio/frontend-domain-earnings').then(
+        (m) => m.EarningsDashboardWidgetComponent,
+      ),
+  },
 ];

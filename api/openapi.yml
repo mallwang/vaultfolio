@@ -1306,6 +1306,303 @@ paths:
       security: *ref_9
       summary: Delete an account-overview entry.
       tags: *ref_10
+  /earnings/imports/preview:
+    post:
+      operationId: EarningsController_preview
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EarningsImportBatchDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EarningsImportPreviewDto'
+        '400':
+          description: INVALID_BATCH / EARNINGS_UNKNOWN_FIELD / LIMIT_EXCEEDED.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '403': &ref_11
+          description: Domain not entitled.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '503': &ref_12
+          description: EARNINGS_UNAVAILABLE — key missing/invalid (FR-044).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+      security: &ref_13
+        - sessionCookie: []
+      summary: Validate and classify an import batch without saving (dry run).
+      tags: &ref_14
+        - earnings
+  /earnings/imports:
+    post:
+      operationId: EarningsController_commit
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EarningsImportBatchDto'
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EarningsImportResultDto'
+        '400':
+          description: INVALID_BATCH / EARNINGS_UNKNOWN_FIELD / LIMIT_EXCEEDED.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '403': *ref_11
+        '503': *ref_12
+      security: *ref_13
+      summary: >-
+        Re-validate and save each NEW/REPLACES file of the batch (one
+        transaction per file).
+      tags: *ref_14
+    get:
+      operationId: EarningsController_listImports
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EarningsImportSummaryDto'
+        '403': *ref_11
+        '503': *ref_12
+      security: *ref_13
+      summary: The caller's import history, newest first.
+      tags: *ref_14
+  /earnings/imports/{id}:
+    delete:
+      operationId: EarningsController_deleteImport
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Deleted.
+        '403': *ref_11
+        '404':
+          description: EARNINGS_IMPORT_NOT_FOUND.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '503': *ref_12
+      security: *ref_13
+      summary: Delete an import and exactly its remaining records/certificates.
+      tags: *ref_14
+  /earnings:
+    delete:
+      operationId: EarningsController_deleteAll
+      parameters: []
+      responses:
+        '204':
+          description: Deleted.
+        '403': *ref_11
+        '503': *ref_12
+      security: *ref_13
+      summary: Delete all of the caller's earnings data.
+      tags: *ref_14
+  /earnings/employers:
+    get:
+      operationId: EarningsController_listEmployers
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EarningsEmployerDto'
+        '403': *ref_11
+        '503': *ref_12
+      security: *ref_13
+      summary: The caller's detected employers.
+      tags: *ref_14
+  /earnings/employers/{id}:
+    put:
+      operationId: EarningsController_renameEmployer
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RenameEarningsEmployerDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EarningsEmployerDto'
+        '400':
+          description: EARNINGS_UNKNOWN_FIELD / INVALID_VALUE.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '403': *ref_11
+        '404':
+          description: EARNINGS_EMPLOYER_NOT_FOUND.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '503': *ref_12
+      security: *ref_13
+      summary: Set an employer's display name (no figure is editable).
+      tags: *ref_14
+  /earnings/overview:
+    get:
+      operationId: EarningsController_overview
+      parameters:
+        - name: employer
+          required: false
+          in: query
+          description: Employer id; omitted = all employers.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EarningsOverviewDto'
+        '400':
+          description: INVALID_VALUE (employer).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '403': *ref_11
+        '503': *ref_12
+      security: *ref_13
+      summary: Career, latest-year KPIs, yearly and monthly series.
+      tags: *ref_14
+  /earnings/records:
+    get:
+      operationId: EarningsController_records
+      parameters:
+        - name: period
+          required: false
+          in: query
+          schema:
+            example: 2026-09
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EarningsRecordDetailDto'
+        '400':
+          description: INVALID_VALUE (period).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '403': *ref_11
+        '503': *ref_12
+      security: *ref_13
+      summary: Records of one month (month detail) or, without period, all records.
+      tags: *ref_14
+  /earnings/tables:
+    get:
+      operationId: EarningsController_tables
+      parameters:
+        - name: employer
+          required: false
+          in: query
+          description: Employer id; omitted = all employers.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EarningsTablesDto'
+        '400':
+          description: INVALID_VALUE (employer).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '403': *ref_11
+        '503': *ref_12
+      security: *ref_13
+      summary: Year × month grid, taxes per year and wage-tax certificates.
+      tags: *ref_14
+  /earnings/data-check:
+    get:
+      operationId: EarningsController_dataCheck
+      parameters:
+        - name: employer
+          required: false
+          in: query
+          description: Employer id; omitted = all employers.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DataCheckRowDto'
+        '400':
+          description: INVALID_VALUE (employer).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '403': *ref_11
+        '503': *ref_12
+      security: *ref_13
+      summary: >-
+        Per employer and year: year-to-date, certificate and completeness
+        checks.
+      tags: *ref_14
 info:
   title: Vaultfolio API
   description: >-
@@ -1462,7 +1759,7 @@ components:
       properties:
         assetType:
           type: string
-          enum: &ref_11
+          enum: &ref_15
             - ETF
         management:
           type: string
@@ -1488,7 +1785,7 @@ components:
       properties:
         assetType:
           type: string
-          enum: &ref_12
+          enum: &ref_16
             - SHARE
         management:
           type: string
@@ -1518,7 +1815,7 @@ components:
       properties:
         assetType:
           type: string
-          enum: &ref_13
+          enum: &ref_17
             - PRECIOUS_METAL
         management:
           type: string
@@ -1541,7 +1838,7 @@ components:
       properties:
         assetType:
           type: string
-          enum: &ref_14
+          enum: &ref_18
             - CRYPTO
         management:
           type: string
@@ -1568,7 +1865,7 @@ components:
       properties:
         assetType:
           type: string
-          enum: &ref_15
+          enum: &ref_19
             - DEPOSIT_MONEY
         management:
           type: string
@@ -1609,7 +1906,7 @@ components:
       properties:
         assetType:
           type: string
-          enum: *ref_11
+          enum: *ref_15
         management:
           type: string
         isin:
@@ -1634,7 +1931,7 @@ components:
       properties:
         assetType:
           type: string
-          enum: *ref_12
+          enum: *ref_16
         management:
           type: string
         isin:
@@ -1663,7 +1960,7 @@ components:
       properties:
         assetType:
           type: string
-          enum: *ref_13
+          enum: *ref_17
         management:
           type: string
         name:
@@ -1685,7 +1982,7 @@ components:
       properties:
         assetType:
           type: string
-          enum: *ref_14
+          enum: *ref_18
         management:
           type: string
         name:
@@ -1711,7 +2008,7 @@ components:
       properties:
         assetType:
           type: string
-          enum: *ref_15
+          enum: *ref_19
         management:
           type: string
         name:
@@ -2053,7 +2350,7 @@ components:
           nullable: true
         emailLanguage:
           type: string
-          enum: &ref_16
+          enum: &ref_20
             - en
             - de
           nullable: true
@@ -2096,7 +2393,7 @@ components:
       properties:
         emailLanguage:
           type: string
-          enum: *ref_16
+          enum: *ref_20
           nullable: true
       required:
         - emailLanguage
@@ -2148,7 +2445,7 @@ components:
           type: string
         category:
           type: string
-          enum: &ref_17
+          enum: &ref_21
             - GENERAL
             - LEISURE
             - SAVINGS
@@ -2157,7 +2454,7 @@ components:
             - OTHER
         status:
           type: string
-          enum: &ref_18
+          enum: &ref_22
             - ACTIVE
             - DECOMMISSIONED
           description: >-
@@ -2210,11 +2507,11 @@ components:
           type: string
         category:
           type: string
-          enum: *ref_17
+          enum: *ref_21
           description: Omit to default to 'OTHER'.
         status:
           type: string
-          enum: *ref_18
+          enum: *ref_22
           description: Omit to default to 'ACTIVE'.
         provider:
           type: string
@@ -2264,11 +2561,11 @@ components:
           type: string
         category:
           type: string
-          enum: *ref_17
+          enum: *ref_21
           description: Omit to default to 'OTHER'.
         status:
           type: string
-          enum: *ref_18
+          enum: *ref_22
           description: Omit to default to 'ACTIVE'.
         provider:
           type: string
@@ -2301,3 +2598,1259 @@ components:
       required:
         - error
         - message
+    EarningsOneOffAmountsDto:
+      type: object
+      properties:
+        gross:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        taxGross:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        wageTax:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        soli:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        churchTax:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        health:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        care:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        pension:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        unemployment:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+    EarningsEmployerSubsidyDto:
+      type: object
+      properties:
+        health:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        care:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+      required:
+        - health
+        - care
+    EarningsPayRecordAmountsDto:
+      type: object
+      properties:
+        gross:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        taxGross:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        svGrossKv:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        svGrossRv:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        wageTax:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        soli:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        churchTax:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        health:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        care:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        pension:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        unemployment:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        net:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        other:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        payout:
+          type: string
+          example: '1234.56'
+          description: Only on the section of the payslip's own month.
+          nullable: true
+        oneOff:
+          $ref: '#/components/schemas/EarningsOneOffAmountsDto'
+        employerSubsidy:
+          nullable: true
+          type: object
+          allOf:
+            - $ref: '#/components/schemas/EarningsEmployerSubsidyDto'
+        ytd:
+          nullable: true
+          description: Printed year-to-date totals.
+          type: object
+          allOf:
+            - $ref: '#/components/schemas/EarningsOneOffAmountsDto'
+      required:
+        - gross
+        - taxGross
+        - svGrossKv
+        - svGrossRv
+        - wageTax
+        - soli
+        - churchTax
+        - health
+        - care
+        - pension
+        - unemployment
+        - net
+        - other
+        - payout
+        - oneOff
+        - employerSubsidy
+        - ytd
+    EarningsPayRecordInputDto:
+      type: object
+      properties:
+        employer:
+          type: string
+          maxLength: 200
+        period:
+          type: string
+          example: 2026-09
+          pattern: ^\d{4}-(0[1-9]|1[0-2])$
+        issued:
+          type: string
+          example: 2026-09
+          pattern: ^\d{4}-(0[1-9]|1[0-2])$
+        kind:
+          type: string
+          enum: &ref_23
+            - REGULAR
+            - CORRECTION
+            - PAYOUT_ONLY
+        seq:
+          type: number
+          minimum: 1
+        amounts:
+          $ref: '#/components/schemas/EarningsPayRecordAmountsDto'
+      required:
+        - employer
+        - period
+        - issued
+        - kind
+        - seq
+        - amounts
+    EarningsCertificateAmountsDto:
+      type: object
+      properties:
+        grossWage:
+          type: string
+          example: '1234.56'
+          description: Line 3
+        wageTax:
+          type: string
+          example: '1234.56'
+          description: Line 4
+        soli:
+          type: string
+          example: '1234.56'
+          description: Line 5
+        churchTax:
+          type: string
+          example: '1234.56'
+          description: Line 6
+        multiYearComp:
+          type: string
+          example: '1234.56'
+          description: Line 10
+        multiYearWageTax:
+          type: string
+          example: '1234.56'
+          description: Line 11
+        multiYearSoli:
+          type: string
+          example: '1234.56'
+          description: Line 12
+        multiYearChurchTax:
+          type: string
+          example: '1234.56'
+          description: Line 13
+        pensionEmployer:
+          type: string
+          example: '1234.56'
+          description: Line 22a
+        pensionEmployee:
+          type: string
+          example: '1234.56'
+          description: Line 23a
+        employerSubsidyHealth:
+          type: string
+          example: '1234.56'
+          description: Line 24a
+        employerSubsidyCare:
+          type: string
+          example: '1234.56'
+          description: Line 24c
+        health:
+          type: string
+          example: '1234.56'
+          description: Line 25
+        care:
+          type: string
+          example: '1234.56'
+          description: Line 26
+        unemployment:
+          type: string
+          example: '1234.56'
+          description: Line 27
+      required:
+        - grossWage
+        - wageTax
+        - soli
+        - churchTax
+        - multiYearComp
+        - multiYearWageTax
+        - multiYearSoli
+        - multiYearChurchTax
+        - pensionEmployer
+        - pensionEmployee
+        - employerSubsidyHealth
+        - employerSubsidyCare
+        - health
+        - care
+        - unemployment
+    EarningsCertificateInputDto:
+      type: object
+      properties:
+        employer:
+          type: string
+          maxLength: 200
+        year:
+          type: number
+          example: 2025
+        amounts:
+          $ref: '#/components/schemas/EarningsCertificateAmountsDto'
+      required:
+        - employer
+        - year
+        - amounts
+    EarningsImportFileDto:
+      type: object
+      properties:
+        clientFileId:
+          type: string
+          pattern: ^[A-Za-z0-9_-]{1,64}$
+        fileName:
+          type: string
+          maxLength: 255
+        sourceType:
+          type: string
+          enum: &ref_24
+            - PAYSLIP_PDF
+            - CERTIFICATE_PDF
+            - EXPORT_JSON
+        fileSha256:
+          type: string
+          pattern: ^[0-9a-f]{64}$
+        parserId:
+          type: string
+          example: sap-entgeltnachweis
+        parserVersion:
+          type: string
+          example: 1.0.0
+        records:
+          maxItems: 2000
+          type: array
+          items:
+            $ref: '#/components/schemas/EarningsPayRecordInputDto'
+        certificates:
+          maxItems: 2000
+          type: array
+          items:
+            $ref: '#/components/schemas/EarningsCertificateInputDto'
+      required:
+        - clientFileId
+        - fileName
+        - sourceType
+        - fileSha256
+        - parserId
+        - parserVersion
+        - records
+        - certificates
+    EarningsImportBatchDto:
+      type: object
+      properties:
+        files:
+          maxItems: 400
+          type: array
+          items:
+            $ref: '#/components/schemas/EarningsImportFileDto'
+      required:
+        - files
+    EarningsReplacedItemDto:
+      type: object
+      properties:
+        employer:
+          type: string
+        period:
+          type: string
+          example: 2026-09
+          pattern: ^\d{4}-(0[1-9]|1[0-2])$
+          nullable: true
+        kind:
+          type: string
+          enum: *ref_23
+          nullable: true
+        seq:
+          type: object
+          nullable: true
+        year:
+          type: object
+          nullable: true
+        importedAt:
+          type: string
+        fileName:
+          type: string
+      required:
+        - employer
+        - period
+        - kind
+        - seq
+        - year
+        - importedAt
+        - fileName
+    EarningsDuplicateOfDto:
+      type: object
+      properties:
+        importId:
+          type: string
+          format: uuid
+        importedAt:
+          type: string
+        fileName:
+          type: string
+      required:
+        - importId
+        - importedAt
+        - fileName
+    EarningsRejectionDto:
+      type: object
+      properties:
+        code:
+          type: string
+          example: CHECK_FAILED
+        params:
+          type: object
+          additionalProperties:
+            type: string
+          example:
+            check: NET
+            period: 2026-08
+            difference: '12.40'
+      required:
+        - code
+    EarningsFilePreviewDto:
+      type: object
+      properties:
+        clientFileId:
+          type: string
+        status:
+          type: string
+          enum:
+            - NEW
+            - REPLACES
+            - DUPLICATE
+            - REJECTED
+        employers:
+          type: array
+          items:
+            type: string
+        periods:
+          type: array
+          items:
+            type: string
+        years:
+          type: array
+          items:
+            type: number
+        recordCount:
+          type: number
+        certificateCount:
+          type: number
+        includesCorrection:
+          type: boolean
+        replaces:
+          type: array
+          items:
+            $ref: '#/components/schemas/EarningsReplacedItemDto'
+        duplicateOf:
+          nullable: true
+          type: object
+          allOf:
+            - $ref: '#/components/schemas/EarningsDuplicateOfDto'
+        conflictsWith:
+          type: object
+          nullable: true
+        rejection:
+          nullable: true
+          type: object
+          allOf:
+            - $ref: '#/components/schemas/EarningsRejectionDto'
+      required:
+        - clientFileId
+        - status
+        - employers
+        - periods
+        - years
+        - recordCount
+        - certificateCount
+        - includesCorrection
+        - replaces
+        - duplicateOf
+        - conflictsWith
+        - rejection
+    EarningsImportPreviewDto:
+      type: object
+      properties:
+        files:
+          type: array
+          items:
+            $ref: '#/components/schemas/EarningsFilePreviewDto'
+      required:
+        - files
+    EarningsFileResultDto:
+      type: object
+      properties:
+        clientFileId:
+          type: string
+        status:
+          type: string
+          enum:
+            - SAVED
+            - SKIPPED_DUPLICATE
+            - REJECTED
+        importId:
+          type: string
+          format: uuid
+        recordCount:
+          type: number
+        certificateCount:
+          type: number
+        rejection:
+          $ref: '#/components/schemas/EarningsRejectionDto'
+      required:
+        - clientFileId
+        - status
+    EarningsImportResultDto:
+      type: object
+      properties:
+        files:
+          type: array
+          items:
+            $ref: '#/components/schemas/EarningsFileResultDto'
+      required:
+        - files
+    EarningsImportSummaryDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        fileName:
+          type: string
+        sourceType:
+          type: string
+          enum: *ref_24
+        parserId:
+          type: string
+        parserVersion:
+          type: string
+        importedAt:
+          type: string
+        recordCount:
+          type: number
+          description: Records still attributed to this import (0 once all were replaced).
+        certificateCount:
+          type: number
+        employers:
+          type: array
+          items:
+            type: string
+        firstPeriod:
+          type: string
+          example: 2026-09
+          pattern: ^\d{4}-(0[1-9]|1[0-2])$
+          nullable: true
+        lastPeriod:
+          type: string
+          example: 2026-09
+          pattern: ^\d{4}-(0[1-9]|1[0-2])$
+          nullable: true
+        years:
+          type: array
+          items:
+            type: number
+      required:
+        - id
+        - fileName
+        - sourceType
+        - parserId
+        - parserVersion
+        - importedAt
+        - recordCount
+        - certificateCount
+        - employers
+        - firstPeriod
+        - lastPeriod
+        - years
+    EarningsEmployerDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        detectedName:
+          type: string
+        displayName:
+          type: object
+          nullable: true
+      required:
+        - id
+        - detectedName
+        - displayName
+    RenameEarningsEmployerDto:
+      type: object
+      properties:
+        displayName:
+          type: string
+          maxLength: 120
+          description: Trimmed; empty → null (use the detected name).
+      required:
+        - displayName
+    EarningsTotalsDto:
+      type: object
+      properties:
+        gross:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        net:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        taxes:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        social:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        bonus:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+      required:
+        - gross
+        - net
+        - taxes
+        - social
+        - bonus
+    CareerEntryDto:
+      type: object
+      properties:
+        key:
+          type: string
+          description: '''ALL'' for the whole career, else the employer id.'
+        label:
+          type: string
+        firstPeriod:
+          type: string
+          example: 2026-09
+          pattern: ^\d{4}-(0[1-9]|1[0-2])$
+        lastPeriod:
+          type: string
+          example: 2026-09
+          pattern: ^\d{4}-(0[1-9]|1[0-2])$
+        monthsEmployed:
+          type: number
+        employerCount:
+          type: number
+        totals:
+          $ref: '#/components/schemas/EarningsTotalsDto'
+        perMonth:
+          $ref: '#/components/schemas/EarningsTotalsDto'
+        netRatio:
+          type: string
+          example: '0.6160'
+          description: Decimal string, 4 decimal places.
+      required:
+        - key
+        - label
+        - firstPeriod
+        - lastPeriod
+        - monthsEmployed
+        - employerCount
+        - totals
+        - perMonth
+        - netRatio
+    LatestYearFiguresDto:
+      type: object
+      properties:
+        gross:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        net:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        taxes:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        social:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        bonus:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        netRatio:
+          type: string
+          example: '0.6160'
+          description: Decimal string, 4 decimal places.
+      required:
+        - gross
+        - net
+        - taxes
+        - social
+        - bonus
+        - netRatio
+    LatestYearDto:
+      type: object
+      properties:
+        year:
+          type: number
+        months:
+          type: number
+        comparedMonths:
+          example:
+            - 1
+            - 9
+          type: array
+          items:
+            type: number
+        current:
+          $ref: '#/components/schemas/LatestYearFiguresDto'
+        previous:
+          nullable: true
+          type: object
+          allOf:
+            - $ref: '#/components/schemas/LatestYearFiguresDto'
+      required:
+        - year
+        - months
+        - comparedMonths
+        - current
+        - previous
+    YearlyPointDto:
+      type: object
+      properties:
+        year:
+          type: number
+        monthsEmployed:
+          type: number
+        gross:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        regular:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        bonus:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        net:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        taxes:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        social:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        taxRatio:
+          type: string
+          example: '0.6160'
+          description: Decimal string, 4 decimal places.
+        socialRatio:
+          type: string
+          example: '0.6160'
+          description: Decimal string, 4 decimal places.
+      required:
+        - year
+        - monthsEmployed
+        - gross
+        - regular
+        - bonus
+        - net
+        - taxes
+        - social
+        - taxRatio
+        - socialRatio
+    MonthlyPointDto:
+      type: object
+      properties:
+        period:
+          type: string
+          example: 2026-09
+          pattern: ^\d{4}-(0[1-9]|1[0-2])$
+        employerId:
+          type: string
+          format: uuid
+        gross:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        regular:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        bonus:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        net:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        taxes:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        social:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        payout:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        hasCorrection:
+          type: boolean
+      required:
+        - period
+        - employerId
+        - gross
+        - regular
+        - bonus
+        - net
+        - taxes
+        - social
+        - payout
+        - hasCorrection
+    EarningsOverviewDto:
+      type: object
+      properties:
+        hasData:
+          type: boolean
+        career:
+          type: array
+          items:
+            $ref: '#/components/schemas/CareerEntryDto'
+        latestYear:
+          nullable: true
+          type: object
+          allOf:
+            - $ref: '#/components/schemas/LatestYearDto'
+        yearly:
+          type: array
+          items:
+            $ref: '#/components/schemas/YearlyPointDto'
+        monthly:
+          type: array
+          items:
+            $ref: '#/components/schemas/MonthlyPointDto'
+        employerChanges:
+          type: array
+          items:
+            type: string
+        dataCheckIssues:
+          type: number
+      required:
+        - hasData
+        - career
+        - latestYear
+        - yearly
+        - monthly
+        - employerChanges
+        - dataCheckIssues
+    EarningsCheckResultDto:
+      type: object
+      properties:
+        code:
+          type: string
+          enum:
+            - NET
+            - PAYOUT
+        passed:
+          type: boolean
+        difference:
+          type: string
+          example: '1234.56'
+          description: Signed expected − actual.
+      required:
+        - code
+        - passed
+        - difference
+    EarningsStoredPayRecordAmountsDto:
+      type: object
+      properties:
+        gross:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        taxGross:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        svGrossKv:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        svGrossRv:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        wageTax:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        soli:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        churchTax:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        health:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        care:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        pension:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        unemployment:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        net:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        other:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        payout:
+          type: string
+          example: '1234.56'
+          description: Only on the section of the payslip's own month.
+          nullable: true
+        oneOff:
+          $ref: '#/components/schemas/EarningsOneOffAmountsDto'
+        employerSubsidy:
+          nullable: true
+          type: object
+          allOf:
+            - $ref: '#/components/schemas/EarningsEmployerSubsidyDto'
+        ytd:
+          nullable: true
+          description: Printed year-to-date totals.
+          type: object
+          allOf:
+            - $ref: '#/components/schemas/EarningsOneOffAmountsDto'
+        checks:
+          type: array
+          items:
+            $ref: '#/components/schemas/EarningsCheckResultDto'
+      required:
+        - gross
+        - taxGross
+        - svGrossKv
+        - svGrossRv
+        - wageTax
+        - soli
+        - churchTax
+        - health
+        - care
+        - pension
+        - unemployment
+        - net
+        - other
+        - payout
+        - oneOff
+        - employerSubsidy
+        - ytd
+        - checks
+    EarningsImportRefDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        fileName:
+          type: string
+      required:
+        - id
+        - fileName
+    EarningsRecordDetailDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        employerId:
+          type: string
+          format: uuid
+        employerLabel:
+          type: string
+        period:
+          type: string
+          example: 2026-09
+          pattern: ^\d{4}-(0[1-9]|1[0-2])$
+        issued:
+          type: string
+          example: 2026-09
+          pattern: ^\d{4}-(0[1-9]|1[0-2])$
+        kind:
+          type: string
+          enum: *ref_23
+        seq:
+          type: number
+        amounts:
+          $ref: '#/components/schemas/EarningsStoredPayRecordAmountsDto'
+        import:
+          $ref: '#/components/schemas/EarningsImportRefDto'
+      required:
+        - id
+        - employerId
+        - employerLabel
+        - period
+        - issued
+        - kind
+        - seq
+        - amounts
+        - import
+    MonthGridMetricsDto:
+      type: object
+      properties:
+        gross:
+          type: object
+          additionalProperties: &ref_25
+            type: string
+          example: &ref_26
+            2026-09: '5200.00'
+          description: period → amount
+        regular:
+          type: object
+          additionalProperties: *ref_25
+          example: *ref_26
+          description: period → amount
+        bonus:
+          type: object
+          additionalProperties: *ref_25
+          example: *ref_26
+          description: period → amount
+        net:
+          type: object
+          additionalProperties: *ref_25
+          example: *ref_26
+          description: period → amount
+        taxes:
+          type: object
+          additionalProperties: *ref_25
+          example: *ref_26
+          description: period → amount
+        social:
+          type: object
+          additionalProperties: *ref_25
+          example: *ref_26
+          description: period → amount
+        payout:
+          type: object
+          additionalProperties: *ref_25
+          example: *ref_26
+          description: period → amount
+      required:
+        - gross
+        - regular
+        - bonus
+        - net
+        - taxes
+        - social
+        - payout
+    MonthGridDto:
+      type: object
+      properties:
+        years:
+          type: array
+          items:
+            type: number
+        metrics:
+          $ref: '#/components/schemas/MonthGridMetricsDto'
+        bonusPeriods:
+          type: array
+          items:
+            type: string
+        missingPeriods:
+          type: array
+          items:
+            type: string
+      required:
+        - years
+        - metrics
+        - bonusPeriods
+        - missingPeriods
+    TaxYearRowDto:
+      type: object
+      properties:
+        year:
+          type: number
+        employerId:
+          type: string
+          format: uuid
+        employerLabel:
+          type: string
+        monthsEmployed:
+          type: number
+        gross:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        bonus:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        taxGross:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        wageTax:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        soli:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        churchTax:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        health:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        care:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        pension:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        unemployment:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string, 2 decimal places.
+        taxRatio:
+          type: string
+          example: '0.6160'
+          description: Decimal string, 4 decimal places.
+        socialRatio:
+          type: string
+          example: '0.6160'
+          description: Decimal string, 4 decimal places.
+      required:
+        - year
+        - employerId
+        - employerLabel
+        - monthsEmployed
+        - gross
+        - bonus
+        - taxGross
+        - wageTax
+        - soli
+        - churchTax
+        - health
+        - care
+        - pension
+        - unemployment
+        - taxRatio
+        - socialRatio
+    CertificateRowDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        year:
+          type: number
+        employerId:
+          type: string
+          format: uuid
+        employerLabel:
+          type: string
+        amounts:
+          $ref: '#/components/schemas/EarningsCertificateAmountsDto'
+        fileName:
+          type: string
+      required:
+        - id
+        - year
+        - employerId
+        - employerLabel
+        - amounts
+        - fileName
+    EarningsTablesDto:
+      type: object
+      properties:
+        monthGrid:
+          $ref: '#/components/schemas/MonthGridDto'
+        taxesPerYear:
+          type: array
+          items:
+            $ref: '#/components/schemas/TaxYearRowDto'
+        certificates:
+          type: array
+          items:
+            $ref: '#/components/schemas/CertificateRowDto'
+      required:
+        - monthGrid
+        - taxesPerYear
+        - certificates
+    DataCheckComparisonDto:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - MATCH
+            - DIFFERS
+            - NOT_AVAILABLE
+        compared:
+          type: number
+        differing:
+          description: Field names only — never amounts.
+          type: array
+          items:
+            type: string
+      required:
+        - status
+        - compared
+        - differing
+    DataCheckCompletenessDto:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - COMPLETE
+            - MISSING
+        missingPeriods:
+          type: array
+          items:
+            type: string
+      required:
+        - status
+        - missingPeriods
+    LateCorrectionDto:
+      type: object
+      properties:
+        period:
+          type: string
+          example: 2026-09
+          pattern: ^\d{4}-(0[1-9]|1[0-2])$
+        issued:
+          type: string
+          example: 2026-09
+          pattern: ^\d{4}-(0[1-9]|1[0-2])$
+      required:
+        - period
+        - issued
+    DataCheckRowDto:
+      type: object
+      properties:
+        year:
+          type: number
+        employerId:
+          type: string
+          format: uuid
+        employerLabel:
+          type: string
+        ytd:
+          $ref: '#/components/schemas/DataCheckComparisonDto'
+        certificate:
+          $ref: '#/components/schemas/DataCheckComparisonDto'
+        completeness:
+          $ref: '#/components/schemas/DataCheckCompletenessDto'
+        lateCorrections:
+          type: array
+          items:
+            $ref: '#/components/schemas/LateCorrectionDto'
+      required:
+        - year
+        - employerId
+        - employerLabel
+        - ytd
+        - certificate
+        - completeness
+        - lateCorrections

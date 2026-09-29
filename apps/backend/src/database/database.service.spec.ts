@@ -185,4 +185,76 @@ describe('DatabaseService — schema initialization', () => {
 
     await database.onModuleDestroy();
   });
+  describe('transaction()', () => {
+    it('commits when the function returns', async () => {
+      const database = new DatabaseService();
+      await database.onModuleInit();
+
+      const result = database.transaction(() => {
+        database.querySync('INSERT INTO example_value (id, amount) VALUES ($1, $2)', ['a', '1.00']);
+        database.querySync('INSERT INTO example_value (id, amount) VALUES ($1, $2)', ['b', '2.00']);
+        return 'done';
+      });
+
+      expect(result).toBe('done');
+      expect(await database.query('SELECT id FROM example_value ORDER BY id')).toEqual([
+        { id: 'a' },
+        { id: 'b' },
+      ]);
+      await database.onModuleDestroy();
+    });
+
+    it('rolls back every statement when the function throws', async () => {
+      const database = new DatabaseService();
+      await database.onModuleInit();
+
+      expect(() =>
+        database.transaction(() => {
+          database.querySync('INSERT INTO example_value (id, amount) VALUES ($1, $2)', [
+            'a',
+            '1.00',
+          ]);
+          throw new Error('boom');
+        }),
+      ).toThrow('boom');
+
+      expect(await database.query('SELECT id FROM example_value')).toEqual([]);
+      await database.onModuleDestroy();
+    });
+
+    it('rejects an async function', async () => {
+      const database = new DatabaseService();
+      await database.onModuleInit();
+
+      expect(() => database.transaction(async () => 1)).toThrow(/synchronous/);
+      await database.onModuleDestroy();
+    });
+  });
+
+  it('creates the earnings tables with their identities', async () => {
+    const database = new DatabaseService();
+    await database.onModuleInit();
+
+    const tables = await database.query<{ name: string }>(
+      "SELECT name FROM sqlite_master WHERE type = 'table' AND name LIKE 'earnings_%' ORDER BY name",
+    );
+    expect(tables.map((t) => t.name)).toEqual([
+      'earnings_certificates',
+      'earnings_employers',
+      'earnings_imports',
+      'earnings_records',
+    ]);
+
+    const insert = (id: string, kind: string) =>
+      database.query(
+        `INSERT INTO earnings_records (id, owner_id, import_id, employer_id, period, issued, kind, seq, amounts_enc)
+         VALUES ($1, 'u1', 'i1', 'e1', '2026-09', '2026-09', $2, 1, 'v1:x')`,
+        [id, kind],
+      );
+    await insert('r1', 'REGULAR');
+    await expect(insert('r2', 'REGULAR')).rejects.toThrow(/UNIQUE/);
+    await expect(insert('r3', 'BOGUS')).rejects.toThrow(/CHECK/);
+
+    await database.onModuleDestroy();
+  });
 });

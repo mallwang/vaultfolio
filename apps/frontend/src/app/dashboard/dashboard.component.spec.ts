@@ -1,3 +1,4 @@
+import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
@@ -70,6 +71,7 @@ describe('DashboardComponent', () => {
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
+        provideRouter([]),
         { provide: CurrentUserStore, useValue: fakeCurrentUser },
       ],
     }).compileComponents();
@@ -114,6 +116,46 @@ describe('DashboardComponent', () => {
 
     const el = fixture.nativeElement as HTMLElement;
     expect(el.querySelector('app-dynamic-outlet')).not.toBeNull();
+  });
+
+  // 032-earnings-domain (T118): the earnings widget renders only for earnings-entitled members.
+  it('shows the earnings widget for an earnings-entitled user', async () => {
+    fakeCurrentUser.setAuthenticated({ ...entitledUser, domainScopes: ['earnings'] });
+    fixture.detectChanges();
+
+    let requests: ReturnType<typeof httpMock.match> = [];
+    await vi.waitFor(
+      () => {
+        fixture.detectChanges();
+        requests = httpMock.match('/api/earnings/overview');
+        expect(requests).toHaveLength(1);
+      },
+      { timeout: 15000 },
+    );
+    requests[0].flush({
+      hasData: false,
+      career: [],
+      latestYear: null,
+      yearly: [],
+      monthly: [],
+      employerChanges: [],
+      dataCheckIssues: 0,
+    });
+    fixture.detectChanges();
+
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelectorAll('app-dynamic-outlet')).toHaveLength(1);
+    expect(el.textContent).toContain('Earnings');
+  });
+
+  it('does not show the earnings widget to a holdings-only user', () => {
+    fakeCurrentUser.setAuthenticated(entitledUser);
+    fixture.detectChanges();
+
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('app-dynamic-outlet'),
+    ).toHaveLength(1);
+    httpMock.match('/api/holdings');
   });
 
   it('hides the widget for a user not entitled to holdings (Acceptance Scenario 2)', async () => {

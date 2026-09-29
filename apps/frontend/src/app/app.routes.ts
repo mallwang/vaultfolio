@@ -1,10 +1,22 @@
-import { Routes } from '@angular/router';
+import { EnvironmentInjector, inject, runInInjectionContext } from '@angular/core';
+import { CanActivateFn, Routes } from '@angular/router';
 import { domainGuard } from '@vaultfolio/frontend-domain-access';
 import { NotFoundComponent } from './core/layout/not-found/not-found.component';
 import { AppShellComponent } from './core/layout/app-shell/app-shell.component';
 import { authGuard } from './auth/auth.guard';
 import { adminGuard } from './auth/admin.guard';
 import { SETTINGS_TAB_CONTRIBUTIONS } from './settings/settings-tabs.registry';
+
+/**
+ * Runs the Earnings library's `earningsAvailableGuard` without importing the library eagerly: the
+ * injector is captured before the dynamic import, since the injection context ends at the await.
+ */
+const lazyEarningsAvailableGuard: CanActivateFn = () => {
+  const injector = inject(EnvironmentInjector);
+  return import('@vaultfolio/frontend-domain-earnings').then((m) =>
+    runInInjectionContext(injector, () => m.earningsAvailableGuard()),
+  );
+};
 
 /**
  * Route table: public pages live directly under the base URL with no shell
@@ -99,6 +111,55 @@ export const routes: Routes = [
             title: 'pageTitle.holdingsImports',
             loadComponent: () =>
               import('@vaultfolio/frontend-domain-holdings').then((m) => m.ImportsComponent),
+          },
+        ],
+      },
+      // Declared before `earnings` so the literal segment wins: the import screen is a sibling
+      // page of the area (own header title, no toolbar/tabs), blocked while the key is unavailable.
+      {
+        path: 'earnings/import',
+        title: 'pageTitle.earningsImport',
+        canActivate: [domainGuard('earnings'), lazyEarningsAvailableGuard],
+        loadComponent: () =>
+          import('@vaultfolio/frontend-domain-earnings').then((m) => m.EarningsImportComponent),
+      },
+      {
+        path: 'earnings',
+        title: 'pageTitle.earnings',
+        canActivate: [domainGuard('earnings')],
+        loadComponent: () =>
+          import('@vaultfolio/frontend-domain-earnings').then((m) => m.EarningsAreaComponent),
+        children: [
+          { path: '', pathMatch: 'full', redirectTo: 'overview' },
+          {
+            path: 'overview',
+            title: 'pageTitle.earningsOverview',
+            loadComponent: () =>
+              import('@vaultfolio/frontend-domain-earnings').then(
+                (m) => m.EarningsOverviewComponent,
+              ),
+          },
+          {
+            path: 'tables',
+            title: 'pageTitle.earningsTables',
+            loadComponent: () =>
+              import('@vaultfolio/frontend-domain-earnings').then((m) => m.EarningsTablesComponent),
+          },
+          {
+            path: 'check',
+            title: 'pageTitle.earningsCheck',
+            loadComponent: () =>
+              import('@vaultfolio/frontend-domain-earnings').then(
+                (m) => m.EarningsDataCheckComponent,
+              ),
+          },
+          {
+            path: 'imports',
+            title: 'pageTitle.earningsImports',
+            loadComponent: () =>
+              import('@vaultfolio/frontend-domain-earnings').then(
+                (m) => m.EarningsImportsComponent,
+              ),
           },
         ],
       },

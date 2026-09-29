@@ -13,3 +13,4 @@ export * from './signups';
 export * from './profile';
 export * from './account-overview';
 export * from './error-response';
+export * from './earnings';

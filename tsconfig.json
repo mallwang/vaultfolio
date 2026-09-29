@@ -67,6 +67,12 @@
       "path": "./libs/export"
     },
     {
+      "path": "./libs/earnings"
+    },
+    {
+      "path": "./libs/frontend/domain/earnings"
+    },
+    {
       "path": "./libs/observability"
     }
   ],

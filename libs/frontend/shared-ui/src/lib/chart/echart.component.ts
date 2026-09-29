@@ -2,7 +2,9 @@ import {
   AfterViewInit,
   Component,
   ElementRef,
+  EventEmitter,
   Input,
+  Output,
   OnChanges,
   OnDestroy,
   SimpleChanges,
@@ -26,6 +28,14 @@ import { resolveChartPalette, type ChartPalette } from './chart-palette';
  * resolves to the mock. Caching the promise means every instance awaits the
  * exact same resolution.
  */
+/** Payload of {@link EchartComponent.chartClick}. */
+export interface EchartClickEvent {
+  dataIndex: number;
+  /** Category name of the clicked item (e.g. the x-axis label). */
+  name: string;
+  seriesName?: string;
+}
+
 let echartsModulePromise: Promise<typeof EChartsNamespace> | undefined;
 
 function loadEcharts(): Promise<typeof EChartsNamespace> {
@@ -80,6 +90,9 @@ export class EchartComponent implements AfterViewInit, OnChanges, OnDestroy {
   /** When true, shows ECharts' built-in loading overlay instead of applying `option` (FR-007). */
   @Input() loading = false;
 
+  /** A click on a data item (bar, point, …) — e.g. to open a detail view for that item. */
+  @Output() readonly chartClick = new EventEmitter<EchartClickEvent>();
+
   @ViewChild('host', { static: true })
   private readonly hostRef!: ElementRef<HTMLDivElement>;
 
@@ -100,6 +113,10 @@ export class EchartComponent implements AfterViewInit, OnChanges, OnDestroy {
   ngAfterViewInit(): void {
     loadEcharts().then((echarts) => {
       this.instance = echarts.init(this.hostRef.nativeElement);
+      this.instance.on?.('click', (params) => {
+        const p = params as { dataIndex: number; name: string; seriesName?: string };
+        this.chartClick.emit({ dataIndex: p.dataIndex, name: p.name, seriesName: p.seriesName });
+      });
       this.applyState();
       this.applyThemeFragment(this.themeService.theme());
 
@@ -137,6 +154,8 @@ export class EchartComponent implements AfterViewInit, OnChanges, OnDestroy {
     }
     this.instance.hideLoading();
     this.instance.setOption(this.option, true);
+    // `notMerge` replaced the whole option, theme fragment included — re-apply it.
+    this.applyThemeFragment(this.themeService.theme());
   }
 
   private applyThemeFragment(theme: Theme): void {

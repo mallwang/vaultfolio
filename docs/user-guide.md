@@ -27,14 +27,20 @@ infrastructure.
    - 4.6 [Exporting Holdings Data](#46-exporting-holdings-data)
 5. [Account Overview](#5-account-overview)
 6. [Klaro](#6-klaro)
-7. [Settings](#7-settings)
-   - 7.1 [Profile](#71-profile)
-   - 7.2 [Preferences](#72-preferences)
-8. [Admin Area](#8-admin-area)
-   - 8.1 [Managing Accounts](#81-managing-accounts)
-   - 8.2 [Invitations](#82-invitations)
-   - 8.3 [Sign-Up Requests](#83-sign-up-requests)
-   - 8.4 [System Health](#84-system-health)
+7. [Earnings](#7-earnings)
+   - 7.1 [Access and Privacy](#71-access-and-privacy)
+   - 7.2 [Importing Documents](#72-importing-documents)
+   - 7.3 [Overview, Tables and Month Detail](#73-overview-tables-and-month-detail)
+   - 7.4 [Data Check](#74-data-check)
+   - 7.5 [Imports, Renaming and Deleting](#75-imports-renaming-and-deleting)
+8. [Settings](#8-settings)
+   - 8.1 [Profile](#81-profile)
+   - 8.2 [Preferences](#82-preferences)
+9. [Admin Area](#9-admin-area)
+   - 9.1 [Managing Accounts](#91-managing-accounts)
+   - 9.2 [Invitations](#92-invitations)
+   - 9.3 [Sign-Up Requests](#93-sign-up-requests)
+   - 9.4 [System Health](#94-system-health)
 
 ---
 
@@ -78,7 +84,7 @@ collapse it to icon-only mode; hovering an icon shows a tooltip with the area na
 The active page is highlighted.
 
 Which areas appear depends on the domains your administrator has granted you access
-to (see [Managing Accounts](#81-managing-accounts)).
+to (see [Managing Accounts](#91-managing-accounts)).
 
 ### 2.2 Header
 
@@ -215,9 +221,87 @@ in both.
 
 ---
 
-## 7. Settings
+## 7. Earnings
 
-### 7.1 Profile
+**Earnings** turns your payslips into a career-long view of gross pay, net pay, taxes
+and social insurance. It is available only if an administrator has enabled the
+Earnings domain for your account (administrators always have it).
+
+### 7.1 Access and Privacy
+
+Payslips contain some of your most sensitive data, so Earnings works differently from
+other domains:
+
+- **Documents stay on your device.** PDFs are read in your browser. The file and its
+  text are never uploaded — only the figures shown in the import preview are sent.
+- **Only figures, no identifiers.** No tax ID, social-security number, IBAN, name or
+  address is sent or stored.
+- **Amounts are stored encrypted.** The operator of your Vaultfolio instance runs the
+  server and holds the encryption key.
+- **Only you can see it.** Nobody else in Vaultfolio — administrators included — can
+  see your earnings.
+
+The link **How your data is protected** in the toolbar opens this note at any time.
+If the page says _Earnings data is temporarily unavailable_, the server cannot decrypt
+your figures right now; your data is not lost — contact the operator.
+
+### 7.2 Importing Documents
+
+Click **Import documents** and drop files onto the page (or use **Choose files**).
+Supported are:
+
+- **SAP payslips** ("Entgeltnachweis"), including corrections for earlier months,
+- **wage-tax certificates** ("Lohnsteuerbescheinigung") from any employer,
+- **companion-tool export files** (`earnings-export`, version 1) — the way to bring in
+  other payslip layouts and scans.
+
+Every file gets a row with its outcome: **New**, **Replaces** (a newer version of
+figures you already imported), **Duplicate** (already imported — skipped) or
+**Rejected** with the reason, for example when gross − taxes − social insurance does
+not add up to net, or when a PDF is a scan without text. Rejected files are never
+saved. Expand **Figures that will be sent** on a row to see exactly what leaves your
+device. Nothing is saved until you click the import button at the bottom.
+
+### 7.3 Overview, Tables and Month Detail
+
+- **Overview** — a career summary (whole career and per employer, with averages per
+  month employed), the latest year compared with the same months of the previous
+  year, gross per year, where the gross goes month by month (net, taxes, social
+  insurance), and deductions as a share of gross. Click a month in the chart to open
+  its **month detail** with every payslip section of that month.
+- **Tables** — a month grid per year (click a cell for the month detail), all taxes
+  and contributions per year, and your wage-tax certificates.
+- The **Employer** filter at the top narrows every view to one employer.
+- **Export** offers your earnings as JSON, CSV, Excel or PDF. Earnings are also part of
+  the full **Export my data** archive in your profile.
+
+The dashboard shows an Earnings widget with the current year's gross, net and net
+ratio.
+
+### 7.4 Data Check
+
+The **Data check** tab compares, per employer and year, the sum of your payslips with
+the year-to-date totals printed on the last payslip of the year and with the wage-tax
+certificate, and lists missing months. The number on the tab (and the strip on the
+Overview) shows how many issues were found; each comes with a hint, such as which
+payslips to import.
+
+### 7.5 Imports, Renaming and Deleting
+
+The **Imports** tab lists every imported file with its periods, number of records and
+the parser (with version) that read it.
+
+- **Rename an employer** — give an employer a display name of your choice; the name
+  detected from the documents is kept.
+- **Delete an import** — removes exactly the figures that file added.
+- **Delete all earnings data** — permanently removes all figures, certificates,
+  employer names and the import history. Your other Vaultfolio data is not affected.
+
+---
+
+## 8. Settings
+
+### 8.1 Profile
 
 **Display name** — Change how your name appears across the app. Updates immediately
 without a page reload.
@@ -240,7 +324,7 @@ and finally typing `DELETE` to confirm. This action cannot be undone.
 > If you are the only administrator, account deletion is blocked. Promote another
 > user to admin first.
 
-### 7.2 Preferences
+### 8.2 Preferences
 
 **Email language** — Sets the language used in emails sent to you (verification
 links, notifications). This is independent of the UI display language, which is set
@@ -248,11 +332,11 @@ in the header.
 
 ---
 
-## 8. Admin Area
+## 9. Admin Area
 
 The Admin area is only visible to users with the Administrator role.
 
-### 8.1 Managing Accounts
+### 9.1 Managing Accounts
 
 The **Accounts** tab lists all accounts (active and archived).
 
@@ -271,7 +355,7 @@ navigate to. Changes take effect on the user's next page load.
 reactivated within 30 days; after that it is permanently deleted. You cannot archive
 or demote the last remaining administrator.
 
-### 8.2 Invitations
+### 9.2 Invitations
 
 The **Invitations** tab shows all invitations and their status:
 
@@ -289,7 +373,7 @@ invited user sets their own password — you never see it.
 Per-row actions: **Resend** (generates a new link, superseding the old one) and
 **Cancel** (with confirmation).
 
-### 8.3 Sign-Up Requests
+### 9.3 Sign-Up Requests
 
 The **Sign-ups** tab shows self-service registration requests. Each request moves
 through these stages:
@@ -305,7 +389,7 @@ Per-row actions:
 - **Delete** — removes the entry and unblocks the email address so the person can
   sign up again.
 
-### 8.4 System Health
+### 9.4 System Health
 
 **Admin → General** shows the current system status: backend health (ok / degraded)
 and database connectivity (connected / unreachable), with a "last checked" timestamp.

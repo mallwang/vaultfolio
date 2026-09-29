@@ -27,14 +27,20 @@ eigenen Infrastruktur.
    - 4.6 [Holdings-Daten exportieren](#46-holdings-daten-exportieren)
 5. [Kontenübersicht](#5-kontenübersicht)
 6. [Klaro](#6-klaro)
-7. [Einstellungen](#7-einstellungen)
-   - 7.1 [Profil](#71-profil)
-   - 7.2 [Präferenzen](#72-präferenzen)
-8. [Administrationsbereich](#8-administrationsbereich)
-   - 8.1 [Konten verwalten](#81-konten-verwalten)
-   - 8.2 [Einladungen](#82-einladungen)
-   - 8.3 [Registrierungsanfragen](#83-registrierungsanfragen)
-   - 8.4 [Systemstatus](#84-systemstatus)
+7. [Einkommensentwicklung](#7-einkommensentwicklung)
+   - 7.1 [Zugang und Datenschutz](#71-zugang-und-datenschutz)
+   - 7.2 [Dokumente importieren](#72-dokumente-importieren)
+   - 7.3 [Überblick, Tabellen und Monatsdetail](#73-überblick-tabellen-und-monatsdetail)
+   - 7.4 [Datenprüfung](#74-datenprüfung)
+   - 7.5 [Importe, Umbenennen und Löschen](#75-importe-umbenennen-und-löschen)
+8. [Einstellungen](#8-einstellungen)
+   - 8.1 [Profil](#81-profil)
+   - 8.2 [Präferenzen](#82-präferenzen)
+9. [Administrationsbereich](#9-administrationsbereich)
+   - 9.1 [Konten verwalten](#91-konten-verwalten)
+   - 9.2 [Einladungen](#92-einladungen)
+   - 9.3 [Registrierungsanfragen](#93-registrierungsanfragen)
+   - 9.4 [Systemstatus](#94-systemstatus)
 
 ---
 
@@ -80,7 +86,7 @@ Symbols mit der Maus erscheint ein Tooltip mit dem Bereichsnamen. Die aktive Sei
 hervorgehoben.
 
 Welche Bereiche erscheinen, hängt davon ab, welche Domänen dir dein Administrator freigegeben
-hat (siehe [Konten verwalten](#81-konten-verwalten)).
+hat (siehe [Konten verwalten](#91-konten-verwalten)).
 
 ### 2.2 Kopfzeile
 
@@ -216,9 +222,94 @@ E-Mail-Adresse verwendest.
 
 ---
 
-## 7. Einstellungen
+## 7. Einkommensentwicklung
 
-### 7.1 Profil
+Die **Einkommensentwicklung** macht aus deinen Gehaltsabrechnungen einen Überblick über
+dein ganzes Berufsleben – Brutto, Netto, Steuern und Sozialversicherung. Sie steht nur
+zur Verfügung, wenn ein Administrator die Domäne für dein Konto freigeschaltet hat
+(Administratoren haben sie immer).
+
+### 7.1 Zugang und Datenschutz
+
+Gehaltsabrechnungen gehören zu deinen sensibelsten Daten. Deshalb funktioniert die
+Einkommensentwicklung anders als andere Bereiche:
+
+- **Dokumente bleiben auf deinem Gerät.** PDFs werden in deinem Browser gelesen. Die
+  Datei und ihr Text werden nie hochgeladen – gesendet werden nur die Werte aus der
+  Importvorschau.
+- **Nur Werte, keine Kennungen.** Steuer-ID, Sozialversicherungsnummer, IBAN, Name oder
+  Adresse werden weder gesendet noch gespeichert.
+- **Beträge werden verschlüsselt gespeichert.** Der Betreiber deiner Vaultfolio-Instanz
+  betreibt den Server und verwaltet den Schlüssel.
+- **Nur du siehst sie.** Niemand sonst in Vaultfolio – auch keine Administratoren –
+  kann deine Einkommensdaten sehen.
+
+Der Link **So werden Ihre Daten geschützt** in der Werkzeugleiste öffnet diesen Hinweis
+jederzeit. Zeigt die Seite _Einkommensdaten sind vorübergehend nicht verfügbar_, kann
+der Server deine Werte gerade nicht entschlüsseln; deine Daten sind nicht verloren –
+wende dich an den Betreiber.
+
+### 7.2 Dokumente importieren
+
+Klicke auf **Dokumente importieren** und lege Dateien auf der Seite ab (oder nutze
+**Dateien auswählen**). Unterstützt werden:
+
+- **SAP-Entgeltnachweise**, einschließlich Korrekturen für frühere Monate,
+- **Lohnsteuerbescheinigungen** aller Arbeitgeber,
+- **Exportdateien des Begleit-Tools** (`earnings-export`, Version 1) – der Weg für
+  andere Abrechnungslayouts und Scans.
+
+Jede Datei bekommt eine Zeile mit ihrem Ergebnis: **Neu**, **Ersetzt** (eine neuere
+Fassung bereits importierter Werte), **Duplikat** (bereits importiert – übersprungen)
+oder **Abgelehnt** mit Begründung, etwa wenn Brutto − Steuern − Sozialversicherung nicht
+das Netto ergibt oder ein PDF ein Scan ohne Text ist. Abgelehnte Dateien werden nie
+gespeichert. Klappe **Werte, die gesendet werden** auf, um genau zu sehen, was dein
+Gerät verlässt. Gespeichert wird erst, wenn du unten auf die Import-Schaltfläche
+klickst.
+
+### 7.3 Überblick, Tabellen und Monatsdetail
+
+- **Überblick** – der Gesamtverdienst (ganzes Berufsleben und pro Arbeitgeber, mit
+  Durchschnitt pro Beschäftigungsmonat), das aktuelle Jahr im Vergleich zu denselben
+  Monaten des Vorjahres, Brutto pro Jahr, wohin das Brutto Monat für Monat geht
+  (Netto, Steuern, Sozialversicherung) und die Abzüge als Anteil am Brutto. Ein Klick
+  auf einen Monat im Diagramm öffnet das **Monatsdetail** mit allen Abrechnungsteilen
+  dieses Monats.
+- **Tabellen** – eine Monatsübersicht pro Jahr (ein Klick auf eine Zelle öffnet das
+  Monatsdetail), alle Steuern und Abgaben pro Jahr und deine Lohnsteuerbescheinigungen.
+- Der Filter **Arbeitgeber** oben schränkt jede Ansicht auf einen Arbeitgeber ein.
+- **Exportieren** bietet deine Einkommensdaten als JSON, CSV, Excel oder PDF an. Sie
+  sind außerdem Teil des vollständigen Archivs **Meine Daten exportieren** in deinem
+  Profil.
+
+Das Dashboard zeigt ein Einkommens-Widget mit Brutto, Netto und Nettoquote des
+aktuellen Jahres.
+
+### 7.4 Datenprüfung
+
+Der Reiter **Datenprüfung** vergleicht pro Arbeitgeber und Jahr die Summe deiner
+Abrechnungen mit den Jahressummen auf der letzten Abrechnung des Jahres und mit der
+Lohnsteuerbescheinigung und listet fehlende Monate auf. Die Zahl am Reiter (und der
+Hinweis im Überblick) zeigt, wie viele Probleme gefunden wurden; zu jedem gibt es einen
+Hinweis, etwa welche Abrechnungen noch fehlen.
+
+### 7.5 Importe, Umbenennen und Löschen
+
+Der Reiter **Importe** listet jede importierte Datei mit ihren Zeiträumen, der Anzahl
+der Datensätze und dem Parser (mit Version), der sie gelesen hat.
+
+- **Arbeitgeber umbenennen** – gib einem Arbeitgeber einen Anzeigenamen deiner Wahl;
+  der aus den Dokumenten erkannte Name bleibt erhalten.
+- **Import löschen** – entfernt genau die Werte, die diese Datei hinzugefügt hat.
+- **Alle Einkommensdaten löschen** – entfernt dauerhaft alle Werte, Bescheinigungen,
+  Arbeitgebernamen und den Importverlauf. Deine übrigen Vaultfolio-Daten bleiben
+  unberührt.
+
+---
+
+## 8. Einstellungen
+
+### 8.1 Profil
 
 **Anzeigename** – Ändere, wie dein Name in der gesamten Anwendung erscheint. Die Änderung wird
 sofort übernommen, ohne die Seite neu zu laden.
@@ -242,7 +333,7 @@ werden.
 > Wenn du der einzige Administrator bist, ist das Löschen des Kontos gesperrt. Gib zunächst
 > einem anderen Benutzer die Administrator-Rolle.
 
-### 7.2 Präferenzen
+### 8.2 Präferenzen
 
 **E-Mail-Sprache** – Legt die Sprache fest, die in E-Mails an dich verwendet wird
 (Bestätigungslinks, Benachrichtigungen). Diese Einstellung ist unabhängig von der
@@ -250,11 +341,11 @@ Anzeigesprache der Oberfläche, die in der Kopfzeile geändert wird.
 
 ---
 
-## 8. Administrationsbereich
+## 9. Administrationsbereich
 
 Der Administrationsbereich ist nur für Benutzer mit der Rolle „Administrator" sichtbar.
 
-### 8.1 Konten verwalten
+### 9.1 Konten verwalten
 
 Die Registerkarte **Konten** listet alle Konten (aktive und archivierte) auf.
 
@@ -274,7 +365,7 @@ es aufrufen kann. Änderungen greifen beim nächsten Seitenaufruf des Benutzers.
 innerhalb von 30 Tagen reaktiviert werden; danach wird es dauerhaft gelöscht. Du kannst den
 letzten verbleibenden Administrator nicht archivieren oder degradieren.
 
-### 8.2 Einladungen
+### 9.2 Einladungen
 
 Die Registerkarte **Einladungen** zeigt alle Einladungen und ihren Status:
 
@@ -292,7 +383,7 @@ Der eingeladene Benutzer legt sein eigenes Passwort fest – du siehst es nie.
 Zeilenaktionen: **Erneut senden** (erzeugt einen neuen Link, der den alten ersetzt) und
 **Abbrechen** (mit Bestätigung).
 
-### 8.3 Registrierungsanfragen
+### 9.3 Registrierungsanfragen
 
 Die Registerkarte **Registrierungen** zeigt Selbstregistrierungsanfragen. Jede Anfrage
 durchläuft folgende Phasen:
@@ -310,7 +401,7 @@ Zeilenaktionen:
 - **Löschen** – entfernt den Eintrag und gibt die E-Mail-Adresse für eine erneute Registrierung
   frei.
 
-### 8.4 Systemstatus
+### 9.4 Systemstatus
 
 **Admin → Allgemein** zeigt den aktuellen Systemstatus: Backend-Zustand (ok / beeinträchtigt)
 und Datenbankverbindung (verbunden / nicht erreichbar), jeweils mit einem Zeitstempel der
