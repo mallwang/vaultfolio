@@ -134,7 +134,8 @@ no remaining records or certificates are removed when an import is deleted.
   record (highest `issued`, `period`, `seq`); (b) sum vs. certificate if present, adding lines
   10–13; (c) completeness: no missing regular months between first and last regular month of the
   year. Corrections with `issued` after that last record are excluded from (a) and (b) and listed
-  as `lateCorrections`.
+  as `lateCorrections`. A year without any regular record is `NO_PAYSLIPS` and its certificate
+  `NOT_COMPARABLE` (informational, not an issue).
 
 ## State transitions
 

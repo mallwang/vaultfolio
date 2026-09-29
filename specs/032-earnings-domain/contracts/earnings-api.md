@@ -177,9 +177,13 @@ certificates: [ { id, year, employerId, employerLabel, amounts (CertificateAmoun
 
 `200 [ { year, employerId, employerLabel,
 ytd: { status: "MATCH" | "DIFFERS" | "NOT_AVAILABLE", compared: 8, differing: ["wageTax", …] },
-certificate: { status: "MATCH" | "DIFFERS" | "NOT_AVAILABLE", compared, differing },
-completeness: { status: "COMPLETE" | "MISSING", missingPeriods: ["2019-03"] },
+certificate: { status: "MATCH" | "DIFFERS" | "NOT_AVAILABLE" | "NOT_COMPARABLE", compared, differing },
+completeness: { status: "COMPLETE" | "MISSING" | "NO_PAYSLIPS", missingPeriods: ["2019-03"] },
 lateCorrections: [ { period, issued } ] } ]`.
+
+A year without any regular record (e.g. only a certificate) has `completeness.status:
+"NO_PAYSLIPS"` (empty `missingPeriods`) and, if a certificate exists, `certificate.status:
+"NOT_COMPARABLE"`; neither counts towards `dataCheckIssues`.
 
 Only field _names_ of differing values are returned in `differing`; the UI shows amounts from the
 already-returned yearly data if needed.

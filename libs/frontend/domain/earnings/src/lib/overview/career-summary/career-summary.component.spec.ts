@@ -47,6 +47,8 @@ describe('CareerSummaryComponent', () => {
     expect(all?.textContent).toContain('€600,000');
     expect(all?.textContent).toContain('Ø per month €3,390');
     expect(all?.textContent).toContain('61.7%');
+    expect(all?.textContent).toContain('61.7% of gross');
+    expect(all?.textContent).toContain('5.0% of gross');
     expect(root.querySelector('[data-testid="earnings-career-e2"]')?.textContent).toContain(
       'Harbor Analytics AG',
     );

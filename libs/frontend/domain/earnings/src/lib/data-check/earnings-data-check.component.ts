@@ -38,7 +38,17 @@ interface EmployerGroup {
             }
           </ul>
         </p-message>
-      } @else if (rows().length > 0) {
+      }
+      @if (notes().length > 0) {
+        <p-message severity="info" data-testid="earnings-data-check-notes">
+          <ul class="hints">
+            @for (note of notes(); track note) {
+              <li>{{ note }}</li>
+            }
+          </ul>
+        </p-message>
+      }
+      @if (hints().length === 0 && notes().length === 0 && rows().length > 0) {
         <p-message severity="success" data-testid="earnings-data-check-ok">{{
           'earnings.dataCheck.allGood' | translate
         }}</p-message>
@@ -181,18 +191,18 @@ export class EarningsDataCheckComponent {
           note: row.lateCorrections.length > 0 ? this.lateNote(row, lang) : undefined,
         },
         certificate: this.comparison(row.certificate),
-        complete:
-          row.completeness.status === 'COMPLETE'
-            ? { ok: true, text: this.t('earnings.dataCheck.completeOk') }
-            : {
-                ok: false,
-                text: fill(this.t('earnings.dataCheck.missing'), {
-                  months: this.months(row.completeness.missingPeriods, lang),
-                }),
-              },
+        complete: this.completeness(row, lang),
       });
     }
     return [...groups.values()];
+  });
+
+  /** Informational, not an issue: years with no payslips to check (e.g. only a certificate). */
+  protected readonly notes = computed(() => {
+    this.i18n.language();
+    return this.rows()
+      .filter((row) => row.completeness.status === 'NO_PAYSLIPS')
+      .map((row) => fill(this.t('earnings.dataCheck.noPayslipsHint'), { year: row.year }));
   });
 
   protected readonly hints = computed(() => {
@@ -234,9 +244,27 @@ export class EarningsDataCheckComponent {
     });
   }
 
+  private completeness(row: DataCheckRow, lang: string): CheckCell {
+    switch (row.completeness.status) {
+      case 'COMPLETE':
+        return { ok: true, text: this.t('earnings.dataCheck.completeOk') };
+      case 'NO_PAYSLIPS':
+        return { ok: null, text: this.t('earnings.dataCheck.noPayslips') };
+      default:
+        return {
+          ok: false,
+          text: fill(this.t('earnings.dataCheck.missing'), {
+            months: this.months(row.completeness.missingPeriods, lang),
+          }),
+        };
+    }
+  }
+
   private comparison(c: DataCheckComparison): CheckCell {
     if (c.status === 'NOT_AVAILABLE')
       return { ok: null, text: this.t('earnings.dataCheck.notAvailable') };
+    if (c.status === 'NOT_COMPARABLE')
+      return { ok: null, text: this.t('earnings.dataCheck.notComparable') };
     return c.status === 'MATCH'
       ? { ok: true, text: fill(this.t('earnings.dataCheck.valuesMatch'), { count: c.compared }) }
       : {

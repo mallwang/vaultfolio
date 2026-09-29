@@ -19,7 +19,7 @@ export interface ChartLabels {
 /** Locale formatters (FR-048). */
 export interface ChartFormat {
   money(value: number): string;
-  moneyShort(value: number): string;
+  moneyWhole(value: number): string;
   percent(value: number): string;
   month(period: string): string;
 }
@@ -45,6 +45,13 @@ function monthsBefore(period: string, count: number): string {
   return `${String(Math.floor(index / 12)).padStart(4, '0')}-${String((index % 12) + 1).padStart(2, '0')}`;
 }
 
+/** Every calendar month from `first` to `last`, both inclusive. */
+function monthsBetween(first: string, last: string): string[] {
+  const periods: string[] = [];
+  for (let p = first; p <= last; p = monthsBefore(p, -1)) periods.push(p);
+  return periods;
+}
+
 /** Gross per year (FR-026): stacked regular pay + bonus, total label on top; Total or Per month employed. */
 export function grossPerYearOption(
   yearly: readonly YearlyPoint[],
@@ -60,7 +67,7 @@ export function grossPerYearOption(
   const regular = yearly.map((p) => round2(divide(p.regular, p)));
   const bonus = yearly.map((p) => round2(divide(p.bonus, p)));
   return {
-    grid: { left: 8, right: 8, top: 28, bottom: 8, containLabel: true },
+    grid: { left: 8, right: 8, top: 48, bottom: 8, containLabel: true },
     legend: { data: [labels.regular, labels.bonus], top: 0, left: 0 },
     tooltip: {
       trigger: 'axis',
@@ -68,7 +75,7 @@ export function grossPerYearOption(
       valueFormatter: (v) => format.money(Number(v)),
     },
     xAxis: { type: 'category', data: yearly.map((p) => String(p.year)) },
-    yAxis: { type: 'value', axisLabel: { formatter: (v: number) => format.moneyShort(v) } },
+    yAxis: { type: 'value', axisLabel: { formatter: (v: number) => format.moneyWhole(v) } },
     series: [
       {
         name: labels.regular,
@@ -88,7 +95,7 @@ export function grossPerYearOption(
         label: {
           show: true,
           position: 'top',
-          formatter: (p) => format.moneyShort(regular[p.dataIndex] + bonus[p.dataIndex]),
+          formatter: (p) => format.moneyWhole(regular[p.dataIndex] + bonus[p.dataIndex]),
         },
       },
     ],
@@ -120,7 +127,8 @@ export function monthlyTotals(points: readonly MonthlyPoint[]): MonthlyPoint[] {
 
 /**
  * Where the gross goes, month by month (FR-027): net + taxes + social stacked (= gross), a dot
- * above bonus months, dashed lines at employer changes, the selected month outlined.
+ * above bonus months, dashed lines at employer changes, the selected month outlined. The axis has
+ * one slot per calendar month, so a month without data shows as a gap.
  */
 export function monthlyOption(
   monthly: readonly MonthlyPoint[],
@@ -135,8 +143,11 @@ export function monthlyOption(
   // The range counts calendar months back from the latest one, not data points — gaps stay gaps.
   const from =
     all.length > 0 ? monthsBefore(all[all.length - 1].period, MONTHS_IN_RANGE[range] - 1) : '';
-  const points = all.filter((p) => p.period >= from);
-  const periods = points.map((p) => p.period);
+  const inRange = all.filter((p) => p.period >= from);
+  const byPeriod = new Map(inRange.map((p) => [p.period, p]));
+  const periods =
+    inRange.length > 0 ? monthsBetween(inRange[0].period, inRange[inRange.length - 1].period) : [];
+  const points = periods.map((p) => byPeriod.get(p) ?? null);
   const outline = (index: number, color: string, top = false) => ({
     color,
     ...(top ? { borderRadius: TOP_RADIUS } : {}),
@@ -149,14 +160,16 @@ export function monthlyOption(
     barMaxWidth: 18,
     // Series-level colour too, so the legend swatch matches the per-item bars.
     itemStyle: { color },
-    data: points.map((p, i) => ({ value: n(p[key]), itemStyle: outline(i, color, top) })),
+    data: points.map((p, i) =>
+      p ? { value: n(p[key]), itemStyle: outline(i, color, top) } : null,
+    ),
   });
   const changes = employerChanges.filter((c) => periods.includes(c));
 
   return {
     periods,
     option: {
-      grid: { left: 8, right: 8, top: 28, bottom: 8, containLabel: true },
+      grid: { left: 8, right: 8, top: 48, bottom: 8, containLabel: true },
       legend: {
         data: [labels.net, labels.taxes, labels.social, labels.bonusMonth],
         top: 0,
@@ -165,14 +178,14 @@ export function monthlyOption(
       tooltip: {
         trigger: 'axis',
         axisPointer: { type: 'shadow' },
-        valueFormatter: (v) => format.money(Number(v)),
+        formatter: (params) => monthlyTooltip(params as TooltipParam[], points, format),
       },
       xAxis: {
         type: 'category',
         data: periods.map((p) => format.month(p)),
         axisLabel: { hideOverlap: true },
       },
-      yAxis: { type: 'value', axisLabel: { formatter: (v: number) => format.moneyShort(v) } },
+      yAxis: { type: 'value', axisLabel: { formatter: (v: number) => format.moneyWhole(v) } },
       series: [
         {
           ...bar('net', labels.net, colors.net),
@@ -191,12 +204,44 @@ export function monthlyOption(
           type: 'scatter',
           symbolSize: 8,
           itemStyle: { color: colors.bonus, borderColor: '#ffffff', borderWidth: 2 },
-          tooltip: { valueFormatter: () => '' },
-          data: points.map((p) => (n(p.bonus) !== 0 ? n(p.gross) * 1.04 + 50 : null)),
+          data: points.map((p) => (p && n(p.bonus) !== 0 ? n(p.gross) * 1.04 + 50 : null)),
         },
       ],
     },
   };
+}
+
+/** The part of ECharts' axis-tooltip params the monthly tooltip reads. */
+interface TooltipParam {
+  seriesType?: string;
+  seriesName?: string;
+  marker?: unknown;
+  dataIndex: number;
+  value?: unknown;
+  axisValueLabel?: string;
+}
+
+/**
+ * Axis tooltip of the monthly chart: one row per stacked bar ('–' in a month without data) and a
+ * bonus row with the bonus amount only in bonus months.
+ */
+function monthlyTooltip(
+  params: readonly TooltipParam[],
+  points: readonly (MonthlyPoint | null)[],
+  format: ChartFormat,
+): string {
+  const row = (p: TooltipParam, value: string) =>
+    `${typeof p.marker === 'string' ? p.marker : ''}${p.seriesName ?? ''}` +
+    `<span style="float:right;margin-left:20px;font-weight:600">${value}</span>`;
+  const rows = params.flatMap((p) => {
+    if (p.seriesType !== 'scatter') {
+      const value = Number(p.value);
+      return [row(p, p.value != null && Number.isFinite(value) ? format.money(value) : '–')];
+    }
+    const point = points[p.dataIndex];
+    return point && n(point.bonus) !== 0 ? [row(p, format.money(n(point.bonus)))] : [];
+  });
+  return [params[0]?.axisValueLabel ?? '', ...rows].join('<br/>');
 }
 
 /** Deductions as a share of gross per calendar year (FR-028), last value labeled. */
@@ -220,7 +265,7 @@ export function ratiosOption(
     },
   });
   return {
-    grid: { left: 8, right: 56, top: 28, bottom: 8, containLabel: true },
+    grid: { left: 8, right: 56, top: 48, bottom: 8, containLabel: true },
     legend: { data: [labels.taxes, labels.social], top: 0, left: 0 },
     tooltip: { trigger: 'axis', valueFormatter: (v) => format.percent(Number(v)) },
     xAxis: { type: 'category', data: yearly.map((p) => String(p.year)), boundaryGap: false },

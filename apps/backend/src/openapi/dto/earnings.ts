@@ -366,14 +366,14 @@ export class EarningsTablesDto {
 }
 
 export class DataCheckComparisonDto {
-  @ApiProperty({ enum: ['MATCH', 'DIFFERS', 'NOT_AVAILABLE'] }) status!: string;
+  @ApiProperty({ enum: ['MATCH', 'DIFFERS', 'NOT_AVAILABLE', 'NOT_COMPARABLE'] }) status!: string;
   @ApiProperty() compared!: number;
   @ApiProperty({ type: [String], description: 'Field names only — never amounts.' })
   differing!: string[];
 }
 
 export class DataCheckCompletenessDto {
-  @ApiProperty({ enum: ['COMPLETE', 'MISSING'] }) status!: string;
+  @ApiProperty({ enum: ['COMPLETE', 'MISSING', 'NO_PAYSLIPS'] }) status!: string;
   @ApiProperty({ type: [String] }) missingPeriods!: string[];
 }
 

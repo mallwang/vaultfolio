@@ -155,20 +155,34 @@ class Section {
   get(key: AmountKey): number {
     return this.amounts.get(key) ?? 0;
   }
+
+  /** Only amount-less lines (e.g. vacation days of an earlier month booked late) — no pay record. */
+  get informational(): boolean {
+    return (
+      !this.regular &&
+      !this.hasGross &&
+      !this.hasNet &&
+      this.amounts.size === 0 &&
+      this.oneOffGross === 0 &&
+      Object.keys(this.subsidy).length === 0 &&
+      Object.keys(this.contribution).length === 0
+    );
+  }
 }
 
 class Failure {
   constructor(readonly error: ParseError) {}
 }
 
-/** Employer from the header: the first line (before the statement title) naming a legal entity. */
-function detectEmployer(lines: string[]): string | null {
-  const header: string[] = [];
-  for (const line of lines) {
-    if (STATEMENT.test(line)) break;
-    header.push(line);
-  }
-  return employerFromLines(header);
+/**
+ * Employer from the header of the first statement page (up to its first section): the first line
+ * naming a legal entity. Earlier pages are skipped — a cover letter there names the payroll
+ * provider (e.g. the parent company's HR service), not the employer printed on the statement.
+ */
+function detectEmployer(pages: string[][]): string | null {
+  const page = pages.find((lines) => lines.some((l) => STATEMENT.test(l))) ?? [];
+  const end = page.findIndex((l) => SECTION.test(l));
+  return employerFromLines(end < 0 ? page : page.slice(0, end));
 }
 
 function ytdOf(lines: string[]): YtdAmounts | null {
@@ -366,19 +380,23 @@ function toRecord(
   };
 }
 
-function parseLines(lines: string[]): ParseOutcome {
+function parsePages(pages: string[][]): ParseOutcome {
+  const lines = pages.flat();
   const statement = lines.map((l) => STATEMENT.exec(l)).find((m) => m);
   const issued = (statement ? month(statement[1], statement[2]) : null) ?? fail('statementMonth');
-  const employer = detectEmployer(lines) ?? fail('employer');
+  const employer = detectEmployer(pages) ?? fail('employer');
 
   const reader = new StatementReader(issued);
   for (const line of lines) reader.read(line);
-  const { sections, payout } = reader;
+  if (reader.sections.length === 0) fail('section');
+  const sections = reader.sections.filter((s) => !s.informational);
+  const { payout } = reader;
 
-  if (sections.length === 0) fail('section');
   for (const s of sections) {
-    if (!s.hasGross) fail('gross', s.period);
-    if (!s.hasNet) fail('net', s.period);
+    // a correction that only recalculates taxes/contributions prints no Gesamtbrutto: gross stays 0;
+    // one that only reclassifies pay (e.g. taxable → tax-free) prints no Gesetzl. Netto: net stays 0
+    if (!s.hasGross && s.regular) fail('gross', s.period);
+    if (!s.hasNet && s.regular) fail('net', s.period);
   }
 
   // A statement with only back-payments has no section of its own month: a PAYOUT_ONLY record for
@@ -402,7 +420,7 @@ export const sapEntgeltnachweisParser: EarningsParser = {
   detect: (doc: PdfDocumentText) => allLines(doc).some((l) => STATEMENT.test(l.text)),
   parse: (doc: PdfDocumentText): ParseOutcome => {
     try {
-      return parseLines(allLines(doc).map((l) => l.text));
+      return parsePages(doc.pages.map((p) => p.lines.map((l) => l.text)));
     } catch (e) {
       if (e instanceof Failure) return { ok: false, error: e.error };
       throw e;

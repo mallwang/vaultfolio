@@ -66,6 +66,11 @@ function compare(
 }
 
 const NOT_AVAILABLE: DataCheckComparison = { status: 'NOT_AVAILABLE', compared: 0, differing: [] };
+const NOT_COMPARABLE: DataCheckComparison = {
+  status: 'NOT_COMPARABLE',
+  compared: 0,
+  differing: [],
+};
 
 /** Last regular record of the year with printed year-to-date totals (highest issued, period, seq). */
 function lastWithYtd(records: readonly StoredRecord[]): StoredRecord | null {
@@ -118,11 +123,31 @@ function certificateExpected(cert: StoredCertificate): Record<YearKey, Decimal> 
   ) as Record<YearKey, Decimal>;
 }
 
+function certificateCheck(
+  cert: StoredCertificate | undefined,
+  hasPayslips: boolean,
+  actual: Record<YearKey, Decimal>,
+): DataCheckComparison {
+  if (!cert) return NOT_AVAILABLE;
+  return hasPayslips ? compare(certificateExpected(cert), actual) : NOT_COMPARABLE;
+}
+
+function completenessCheck(
+  records: readonly StoredRecord[],
+  hasPayslips: boolean,
+): DataCheckRow['completeness'] {
+  if (!hasPayslips) return { status: 'NO_PAYSLIPS', missingPeriods: [] };
+  const missingPeriods = missingRegularPeriods(records);
+  return { status: missingPeriods.length ? 'MISSING' : 'COMPLETE', missingPeriods };
+}
+
 /**
  * Data check per employer and year (FR-033): payslip sums vs. the year-to-date totals of the
  * year's last payslip, vs. the wage-tax certificate (lines 10–13 added, voluntary KV/PV subsidies
  * subtracted), and completeness of regular months. Corrections issued after the year's last
  * payslip can be in neither printed value: they are excluded from both comparisons and listed.
+ * A year without any regular payslip (e.g. only a certificate) is `NO_PAYSLIPS` and its
+ * certificate `NOT_COMPARABLE` — comparing against zero sums says nothing.
  * Only field names are reported, never amounts.
  */
 export function dataCheck(
@@ -146,14 +171,14 @@ export function dataCheck(
     const known = recs.filter((r) => !late.includes(r));
     const actual = sums(known);
     const cert = certificates.find((c) => c.employerId === employerId && c.year === year);
-    const missingPeriods = missingRegularPeriods(recs);
+    const hasPayslips = recs.some((r) => r.kind === 'REGULAR');
     rows.push({
       year,
       employerId,
       employerLabel: labels.get(employerId) ?? '',
       ytd: last ? compare(ytdExpected(last, known), actual) : NOT_AVAILABLE,
-      certificate: cert ? compare(certificateExpected(cert), actual) : NOT_AVAILABLE,
-      completeness: { status: missingPeriods.length ? 'MISSING' : 'COMPLETE', missingPeriods },
+      certificate: certificateCheck(cert, hasPayslips, actual),
+      completeness: completenessCheck(recs, hasPayslips),
       lateCorrections: late
         .map((r) => ({ period: r.period, issued: r.issued }))
         .sort((a, b) => a.period.localeCompare(b.period)),

@@ -2,12 +2,20 @@ import { Component, computed, inject, input } from '@angular/core';
 import type { CareerEntry } from '@vaultfolio/api-contract';
 import { AccordionModule } from 'primeng/accordion';
 import { I18nService, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
-import { formatMoney, formatMonth, formatPercent } from '../../earnings-format';
+import {
+  fill,
+  formatMoney,
+  formatMonth,
+  formatPercent,
+  formatShareOfGross,
+} from '../../earnings-format';
 
 interface Tile {
   label: string;
   value: string;
   perMonth: string | null;
+  /** "38.4 % of gross" for net, taxes, social and bonus. */
+  share: string | null;
 }
 
 /**
@@ -42,6 +50,9 @@ interface Tile {
                   <div class="tile">
                     <span class="tile__label">{{ tile.label }}</span>
                     <span class="tile__value">{{ tile.value }}</span>
+                    @if (tile.share) {
+                      <span class="muted">{{ tile.share }}</span>
+                    }
                     @if (tile.perMonth) {
                       <span class="muted"
                         >{{ 'earnings.overview.avgPerMonth' | translate }} {{ tile.perMonth }}</span
@@ -142,18 +153,28 @@ export class CareerSummaryComponent {
   protected tiles(entry: CareerEntry): Tile[] {
     const lang = this.i18n.language();
     const t = (k: string) => this.i18n.translate(`earnings.terms.${k}`);
-    const tile = (key: 'gross' | 'net' | 'taxes' | 'social' | 'bonus'): Tile => ({
-      label: t(key),
-      value: formatMoney(entry.totals[key], lang, { whole: true }),
-      perMonth: formatMoney(entry.perMonth[key], lang, { whole: true }),
-    });
+    const tile = (key: 'gross' | 'net' | 'taxes' | 'social' | 'bonus'): Tile => {
+      const share =
+        key === 'gross' ? null : formatShareOfGross(entry.totals[key], entry.totals.gross, lang);
+      return {
+        label: t(key),
+        value: formatMoney(entry.totals[key], lang, { whole: true }),
+        perMonth: formatMoney(entry.perMonth[key], lang, { whole: true }),
+        share: share && fill(this.i18n.translate('earnings.overview.shareOfGross'), { share }),
+      };
+    };
     return [
       tile('gross'),
       tile('net'),
       tile('taxes'),
       tile('social'),
       tile('bonus'),
-      { label: t('netRatio'), value: formatPercent(entry.netRatio, lang), perMonth: null },
+      {
+        label: t('netRatio'),
+        value: formatPercent(entry.netRatio, lang),
+        perMonth: null,
+        share: null,
+      },
     ];
   }
 }

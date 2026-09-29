@@ -67,6 +67,34 @@ describe('EarningsDataCheckComponent', () => {
     expect(good).toContain('1 correction issued after the last payslip excluded (Apr 2022)');
   });
 
+  it('shows a year with only a certificate as a note, not as an issue', () => {
+    const fixture = TestBed.createComponent(EarningsDataCheckComponent);
+    fixture.detectChanges();
+    http.expectOne('/api/earnings/data-check').flush([
+      {
+        year: 2025,
+        employerId: 'e1',
+        employerLabel: 'Brightline Software GmbH',
+        ytd: { status: 'NOT_AVAILABLE', compared: 0, differing: [] },
+        certificate: { status: 'NOT_COMPARABLE', compared: 0, differing: [] },
+        completeness: { status: 'NO_PAYSLIPS', missingPeriods: [] },
+        lateCorrections: [],
+      } satisfies DataCheckRow,
+    ]);
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+
+    expect(root.querySelector('[data-testid="earnings-data-check-hints"]')).toBeNull();
+    expect(root.querySelector('[data-testid="earnings-data-check-ok"]')).toBeNull();
+    expect(root.querySelector('[data-testid="earnings-data-check-notes"]')?.textContent).toContain(
+      'No payslips imported for 2025. Import the payslips to check the values.',
+    );
+    const row =
+      root.querySelector('[data-testid="earnings-data-check-row-e1-2025"]')?.textContent ?? '';
+    expect(row).toContain('available, nothing to compare');
+    expect(row).toContain('no payslips');
+  });
+
   it('confirms when all checks pass', () => {
     const fixture = TestBed.createComponent(EarningsDataCheckComponent);
     fixture.detectChanges();

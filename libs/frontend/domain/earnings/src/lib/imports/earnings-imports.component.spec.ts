@@ -78,9 +78,35 @@ describe('EarningsImportsComponent', () => {
     return root.querySelector(`[data-testid="${id}"]`);
   }
 
+  it('groups the history by year, newest first, with only the newest year open', async () => {
+    const fixture = await create();
+    const root = fixture.nativeElement as HTMLElement;
+
+    const headers = [...root.querySelectorAll('[data-testid^="earnings-imports-year-"]')];
+    expect(headers.map((h) => h.getAttribute('data-testid'))).toEqual([
+      'earnings-imports-year-2026',
+      'earnings-imports-year-2025',
+      'earnings-imports-year-2013',
+    ]);
+    expect(headers[0].textContent).toContain('1 import');
+    expect(byTestId(root, 'earnings-imports-row-i1')).not.toBeNull();
+    expect(byTestId(root, 'earnings-imports-row-i2')).toBeNull();
+
+    byTestId(root, 'earnings-imports-year-2025')?.click();
+    fixture.detectChanges();
+    expect(byTestId(root, 'earnings-imports-row-i2')).not.toBeNull();
+    expect(byTestId(root, 'earnings-imports-row-i3')).toBeNull();
+
+    byTestId(root, 'earnings-imports-year-2026')?.click();
+    fixture.detectChanges();
+    expect(byTestId(root, 'earnings-imports-row-i1')).toBeNull();
+  });
+
   it('shows the privacy note, the history with parser versions and the danger zone', async () => {
     const fixture = await create();
     const root = fixture.nativeElement as HTMLElement;
+    byTestId(root, 'earnings-imports-toggle-all')?.click();
+    fixture.detectChanges();
 
     expect(root.querySelector('#privacy')).not.toBeNull();
     const payslip = byTestId(root, 'earnings-imports-row-i1')?.textContent ?? '';

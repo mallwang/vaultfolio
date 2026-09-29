@@ -55,6 +55,21 @@ describe('kpiTiles', () => {
     });
   });
 
+  it('shows net, taxes, social and bonus as a share of gross', () => {
+    const tiles = kpiTiles(figures({ bonus: '4500.00' }), null, 'en', translate);
+    const share = Object.fromEntries(tiles.map((t) => [t.key, t.share]));
+
+    expect(share).toEqual({
+      gross: null,
+      net: '61.6% of gross',
+      taxes: '18.4% of gross',
+      social: '20.0% of gross',
+      bonus: '10.0% of gross',
+      netRatio: null,
+    });
+    expect(kpiTiles(figures(), null, 'de', translate)[2].share).toBe('18,4\u00a0% of gross');
+  });
+
   it('shows no delta without a previous year', () => {
     expect(
       kpiTiles(figures(), null, 'en', translate).every(

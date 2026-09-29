@@ -4,6 +4,7 @@ import {
   DestroyRef,
   ElementRef,
   OnInit,
+  computed,
   inject,
   signal,
 } from '@angular/core';
@@ -26,7 +27,8 @@ import { PrivacyNoteComponent } from '../privacy-note/privacy-note.component';
 /**
  * Imports tab (design.md "Imports tab"): privacy note (anchor `#privacy`, FR-035/FR-042), import
  * history with delete (FR-021, FR-037), employer display names (FR-020 — figures are never
- * editable) and the danger zone to delete all earnings data (FR-038).
+ * editable) and the danger zone to delete all earnings data (FR-038). The history is grouped by
+ * the year its data belongs to — newest year open, older years collapsed — so it stays short.
  */
 @Component({
   selector: 'app-earnings-imports',
@@ -56,10 +58,35 @@ import { PrivacyNoteComponent } from '../privacy-note/privacy-note.component';
     <app-earnings-privacy-note id="privacy" />
 
     <section class="panel">
-      <h2>{{ 'earnings.imports.title' | translate }}</h2>
+      <div class="panel__head">
+        <h2>{{ 'earnings.imports.title' | translate }}</h2>
+        @if (years().length > 1) {
+          <button
+            pButton
+            type="button"
+            text
+            size="small"
+            data-testid="earnings-imports-toggle-all"
+            (click)="toggleAll()"
+          >
+            <app-icon [name]="allOpen() ? 'chevron-down' : 'chevron-right'" />
+            {{
+              (allOpen() ? 'earnings.imports.collapseAll' : 'earnings.imports.expandAll')
+                | translate
+            }}
+          </button>
+        }
+      </div>
       <p class="muted">{{ 'earnings.imports.sub' | translate }}</p>
       <div class="scroll">
-        <p-table [value]="imports()" [loading]="loading()" [tableStyle]="{ 'min-width': '52rem' }">
+        <p-table
+          [value]="rows()"
+          [loading]="loading()"
+          rowGroupMode="subheader"
+          groupRowsBy="year"
+          [groupRowsByOrder]="-1"
+          [tableStyle]="{ 'min-width': '52rem' }"
+        >
           <ng-template #header>
             <tr>
               <th scope="col">{{ 'earnings.imports.file' | translate }}</th>
@@ -73,28 +100,49 @@ import { PrivacyNoteComponent } from '../privacy-note/privacy-note.component';
               </th>
             </tr>
           </ng-template>
-          <ng-template #body let-item>
-            <tr [attr.data-testid]="'earnings-imports-row-' + item.id">
-              <td class="file">{{ item.fileName }}</td>
-              <td>{{ 'earnings.sourceType.' + item.sourceType | translate }}</td>
-              <td>{{ periodsOf(item) }}</td>
-              <td>{{ countOf(item) }}</td>
-              <td>{{ 'earnings.format.' + item.parserId | translate }} {{ item.parserVersion }}</td>
-              <td>{{ dateOf(item.importedAt) }}</td>
-              <td>
+          <ng-template #groupheader let-item>
+            <tr class="group">
+              <td colspan="7">
                 <button
-                  pButton
                   type="button"
-                  text
-                  severity="danger"
-                  [attr.aria-label]="'earnings.imports.deleteImport' | translate"
-                  [attr.data-testid]="'earnings-import-delete-' + item.id"
-                  (click)="confirmDelete(item)"
+                  class="group__toggle"
+                  [attr.aria-expanded]="isOpen(item.year)"
+                  [attr.data-testid]="'earnings-imports-year-' + item.year"
+                  (click)="toggle(item.year)"
                 >
-                  <app-icon name="trash" />
+                  <app-icon [name]="isOpen(item.year) ? 'chevron-down' : 'chevron-right'" />
+                  <strong>{{ item.year }}</strong>
+                  <span class="muted">{{ countLabel(item.year) }}</span>
                 </button>
               </td>
             </tr>
+          </ng-template>
+          <ng-template #body let-item>
+            @if (isOpen(item.year)) {
+              <tr [attr.data-testid]="'earnings-imports-row-' + item.id">
+                <td class="file">{{ item.fileName }}</td>
+                <td>{{ 'earnings.sourceType.' + item.sourceType | translate }}</td>
+                <td>{{ periodsOf(item) }}</td>
+                <td>{{ countOf(item) }}</td>
+                <td>
+                  {{ 'earnings.format.' + item.parserId | translate }} {{ item.parserVersion }}
+                </td>
+                <td>{{ dateOf(item.importedAt) }}</td>
+                <td>
+                  <button
+                    pButton
+                    type="button"
+                    text
+                    severity="danger"
+                    [attr.aria-label]="'earnings.imports.deleteImport' | translate"
+                    [attr.data-testid]="'earnings-import-delete-' + item.id"
+                    (click)="confirmDelete(item)"
+                  >
+                    <app-icon name="trash" />
+                  </button>
+                </td>
+              </tr>
+            }
           </ng-template>
           <ng-template #emptymessage>
             <tr>
@@ -163,6 +211,27 @@ import { PrivacyNoteComponent } from '../privacy-note/privacy-note.component';
       flex-direction: column;
       gap: 0.5rem;
     }
+    .panel__head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+    .group__toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      width: 100%;
+      padding: 0;
+      border: 0;
+      background: none;
+      color: inherit;
+      font: inherit;
+      cursor: pointer;
+    }
+    .group td {
+      background: var(--p-content-hover-background);
+    }
     h2 {
       margin: 0;
       font-size: 1.1rem;
@@ -176,6 +245,7 @@ import { PrivacyNoteComponent } from '../privacy-note/privacy-note.component';
       overflow-x: auto;
     }
     .file {
+      min-width: 12rem;
       overflow-wrap: anywhere;
     }
     .employer {
@@ -226,6 +296,26 @@ export class EarningsImportsComponent implements OnInit, AfterViewInit {
   private readonly destroyRef = inject(DestroyRef);
 
   protected readonly imports = signal<EarningsImportSummary[]>([]);
+  /** Imports with the year they are grouped under; within a year newest period, then newest import first. */
+  protected readonly rows = computed(() =>
+    this.imports()
+      .map((item) => ({ ...item, year: yearOf(item) }))
+      .sort(
+        (a, b) =>
+          periodKey(b).localeCompare(periodKey(a)) || b.importedAt.localeCompare(a.importedAt),
+      ),
+  );
+  protected readonly years = computed(() =>
+    [...new Set(this.rows().map((r) => r.year))].sort((a, b) => b - a),
+  );
+  /** Years the user opened or closed; `null` until then, which shows only the newest year. */
+  private readonly openYears = signal<ReadonlySet<number> | null>(null);
+  private readonly shownYears = computed(
+    () => this.openYears() ?? new Set(this.years().slice(0, 1)),
+  );
+  protected readonly allOpen = computed(() =>
+    this.years().every((year) => this.shownYears().has(year)),
+  );
   protected readonly employers = signal<EarningsEmployer[]>([]);
   protected readonly loading = signal(true);
   protected names: Record<string, string> = {};
@@ -242,6 +332,27 @@ export class EarningsImportsComponent implements OnInit, AfterViewInit {
           ?.scrollIntoView?.({ block: 'start' });
       }
     });
+  }
+
+  protected isOpen(year: number): boolean {
+    return this.shownYears().has(year);
+  }
+
+  protected toggle(year: number): void {
+    const open = new Set(this.shownYears());
+    if (!open.delete(year)) open.add(year);
+    this.openYears.set(open);
+  }
+
+  protected toggleAll(): void {
+    this.openYears.set(new Set(this.allOpen() ? [] : this.years()));
+  }
+
+  protected countLabel(year: number): string {
+    const count = this.rows().filter((r) => r.year === year).length;
+    return count === 1
+      ? this.i18n.translate('earnings.imports.countOne')
+      : fill(this.i18n.translate('earnings.imports.count'), { count });
   }
 
   protected periodsOf(item: EarningsImportSummary): string {
@@ -342,4 +453,16 @@ export class EarningsImportsComponent implements OnInit, AfterViewInit {
       },
     });
   }
+}
+
+/** The year an import is grouped under: its latest period or certificate year, else its import date. */
+function yearOf(item: EarningsImportSummary): number {
+  if (item.lastPeriod) return Number(item.lastPeriod.slice(0, 4));
+  if (item.years.length > 0) return Math.max(...item.years);
+  return Number(item.importedAt.slice(0, 4));
+}
+
+/** Sort key within a year: the latest period; a certificate covers its whole year, so it sorts as December. */
+function periodKey(item: EarningsImportSummary & { year: number }): string {
+  return item.lastPeriod ?? `${item.year}-12`;
 }

@@ -408,7 +408,8 @@ export interface EarningsTables {
   certificates: CertificateRow[];
 }
 
-export type DataCheckComparisonStatus = 'MATCH' | 'DIFFERS' | 'NOT_AVAILABLE';
+/** `NOT_COMPARABLE`: the reference exists, but the year has no regular payslip to compare with. */
+export type DataCheckComparisonStatus = 'MATCH' | 'DIFFERS' | 'NOT_AVAILABLE' | 'NOT_COMPARABLE';
 
 export interface DataCheckComparison {
   status: DataCheckComparisonStatus;
@@ -424,7 +425,8 @@ export interface DataCheckRow {
   employerLabel: string;
   ytd: DataCheckComparison;
   certificate: DataCheckComparison;
-  completeness: { status: 'COMPLETE' | 'MISSING'; missingPeriods: string[] };
+  /** `NO_PAYSLIPS`: the year has no regular payslip at all (e.g. only a certificate). */
+  completeness: { status: 'COMPLETE' | 'MISSING' | 'NO_PAYSLIPS'; missingPeriods: string[] };
   /** Corrections issued after the year's last payslip, excluded from both comparisons. */
   lateCorrections: { period: string; issued: string }[];
 }

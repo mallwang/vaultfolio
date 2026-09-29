@@ -5,6 +5,7 @@ import {
   SAP_DEC_2025_BONUS,
   SAP_FIXTURES,
   SAP_MAR_2026_VOLUNTARY,
+  SAP_NOV_2026_TAX_CORRECTION,
   SAP_OCT_2026_PAYOUT_ONLY,
   SAP_SEP_2026_WITH_CORRECTION,
   type SapFixture,
@@ -94,6 +95,31 @@ describe('sap-entgeltnachweis parser', () => {
     expect(outcome.records.map((r) => r.kind)).toEqual(['CORRECTION', 'PAYOUT_ONLY']);
   });
 
+  it('reads a tax-only correction without Gesamtbrutto as gross 0', () => {
+    expect(parse(SAP_NOV_2026_TAX_CORRECTION)).toEqual({
+      ok: true,
+      employer: 'Brightline Software GmbH',
+      records: (SAP_NOV_2026_TAX_CORRECTION.expected as { records: unknown[] }).records,
+      certificates: [],
+    });
+  });
+
+  it('reads the employer from the statement page, not from a cover letter before it', () => {
+    const [employerLine, ...rest] = SAP_AUG_2026.pages[0];
+    const isTitle = (l: string) => l.startsWith('Entgeltnachweis für');
+    const statementPage = [
+      ...rest.filter(isTitle),
+      employerLine,
+      ...rest.filter((l) => !isTitle(l)),
+    ];
+    const cover = ['Muster Holding AG HR-Service Postfach 1 99999 Musterstadt', 'Erika Musterfrau'];
+    const outcome = parse({ ...SAP_AUG_2026, pages: [cover, statementPage] });
+    expect(outcome).toMatchObject({ ok: true, employer: 'Brightline Software GmbH' });
+    expect(outcome.ok && outcome.records.map((r) => r.employer)).toEqual([
+      'Brightline Software GmbH',
+    ]);
+  });
+
   it('rejects an unknown statutory deduction line', () => {
     expect(parse(SAP_AUG_2026_UNKNOWN_LINE)).toEqual({
       ok: false,
@@ -135,6 +161,14 @@ describe('sap-entgeltnachweis parser', () => {
     expect(parse(noNet)).toEqual({
       ok: false,
       error: { code: 'MISSING_FIELD', params: { field: 'net', period: '2026-08' } },
+    });
+    const noGross = {
+      ...SAP_AUG_2026,
+      pages: [SAP_AUG_2026.pages[0].filter((l) => !l.startsWith('Gesamtbrutto'))],
+    };
+    expect(parse(noGross)).toEqual({
+      ok: false,
+      error: { code: 'MISSING_FIELD', params: { field: 'gross', period: '2026-08' } },
     });
     const noSection = {
       ...SAP_AUG_2026,

@@ -215,15 +215,9 @@ export class EarningsOverviewComponent {
 
   private readonly format = computed<ChartFormat>(() => {
     const lang = this.i18n.language();
-    const short = new Intl.NumberFormat(lang, {
-      style: 'currency',
-      currency: 'EUR',
-      notation: 'compact',
-      maximumFractionDigits: 1,
-    });
     return {
       money: (v) => formatMoney(v.toFixed(2), lang),
-      moneyShort: (v) => short.format(v),
+      moneyWhole: (v) => formatMoney(String(v), lang, { whole: true }),
       percent: (v) => formatPercent(v, lang),
       month: (p) => formatMonth(p, lang),
     };

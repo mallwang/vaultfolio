@@ -85,6 +85,20 @@ and any personal identifier. VZE/BSAV may come in a later version together with 
   file. The per-payslip payout check is applied per `(employer, issued)` group.
 - The import is recorded with `sourceType: EXPORT_JSON`, `parserId: earnings-export`,
   `parserVersion: 1`.
+- `one_off.sv_gross_kv` / `one_off.sv_gross_rv` are accepted (the companion tool writes them) but
+  not stored — the import model has no one-off part of the social-insurance bases.
+
+## Record identity and `seq`
+
+A record's identity is `(employer, period, kind, seq)` (FR-016); re-importing the same identity
+replaces the stored record. `seq` must therefore be unique per identity:
+
+- `regular` and `payout_only` records use `seq: 1`.
+- A `correction` uses `seq = 1 + months between period and issued` (a July correction issued with
+  the September payslip → `seq: 3`). The PDF parser uses the same convention, so an export and the
+  PDFs of the same payslips resolve to the same identities, and two corrections of one month issued
+  by different payslips never collide. (earnings-evolution used a fixed `seq: 2` for corrections;
+  the export must emit the convention above.)
 
 ## Versioning
 

@@ -28,6 +28,12 @@ export function formatPercent(ratio: string | number, lang: string, digits = 1):
   }).format(Number(ratio));
 }
 
+/** `part` as a share of `gross` (`38.4 %`); `null` without a positive gross. */
+export function formatShareOfGross(part: string, gross: string, lang: string): string | null {
+  const total = Number(gross);
+  return total > 0 ? formatPercent(Number(part) / total, lang) : null;
+}
+
 /** `YYYY-MM` → `Sep 2026` / `Sep. 2026` (or the long month name). */
 export function formatMonth(
   period: string,

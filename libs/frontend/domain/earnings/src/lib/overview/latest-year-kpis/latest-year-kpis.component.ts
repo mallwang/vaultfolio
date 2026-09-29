@@ -1,7 +1,13 @@
 import { Component, computed, inject, input } from '@angular/core';
 import type { LatestYear, LatestYearFigures } from '@vaultfolio/api-contract';
 import { I18nService, IconComponent } from '@vaultfolio/frontend-shared-ui';
-import { fill, formatMoney, formatPercent, monthName } from '../../earnings-format';
+import {
+  fill,
+  formatMoney,
+  formatPercent,
+  formatShareOfGross,
+  monthName,
+} from '../../earnings-format';
 
 type KpiKey = 'gross' | 'net' | 'taxes' | 'social' | 'bonus' | 'netRatio';
 
@@ -9,6 +15,8 @@ export interface KpiTile {
   key: KpiKey;
   label: string;
   value: string;
+  /** "38.4 % of gross" for net, taxes, social and bonus; `null` otherwise. */
+  share: string | null;
   /** Formatted signed change, `null` without a previous-year value. */
   delta: string | null;
   previous: string | null;
@@ -18,6 +26,7 @@ export interface KpiTile {
 }
 
 const HIGHER_IS_BAD: ReadonlySet<KpiKey> = new Set(['taxes', 'social']);
+const SHARE_OF_GROSS: ReadonlySet<KpiKey> = new Set(['net', 'taxes', 'social', 'bonus']);
 
 /**
  * Latest-year KPIs (FR-025): the latest year so far compared with the same months of the previous
@@ -36,6 +45,11 @@ const HIGHER_IS_BAD: ReadonlySet<KpiKey> = new Set(['taxes', 'social']);
             <div class="tile" [attr.data-testid]="'earnings-kpi-' + tile.key">
               <span class="tile__label">{{ tile.label }}</span>
               <span class="tile__value">{{ tile.value }}</span>
+              @if (tile.share) {
+                <span class="muted" [attr.data-testid]="'earnings-kpi-share-' + tile.key">{{
+                  tile.share
+                }}</span>
+              }
               @if (tile.delta) {
                 <span class="delta" [class]="'delta delta--' + tile.tone">
                   <app-icon [name]="tile.direction === 'down' ? 'sort-down' : 'sort-up'" />
@@ -167,10 +181,14 @@ export function kpiTiles(
       isRatio ? formatPercent(value, lang) : formatMoney(value, lang, { whole: true });
     const change = previous ? changeOf(current[key], previous[key], isRatio) : null;
     const direction = directionOf(change);
+    const share = SHARE_OF_GROSS.has(key)
+      ? formatShareOfGross(current[key], current.gross, lang)
+      : null;
     return {
       key,
       label: translate(`earnings.terms.${key}`),
       value: show(current[key]),
+      share: share && fill(translate('earnings.overview.shareOfGross'), { share }),
       delta: change === null ? null : deltaText(change, isRatio, lang, translate),
       previous: previous ? show(previous[key]) : null,
       direction,

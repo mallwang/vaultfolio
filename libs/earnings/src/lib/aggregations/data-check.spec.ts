@@ -147,7 +147,7 @@ describe('dataCheck rules', () => {
     expect(row.certificate).toEqual({ status: 'MATCH', compared: 8, differing: [] });
   });
 
-  it('reports a certificate year without payslips', () => {
+  it('reports a certificate year without payslips as not comparable, not as an issue', () => {
     const cert: StoredCertificate = {
       id: 'c',
       importId: 'i',
@@ -155,11 +155,19 @@ describe('dataCheck rules', () => {
       year: 2019,
       amounts: { ...emptyCertificateAmounts(), grossWage: '1.00' },
     };
-    const [row] = dataCheck([], [cert], [{ id: 'emp-1', label: 'X' }]);
-    expect(row).toMatchObject({
+    const rows = dataCheck([], [cert], [{ id: 'emp-1', label: 'X' }]);
+    expect(rows[0]).toMatchObject({
       year: 2019,
-      certificate: { status: 'DIFFERS', differing: ['taxGross'] },
+      certificate: { status: 'NOT_COMPARABLE', compared: 0, differing: [] },
       ytd: { status: 'NOT_AVAILABLE' },
+      completeness: { status: 'NO_PAYSLIPS', missingPeriods: [] },
     });
+    expect(dataCheckIssueCount(rows)).toBe(0);
+  });
+
+  it('treats a year with only a correction as having no payslips', () => {
+    const records = [storedRecord({ period: '2025-04', issued: '2025-06', kind: 'CORRECTION' })];
+    const [row] = dataCheck(records, [], [{ id: 'emp-1', label: 'X' }]);
+    expect(row.completeness).toEqual({ status: 'NO_PAYSLIPS', missingPeriods: [] });
   });
 });

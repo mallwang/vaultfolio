@@ -1,3 +1,4 @@
+import type { EChartsOption } from 'echarts';
 import type { MonthlyPoint, YearlyPoint } from '@vaultfolio/api-contract';
 import {
   type ChartFormat,
@@ -26,7 +27,7 @@ const LABELS: ChartLabels = {
 };
 const FORMAT: ChartFormat = {
   money: (v) => `€${v.toFixed(2)}`,
-  moneyShort: (v) => `€${Math.round(v)}`,
+  moneyWhole: (v) => `€${Math.round(v)}`,
   percent: (v) => `${(v * 100).toFixed(1)} %`,
   month: (p) => p,
 };
@@ -73,6 +74,24 @@ interface AnySeries {
   lineStyle: { color: string };
   markLine: { data: unknown[] };
   [key: string]: unknown;
+}
+
+/** Calls the monthly tooltip formatter the way ECharts' axis trigger does for category `index`. */
+function tooltipAt(option: EChartsOption, series: AnySeries[], index: number): string {
+  const { formatter } = option.tooltip as { formatter: (params: unknown) => string };
+  return formatter(
+    series.map((s) => {
+      const item = s.data[index] as { value?: unknown } | number | null;
+      return {
+        seriesType: s['type'],
+        seriesName: s.name,
+        marker: '',
+        dataIndex: index,
+        value: item !== null && typeof item === 'object' ? item.value : (item ?? undefined),
+        axisValueLabel: (option.xAxis as { data: string[] }).data[index],
+      };
+    }),
+  );
 }
 
 describe('grossPerYearOption', () => {
@@ -160,13 +179,46 @@ describe('monthlyOption', () => {
       '2026-08',
       '2026-09',
     ]);
-    expect(monthlyOption(gapped, 'all', null, [], COLORS, LABELS, FORMAT).periods).toHaveLength(4);
+    // 2013-11 … 2026-09: every calendar month in between gets a slot
+    expect(monthlyOption(gapped, 'all', null, [], COLORS, LABELS, FORMAT).periods).toHaveLength(
+      155,
+    );
     // 36 months back from 2026-09 starts at 2023-10
     const edge = [month('2023-09'), month('2023-10'), month('2026-09')];
-    expect(monthlyOption(edge, '3y', null, [], COLORS, LABELS, FORMAT).periods).toEqual([
-      '2023-10',
-      '2026-09',
-    ]);
+    const edgePeriods = monthlyOption(edge, '3y', null, [], COLORS, LABELS, FORMAT).periods;
+    expect(edgePeriods).toHaveLength(36);
+    expect([edgePeriods[0], edgePeriods[35]]).toEqual(['2023-10', '2026-09']);
+  });
+
+  it('leaves a gap for a month without data', () => {
+    const gapped = [month('2025-12', { bonus: '3000.00' }), month('2026-01'), month('2026-03')];
+    const { option, periods } = monthlyOption(gapped, 'all', null, [], COLORS, LABELS, FORMAT);
+    const series = option.series as AnySeries[];
+
+    expect(periods).toEqual(['2025-12', '2026-01', '2026-02', '2026-03']);
+    for (const s of series.slice(0, 3)) {
+      expect(s.data[2]).toBeNull();
+      expect(s.data[3]).not.toBeNull();
+    }
+    expect(series[3].data[2]).toBeNull();
+    // the axis tooltip shows '–' in a month without data
+    const tooltip = tooltipAt(option, series, 2);
+    expect(tooltip).toContain('2026-02');
+    expect(tooltip.match(/–/g)).toHaveLength(3);
+    expect(tooltip).not.toContain('Bonus month');
+  });
+
+  it('lists the bonus row with its amount only in bonus months', () => {
+    const months = [month('2025-12', { bonus: '3000.00' }), month('2026-01')];
+    const { option } = monthlyOption(months, 'all', null, [], COLORS, LABELS, FORMAT);
+    const series = option.series as AnySeries[];
+
+    const december = tooltipAt(option, series, 0);
+    expect(december).toContain('Net');
+    expect(december).toContain('€3100.00');
+    expect(december).toContain('Bonus month');
+    expect(december).toContain('€3000.00');
+    expect(tooltipAt(option, series, 1)).not.toContain('Bonus month');
   });
 
   it('stacks net + taxes + social, marks bonus months, employer changes and the selected month', () => {

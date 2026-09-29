@@ -479,6 +479,127 @@ export const SAP_OCT_2026_PAYOUT_ONLY: SapFixture = {
   },
 };
 
+// ---------------------------------------------------------------- Nov 2026 with a tax-only correction
+// Nov (regular): as SAP_AUG_2026 (net 3116.00); other −40.00 (VL) + 50.00 (/552) = 10.00
+// Sep (correction, seq 1 + 2 = 3): wage-tax refund only, no Gesamtbrutto printed → gross 0.00;
+//   wageTax −20.00 − 30.00 (EZ) = −50.00, oneOff −30.00; net 0.00 + 50.00 = 50.00; other = −Y551 = −50.00
+// payout 3116.00 + 10.00 + (50.00 − 50.00) = 3126.00
+export const SAP_NOV_2026_TAX_CORRECTION: SapFixture = {
+  fileName: '2026_11_Entgeltnachweis.pdf',
+  pages: [
+    [
+      ...header('November 2026'),
+      'Abrechnungsdaten für September 2026',
+      'LArt ENTGELTBESTANDTEILE Kennz Datum Anzahl Berechgrdl. Betrag Zr Summe',
+      'GESETZLICHE ABZÜGE',
+      'Y$50 Lohnsteuer 20,00-',
+      'Y#50 Lohnsteuer, EZ 30,00-',
+      'Summe gesetzliche Abzüge Steuer: 50,00',
+      '/55E Gesetzl. Netto 50,00',
+      'SONSTIGE BE-/ABZÜGE',
+      'Y551 Differenz zur letzt. Abr. 50,00',
+      'Abrechnungsdaten für November 2026',
+      'ENTGELTBESTANDTEILE',
+      '1000 Tarifgehalt 160,00 S 5.000,00 G',
+      'BRUTTOENTGELTE',
+      'Y$10 Steuer-Brutto 5.000,00',
+      'Y$20 SV-Brutto KV 5.000,00',
+      'Y$22 SV-Brutto RV 5.000,00',
+      'Gesamtbrutto 5.000,00',
+      'GESETZLICHE ABZÜGE',
+      'Y$50 Lohnsteuer 800,00',
+      'Y$51 Solidaritätszuschlag 0,00',
+      'Y$52 Kirchensteuer 64,00',
+      'Y$60 Krankenversicherung 400,00',
+      'Y$61 Pflegeversicherung 90,00',
+      'Y$62 Rentenversicherung 465,00',
+      'Y$63 Arbeitslosenversicherung 65,00',
+      '/55E Gesetzl. Netto 3.116,00',
+      'SONSTIGE BE-/ABZÜGE',
+      '4100 VL Arbeitnehmeranteil 40,00-',
+      '/552 Nachverrechnung aus Vorm. 50,00',
+      'Summe Sonstige Be-/Abzüge 10,00',
+      'Überweisung an IBAN DE00 **** **** **** 1234 3.126,00',
+      LEGEND,
+      ...FOOTER,
+    ],
+  ],
+  expected: {
+    records: [
+      record({
+        period: '2026-09',
+        issued: '2026-11',
+        kind: 'CORRECTION',
+        seq: 3,
+        amounts: {
+          wageTax: '-50.00',
+          net: '50.00',
+          other: '-50.00',
+          payout: null,
+          oneOff: { wageTax: '-30.00' },
+        },
+      }),
+      {
+        ...AUGUST_RECORD,
+        period: '2026-11',
+        issued: '2026-11',
+        amounts: { ...AUGUST_RECORD.amounts, other: '10.00', payout: '3126.00' },
+      },
+    ],
+  },
+};
+
+// ---------------------------------------------------------------- Aug 2026 with vacation days of Jul
+// A section for an earlier month that only books absence days (no amounts, no Gesetzl. Netto) is
+// informational: it yields no record. Aug: as SAP_AUG_2026.
+export const SAP_AUG_2026_LATE_ABSENCE: SapFixture = {
+  fileName: '2026_08_Entgeltnachweis_Urlaub.pdf',
+  pages: [
+    [
+      ...header('August 2026'),
+      'Abrechnungsdaten für Juli 2026',
+      'LArt ENTGELTBESTANDTEILE Kennz Datum Anzahl Berechgrdl. Betrag Zr Summe',
+      '2E6S Urlaub 19-19 1,00 T N',
+      ...augustLines('3.116,00', '3.076,00')[0].slice(header('August 2026').length),
+    ],
+  ],
+  expected: { records: [AUGUST_RECORD] },
+};
+
+// ---------------------------------------------------------------- Aug 2026 with a Jun reclassification
+// Jun (correction, seq 1 + 2 = 3): share benefit moved from taxable (ELSG) to tax-free (G); no
+//   Gesamtbrutto, no Gesetzl. Netto, empty Summe Sonstige → gross 0.00, net 0.00, other 0.00;
+//   oneOff gross −300.00 (only the ELSG line carries E). Aug: as SAP_AUG_2026.
+export const SAP_AUG_2026_RECLASSIFICATION: SapFixture = {
+  fileName: '2026_08_Entgeltnachweis_Umbuchung.pdf',
+  pages: [
+    [
+      ...header('August 2026'),
+      'Abrechnungsdaten für Juni 2026',
+      'LArt ENTGELTBESTANDTEILE Kennz Datum Anzahl Berechgrdl. Betrag Zr Summe',
+      '1JS1 Geldw.V. Aktien mj. ELSG Matchingaktien 2025 300,00- N',
+      '9500 Geldw.V. Akt. St-/SV-frei G Matchingaktien 2025 300,00 N',
+      'SONSTIGE BE-/ABZÜGE',
+      '1JS1 Geldw.V. Aktien mj. 300,00',
+      '9500 Geldw.V. Akt. St-/SV-frei 300,00-',
+      'Summe Sonstige Be-/Abzüge:',
+      ...augustLines('3.116,00', '3.076,00')[0].slice(header('August 2026').length),
+    ],
+  ],
+  expected: {
+    records: [
+      record({
+        period: '2026-06',
+        issued: '2026-08',
+        kind: 'CORRECTION',
+        seq: 3,
+        amounts: { payout: null, oneOff: { gross: '-300.00' } },
+      }),
+      AUGUST_RECORD,
+    ],
+  },
+};
+
 export const SAP_FIXTURES: readonly SapFixture[] = [
   SAP_SEP_2026_WITH_CORRECTION,
   SAP_AUG_2026,
@@ -487,6 +608,8 @@ export const SAP_FIXTURES: readonly SapFixture[] = [
   SAP_MAR_2026_VOLUNTARY,
   SAP_DEC_2025_BONUS,
   SAP_OCT_2026_PAYOUT_ONLY,
+  SAP_AUG_2026_LATE_ABSENCE,
+  SAP_AUG_2026_RECLASSIFICATION,
 ];
 
 /** Text that is not a payslip (for `detect` = false and UNSUPPORTED_FORMAT). */
