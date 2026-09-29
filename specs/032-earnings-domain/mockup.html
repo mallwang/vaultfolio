@@ -1,0 +1,2826 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Earnings Domain Review</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    />
+    <style>
+      :root {
+        color-scheme: light;
+
+        /* App tokens — PrimeNG Aura (light), same values as prior Vaultfolio mockups
+       (specs/029-export-data/mockup.html). Dark values are redefined on .canvas[data-theme='dark']. */
+        --p-content-background: #ffffff;
+        --p-surface-2: #f8f9fb;
+        --p-text-color: #1f2430;
+        --p-text-muted-color: #6b7280;
+        --p-content-border-color: #e5e7eb;
+        --p-content-hover-background: #f4f4f6;
+        --p-highlight-background: #eef1ff;
+        --p-primary-color: #6366f1;
+        --p-primary-600: #4f46e5;
+        --p-primary-contrast: #ffffff;
+        --p-info-color: #0284c7;
+        --p-info-bg: #e0f2fe;
+        --p-success-color: #15803d;
+        --p-success-bg: #dcfce7;
+        --p-danger-color: #dc2626;
+        --p-danger-bg: #fee2e2;
+        --p-warn-color: #b45309;
+        --p-warn-bg: #fef3c7;
+        --p-muted-bg: #f1f2f4;
+
+        /* Earnings series colors — the five validated roles from earnings-evolution
+       (net / taxes / social / regular / bonus), mapped onto Aura hues. */
+        --c-net: #3b82f6;
+        --c-taxes: #f97316;
+        --c-social: #14b8a6;
+        --c-regular: #6366f1;
+        --c-bonus: #ef4444;
+        --c-grid: #eceef2;
+
+        /* Review-tool-only tokens (single light look, deliberately) */
+        --review-bg: #f3f2ee;
+        --review-ink: #2c2a25;
+        --review-muted: #7a7669;
+        --review-line: #ddd9d0;
+        --review-accent: #b45f2c;
+      }
+
+      .canvas[data-theme='dark'] {
+        color-scheme: dark;
+        --p-content-background: #18181b;
+        --p-surface-2: #1f1f23;
+        --p-text-color: #f4f4f5;
+        --p-text-muted-color: #a1a1aa;
+        --p-content-border-color: #34343a;
+        --p-content-hover-background: #27272a;
+        --p-highlight-background: rgba(129, 140, 248, 0.16);
+        --p-primary-color: #818cf8;
+        --p-primary-600: #a5b4fc;
+        --p-primary-contrast: #111827;
+        --p-info-color: #38bdf8;
+        --p-info-bg: rgba(14, 165, 233, 0.15);
+        --p-success-color: #4ade80;
+        --p-success-bg: rgba(34, 197, 94, 0.15);
+        --p-danger-color: #f87171;
+        --p-danger-bg: rgba(239, 68, 68, 0.16);
+        --p-warn-color: #fbbf24;
+        --p-warn-bg: rgba(245, 158, 11, 0.15);
+        --p-muted-bg: #242428;
+        --c-net: #60a5fa;
+        --c-taxes: #fb923c;
+        --c-social: #2dd4bf;
+        --c-regular: #818cf8;
+        --c-bonus: #f87171;
+        --c-grid: #2c2c31;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--review-bg);
+        color: var(--review-ink);
+        font-family:
+          'Inter',
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      h1,
+      h2,
+      h3,
+      p {
+        text-wrap: balance;
+      }
+
+      /* ============ Review-tool chrome (from templates/review-shell.html) ============ */
+      .review-header {
+        padding: 1.5rem 2rem 1rem;
+        border-bottom: 1px solid var(--review-line);
+      }
+      .review-eyebrow {
+        font-size: 0.72rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--review-accent);
+        font-weight: 700;
+        margin: 0 0 0.25rem;
+      }
+      .review-header h1 {
+        margin: 0 0 0.35rem;
+        font-size: 1.35rem;
+        font-weight: 800;
+      }
+      .review-header p {
+        margin: 0;
+        color: var(--review-muted);
+        font-size: 0.9rem;
+        max-width: 76ch;
+        line-height: 1.5;
+      }
+      .review-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.9rem 1.25rem;
+        align-items: center;
+        padding: 0.85rem 2rem;
+        background: #fff;
+        border-bottom: 1px solid var(--review-line);
+        position: sticky;
+        top: env(safe-area-inset-top, 0px);
+        z-index: 10;
+      }
+      .control-group {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+      .control-group span.label {
+        font-size: 0.72rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--review-muted);
+        font-weight: 700;
+      }
+      .segmented {
+        display: inline-flex;
+        border: 1px solid var(--review-line);
+        border-radius: 8px;
+        overflow: hidden;
+        flex-wrap: wrap;
+      }
+      .segmented button {
+        appearance: none;
+        border: none;
+        background: #fff;
+        color: var(--review-ink);
+        font: inherit;
+        font-size: 0.8rem;
+        font-weight: 600;
+        padding: 0.4rem 0.7rem;
+        cursor: pointer;
+        border-right: 1px solid var(--review-line);
+      }
+      .segmented button:last-child {
+        border-right: none;
+      }
+      .segmented button:hover {
+        background: #f1efe9;
+      }
+      .segmented button:focus-visible {
+        outline: 2px solid var(--review-accent);
+        outline-offset: -2px;
+      }
+      .segmented button[aria-pressed='true'] {
+        background: var(--review-accent);
+        color: #fff;
+      }
+      .review-stage {
+        padding: 2rem;
+        display: flex;
+        justify-content: center;
+      }
+      .stage-frame {
+        width: 100%;
+        max-width: 1240px;
+        background: #d9d4c8;
+        border-radius: 14px;
+        padding: 1.25rem;
+        transition: max-width 0.2s ease;
+      }
+      .stage-frame[data-viewport='mobile'] {
+        max-width: 420px;
+      }
+      .stage-frame-label {
+        font-size: 0.72rem;
+        color: var(--review-muted);
+        text-align: center;
+        margin: 0 0 0.5rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      .canvas {
+        background: var(--p-content-background);
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+        color: var(--p-text-color);
+        position: relative;
+      }
+      .review-footer {
+        padding: 0 2rem 2rem;
+        max-width: 1240px;
+        margin: 0 auto;
+        font-size: 0.85rem;
+        color: var(--review-muted);
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        line-height: 1.5;
+      }
+      .review-footer code {
+        background: #fff;
+        border: 1px solid var(--review-line);
+        border-radius: 4px;
+        padding: 0.1em 0.4em;
+        font-size: 0.8em;
+      }
+      .review-footer h3 {
+        margin: 0.5rem 0 0;
+        font-size: 0.8rem;
+        color: var(--review-ink);
+      }
+      .review-footer ul {
+        margin: 0.25rem 0 0.5rem;
+        padding-left: 1.1rem;
+      }
+      @media (max-width: 640px) {
+        .review-header,
+        .review-controls {
+          padding-inline: 1rem;
+        }
+        .review-stage {
+          padding: 1rem;
+        }
+        .review-footer {
+          padding: 0 1rem 1.5rem;
+        }
+      }
+
+      /* ============ App shell (snapshot from 029 mockup) ============ */
+      .app-shell {
+        display: grid;
+        grid-template-columns: 232px 1fr;
+        min-height: 760px;
+      }
+      .stage-frame[data-viewport='mobile'] .app-shell {
+        grid-template-columns: 1fr;
+      }
+      .app-sidebar {
+        background: var(--p-content-background);
+        border-right: 1px solid var(--p-content-border-color);
+        display: flex;
+        flex-direction: column;
+        padding: 1.1rem 0.85rem;
+        gap: 1.5rem;
+      }
+      .stage-frame[data-viewport='mobile'] .app-sidebar {
+        flex-direction: row;
+        align-items: center;
+        border-right: none;
+        border-bottom: 1px solid var(--p-content-border-color);
+        padding: 0.65rem 0.85rem;
+        gap: 0.75rem;
+        overflow-x: auto;
+      }
+      .app-brand {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        padding: 0 0.4rem;
+      }
+      .app-brand__mark {
+        width: 26px;
+        height: 26px;
+        border-radius: 7px;
+        background: linear-gradient(135deg, var(--p-primary-color), var(--p-primary-600));
+        flex: 0 0 auto;
+      }
+      .app-brand__name {
+        font-weight: 800;
+        font-size: 0.98rem;
+        letter-spacing: -0.01em;
+      }
+      .stage-frame[data-viewport='mobile'] .app-brand__name {
+        display: none;
+      }
+      .app-nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+      }
+      .stage-frame[data-viewport='mobile'] .app-nav {
+        flex-direction: row;
+        gap: 0.3rem;
+      }
+      .app-nav__item {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        padding: 0.55rem 0.6rem;
+        border-radius: 8px;
+        font-size: 0.86rem;
+        font-weight: 600;
+        color: var(--p-text-muted-color);
+        position: relative;
+      }
+      .app-nav__item svg {
+        width: 17px;
+        height: 17px;
+        flex: 0 0 auto;
+      }
+      .app-nav__item--active {
+        background: var(--p-highlight-background);
+        color: var(--p-primary-color);
+      }
+      .app-nav__item--active::before {
+        content: '';
+        position: absolute;
+        left: -0.85rem;
+        top: 0.35rem;
+        bottom: 0.35rem;
+        width: 3px;
+        border-radius: 2px;
+        background: var(--p-primary-color);
+      }
+      .stage-frame[data-viewport='mobile'] .app-nav__item {
+        flex-direction: column;
+        gap: 0.2rem;
+        min-width: 64px;
+        padding: 0.45rem 0.4rem;
+        font-size: 0.64rem;
+        text-align: center;
+      }
+      .stage-frame[data-viewport='mobile'] .app-nav__item--active::before {
+        display: none;
+      }
+      .app-main {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+      }
+      .app-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--p-content-border-color);
+      }
+      .app-header__crumb {
+        font-size: 0.75rem;
+        color: var(--p-text-muted-color);
+        margin: 0 0 0.15rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+      }
+      .app-header__title {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 800;
+      }
+      .app-header__meta {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+        color: var(--p-text-muted-color);
+      }
+      .stage-frame[data-viewport='mobile'] .app-header__meta .meta-name,
+      .stage-frame[data-viewport='mobile'] .app-header__meta .role-badge,
+      .stage-frame[data-viewport='mobile'] .btn-signout span {
+        display: none;
+      }
+      .role-badge {
+        font-size: 0.68rem;
+        font-weight: 700;
+        color: var(--p-primary-600);
+        background: var(--p-highlight-background);
+        padding: 0.15rem 0.5rem;
+        border-radius: 999px;
+      }
+      .avatar {
+        width: 28px;
+        height: 28px;
+        border-radius: 999px;
+        background: var(--p-primary-color);
+        color: var(--p-primary-contrast);
+        font-size: 0.72rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .theme-toggle,
+      .btn-signout {
+        appearance: none;
+        border: none;
+        background: none;
+        color: var(--p-text-muted-color);
+        font: inherit;
+        cursor: pointer;
+      }
+      .theme-toggle {
+        width: 30px;
+        height: 30px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+      }
+      .theme-toggle svg,
+      .btn-signout svg {
+        width: 16px;
+        height: 16px;
+      }
+      .theme-toggle:hover,
+      .btn-signout:hover {
+        background: var(--p-content-hover-background);
+        color: var(--p-text-color);
+      }
+      .btn-signout {
+        font-size: 0.8rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.35rem 0.5rem;
+        border-radius: 6px;
+      }
+      .app-content {
+        flex: 1;
+        padding: 1.25rem 1.5rem 1.75rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        min-width: 0;
+      }
+      .stage-frame[data-viewport='mobile'] .app-content {
+        padding: 1rem;
+      }
+
+      /* ============ Earnings feature styles ============ */
+      .num {
+        font-variant-numeric: tabular-nums;
+      }
+      .muted {
+        color: var(--p-text-muted-color);
+      }
+
+      .toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+      }
+      .toolbar__filters {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+      .toolbar__actions {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+      .field-label {
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: var(--p-text-muted-color);
+      }
+      .select {
+        appearance: none;
+        font: inherit;
+        font-size: 0.84rem;
+        color: var(--p-text-color);
+        background: var(--p-content-background)
+          url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")
+          no-repeat right 0.55rem center / 14px;
+        border: 1px solid var(--p-content-border-color);
+        border-radius: 6px;
+        padding: 0.42rem 2rem 0.42rem 0.65rem;
+        max-width: 100%;
+      }
+      .select:focus-visible,
+      .btn:focus-visible,
+      .tab:focus-visible,
+      .seg button:focus-visible,
+      .icon-btn:focus-visible {
+        outline: 2px solid var(--p-primary-color);
+        outline-offset: 2px;
+      }
+      .btn {
+        appearance: none;
+        border: 1px solid transparent;
+        font: inherit;
+        font-size: 0.84rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.45rem 0.85rem;
+        border-radius: 6px;
+        cursor: pointer;
+      }
+      .btn svg {
+        width: 16px;
+        height: 16px;
+      }
+      .btn--primary {
+        background: var(--p-primary-color);
+        color: var(--p-primary-contrast);
+      }
+      .btn--primary:hover {
+        background: var(--p-primary-600);
+      }
+      .btn--info {
+        background: var(--p-info-color);
+        color: #fff;
+      }
+      .btn--outline {
+        background: transparent;
+        border-color: var(--p-content-border-color);
+        color: var(--p-text-color);
+      }
+      .btn--outline:hover {
+        background: var(--p-content-hover-background);
+      }
+      .btn--danger {
+        background: var(--p-danger-color);
+        color: #fff;
+      }
+      .btn--danger-outline {
+        background: transparent;
+        border-color: var(--p-danger-color);
+        color: var(--p-danger-color);
+      }
+      .btn--text {
+        background: none;
+        color: var(--p-primary-color);
+        padding-inline: 0.3rem;
+      }
+      .icon-btn {
+        appearance: none;
+        border: none;
+        background: none;
+        color: var(--p-text-muted-color);
+        width: 30px;
+        height: 30px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+      .icon-btn:hover {
+        background: var(--p-content-hover-background);
+        color: var(--p-danger-color);
+      }
+      .icon-btn svg {
+        width: 16px;
+        height: 16px;
+      }
+
+      .tabs {
+        display: flex;
+        gap: 0.25rem;
+        border-bottom: 1px solid var(--p-content-border-color);
+        overflow-x: auto;
+      }
+      .tab {
+        appearance: none;
+        border: none;
+        background: none;
+        font: inherit;
+        font-size: 0.86rem;
+        font-weight: 600;
+        color: var(--p-text-muted-color);
+        padding: 0.6rem 0.8rem;
+        border-bottom: 2px solid transparent;
+        margin-bottom: -1px;
+        cursor: pointer;
+        white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+      }
+      .tab:hover {
+        color: var(--p-text-color);
+      }
+      .tab[aria-selected='true'] {
+        color: var(--p-primary-color);
+        border-bottom-color: var(--p-primary-color);
+      }
+      .tab .count {
+        font-size: 0.68rem;
+        font-weight: 700;
+        background: var(--p-warn-bg);
+        color: var(--p-warn-color);
+        padding: 0.05rem 0.4rem;
+        border-radius: 999px;
+      }
+
+      .panel {
+        border: 1px solid var(--p-content-border-color);
+        border-radius: 10px;
+        padding: 1rem 1.1rem;
+        background: var(--p-content-background);
+        min-width: 0;
+      }
+      .panel__head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        margin-bottom: 0.6rem;
+      }
+      .panel h2 {
+        margin: 0;
+        font-size: 0.98rem;
+        font-weight: 700;
+      }
+      .panel h3 {
+        margin: 0;
+        font-size: 0.9rem;
+        font-weight: 700;
+      }
+      .panel__sub {
+        margin: 0.2rem 0 0;
+        font-size: 0.8rem;
+        color: var(--p-text-muted-color);
+        line-height: 1.45;
+        max-width: 70ch;
+      }
+      .section-title {
+        margin: 0.4rem 0 0;
+        font-size: 0.98rem;
+        font-weight: 700;
+      }
+      .section-sub {
+        margin: 0.15rem 0 0;
+        font-size: 0.8rem;
+        color: var(--p-text-muted-color);
+      }
+
+      .seg {
+        display: inline-flex;
+        border: 1px solid var(--p-content-border-color);
+        border-radius: 6px;
+        overflow: hidden;
+      }
+      .seg button {
+        appearance: none;
+        border: none;
+        background: var(--p-content-background);
+        color: var(--p-text-color);
+        font: inherit;
+        font-size: 0.78rem;
+        font-weight: 600;
+        padding: 0.35rem 0.65rem;
+        cursor: pointer;
+        border-right: 1px solid var(--p-content-border-color);
+      }
+      .seg button:last-child {
+        border-right: none;
+      }
+      .seg button[aria-pressed='true'] {
+        background: var(--p-primary-color);
+        color: var(--p-primary-contrast);
+      }
+
+      .notice {
+        display: flex;
+        gap: 0.6rem;
+        align-items: flex-start;
+        padding: 0.65rem 0.85rem;
+        border-radius: 8px;
+        font-size: 0.82rem;
+        line-height: 1.45;
+      }
+      .notice svg {
+        width: 18px;
+        height: 18px;
+        flex: 0 0 auto;
+        margin-top: 0.05rem;
+      }
+      .notice--warn {
+        background: var(--p-warn-bg);
+        color: var(--p-text-color);
+      }
+      .notice--warn svg {
+        color: var(--p-warn-color);
+      }
+      .notice--info {
+        background: var(--p-info-bg);
+        color: var(--p-text-color);
+      }
+      .notice--info svg {
+        color: var(--p-info-color);
+      }
+      .notice--danger {
+        background: var(--p-danger-bg);
+        color: var(--p-text-color);
+      }
+      .notice--danger svg {
+        color: var(--p-danger-color);
+      }
+      .notice strong {
+        font-weight: 700;
+      }
+      .notice .btn--text {
+        font-size: 0.82rem;
+        padding: 0;
+      }
+
+      /* Career accordion */
+      .career {
+        border: 1px solid var(--p-content-border-color);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .career details + details {
+        border-top: 1px solid var(--p-content-border-color);
+      }
+      .career summary {
+        list-style: none;
+        cursor: pointer;
+        display: flex;
+        align-items: baseline;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+        padding: 0.7rem 1rem;
+      }
+      .career summary::-webkit-details-marker {
+        display: none;
+      }
+      .career summary::before {
+        content: '›';
+        color: var(--p-text-muted-color);
+        font-weight: 700;
+        transition: transform 0.15s;
+        display: inline-block;
+        width: 0.6rem;
+      }
+      .career details[open] summary::before {
+        transform: rotate(90deg);
+      }
+      .career summary:hover {
+        background: var(--p-content-hover-background);
+      }
+      .career__name {
+        font-weight: 700;
+        font-size: 0.9rem;
+      }
+      .career__meta {
+        font-size: 0.8rem;
+        color: var(--p-text-muted-color);
+      }
+      .career__gross {
+        margin-left: auto;
+        font-weight: 700;
+        font-size: 0.86rem;
+      }
+      .career__body {
+        padding: 0 1rem 0.9rem 2.2rem;
+      }
+      .stage-frame[data-viewport='mobile'] .career__body {
+        padding-left: 1rem;
+      }
+      .mini-grid {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 0.5rem;
+      }
+      .stage-frame[data-viewport='mobile'] .mini-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .mini {
+        background: var(--p-surface-2);
+        border-radius: 8px;
+        padding: 0.55rem 0.65rem;
+      }
+      .mini__label {
+        font-size: 0.72rem;
+        color: var(--p-text-muted-color);
+        font-weight: 600;
+      }
+      .mini__value {
+        font-size: 0.95rem;
+        font-weight: 700;
+        margin-top: 0.15rem;
+      }
+      .mini__avg {
+        font-size: 0.72rem;
+        color: var(--p-text-muted-color);
+        margin-top: 0.1rem;
+      }
+
+      /* KPI tiles */
+      .kpis {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 0.6rem;
+      }
+      .stage-frame[data-viewport='mobile'] .kpis {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .kpi {
+        border: 1px solid var(--p-content-border-color);
+        border-radius: 10px;
+        padding: 0.7rem 0.8rem;
+        min-width: 0;
+      }
+      .kpi__label {
+        font-size: 0.74rem;
+        font-weight: 600;
+        color: var(--p-text-muted-color);
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+      }
+      .kpi__label i {
+        width: 9px;
+        height: 9px;
+        border-radius: 2px;
+        display: inline-block;
+      }
+      .kpi__value {
+        font-size: 1.25rem;
+        font-weight: 800;
+        margin-top: 0.25rem;
+        letter-spacing: -0.01em;
+        white-space: nowrap;
+      }
+      .kpi__delta {
+        font-size: 0.72rem;
+        margin-top: 0.2rem;
+        color: var(--p-text-muted-color);
+      }
+      .delta-up {
+        color: var(--p-success-color);
+        font-weight: 700;
+      }
+      .delta-down {
+        color: var(--p-danger-color);
+        font-weight: 700;
+      }
+
+      /* Charts */
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.3rem 0.9rem;
+        font-size: 0.76rem;
+        color: var(--p-text-muted-color);
+        margin-bottom: 0.4rem;
+      }
+      .legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+      }
+      .legend i {
+        width: 10px;
+        height: 10px;
+        border-radius: 2px;
+        display: inline-block;
+      }
+      .legend i.dot {
+        border-radius: 999px;
+        width: 8px;
+        height: 8px;
+      }
+      .legend i.line {
+        height: 2px;
+        width: 14px;
+        border-radius: 0;
+      }
+      .chart {
+        width: 100%;
+        height: auto;
+        display: block;
+        overflow: visible;
+      }
+      .chart text {
+        fill: var(--p-text-muted-color);
+        font-size: 10px;
+        font-family: inherit;
+      }
+      .chart .val {
+        fill: var(--p-text-color);
+        font-size: 9.5px;
+        font-weight: 600;
+      }
+      .chart .gridline {
+        stroke: var(--c-grid);
+        stroke-width: 1;
+      }
+      .chart .bar {
+        cursor: pointer;
+      }
+      .chart .bar:hover {
+        opacity: 0.8;
+      }
+      .chart .selected-month {
+        fill: none;
+        stroke: var(--p-text-color);
+        stroke-width: 1.5;
+        stroke-dasharray: 3 2;
+      }
+      .two-col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+      }
+      .stage-frame[data-viewport='mobile'] .two-col {
+        grid-template-columns: 1fr;
+      }
+
+      /* Tables */
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table.t {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.8rem;
+      }
+      table.t th {
+        text-align: right;
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--p-text-muted-color);
+        padding: 0.45rem 0.55rem;
+        border-bottom: 1px solid var(--p-content-border-color);
+        white-space: nowrap;
+      }
+      table.t td {
+        text-align: right;
+        padding: 0.42rem 0.55rem;
+        border-bottom: 1px solid var(--p-content-border-color);
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+      }
+      table.t th:first-child,
+      table.t td:first-child,
+      table.t .l {
+        text-align: left;
+      }
+      table.t tr.sum td {
+        font-weight: 700;
+        border-top: 2px solid var(--p-content-border-color);
+      }
+      table.t td.cell {
+        cursor: pointer;
+        border-radius: 4px;
+      }
+      table.t td.cell:hover {
+        background: var(--p-content-hover-background);
+      }
+      table.t td.cell.selected {
+        outline: 2px solid var(--p-primary-color);
+        outline-offset: -2px;
+      }
+      table.t td.gap {
+        color: var(--p-danger-color);
+        font-weight: 700;
+      }
+      .bonus-dot {
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        border-radius: 999px;
+        background: var(--c-bonus);
+        margin-left: 3px;
+        vertical-align: 2px;
+      }
+
+      /* Month detail statement */
+      .stmt {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.82rem;
+      }
+      .stmt td {
+        padding: 0.32rem 0.2rem;
+        font-variant-numeric: tabular-nums;
+      }
+      .stmt td.a,
+      .stmt td.b {
+        text-align: right;
+        white-space: nowrap;
+      }
+      .stmt td:first-child {
+        overflow-wrap: anywhere;
+      }
+      .stage-frame[data-viewport='mobile'] .stmt {
+        font-size: 0.74rem;
+      }
+      .stage-frame[data-viewport='mobile'] .stmt tr.indent td:first-child {
+        padding-left: 0.5rem;
+      }
+      .stmt td.a {
+        color: var(--p-text-muted-color);
+      }
+      .stmt tr.indent td:first-child {
+        padding-left: 1.1rem;
+        color: var(--p-text-muted-color);
+      }
+      .stmt tr.total td {
+        font-weight: 700;
+        border-top: 1px solid var(--p-content-border-color);
+      }
+      .stmt tr.grand td {
+        font-weight: 800;
+        border-top: 2px solid var(--p-text-color);
+      }
+      .stmt tr.expander td:first-child {
+        cursor: pointer;
+      }
+      .section-head {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin: 0.8rem 0 0.35rem;
+        font-size: 0.82rem;
+      }
+      .section-head:first-of-type {
+        margin-top: 0.2rem;
+      }
+      .tag {
+        font-size: 0.68rem;
+        font-weight: 700;
+        padding: 0.12rem 0.45rem;
+        border-radius: 999px;
+        background: var(--p-muted-bg);
+        color: var(--p-text-muted-color);
+      }
+      .tag--corr {
+        background: var(--p-warn-bg);
+        color: var(--p-warn-color);
+      }
+      .tag--ok {
+        background: var(--p-success-bg);
+        color: var(--p-success-color);
+      }
+      .tag--bad {
+        background: var(--p-danger-bg);
+        color: var(--p-danger-color);
+      }
+      .tag--info {
+        background: var(--p-info-bg);
+        color: var(--p-info-color);
+      }
+      .tag--dup {
+        background: var(--p-muted-bg);
+        color: var(--p-text-muted-color);
+      }
+      .file {
+        font-weight: 600;
+        word-break: break-all;
+      }
+
+      /* Check marks */
+      .ok {
+        color: var(--p-success-color);
+        font-weight: 600;
+      }
+      .bad {
+        color: var(--p-danger-color);
+        font-weight: 600;
+      }
+      .na {
+        color: var(--p-text-muted-color);
+      }
+
+      /* Import */
+      .dropzone {
+        border: 2px dashed var(--p-content-border-color);
+        border-radius: 12px;
+        padding: 1.4rem 1rem;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.45rem;
+        background: var(--p-surface-2);
+      }
+      .dropzone svg {
+        width: 30px;
+        height: 30px;
+        color: var(--p-primary-color);
+      }
+      .dropzone strong {
+        font-size: 0.95rem;
+      }
+      .dropzone p {
+        margin: 0;
+        font-size: 0.8rem;
+        color: var(--p-text-muted-color);
+        max-width: 60ch;
+        line-height: 1.45;
+      }
+      .formats {
+        display: flex;
+        gap: 0.4rem;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      .progress {
+        height: 6px;
+        background: var(--p-muted-bg);
+        border-radius: 999px;
+        overflow: hidden;
+      }
+      .progress > span {
+        display: block;
+        height: 100%;
+        width: 100%;
+        background: var(--p-primary-color);
+      }
+      .file-list {
+        border: 1px solid var(--p-content-border-color);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .file-row {
+        display: grid;
+        grid-template-columns: 28px minmax(0, 1.6fr) minmax(0, 1.2fr) minmax(0, 1.1fr) auto;
+        gap: 0.75rem;
+        align-items: start;
+        padding: 0.7rem 0.9rem;
+        font-size: 0.82rem;
+      }
+      .file-row + .file-row,
+      .file-row + .file-detail,
+      .file-detail + .file-row {
+        border-top: 1px solid var(--p-content-border-color);
+      }
+      .stage-frame[data-viewport='mobile'] .file-row {
+        grid-template-columns: 24px minmax(0, 1fr) auto;
+      }
+      .stage-frame[data-viewport='mobile'] .file-row .col-periods,
+      .stage-frame[data-viewport='mobile'] .file-row .col-checks {
+        grid-column: 2 / -1;
+      }
+      .file-row .status-icon {
+        width: 22px;
+        height: 22px;
+        border-radius: 999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .file-row .status-icon svg {
+        width: 14px;
+        height: 14px;
+      }
+      .status-ok {
+        background: var(--p-success-bg);
+        color: var(--p-success-color);
+      }
+      .status-bad {
+        background: var(--p-danger-bg);
+        color: var(--p-danger-color);
+      }
+      .status-dup {
+        background: var(--p-muted-bg);
+        color: var(--p-text-muted-color);
+      }
+      .file-row .sub {
+        font-size: 0.75rem;
+        color: var(--p-text-muted-color);
+        margin-top: 0.15rem;
+        line-height: 1.4;
+      }
+      .file-row .reason {
+        font-size: 0.78rem;
+        color: var(--p-danger-color);
+        margin-top: 0.25rem;
+        line-height: 1.4;
+      }
+      .file-detail {
+        padding: 0.6rem 0.9rem 0.8rem 3.1rem;
+        background: var(--p-surface-2);
+        font-size: 0.78rem;
+      }
+      .stage-frame[data-viewport='mobile'] .file-detail {
+        padding-left: 0.9rem;
+      }
+      .kv {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0.3rem 1rem;
+        margin-top: 0.4rem;
+      }
+      .stage-frame[data-viewport='mobile'] .kv {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .kv div {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.5rem;
+        border-bottom: 1px dotted var(--p-content-border-color);
+        padding: 0.15rem 0;
+      }
+      .kv span:first-child {
+        color: var(--p-text-muted-color);
+      }
+      .import-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+      }
+      .import-footer .summary {
+        font-size: 0.82rem;
+        display: flex;
+        gap: 0.4rem;
+        flex-wrap: wrap;
+      }
+
+      /* Privacy */
+      .privacy {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.75rem;
+        margin-top: 0.4rem;
+      }
+      .stage-frame[data-viewport='mobile'] .privacy {
+        grid-template-columns: 1fr;
+      }
+      .privacy div {
+        background: var(--p-surface-2);
+        border-radius: 8px;
+        padding: 0.7rem 0.8rem;
+        font-size: 0.8rem;
+        line-height: 1.45;
+      }
+      .privacy strong {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.84rem;
+        margin-bottom: 0.25rem;
+      }
+      .privacy strong svg {
+        width: 16px;
+        height: 16px;
+        color: var(--p-primary-color);
+      }
+      .privacy-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        font-size: 0.8rem;
+        color: var(--p-text-muted-color);
+      }
+      .privacy-link svg {
+        width: 14px;
+        height: 14px;
+      }
+      .danger-zone {
+        border-color: var(--p-danger-color);
+      }
+      .rename {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+        flex-wrap: wrap;
+        padding: 0.45rem 0;
+        border-bottom: 1px solid var(--p-content-border-color);
+        font-size: 0.82rem;
+      }
+      .rename:last-child {
+        border-bottom: none;
+      }
+      .rename .detected {
+        flex: 1 1 200px;
+        min-width: 0;
+      }
+      .input {
+        font: inherit;
+        font-size: 0.84rem;
+        color: var(--p-text-color);
+        background: var(--p-content-background);
+        border: 1px solid var(--p-content-border-color);
+        border-radius: 6px;
+        padding: 0.4rem 0.6rem;
+        flex: 1 1 180px;
+        min-width: 0;
+      }
+
+      /* Empty / unavailable */
+      .empty {
+        text-align: center;
+        padding: 2.5rem 1rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.6rem;
+      }
+      .empty__icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 999px;
+        background: var(--p-highlight-background);
+        color: var(--p-primary-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .empty__icon svg {
+        width: 26px;
+        height: 26px;
+      }
+      .empty--danger .empty__icon {
+        background: var(--p-danger-bg);
+        color: var(--p-danger-color);
+      }
+      .empty h2 {
+        margin: 0;
+        font-size: 1.1rem;
+      }
+      .empty p {
+        margin: 0;
+        max-width: 58ch;
+        font-size: 0.86rem;
+        color: var(--p-text-muted-color);
+        line-height: 1.5;
+      }
+
+      /* Dashboard widget */
+      .dash-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.9rem;
+      }
+      .stage-frame[data-viewport='mobile'] .dash-grid {
+        grid-template-columns: 1fr;
+      }
+      .dash-card {
+        border: 1px solid var(--p-content-border-color);
+        border-radius: 10px;
+        padding: 0.9rem 1rem;
+      }
+      .dash-card h3 {
+        margin: 0 0 0.6rem;
+        font-size: 0.88rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .dash-card--ghost {
+        background: var(--p-surface-2);
+        color: var(--p-text-muted-color);
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 150px;
+      }
+      .dash-kpis {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.5rem;
+      }
+      .dash-kpis .kpi__value {
+        font-size: 1.05rem;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .stage-frame,
+        .career summary::before {
+          transition: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="review-header">
+      <p class="review-eyebrow">Non-functional review mockup · 032-earnings-domain</p>
+      <h1>Earnings domain</h1>
+      <p>
+        Static layout review for the Earnings domain before planning. All figures are invented
+        example data (two fictional employers, 2012–2026) and do not come from any real payslip. Use
+        the controls to switch screen, language, theme and viewport. Chart bars and grid cells are
+        clickable and open the month detail.
+      </p>
+    </header>
+
+    <div class="review-controls">
+      <div class="control-group">
+        <span class="label">Viewport</span>
+        <div class="segmented" id="viewport-toggle">
+          <button type="button" data-viewport="desktop" aria-pressed="true">Desktop</button>
+          <button type="button" data-viewport="mobile" aria-pressed="false">Mobile</button>
+        </div>
+      </div>
+      <div class="control-group">
+        <span class="label">Screen</span>
+        <div class="segmented" id="screen-toggle">
+          <button type="button" data-screen="overview" aria-pressed="true">Overview</button>
+          <button type="button" data-screen="tables" aria-pressed="false">Tables</button>
+          <button type="button" data-screen="check" aria-pressed="false">Data check</button>
+          <button type="button" data-screen="imports" aria-pressed="false">
+            Imports &amp; privacy
+          </button>
+          <button type="button" data-screen="import" aria-pressed="false">Import preview</button>
+          <button type="button" data-screen="empty" aria-pressed="false">Empty</button>
+          <button type="button" data-screen="unavailable" aria-pressed="false">
+            Key unavailable
+          </button>
+          <button type="button" data-screen="widget" aria-pressed="false">Dashboard widget</button>
+        </div>
+      </div>
+      <div class="control-group">
+        <span class="label">Language</span>
+        <div class="segmented" id="lang-toggle">
+          <button type="button" data-lang="en" aria-pressed="true">EN</button>
+          <button type="button" data-lang="de" aria-pressed="false">DE</button>
+        </div>
+      </div>
+      <div class="control-group">
+        <span class="label">Theme</span>
+        <div class="segmented" id="theme-toggle">
+          <button type="button" data-theme-choice="light" aria-pressed="true">Light</button>
+          <button type="button" data-theme-choice="dark" aria-pressed="false">Dark</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="review-stage">
+      <div class="stage-frame" id="stage-frame" data-viewport="desktop">
+        <p class="stage-frame-label" id="stage-frame-label">Desktop · /app/earnings</p>
+        <div class="canvas" id="canvas" data-theme="light"></div>
+      </div>
+    </div>
+
+    <footer class="review-footer">
+      <h3>Layout decisions to review</h3>
+      <ul>
+        <li>
+          The long single page of earnings-evolution is split into four sub-tabs:
+          <b>Overview</b> (summary, KPIs, charts, month detail), <b>Tables</b> (year × month grid,
+          taxes per year, wage-tax certificates), <b>Data check</b> and <b>Imports</b> (history,
+          employer names, privacy, delete). Import itself is a primary action in the toolbar, like
+          "Add holding".
+        </li>
+        <li>
+          KPI tiles compare the incomplete latest year with the
+          <b>same months of the previous year</b> (Jan–Sep 2026 vs. Jan–Sep 2025) instead of the
+          full previous year, so a partial year doesn't show as a drop.
+        </li>
+        <li>
+          A data-check problem is surfaced on the Overview as a warning strip with a link, and as a
+          count badge on the Data check tab.
+        </li>
+        <li>
+          The import preview lists every selected file with its own outcome. Rejected and duplicate
+          files are skipped; the confirm button names how many files will be saved. One row can be
+          expanded to show exactly which figures will be sent.
+        </li>
+        <li>
+          Series colors keep the five validated roles from earnings-evolution: net (blue), taxes
+          (orange), social insurance (teal), regular pay (indigo, the app primary) and bonus (red).
+        </li>
+      </ul>
+      <h3>Out of scope for this mockup</h3>
+      <ul>
+        <li>
+          Confirmation dialogs for deleting an import or all data, and the rename save flow —
+          plan-time details.
+        </li>
+        <li>Export control contents (shared 029 capability, shown only as the button).</li>
+        <li>
+          Loading/progress while parsing is shown once (progress bar in the import preview); real
+          timing is plan-time.
+        </li>
+      </ul>
+    </footer>
+
+    <script>
+      /* ---------------- i18n ---------------- */
+      const T = {
+        en: {
+          earnings: 'Earnings',
+          dashboard: 'Dashboard',
+          holdings: 'Holdings',
+          retirement: 'Retirement',
+          insurances: 'Insurances',
+          budget: 'Budget Planner',
+          wealth: 'Wealth Development',
+          accounts: 'Account Overview',
+          settings: 'Settings',
+          signout: 'Sign out',
+          employer: 'Employer',
+          allEmployers: 'All employers',
+          importDocs: 'Import documents',
+          export: 'Export',
+          howProtected: 'How your data is protected',
+          tabOverview: 'Overview',
+          tabTables: 'Tables',
+          tabCheck: 'Data check',
+          tabImports: 'Imports',
+          careerTitle: 'Career summary',
+          careerSub:
+            'Totals over your whole career and per employer, with averages per month employed',
+          wholeCareer: 'Whole career',
+          months: 'months',
+          employers: 'employers',
+          avgPerMonth: 'Ø per month',
+          gross: 'Gross',
+          net: 'Net',
+          taxes: 'Taxes',
+          social: 'Social insurance',
+          bonus: 'Bonus',
+          netRatio: 'Net ratio',
+          regular: 'Regular pay',
+          bonusOneOff: 'Bonus & one-off payments',
+          payout: 'Payout',
+          latestTitle: (y, n) => `${y} (${n} months)`,
+          latestSub: (y, py, r) => `Compared with the same months of ${py} (${r})`,
+          vs: 'vs.',
+          grossPerYear: 'Gross per year',
+          grossPerYearSub: 'Regular pay and bonus/one-off payments per calendar year',
+          total: 'Total',
+          perMonth: 'Per month employed',
+          whereGross: 'Where the gross goes, month by month',
+          whereGrossSub:
+            'Net, taxes and social insurance add up to gross. Corrections count in the month they belong to. Click a month to see its payslips.',
+          bonusMonth: 'Bonus month',
+          employerChange: 'Employer change',
+          range: 'Range',
+          all: 'All',
+          ratios: 'Deductions as a share of gross',
+          ratiosSub: 'Per calendar year',
+          checkIssue: (n) => `Data check found ${n} issue.`,
+          checkIssueHint: 'One month in 2019 is missing.',
+          openCheck: 'Open data check',
+          monthDetail: 'Month detail',
+          sections: (n) => `${n} payslip sections`,
+          checksPassed: 'Checks passed',
+          kindRegular: 'Payslip',
+          kindCorrection: 'Correction',
+          issuedIn: (m) => `issued ${m}`,
+          wageTax: 'Wage tax',
+          soli: 'Solidarity surcharge',
+          church: 'Church tax',
+          health: 'Health insurance',
+          care: 'Long-term care insurance',
+          pension: 'Pension insurance',
+          unemployment: 'Unemployment insurance',
+          other: 'Other deductions/additions',
+          statutoryNet: 'Statutory net',
+          grossTotal: 'Gross (total gross)',
+          basePay: 'Regular pay',
+          backPay: 'Back pay',
+          paidWith: (m) => `Paid out with the ${m} payslip`,
+          gridTitle: 'Month by month',
+          gridSub:
+            'Click a cell to open the month detail. ● = contains a bonus or one-off payment.',
+          show: 'Show',
+          year: 'Year',
+          sum: 'Sum',
+          taxTable: 'All taxes and contributions per year',
+          taxTableSub: 'Employee share of social insurance; percentages relative to gross',
+          monthsCol: 'Months',
+          ofWhichBonus: 'of which bonus',
+          taxGross: 'Tax gross',
+          taxesPct: 'Taxes %',
+          socialPct: 'Social %',
+          certs: 'Wage-tax certificates',
+          certsSub: 'Certified totals as imported from the annual Lohnsteuerbescheinigung',
+          certGross: 'Gross wage',
+          source: 'Source file',
+          checkTitle: 'Data check',
+          checkSub:
+            'Payslip sums compared with the year-to-date totals printed on the last payslip of the year and with the wage-tax certificate',
+          ytd: 'Year-to-date totals',
+          cert: 'Wage-tax certificate',
+          complete: 'Months complete',
+          valuesMatch: (n) => `${n} values match`,
+          valuesDiffer: (n) => `${n} values differ`,
+          notAvailable: 'not available',
+          completeOk: 'complete',
+          missing: (m) => `${m} missing`,
+          lateExcluded: '1 correction issued after the last payslip excluded (Apr 2022)',
+          missingHint: 'Import the missing payslip for Mar 2019 to resolve this.',
+          importsTitle: 'Import history',
+          importsSub:
+            'Every file you imported. Deleting an import removes exactly the figures it added.',
+          file: 'File',
+          type: 'Type',
+          periods: 'Periods',
+          records: 'Records',
+          parser: 'Read with',
+          importedOn: 'Imported',
+          tPayslip: 'Payslip PDF',
+          tCert: 'Wage-tax certificate PDF',
+          tExport: 'Companion-tool export',
+          employerNames: 'Employer names',
+          employerNamesSub:
+            'Employers are detected from your documents. You can change how they are displayed; figures cannot be edited.',
+          detectedAs: 'Detected as',
+          displayName: 'Display name',
+          save: 'Save',
+          privacyTitle: 'Your earnings data',
+          privacySub:
+            'Payslips contain some of your most sensitive data. This is what happens to it.',
+          pv1t: 'Documents stay on your device',
+          pv1: 'PDFs are read in your browser. The file and its text are never uploaded; only the figures listed in the import preview are sent.',
+          pv2t: 'Only figures, no identifiers',
+          pv2: 'No tax ID, social-security number, IBAN, name or address is sent or stored. Amounts are stored encrypted.',
+          pv3t: 'Only you can see it',
+          pv3: 'Nobody else in Vaultfolio can see your earnings, administrators included. The operator of this Vaultfolio instance runs the server and holds the encryption key.',
+          dangerTitle: 'Delete all earnings data',
+          dangerSub:
+            'Permanently removes all payslip figures, wage-tax certificates, employer names and the import history. Your other Vaultfolio data is not affected.',
+          deleteAll: 'Delete all earnings data',
+          deleteImport: 'Delete import',
+          importTitle: 'Import documents',
+          importBack: 'Back to earnings',
+          dropTitle: 'Drop payslips, wage-tax certificates or an export file here',
+          dropSub: 'Files are read on this device. Nothing is saved until you confirm below.',
+          chooseFiles: 'Choose files',
+          supported: 'Supported',
+          fSap: 'SAP payslip (Entgeltnachweis)',
+          fCert: 'Wage-tax certificate (any employer)',
+          fExport: 'Earnings export (JSON, v1)',
+          reading: (a, b) => `Read ${a} of ${b} files`,
+          stNew: 'New',
+          stReplaces: 'Replaces',
+          stDuplicate: 'Duplicate',
+          stRejected: 'Rejected',
+          stIncludesCorr: 'includes correction',
+          allChecks: 'All checks passed',
+          whatSent: 'Figures that will be sent',
+          hideSent: 'Hide figures',
+          rejCheck:
+            'Rejected: Gross − taxes − social insurance = net does not add up for Aug 2026 (difference 12.40 €). Nothing from this file will be saved.',
+          rejFormat:
+            'Rejected: format not supported yet. This looks like a scanned document without text. Scans can be processed with the companion tool and imported through its export file.',
+          dupNote: 'Already imported on 3 Sep 2026. Skipped.',
+          replacesNote: 'Replaces the Aug 2026 figures imported on 2 Sep 2026.',
+          readySummary: (a, r) => `${a} files ready (${r} records)`,
+          skipped: (n) => `${n} skipped`,
+          rejected: (n) => `${n} rejected`,
+          cancel: 'Cancel',
+          importN: (n) => `Import ${n} files`,
+          emptyTitle: 'No earnings yet',
+          emptySub:
+            'Import your payslip PDFs and wage-tax certificates to see how your income developed. Only payslips from supported formats can be read; values cannot be typed in by hand.',
+          unavailableTitle: 'Earnings data is temporarily unavailable',
+          unavailableSub:
+            'The server cannot decrypt your earnings figures right now, so nothing is shown and no new imports are accepted. Your data is not lost. Please contact the operator of this Vaultfolio instance.',
+          widgetTitle: 'Earnings 2026',
+          widgetOpen: 'Open',
+          otherWidget: 'Other dashboard widget',
+          jan: 'Jan',
+          feb: 'Feb',
+          mar: 'Mar',
+          apr: 'Apr',
+          may: 'May',
+          jun: 'Jun',
+          jul: 'Jul',
+          aug: 'Aug',
+          sep: 'Sep',
+          oct: 'Oct',
+          nov: 'Nov',
+          dec: 'Dec',
+        },
+        de: {
+          earnings: 'Einkommensentwicklung',
+          dashboard: 'Übersicht',
+          holdings: 'Vermögenswerte',
+          retirement: 'Altersvorsorge',
+          insurances: 'Versicherungen',
+          budget: 'Haushaltsplaner',
+          wealth: 'Vermögensentwicklung',
+          accounts: 'Kontoübersicht',
+          settings: 'Einstellungen',
+          signout: 'Abmelden',
+          employer: 'Arbeitgeber',
+          allEmployers: 'Alle Arbeitgeber',
+          importDocs: 'Dokumente importieren',
+          export: 'Exportieren',
+          howProtected: 'So werden deine Daten geschützt',
+          tabOverview: 'Überblick',
+          tabTables: 'Tabellen',
+          tabCheck: 'Datenprüfung',
+          tabImports: 'Importe',
+          careerTitle: 'Gesamtverdienst',
+          careerSub:
+            'Summe über das ganze Berufsleben und pro Arbeitgeber, mit Durchschnitt pro Beschäftigungsmonat',
+          wholeCareer: 'Berufsleben gesamt',
+          months: 'Monate',
+          employers: 'Arbeitgeber',
+          avgPerMonth: 'Ø pro Monat',
+          gross: 'Brutto',
+          net: 'Netto',
+          taxes: 'Steuern',
+          social: 'Sozialversicherung',
+          bonus: 'Bonus',
+          netRatio: 'Nettoquote',
+          regular: 'Laufendes Entgelt',
+          bonusOneOff: 'Bonus & Einmalbezüge',
+          payout: 'Auszahlungsbetrag',
+          latestTitle: (y, n) => `${y} (${n} Monate)`,
+          latestSub: (y, py, r) => `Im Vergleich zu denselben Monaten ${py} (${r})`,
+          vs: 'ggü.',
+          grossPerYear: 'Brutto pro Jahr',
+          grossPerYearSub: 'Laufendes Entgelt und Bonus/Einmalbezüge pro Kalenderjahr',
+          total: 'Gesamt',
+          perMonth: 'Pro Beschäftigungsmonat',
+          whereGross: 'Wohin das Brutto geht, Monat für Monat',
+          whereGrossSub:
+            'Netto, Steuern und Sozialversicherung ergeben zusammen das Brutto. Korrekturen zählen im Monat, zu dem sie gehören. Ein Klick auf einen Monat zeigt seine Abrechnungen.',
+          bonusMonth: 'Bonusmonat',
+          employerChange: 'Arbeitgeberwechsel',
+          range: 'Zeitraum',
+          all: 'Alle',
+          ratios: 'Abzüge im Verhältnis zum Brutto',
+          ratiosSub: 'Pro Kalenderjahr',
+          checkIssue: (n) => `Die Datenprüfung hat ${n} Problem gefunden.`,
+          checkIssueHint: 'Ein Monat in 2019 fehlt.',
+          openCheck: 'Datenprüfung öffnen',
+          monthDetail: 'Monatsdetail',
+          sections: (n) => `${n} Abrechnungsteile`,
+          checksPassed: 'Prüfungen bestanden',
+          kindRegular: 'Abrechnung',
+          kindCorrection: 'Korrektur',
+          issuedIn: (m) => `abgerechnet ${m}`,
+          wageTax: 'Lohnsteuer',
+          soli: 'Solidaritätszuschlag',
+          church: 'Kirchensteuer',
+          health: 'Krankenversicherung',
+          care: 'Pflegeversicherung',
+          pension: 'Rentenversicherung',
+          unemployment: 'Arbeitslosenversicherung',
+          other: 'Sonstige Be-/Abzüge',
+          statutoryNet: 'Gesetzliches Netto',
+          grossTotal: 'Brutto (Gesamtbrutto)',
+          basePay: 'Laufendes Entgelt',
+          backPay: 'Nachzahlung',
+          paidWith: (m) => `Ausgezahlt mit der Abrechnung ${m}`,
+          gridTitle: 'Monatsübersicht',
+          gridSub:
+            'Ein Klick auf eine Zelle öffnet das Monatsdetail. ● = enthält Bonus oder Einmalbezug.',
+          show: 'Anzeigen',
+          year: 'Jahr',
+          sum: 'Summe',
+          taxTable: 'Alle Steuern und Abgaben pro Jahr',
+          taxTableSub:
+            'Arbeitnehmeranteil der Sozialversicherung, Prozentwerte bezogen auf das Brutto',
+          monthsCol: 'Monate',
+          ofWhichBonus: 'davon Bonus',
+          taxGross: 'Steuerbrutto',
+          taxesPct: 'Steuern %',
+          socialPct: 'SV %',
+          certs: 'Lohnsteuerbescheinigungen',
+          certsSub: 'Bescheinigte Jahressummen aus der importierten Lohnsteuerbescheinigung',
+          certGross: 'Bruttoarbeitslohn',
+          source: 'Quelldatei',
+          checkTitle: 'Datenprüfung',
+          checkSub:
+            'Summen der Abrechnungen im Vergleich mit den Jahressummen auf der letzten Abrechnung des Jahres und mit der Lohnsteuerbescheinigung',
+          ytd: 'Jahressummen',
+          cert: 'Lohnsteuerbescheinigung',
+          complete: 'Monate vollständig',
+          valuesMatch: (n) => `${n} Werte stimmen`,
+          valuesDiffer: (n) => `${n} Werte weichen ab`,
+          notAvailable: 'nicht vorhanden',
+          completeOk: 'vollständig',
+          missing: (m) => `${m} fehlt`,
+          lateExcluded: '1 Korrektur nach der letzten Abrechnung nicht berücksichtigt (Apr 2022)',
+          missingHint: 'Importiere die fehlende Abrechnung für Mär 2019, um das zu beheben.',
+          importsTitle: 'Importverlauf',
+          importsSub:
+            'Alle importierten Dateien. Beim Löschen eines Imports werden genau die Werte entfernt, die er hinzugefügt hat.',
+          file: 'Datei',
+          type: 'Art',
+          periods: 'Zeiträume',
+          records: 'Datensätze',
+          parser: 'Gelesen mit',
+          importedOn: 'Importiert',
+          tPayslip: 'Gehaltsabrechnung (PDF)',
+          tCert: 'Lohnsteuerbescheinigung (PDF)',
+          tExport: 'Export des Begleit-Tools',
+          employerNames: 'Arbeitgebernamen',
+          employerNamesSub:
+            'Arbeitgeber werden aus deinen Dokumenten erkannt. Du kannst ändern, wie sie angezeigt werden; Beträge lassen sich nicht bearbeiten.',
+          detectedAs: 'Erkannt als',
+          displayName: 'Anzeigename',
+          save: 'Speichern',
+          privacyTitle: 'Deine Einkommensdaten',
+          privacySub:
+            'Gehaltsabrechnungen enthalten einige deiner sensibelsten Daten. Das passiert mit ihnen.',
+          pv1t: 'Dokumente bleiben auf deinem Gerät',
+          pv1: 'PDFs werden in deinem Browser gelesen. Die Datei und ihr Text werden nie hochgeladen; gesendet werden nur die Werte aus der Importvorschau.',
+          pv2t: 'Nur Beträge, keine Kennungen',
+          pv2: 'Steuer-ID, Sozialversicherungsnummer, IBAN, Name und Adresse werden weder gesendet noch gespeichert. Beträge werden verschlüsselt gespeichert.',
+          pv3t: 'Nur du siehst sie',
+          pv3: 'Niemand sonst in Vaultfolio sieht deine Einkommensdaten, auch keine Administratoren. Der Betreiber dieser Vaultfolio-Instanz betreibt den Server und verwaltet den Schlüssel.',
+          dangerTitle: 'Alle Einkommensdaten löschen',
+          dangerSub:
+            'Entfernt dauerhaft alle Abrechnungswerte, Lohnsteuerbescheinigungen, Arbeitgebernamen und den Importverlauf. Deine übrigen Vaultfolio-Daten bleiben erhalten.',
+          deleteAll: 'Alle Einkommensdaten löschen',
+          deleteImport: 'Import löschen',
+          importTitle: 'Dokumente importieren',
+          importBack: 'Zurück zur Einkommensentwicklung',
+          dropTitle:
+            'Gehaltsabrechnungen, Lohnsteuerbescheinigungen oder eine Exportdatei hier ablegen',
+          dropSub:
+            'Die Dateien werden auf diesem Gerät gelesen. Gespeichert wird erst, wenn du unten bestätigst.',
+          chooseFiles: 'Dateien auswählen',
+          supported: 'Unterstützt',
+          fSap: 'SAP-Entgeltnachweis',
+          fCert: 'Lohnsteuerbescheinigung (alle Arbeitgeber)',
+          fExport: 'Einkommens-Export (JSON, v1)',
+          reading: (a, b) => `${a} von ${b} Dateien gelesen`,
+          stNew: 'Neu',
+          stReplaces: 'Ersetzt',
+          stDuplicate: 'Duplikat',
+          stRejected: 'Abgelehnt',
+          stIncludesCorr: 'enthält Korrektur',
+          allChecks: 'Alle Prüfungen bestanden',
+          whatSent: 'Werte, die gesendet werden',
+          hideSent: 'Werte ausblenden',
+          rejCheck:
+            'Abgelehnt: Brutto − Steuern − Sozialversicherung = Netto geht für Aug 2026 nicht auf (Differenz 12,40 €). Aus dieser Datei wird nichts gespeichert.',
+          rejFormat:
+            'Abgelehnt: Format wird noch nicht unterstützt. Das scheint ein Scan ohne Text zu sein. Scans lassen sich mit dem Begleit-Tool verarbeiten und über dessen Exportdatei importieren.',
+          dupNote: 'Bereits am 3. Sep 2026 importiert. Wird übersprungen.',
+          replacesNote: 'Ersetzt die Werte für Aug 2026 vom Import am 2. Sep 2026.',
+          readySummary: (a, r) => `${a} Dateien bereit (${r} Datensätze)`,
+          skipped: (n) => `${n} übersprungen`,
+          rejected: (n) => `${n} abgelehnt`,
+          cancel: 'Abbrechen',
+          importN: (n) => `${n} Dateien importieren`,
+          emptyTitle: 'Noch keine Einkommensdaten',
+          emptySub:
+            'Importiere deine Gehaltsabrechnungen und Lohnsteuerbescheinigungen als PDF, um zu sehen, wie sich dein Einkommen entwickelt hat. Gelesen werden nur unterstützte Formate; Werte lassen sich nicht von Hand eingeben.',
+          unavailableTitle: 'Einkommensdaten sind vorübergehend nicht verfügbar',
+          unavailableSub:
+            'Der Server kann deine Einkommenswerte gerade nicht entschlüsseln. Deshalb wird nichts angezeigt und es werden keine neuen Importe angenommen. Deine Daten sind nicht verloren. Bitte wende dich an den Betreiber dieser Vaultfolio-Instanz.',
+          widgetTitle: 'Einkommen 2026',
+          widgetOpen: 'Öffnen',
+          otherWidget: 'Anderes Dashboard-Widget',
+          jan: 'Jan',
+          feb: 'Feb',
+          mar: 'Mär',
+          apr: 'Apr',
+          may: 'Mai',
+          jun: 'Jun',
+          jul: 'Jul',
+          aug: 'Aug',
+          sep: 'Sep',
+          oct: 'Okt',
+          nov: 'Nov',
+          dec: 'Dez',
+        },
+      };
+      const MKEYS = [
+        'jan',
+        'feb',
+        'mar',
+        'apr',
+        'may',
+        'jun',
+        'jul',
+        'aug',
+        'sep',
+        'oct',
+        'nov',
+        'dec',
+      ];
+
+      /* ---------------- state ---------------- */
+      const S = {
+        lang: 'en',
+        theme: 'light',
+        screen: 'overview',
+        employer: 'all',
+        grossMode: 'total',
+        metric: 'gross',
+        month: '2026-07',
+        range: '3y',
+        expanded: 'f1',
+      };
+      const t = (k, ...a) => {
+        const v = T[S.lang][k];
+        return typeof v === 'function' ? v(...a) : (v ?? k);
+      };
+      const loc = () => (S.lang === 'de' ? 'de-DE' : 'en-GB');
+      const eur0 = (v) =>
+        new Intl.NumberFormat(loc(), {
+          style: 'currency',
+          currency: 'EUR',
+          maximumFractionDigits: 0,
+        }).format(v);
+      const eur2 = (v) =>
+        new Intl.NumberFormat(loc(), {
+          style: 'currency',
+          currency: 'EUR',
+          minimumFractionDigits: 2,
+        }).format(v);
+      const num0 = (v) => new Intl.NumberFormat(loc(), { maximumFractionDigits: 0 }).format(v);
+      const pct = (v, d = 1) =>
+        new Intl.NumberFormat(loc(), {
+          style: 'percent',
+          minimumFractionDigits: d,
+          maximumFractionDigits: d,
+        }).format(v);
+      const mName = (p) => `${t(MKEYS[+p.slice(5) - 1])} ${p.slice(0, 4)}`;
+      const r2 = (x) => Math.round(x * 100) / 100;
+      const esc = (s) =>
+        String(s).replace(
+          /[&<>"]/g,
+          (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c],
+        );
+
+      /* ---------------- invented example data ---------------- */
+      const EMP = {
+        kessler: { name: 'Kessler Maschinenbau GmbH', short: 'Kessler Maschinenbau' },
+        brightline: { name: 'Brightline Software GmbH', short: 'Brightline Software' },
+      };
+      const BASE = {
+        2012: 1050,
+        2013: 1080,
+        2014: 2950,
+        2015: 3100,
+        2016: 3250,
+        2017: 3900,
+        2018: 4100,
+        2019: 4350,
+        2020: 4600,
+        2021: 4800,
+        2022: 5100,
+        2023: 5450,
+        2024: 5750,
+        2025: 6100,
+        2026: 6400,
+      };
+      const PERF = {
+        2018: 1.1,
+        2019: 1.2,
+        2020: 0.9,
+        2021: 1.3,
+        2022: 1.5,
+        2023: 1.6,
+        2024: 1.4,
+        2025: 1.5,
+        2026: 1.55,
+      };
+
+      function deductions(gross, y, annualBase) {
+        const annual = annualBase * 12;
+        const rate =
+          annual <= 12000
+            ? 0.0
+            : Math.min(0.33, 0.04 + (annual - 12000) * 0.0000032) + (gross > annualBase ? 0.06 : 0);
+        const wage = r2(gross * rate);
+        const soli = y <= 2020 ? r2(wage * 0.055) : 0;
+        const church = y <= 2016 ? r2(wage * 0.08) : 0;
+        const capKV = 3900 + (y - 2012) * 85,
+          capRV = 5600 + (y - 2012) * 140;
+        const health = r2(Math.min(gross, capKV) * 0.081),
+          care = r2(Math.min(gross, capKV) * 0.017);
+        const pension = r2(Math.min(gross, capRV) * 0.093),
+          unemployment = r2(Math.min(gross, capRV) * (y >= 2019 ? 0.012 : 0.015));
+        return { wage, soli, church, health, care, pension, unemployment };
+      }
+      function makeRecord(period, emp, kind, seq, regularPart, bonusPart, issued) {
+        const y = +period.slice(0, 4);
+        const gross = r2(regularPart + bonusPart);
+        const d = deductions(gross, y, BASE[y]);
+        const taxes = r2(d.wage + d.soli + d.church);
+        const social = r2(d.health + d.care + d.pension + d.unemployment);
+        const net = r2(gross - taxes - social);
+        const other = kind === 'correction' ? -net : emp === 'kessler' ? -26.59 : -45.0;
+        return {
+          period,
+          issued: issued || period,
+          emp,
+          kind,
+          seq,
+          gross,
+          regular: r2(regularPart),
+          bonus: r2(bonusPart),
+          ...d,
+          taxes,
+          social,
+          net,
+          other: r2(other),
+          payout: kind === 'correction' ? 0 : r2(net + other),
+        };
+      }
+      const RECORDS = [];
+      for (let y = 2012; y <= 2026; y++) {
+        for (let m = 1; m <= 12; m++) {
+          if (y === 2012 && m < 9) continue;
+          if (y === 2026 && m > 9) continue;
+          if (y === 2019 && m === 3) continue; // missing payslip — demonstrates the data-check warning
+          const p = `${y}-${String(m).padStart(2, '0')}`;
+          const emp = y <= 2016 ? 'kessler' : 'brightline';
+          let bonus = 0;
+          if (emp === 'kessler' && m === 11) bonus = Math.round(BASE[y] * 0.55);
+          if (emp === 'brightline' && m === 1 && PERF[y]) bonus = Math.round(BASE[y - 1] * PERF[y]);
+          RECORDS.push(makeRecord(p, emp, 'regular', 1, BASE[y], bonus));
+        }
+      }
+      // Correction for Jul 2026, issued with the Sep 2026 payslip (back pay after a pay-scale raise)
+      RECORDS.push(makeRecord('2026-07', 'brightline', 'correction', 2, 184.5, 0, '2026-09'));
+
+      const filtered = () => RECORDS.filter((r) => S.employer === 'all' || r.emp === S.employer);
+      const KEYS = [
+        'gross',
+        'regular',
+        'bonus',
+        'net',
+        'taxes',
+        'social',
+        'wage',
+        'soli',
+        'church',
+        'health',
+        'care',
+        'pension',
+        'unemployment',
+        'payout',
+        'other',
+      ];
+      function sumOf(recs) {
+        const o = Object.fromEntries(KEYS.map((k) => [k, 0]));
+        recs.forEach((r) => KEYS.forEach((k) => (o[k] += r[k])));
+        KEYS.forEach((k) => (o[k] = r2(o[k])));
+        o.months = new Set(recs.filter((r) => r.kind === 'regular').map((r) => r.period)).size;
+        return o;
+      }
+      function byYear(recs) {
+        const years = [...new Set(recs.map((r) => +r.period.slice(0, 4)))].sort();
+        return years.map((y) => ({
+          y,
+          ...sumOf(recs.filter((r) => +r.period.slice(0, 4) === y)),
+          emps: [...new Set(recs.filter((r) => +r.period.slice(0, 4) === y).map((r) => r.emp))],
+        }));
+      }
+      function byMonth(recs) {
+        const map = new Map();
+        recs.forEach((r) => {
+          if (!map.has(r.period)) map.set(r.period, []);
+          map.get(r.period).push(r);
+        });
+        return [...map.entries()].sort().map(([p, rs]) => ({ p, ...sumOf(rs), emp: rs[0].emp }));
+      }
+
+      /* ---------------- icons ---------------- */
+      const I = {
+        home: '<path d="M3 11l9-7 9 7"/><path d="M5 10v9a1 1 0 0 0 1 1h3v-6h6v6h3a1 1 0 0 0 1-1v-9"/>',
+        holdings: '<path d="M4 19V9l8-5 8 5v10"/><path d="M9 19v-6h6v6"/>',
+        person: '<circle cx="12" cy="8" r="3.2"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/>',
+        shield: '<path d="M12 3l7 3v6c0 4.4-3 7.7-7 9-4-1.3-7-4.6-7-9V6l7-3Z"/>',
+        receipt: '<path d="M6 3h9l3 3v15H6z"/><path d="M9 8h6M9 12h6M9 16h4"/>',
+        trend: '<path d="M3 17l5-5 4 4 8-9"/>',
+        bank: '<rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/><path d="M7 15h4"/>',
+        payments:
+          '<rect x="2.5" y="6" width="19" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/><path d="M6 9.5v5M18 9.5v5"/>',
+        cog: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>',
+        sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+        moon: '<path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5Z"/>',
+        signout: '<path d="M15 4h4v16h-4"/><path d="M10 8l-4 4 4 4"/><path d="M6 12h10"/>',
+        upload:
+          '<path d="M12 16V4"/><path d="M7 9l5-5 5 5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/>',
+        download:
+          '<path d="M12 4v12"/><path d="M7 11l5 5 5-5"/><path d="M4 18v1a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-1"/>',
+        lock: '<rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',
+        device: '<rect x="4" y="4" width="16" height="11" rx="1.5"/><path d="M2 19h20"/>',
+        eyeoff:
+          '<path d="M3 3l18 18"/><path d="M10.6 5.1A10 10 0 0 1 12 5c5 0 9 4.5 10 7-.4 1-1.3 2.4-2.6 3.7M6.6 6.6C4.3 8 2.7 10.2 2 12c1 2.5 5 7 10 7 1.7 0 3.2-.5 4.5-1.2"/>',
+        warn: '<path d="M12 3l10 18H2L12 3Z"/><path d="M12 10v5M12 18v.5"/>',
+        check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+        x: '<path d="M6 6l12 12M18 6L6 18"/>',
+        minus: '<path d="M6 12h12"/>',
+        trash: '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>',
+        info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>',
+        back: '<path d="M15 5l-7 7 7 7"/>',
+        keyoff:
+          '<circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M16 7l3 3"/><path d="M3 3l18 18"/>',
+      };
+      const svg = (name, extra = '') =>
+        `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ${extra}>${I[name]}</svg>`;
+
+      /* ---------------- shell ---------------- */
+      function shell(content, activeNav = 'earnings', title = t('earnings')) {
+        const nav = [
+          ['home', 'dashboard'],
+          ['holdings', 'holdings'],
+          ['person', 'retirement'],
+          ['shield', 'insurances'],
+          ['receipt', 'budget'],
+          ['trend', 'wealth'],
+          ['bank', 'accounts'],
+          ['payments', 'earnings'],
+          ['cog', 'settings'],
+        ];
+        return `
+      <div class="app-shell">
+        <nav class="app-sidebar" aria-label="Primary">
+          <div class="app-brand"><span class="app-brand__mark" aria-hidden="true"></span><span class="app-brand__name">Vaultfolio</span></div>
+          <div class="app-nav">
+            ${nav.map(([ic, k]) => `<span class="app-nav__item ${k === activeNav ? 'app-nav__item--active' : ''}">${svg(ic)}<span>${t(k)}</span></span>`).join('')}
+          </div>
+        </nav>
+        <div class="app-main">
+          <div class="app-header">
+            <div><p class="app-header__crumb">Vaultfolio</p><h1 class="app-header__title">${title}</h1></div>
+            <div class="app-header__meta">
+              <span class="meta-name">Markus Allwang</span><span class="role-badge">Admin</span><span class="avatar">MA</span>
+              <button type="button" class="theme-toggle" id="app-theme-toggle" aria-label="Toggle theme">${svg(S.theme === 'dark' ? 'moon' : 'sun')}</button>
+              <button type="button" class="btn-signout">${svg('signout')}<span>${t('signout')}</span></button>
+            </div>
+          </div>
+          <div class="app-content">${content}</div>
+        </div>
+      </div>`;
+      }
+
+      function toolbar() {
+        return `
+      <div class="toolbar">
+        <div class="toolbar__filters">
+          <label class="field-label" for="employer-filter">${t('employer')}</label>
+          <select class="select" id="employer-filter" data-testid="earnings-employer-filter">
+            <option value="all" ${S.employer === 'all' ? 'selected' : ''}>${t('allEmployers')}</option>
+            ${Object.entries(EMP)
+              .map(
+                ([k, e]) =>
+                  `<option value="${k}" ${S.employer === k ? 'selected' : ''}>${e.short}</option>`,
+              )
+              .join('')}
+          </select>
+          <span class="privacy-link">${svg('lock')}<button type="button" class="btn btn--text" data-go="imports">${t('howProtected')}</button></span>
+        </div>
+        <div class="toolbar__actions">
+          <button type="button" class="btn btn--info">${svg('download')}${t('export')}</button>
+          <button type="button" class="btn btn--primary" data-go="import" data-testid="earnings-import-button">${svg('upload')}${t('importDocs')}</button>
+        </div>
+      </div>
+      <div class="tabs" role="tablist">
+        ${[
+          ['overview', 'tabOverview'],
+          ['tables', 'tabTables'],
+          ['check', 'tabCheck'],
+          ['imports', 'tabImports'],
+        ]
+          .map(
+            ([s, k]) =>
+              `<button type="button" role="tab" class="tab" data-go="${s}" aria-selected="${S.screen === s}">${t(k)}${s === 'check' ? '<span class="count">1</span>' : ''}</button>`,
+          )
+          .join('')}
+      </div>`;
+      }
+
+      /* ---------------- charts ---------------- */
+      function niceMax(v) {
+        const p = Math.pow(10, Math.floor(Math.log10(v)));
+        const n = v / p;
+        const step = n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10;
+        return step * p;
+      }
+      function yAxis(max, W, H, L, T0, B, fmt, ticks = 4) {
+        let out = '';
+        for (let i = 0; i <= ticks; i++) {
+          const v = (max / ticks) * i;
+          const y = T0 + (H - T0 - B) * (1 - i / ticks);
+          out += `<line class="gridline" x1="${L}" x2="${W - 6}" y1="${y}" y2="${y}"/><text x="${L - 6}" y="${y + 3}" text-anchor="end">${fmt(v)}</text>`;
+        }
+        return out;
+      }
+      function grossPerYearChart() {
+        const ys = byYear(filtered());
+        const val = (d, k) => (S.grossMode === 'total' ? d[k] : d[k] / d.months);
+        const mobile = document.getElementById('stage-frame').dataset.viewport === 'mobile';
+        const W = mobile ? 360 : 760,
+          H = 250,
+          L = 46,
+          T0 = 18,
+          B = 22;
+        const max = niceMax(Math.max(...ys.map((d) => val(d, 'gross'))) * 1.08);
+        const bw = Math.min(26, ((W - L - 10) / ys.length) * 0.6);
+        const sx = (i) => L + ((W - L - 10) / ys.length) * (i + 0.5);
+        const sy = (v) => T0 + (H - T0 - B) * (1 - v / max);
+        let marks = '';
+        ys.forEach((d, i) => {
+          const x = sx(i) - bw / 2,
+            reg = val(d, 'regular'),
+            bon = val(d, 'bonus');
+          marks += `<rect x="${x}" y="${sy(reg)}" width="${bw}" height="${sy(0) - sy(reg)}" fill="var(--c-regular)"/>`;
+          if (bon > 0)
+            marks += `<rect x="${x}" y="${sy(reg + bon)}" width="${bw}" height="${sy(reg) - sy(reg + bon)}" fill="var(--c-bonus)" rx="2"/>`;
+          if (!mobile || i % 2 === 0)
+            marks += `<text x="${sx(i)}" y="${H - 6}" text-anchor="middle">${mobile ? String(d.y).slice(2) : d.y}</text>`;
+          if (!mobile)
+            marks += `<text class="val" x="${sx(i)}" y="${sy(reg + bon) - 4}" text-anchor="middle">${num0(reg + bon)}</text>`;
+        });
+        return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${t('grossPerYear')}">${yAxis(max, W, H, L, T0, B, (v) => num0(v))}${marks}</svg>`;
+      }
+      function monthlyChart() {
+        const all = byMonth(filtered());
+        const n = S.range === '1y' ? 12 : S.range === '3y' ? 36 : all.length;
+        const ms = all.slice(-n);
+        const mobile = document.getElementById('stage-frame').dataset.viewport === 'mobile';
+        const W = mobile ? 360 : 1000,
+          H = 260,
+          L = 46,
+          T0 = 16,
+          B = 22;
+        const max = niceMax(Math.max(...ms.map((d) => d.gross)) * 1.06);
+        const slot = (W - L - 10) / ms.length,
+          bw = Math.max(2, Math.min(18, slot * 0.7));
+        const sx = (i) => L + slot * (i + 0.5);
+        const sy = (v) => T0 + (H - T0 - B) * (1 - v / max);
+        let marks = '';
+        ms.forEach((d, i) => {
+          const x = sx(i) - bw / 2;
+          let acc = 0;
+          [
+            ['net', 'var(--c-net)'],
+            ['taxes', 'var(--c-taxes)'],
+            ['social', 'var(--c-social)'],
+          ].forEach(([k, c]) => {
+            marks += `<rect class="bar" data-month="${d.p}" x="${x}" y="${sy(acc + d[k])}" width="${bw}" height="${Math.max(0, sy(acc) - sy(acc + d[k]))}" fill="${c}"/>`;
+            acc += d[k];
+          });
+          if (d.bonus > 0)
+            marks += `<circle cx="${sx(i)}" cy="${sy(d.gross) - 7}" r="3" fill="var(--c-bonus)"/>`;
+          if (d.p === S.month)
+            marks += `<rect class="selected-month" x="${x - 2}" y="${sy(d.gross) - 2}" width="${bw + 4}" height="${sy(0) - sy(d.gross) + 4}" rx="2"/>`;
+          if (i > 0 && ms[i - 1].emp !== d.emp)
+            marks += `<line x1="${sx(i) - slot / 2}" x2="${sx(i) - slot / 2}" y1="${T0}" y2="${H - B}" stroke="var(--p-text-muted-color)" stroke-dasharray="4 3"/>`;
+          const every = n <= 12 ? 1 : n <= 36 ? (mobile ? 6 : 2) : 12;
+          const mm = +d.p.slice(5);
+          if (n > 36 ? mm === 1 : i % every === 0)
+            marks += `<text x="${sx(i)}" y="${H - 6}" text-anchor="middle">${n > 36 ? d.p.slice(0, 4) : t(MKEYS[mm - 1]) + (mm === 1 || i === 0 ? ` ${d.p.slice(2, 4)}` : '')}</text>`;
+        });
+        return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${t('whereGross')}">${yAxis(max, W, H, L, T0, B, (v) => num0(v))}${marks}</svg>`;
+      }
+      function ratioChart() {
+        const ys = byYear(filtered());
+        const W = 460,
+          H = 230,
+          L = 42,
+          T0 = 14,
+          B = 22,
+          max = 0.3;
+        const sx = (i) => L + ((W - L - 30) / (ys.length - 1)) * i;
+        const sy = (v) => T0 + (H - T0 - B) * (1 - v / max);
+        let out = yAxis(max, W, H, L, T0, B, (v) => pct(v, 0), 3);
+        [
+          ['taxes', 'var(--c-taxes)'],
+          ['social', 'var(--c-social)'],
+        ].forEach(([k, c]) => {
+          const pts = ys.map((d, i) => `${sx(i)},${sy(d[k] / d.gross)}`).join(' ');
+          out += `<polyline points="${pts}" fill="none" stroke="${c}" stroke-width="2"/>`;
+          ys.forEach(
+            (d, i) =>
+              (out += `<circle cx="${sx(i)}" cy="${sy(d[k] / d.gross)}" r="${i === ys.length - 1 ? 4 : 2.6}" fill="${c}"/>`),
+          );
+          const last = ys[ys.length - 1];
+          out += `<text class="val" x="${sx(ys.length - 1) + 7}" y="${sy(last[k] / last.gross) + 3}">${pct(last[k] / last.gross)}</text>`;
+        });
+        ys.forEach((d, i) => {
+          if (i % 3 === 0 || i === ys.length - 1)
+            out += `<text x="${sx(i)}" y="${H - 6}" text-anchor="middle">${d.y}</text>`;
+        });
+        return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${t('ratios')}">${out}</svg>`;
+      }
+
+      /* ---------------- screens ---------------- */
+      function career() {
+        const recs = filtered();
+        const groups =
+          S.employer === 'all'
+            ? [['all', recs], ...Object.keys(EMP).map((k) => [k, recs.filter((r) => r.emp === k)])]
+            : [[S.employer, recs]];
+        const multi = S.employer === 'all';
+        return `<div class="career">${groups
+          .map(([k, rs], gi) => {
+            const s = sumOf(rs),
+              ps = rs.map((r) => r.period).sort();
+            const name = k === 'all' ? t('wholeCareer') : EMP[k].short;
+            const meta = `${mName(ps[0])} – ${mName(ps[ps.length - 1])} · ${s.months} ${t('months')}${k === 'all' && multi ? ` · 2 ${t('employers')}` : ''}`;
+            const tiles =
+              [
+                ['gross', s.gross],
+                ['net', s.net],
+                ['taxes', s.taxes],
+                ['social', s.social],
+                ['bonus', s.bonus],
+              ]
+                .map(
+                  ([lk, v]) =>
+                    `<div class="mini"><div class="mini__label">${t(lk)}</div><div class="mini__value num">${eur0(v)}</div><div class="mini__avg num">${t('avgPerMonth')} ${eur0(v / s.months)}</div></div>`,
+                )
+                .join('') +
+              `<div class="mini"><div class="mini__label">${t('netRatio')}</div><div class="mini__value num">${pct(s.net / s.gross)}</div></div>`;
+            return `<details ${gi === 0 ? 'open' : ''}><summary><span class="career__name">${name}</span><span class="career__meta">${meta}</span><span class="career__gross num">${eur0(s.gross)}</span></summary><div class="career__body"><div class="mini-grid">${tiles}</div></div></details>`;
+          })
+          .join('')}</div>`;
+      }
+      function kpis() {
+        const recs = filtered();
+        const cur = sumOf(recs.filter((r) => r.period.startsWith('2026')));
+        const prev = sumOf(
+          recs.filter((r) => r.period.startsWith('2025') && +r.period.slice(5) <= 9),
+        );
+        const tile = (k, c, v, pv, isPct) => {
+          const d = isPct ? v - pv : (v - pv) / pv;
+          const up = d >= 0;
+          const good = k === 'taxes' || k === 'social' ? !up : up;
+          const dtxt = isPct
+            ? `${up ? '+' : '−'}${num0(Math.abs(d) * 1000) / 10} pp`
+            : `${up ? '▲' : '▼'} ${pct(Math.abs(d))}`;
+          return `<div class="kpi"><div class="kpi__label">${c ? `<i style="background:${c}"></i>` : ''}${t(k)}</div><div class="kpi__value num">${isPct ? pct(v) : eur0(v)}</div><div class="kpi__delta"><span class="${good ? 'delta-up' : 'delta-down'}">${dtxt}</span> ${t('vs')} ${isPct ? pct(pv) : eur0(pv)}</div></div>`;
+        };
+        return `
+      <div><h2 class="section-title">${t('latestTitle', 2026, cur.months)}</h2><p class="section-sub">${t('latestSub', 2026, 2025, `${t('jan')}–${t('sep')}`)}</p></div>
+      <div class="kpis">
+        ${tile('gross', '', cur.gross, prev.gross)}${tile('net', 'var(--c-net)', cur.net, prev.net)}${tile('taxes', 'var(--c-taxes)', cur.taxes, prev.taxes)}
+        ${tile('social', 'var(--c-social)', cur.social, prev.social)}${tile('bonus', 'var(--c-bonus)', cur.bonus, prev.bonus)}${tile('netRatio', '', cur.net / cur.gross, prev.net / prev.gross, true)}
+      </div>`;
+      }
+      function monthDetail() {
+        const rs = filtered()
+          .filter((r) => r.period === S.month)
+          .sort((a, b) => a.seq - b.seq);
+        if (!rs.length)
+          return `<div class="panel"><h2>${t('monthDetail')}</h2><p class="panel__sub">—</p></div>`;
+        const s = sumOf(rs);
+        const line = (label, a, b, cls = '') =>
+          `<tr class="${cls}"><td>${label}</td><td class="a">${a === '' ? '' : eur2(a)}</td><td class="b">${b === '' ? '' : eur2(b)}</td></tr>`;
+        const sections = rs
+          .map((r) => {
+            const head = `<div class="section-head"><strong>${EMP[r.emp].short}</strong><span class="tag ${r.kind === 'correction' ? 'tag--corr' : ''}">${r.kind === 'correction' ? t('kindCorrection') : t('kindRegular')}</span>${r.kind === 'correction' ? `<span class="muted">${t('issuedIn', mName(r.issued))}</span>` : ''}<span class="muted file">${r.kind === 'correction' ? '2026_09_Entgeltnachweis.pdf' : '2026_07_Entgeltnachweis.pdf'}</span><span class="ok">✓ ${t('checksPassed')}</span></div>`;
+            return (
+              head +
+              `<div class="table-wrap"><table class="stmt"><tbody>
+        ${line(r.kind === 'correction' ? t('backPay') : t('basePay'), r.regular, '', 'indent')}
+        ${line(t('grossTotal'), '', r.gross, 'total')}
+        ${line(t('taxes'), '', -r.taxes)}
+        ${line(t('wageTax'), -r.wage, '', 'indent')}
+        ${line(t('social'), '', -r.social)}
+        ${line(t('health'), -r.health, '', 'indent')}${line(t('care'), -r.care, '', 'indent')}${line(t('pension'), -r.pension, '', 'indent')}${line(t('unemployment'), -r.unemployment, '', 'indent')}
+        ${line(t('statutoryNet'), '', r.net, 'total')}
+        ${line(r.kind === 'correction' ? t('paidWith', mName(r.issued)) : t('other'), '', r.other)}
+        ${r.kind === 'correction' ? '' : line(t('payout'), '', r.payout, 'grand')}
+      </tbody></table></div>`
+            );
+          })
+          .join('');
+        return `<div class="panel"><div class="panel__head"><div><h2>${mName(S.month)}</h2><p class="panel__sub num">${t('sections', rs.length)} · ${t('gross')} ${eur2(s.gross)} · ${t('net')} ${eur2(s.net)}</p></div></div>${sections}</div>`;
+      }
+      function overview() {
+        return `${toolbar()}
+      <div class="notice notice--warn" role="status">${svg('warn')}<div><strong>${t('checkIssue', 1)}</strong> ${t('checkIssueHint')} <button type="button" class="btn btn--text" data-go="check">${t('openCheck')}</button></div></div>
+      <div><h2 class="section-title">${t('careerTitle')}</h2><p class="section-sub">${t('careerSub')}</p></div>
+      ${career()}
+      ${kpis()}
+      <div class="panel">
+        <div class="panel__head"><div><h2>${t('grossPerYear')}</h2><p class="panel__sub">${t('grossPerYearSub')}</p></div>
+          <div class="seg" id="gross-mode"><button type="button" data-mode="total" aria-pressed="${S.grossMode === 'total'}">${t('total')}</button><button type="button" data-mode="month" aria-pressed="${S.grossMode === 'month'}">${t('perMonth')}</button></div></div>
+        <div class="legend"><span><i style="background:var(--c-regular)"></i>${t('regular')}</span><span><i style="background:var(--c-bonus)"></i>${t('bonusOneOff')}</span></div>
+        ${grossPerYearChart()}
+      </div>
+      <div class="panel">
+        <div class="panel__head"><div><h2>${t('whereGross')}</h2><p class="panel__sub">${t('whereGrossSub')}</p></div>
+          <div class="seg" id="range"><button type="button" data-range="1y" aria-pressed="${S.range === '1y'}">1Y</button><button type="button" data-range="3y" aria-pressed="${S.range === '3y'}">3Y</button><button type="button" data-range="all" aria-pressed="${S.range === 'all'}">${t('all')}</button></div></div>
+        <div class="legend"><span><i style="background:var(--c-net)"></i>${t('net')}</span><span><i style="background:var(--c-taxes)"></i>${t('taxes')}</span><span><i style="background:var(--c-social)"></i>${t('social')}</span><span><i class="dot" style="background:var(--c-bonus)"></i>${t('bonusMonth')}</span><span><i class="line" style="background:var(--p-text-muted-color)"></i>${t('employerChange')}</span></div>
+        ${monthlyChart()}
+      </div>
+      <div class="two-col">
+        <div class="panel"><div class="panel__head"><div><h2>${t('ratios')}</h2><p class="panel__sub">${t('ratiosSub')}</p></div></div>
+          <div class="legend"><span><i style="background:var(--c-taxes)"></i>${t('taxes')}</span><span><i style="background:var(--c-social)"></i>${t('social')}</span></div>${ratioChart()}</div>
+        ${monthDetail()}
+      </div>`;
+      }
+      function tables() {
+        const recs = filtered();
+        const ms = byMonth(recs);
+        const years = [...new Set(ms.map((d) => +d.p.slice(0, 4)))];
+        const metrics = ['gross', 'regular', 'bonus', 'net', 'taxes', 'social', 'payout'];
+        const grid = years
+          .map((y) => {
+            let total = 0;
+            const cells = MKEYS.map((_, i) => {
+              const p = `${y}-${String(i + 1).padStart(2, '0')}`;
+              const d = ms.find((x) => x.p === p);
+              const inRange = (y > 2012 || i >= 8) && (y < 2026 || i < 9);
+              if (!d)
+                return `<td class="${inRange && y === 2019 ? 'gap' : 'na'}">${inRange && y === 2019 ? '!' : '–'}</td>`;
+              total += d[S.metric];
+              return `<td class="cell ${p === S.month ? 'selected' : ''}" data-month="${p}">${num0(d[S.metric])}${d.bonus > 0 ? '<span class="bonus-dot"></span>' : ''}</td>`;
+            }).join('');
+            return `<tr><td>${y}</td>${cells}<td><b>${num0(total)}</b></td></tr>`;
+          })
+          .join('');
+        const ys = byYear(recs);
+        const taxRows = ys
+          .map(
+            (d) =>
+              `<tr><td>${d.y}</td><td class="l">${d.emps.map((e) => EMP[e].short).join(', ')}</td><td>${d.months}</td><td>${eur2(d.gross)}</td><td>${eur2(d.bonus)}</td><td>${eur2(d.gross)}</td><td>${eur2(d.wage)}</td><td>${eur2(d.soli)}</td><td>${eur2(d.church)}</td><td>${eur2(d.health)}</td><td>${eur2(d.care)}</td><td>${eur2(d.pension)}</td><td>${eur2(d.unemployment)}</td><td>${pct(d.taxes / d.gross)}</td><td>${pct(d.social / d.gross)}</td></tr>`,
+          )
+          .join('');
+        const certYears = ys.filter((d) => d.y >= 2014 && d.y <= 2025);
+        const cs = certYears.reduce(
+          (a, d) => ({ g: a.g + d.gross, w: a.w + d.wage, s: a.s + d.soli, c: a.c + d.church }),
+          { g: 0, w: 0, s: 0, c: 0 },
+        );
+        const certRows = certYears
+          .map(
+            (d) =>
+              `<tr><td>${d.y}</td><td class="l">${EMP[d.emps[0]].short}</td><td>${eur2(d.gross)}</td><td>${eur2(d.wage)}</td><td>${eur2(d.soli)}</td><td>${eur2(d.church)}</td><td class="l muted">${d.y + 1}_Lohnsteuerbescheinigung.pdf</td></tr>`,
+          )
+          .join('');
+        return `${toolbar()}
+      <div class="panel">
+        <div class="panel__head"><div><h2>${t('gridTitle')}</h2><p class="panel__sub">${t('gridSub')}</p></div>
+          <div class="toolbar__filters"><label class="field-label" for="metric">${t('show')}</label>
+            <select class="select" id="metric">${metrics.map((m) => `<option value="${m}" ${S.metric === m ? 'selected' : ''}>${t(m === 'bonus' ? 'bonusOneOff' : m)}</option>`).join('')}</select></div></div>
+        <div class="table-wrap"><table class="t"><thead><tr><th>${t('year')}</th>${MKEYS.map((k) => `<th>${t(k)}</th>`).join('')}<th>${t('sum')}</th></tr></thead><tbody>${grid}</tbody></table></div>
+      </div>
+      <div class="panel"><div class="panel__head"><div><h2>${t('taxTable')}</h2><p class="panel__sub">${t('taxTableSub')}</p></div></div>
+        <div class="table-wrap"><table class="t"><thead><tr><th>${t('year')}</th><th class="l">${t('employer')}</th><th>${t('monthsCol')}</th><th>${t('gross')}</th><th>${t('ofWhichBonus')}</th><th>${t('taxGross')}</th><th>${t('wageTax')}</th><th>Soli</th><th>${t('church')}</th><th>${S.lang === 'de' ? 'KV' : 'Health'}</th><th>${S.lang === 'de' ? 'PV' : 'Care'}</th><th>${S.lang === 'de' ? 'RV' : 'Pension'}</th><th>${S.lang === 'de' ? 'AV' : 'Unempl.'}</th><th>${t('taxesPct')}</th><th>${t('socialPct')}</th></tr></thead><tbody>${taxRows}</tbody></table></div></div>
+      <div class="panel"><div class="panel__head"><div><h2>${t('certs')}</h2><p class="panel__sub">${t('certsSub')}</p></div></div>
+        <div class="table-wrap"><table class="t"><thead><tr><th>${t('year')}</th><th class="l">${t('employer')}</th><th>${t('certGross')}</th><th>${t('wageTax')}</th><th>Soli</th><th>${t('church')}</th><th class="l">${t('source')}</th></tr></thead>
+        <tbody>${certRows}<tr class="sum"><td>${t('sum')}</td><td></td><td>${eur2(cs.g)}</td><td>${eur2(cs.w)}</td><td>${eur2(cs.s)}</td><td>${eur2(cs.c)}</td><td></td></tr></tbody></table></div></div>`;
+      }
+      function dataCheck() {
+        const ys = byYear(filtered());
+        const rows = ys
+          .map((d) => {
+            const bad = d.y === 2019;
+            const hasCert = d.y >= 2014 && d.y <= 2025;
+            const ytd = bad
+              ? `<span class="bad">✗ ${t('valuesDiffer', 8)}</span>`
+              : `<span class="ok">✓ ${t('valuesMatch', 8)}</span>`;
+            const cert = !hasCert
+              ? `<span class="na">– ${t('notAvailable')}</span>`
+              : bad
+                ? `<span class="bad">✗ ${t('valuesDiffer', 8)}</span>`
+                : `<span class="ok">✓ ${t('valuesMatch', 8)}</span>`;
+            const comp = bad
+              ? `<span class="bad">✗ ${t('missing', t('mar'))}</span>`
+              : `<span class="ok">✓ ${t('completeOk')}</span>`;
+            const note =
+              d.y === 2021
+                ? `<div class="muted" style="font-size:0.72rem;white-space:normal">${t('lateExcluded')}</div>`
+                : '';
+            return `<tr><td>${d.y}</td><td class="l">${EMP[d.emps[0]].short}${d.emps.length > 1 ? ', …' : ''}</td><td class="l">${ytd}${note}</td><td class="l">${cert}</td><td class="l">${comp}</td></tr>`;
+          })
+          .join('');
+        return `${toolbar()}
+      <div class="notice notice--warn">${svg('warn')}<div><strong>2019 · ${EMP.brightline.short}</strong> — ${t('missingHint')}</div></div>
+      <div class="panel"><div class="panel__head"><div><h2>${t('checkTitle')}</h2><p class="panel__sub">${t('checkSub')}</p></div></div>
+        <div class="table-wrap"><table class="t"><thead><tr><th>${t('year')}</th><th class="l">${t('employer')}</th><th class="l">${t('ytd')}</th><th class="l">${t('cert')}</th><th class="l">${t('complete')}</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+      }
+      function privacyPanel() {
+        return `<div class="panel"><div class="panel__head"><div><h2>${t('privacyTitle')}</h2><p class="panel__sub">${t('privacySub')}</p></div></div>
+      <div class="privacy">
+        <div><strong>${svg('device')}${t('pv1t')}</strong>${t('pv1')}</div>
+        <div><strong>${svg('lock')}${t('pv2t')}</strong>${t('pv2')}</div>
+        <div><strong>${svg('eyeoff')}${t('pv3t')}</strong>${t('pv3')}</div>
+      </div></div>`;
+      }
+      function imports() {
+        const hist = [
+          [
+            '2026_09_Entgeltnachweis.pdf',
+            'tPayslip',
+            `${mName('2026-09')}, ${mName('2026-07')} (${t('kindCorrection')})`,
+            2,
+            'SAP Entgeltnachweis 1.0',
+            '03.09.2026',
+          ],
+          [
+            '2026_08_Entgeltnachweis.pdf',
+            'tPayslip',
+            mName('2026-08'),
+            1,
+            'SAP Entgeltnachweis 1.0',
+            '02.09.2026',
+          ],
+          [
+            '2026_Lohnsteuerbescheinigung_2025.pdf',
+            'tCert',
+            '2025',
+            1,
+            'Lohnsteuerbescheinigung 1.0',
+            '14.02.2026',
+          ],
+          [
+            'earnings-export-2026-09-27.json',
+            'tExport',
+            `${mName('2012-09')} – ${mName('2026-07')}`,
+            166,
+            'earnings-export v1',
+            '28.09.2026',
+          ],
+        ];
+        return `${toolbar()}
+      ${privacyPanel()}
+      <div class="panel"><div class="panel__head"><div><h2>${t('importsTitle')}</h2><p class="panel__sub">${t('importsSub')}</p></div></div>
+        <div class="table-wrap"><table class="t"><thead><tr><th>${t('file')}</th><th class="l">${t('type')}</th><th class="l">${t('periods')}</th><th>${t('records')}</th><th class="l">${t('parser')}</th><th>${t('importedOn')}</th><th></th></tr></thead>
+        <tbody>${hist.map((h) => `<tr><td class="file">${h[0]}</td><td class="l">${t(h[1])}</td><td class="l">${h[2]}</td><td>${h[3]}</td><td class="l muted">${h[4]}</td><td>${h[5]}</td><td><button type="button" class="icon-btn" aria-label="${t('deleteImport')}">${svg('trash')}</button></td></tr>`).join('')}</tbody></table></div></div>
+      <div class="panel"><div class="panel__head"><div><h2>${t('employerNames')}</h2><p class="panel__sub">${t('employerNamesSub')}</p></div></div>
+        ${Object.entries(EMP)
+          .map(
+            ([k, e]) =>
+              `<div class="rename"><div class="detected"><span class="muted">${t('detectedAs')}</span> <b>${e.name}</b></div><input class="input" id="rename-${k}" aria-label="${t('displayName')}" value="${e.short}" /><button type="button" class="btn btn--outline">${t('save')}</button></div>`,
+          )
+          .join('')}</div>
+      <div class="panel danger-zone"><div class="panel__head"><div><h2>${t('dangerTitle')}</h2><p class="panel__sub">${t('dangerSub')}</p></div>
+        <button type="button" class="btn btn--danger-outline">${svg('trash')}${t('deleteAll')}</button></div></div>`;
+      }
+      function importScreen() {
+        const stIcon = (s) =>
+          `<span class="status-icon ${s === 'ok' ? 'status-ok' : s === 'bad' ? 'status-bad' : 'status-dup'}">${svg(s === 'ok' ? 'check' : s === 'bad' ? 'x' : 'minus')}</span>`;
+        const sep = RECORDS.find((r) => r.period === '2026-09');
+        const kv = [
+          ['gross', sep.gross],
+          ['wageTax', sep.wage],
+          ['soli', sep.soli],
+          ['church', sep.church],
+          ['health', sep.health],
+          ['care', sep.care],
+          ['pension', sep.pension],
+          ['unemployment', sep.unemployment],
+          ['statutoryNet', sep.net],
+          ['other', sep.other],
+          ['payout', sep.payout],
+          ['ofWhichBonus', sep.bonus],
+        ];
+        const files = [
+          {
+            s: 'ok',
+            f: '2026_09_Entgeltnachweis.pdf',
+            type: t('fSap'),
+            emp: EMP.brightline.name,
+            periods: `${mName('2026-09')} · ${mName('2026-07')} <span class="tag tag--corr">${t('stIncludesCorr')}</span>`,
+            status: `<span class="tag tag--ok">${t('stNew')}</span>`,
+            checks: `<span class="ok">✓ ${t('allChecks')}</span>`,
+            detail: true,
+          },
+          {
+            s: 'ok',
+            f: '2026_08_Entgeltnachweis_korrigiert.pdf',
+            type: t('fSap'),
+            emp: EMP.brightline.name,
+            periods: mName('2026-08'),
+            status: `<span class="tag tag--info">${t('stReplaces')}</span>`,
+            checks: `<span class="ok">✓ ${t('allChecks')}</span>`,
+            sub: t('replacesNote'),
+          },
+          {
+            s: 'ok',
+            f: '2027_Lohnsteuerbescheinigung_2026.pdf',
+            type: t('fCert'),
+            emp: EMP.brightline.name,
+            periods: '2026',
+            status: `<span class="tag tag--ok">${t('stNew')}</span>`,
+            checks: `<span class="ok">✓ ${t('allChecks')}</span>`,
+          },
+          {
+            s: 'ok',
+            f: 'earnings-export-2026-09-27.json',
+            type: t('fExport'),
+            emp: `${EMP.kessler.short}, ${EMP.brightline.short}`,
+            periods: `${mName('2012-09')} – ${mName('2016-12')}`,
+            status: `<span class="tag tag--ok">${t('stNew')}</span>`,
+            checks: `<span class="ok">✓ ${t('allChecks')}</span>`,
+          },
+          {
+            s: 'dup',
+            f: '2026_07_Entgeltnachweis.pdf',
+            type: t('fSap'),
+            emp: EMP.brightline.name,
+            periods: mName('2026-07'),
+            status: `<span class="tag tag--dup">${t('stDuplicate')}</span>`,
+            checks: '',
+            sub: t('dupNote'),
+          },
+          {
+            s: 'bad',
+            f: '2026_08_Entgeltnachweis_alt.pdf',
+            type: t('fSap'),
+            emp: EMP.brightline.name,
+            periods: mName('2026-08'),
+            status: `<span class="tag tag--bad">${t('stRejected')}</span>`,
+            checks: '<span class="bad">✗ Netto</span>',
+            reason: t('rejCheck'),
+          },
+          {
+            s: 'bad',
+            f: 'Scan_Verdienstabrechnung_2011.pdf',
+            type: 'PDF',
+            emp: S.lang === 'de' ? 'kein Text erkannt' : 'no text found',
+            periods: '—',
+            status: `<span class="tag tag--bad">${t('stRejected')}</span>`,
+            checks: '',
+            reason: t('rejFormat'),
+          },
+        ];
+        const rows = files
+          .map((x, i) => {
+            const row = `<div class="file-row" data-testid="earnings-import-file">
+        ${stIcon(x.s)}
+        <div><div class="file">${x.f}</div><div class="sub">${x.type} · ${x.emp}</div>${x.sub ? `<div class="sub">${x.sub}</div>` : ''}${x.reason ? `<div class="reason">${x.reason}</div>` : ''}
+          ${x.detail ? `<button type="button" class="btn btn--text" data-toggle-detail style="font-size:0.78rem;padding:0.2rem 0">${S.expanded ? t('hideSent') : t('whatSent')}</button>` : ''}</div>
+        <div class="col-periods">${x.periods}</div>
+        <div class="col-checks">${x.checks}</div>
+        <div>${x.status}</div>
+      </div>`;
+            const detail =
+              x.detail && S.expanded
+                ? `<div class="file-detail"><b>${t('whatSent')} · ${mName('2026-09')} · ${t('kindRegular')}</b><div class="kv num">${kv.map(([k, v]) => `<div><span>${t(k)}</span><span>${eur2(v)}</span></div>`).join('')}</div></div>`
+                : '';
+            return row + detail;
+          })
+          .join('');
+        return `
+      <div class="toolbar"><button type="button" class="btn btn--text" data-go="overview">${svg('back')}${t('importBack')}</button></div>
+      <div class="dropzone" data-testid="earnings-dropzone">
+        ${svg('upload')}<strong>${t('dropTitle')}</strong><p>${t('dropSub')}</p>
+        <button type="button" class="btn btn--outline">${t('chooseFiles')}</button>
+        <div class="formats"><span class="tag">${t('fSap')}</span><span class="tag">${t('fCert')}</span><span class="tag">${t('fExport')}</span></div>
+      </div>
+      <div class="notice notice--info">${svg('device')}<div><strong>${t('pv1t')}.</strong> ${t('pv1')}</div></div>
+      <div><div class="field-label" style="margin-bottom:0.35rem">${t('reading', 7, 7)}</div><div class="progress"><span></span></div></div>
+      <div class="file-list">${rows}</div>
+      <div class="import-footer">
+        <div class="summary"><span class="tag tag--ok">${t('readySummary', 4, 57)}</span><span class="tag tag--dup">${t('skipped', 1)}</span><span class="tag tag--bad">${t('rejected', 2)}</span></div>
+        <div class="toolbar__actions"><button type="button" class="btn btn--outline" data-go="overview">${t('cancel')}</button><button type="button" class="btn btn--primary" data-testid="earnings-import-confirm">${svg('check')}${t('importN', 4)}</button></div>
+      </div>`;
+      }
+      function empty() {
+        return `
+      <div class="empty"><div class="empty__icon">${svg('payments')}</div><h2>${t('emptyTitle')}</h2><p>${t('emptySub')}</p>
+        <button type="button" class="btn btn--primary" data-go="import">${svg('upload')}${t('importDocs')}</button>
+        <div class="formats"><span class="tag">${t('fSap')}</span><span class="tag">${t('fCert')}</span><span class="tag">${t('fExport')}</span></div></div>
+      ${privacyPanel()}`;
+      }
+      function unavailable() {
+        return `<div class="empty empty--danger"><div class="empty__icon">${svg('keyoff')}</div><h2>${t('unavailableTitle')}</h2><p>${t('unavailableSub')}</p></div>`;
+      }
+      function widget() {
+        const recs = RECORDS;
+        const cur = sumOf(recs.filter((r) => r.period.startsWith('2026')));
+        const prev = sumOf(
+          recs.filter((r) => r.period.startsWith('2025') && +r.period.slice(5) <= 9),
+        );
+        const d = (a, b) => {
+          const x = (a - b) / b;
+          return `<span class="${x >= 0 ? 'delta-up' : 'delta-down'}">${x >= 0 ? '▲' : '▼'} ${pct(Math.abs(x))}</span>`;
+        };
+        return `<div class="dash-grid">
+      <div class="dash-card"><h3>${t('widgetTitle')} <button type="button" class="btn btn--text" style="font-size:0.8rem" data-go="overview">${t('widgetOpen')} ›</button></h3>
+        <div class="dash-kpis">
+          <div><div class="kpi__label">${t('gross')}</div><div class="kpi__value num">${eur0(cur.gross)}</div><div class="kpi__delta">${d(cur.gross, prev.gross)}</div></div>
+          <div><div class="kpi__label">${t('net')}</div><div class="kpi__value num">${eur0(cur.net)}</div><div class="kpi__delta">${d(cur.net, prev.net)}</div></div>
+          <div><div class="kpi__label">${t('netRatio')}</div><div class="kpi__value num">${pct(cur.net / cur.gross)}</div><div class="kpi__delta">${t('jan')}–${t('sep')}</div></div>
+        </div></div>
+      <div class="dash-card dash-card--ghost">${t('otherWidget')}</div>
+      <div class="dash-card dash-card--ghost">${t('otherWidget')}</div>
+    </div>`;
+      }
+
+      /* ---------------- render + wiring ---------------- */
+      const canvas = document.getElementById('canvas');
+      function render() {
+        const views = {
+          overview,
+          tables,
+          check: dataCheck,
+          imports,
+          import: importScreen,
+          empty,
+          unavailable,
+          widget,
+        };
+        const title =
+          S.screen === 'widget'
+            ? t('dashboard')
+            : S.screen === 'import'
+              ? t('importTitle')
+              : t('earnings');
+        canvas.innerHTML = shell(
+          views[S.screen](),
+          S.screen === 'widget' ? 'dashboard' : 'earnings',
+          title,
+        );
+        canvas.setAttribute('data-theme', S.theme);
+        document.documentElement.lang = S.lang;
+        const sync = (id, attr, val) =>
+          [...document.getElementById(id).querySelectorAll('button')].forEach((b) =>
+            b.setAttribute('aria-pressed', String(b.getAttribute(attr) === val)),
+          );
+        sync('screen-toggle', 'data-screen', S.screen);
+        sync('lang-toggle', 'data-lang', S.lang);
+        sync('theme-toggle', 'data-theme-choice', S.theme);
+      }
+
+      canvas.addEventListener('click', (e) => {
+        const go = e.target.closest('[data-go]');
+        if (go) {
+          S.screen = go.dataset.go;
+          render();
+          return;
+        }
+        const m = e.target.closest('[data-month]');
+        if (m) {
+          S.month = m.dataset.month;
+          if (S.screen !== 'overview') S.screen = 'overview';
+          render();
+          return;
+        }
+        const gm = e.target.closest('#gross-mode button');
+        if (gm) {
+          S.grossMode = gm.dataset.mode;
+          render();
+          return;
+        }
+        const rg = e.target.closest('#range button');
+        if (rg) {
+          S.range = rg.dataset.range;
+          render();
+          return;
+        }
+        if (e.target.closest('[data-toggle-detail]')) {
+          S.expanded = S.expanded ? '' : 'f1';
+          render();
+          return;
+        }
+        if (e.target.closest('#app-theme-toggle')) {
+          S.theme = S.theme === 'dark' ? 'light' : 'dark';
+          render();
+        }
+      });
+      canvas.addEventListener('change', (e) => {
+        if (e.target.id === 'employer-filter') {
+          S.employer = e.target.value;
+          if (!filtered().some((r) => r.period === S.month)) S.month = filtered().at(-1).period;
+          render();
+        }
+        if (e.target.id === 'metric') {
+          S.metric = e.target.value;
+          render();
+        }
+      });
+      document.getElementById('screen-toggle').addEventListener('click', (e) => {
+        const b = e.target.closest('button[data-screen]');
+        if (b) {
+          S.screen = b.dataset.screen;
+          render();
+        }
+      });
+      document.getElementById('lang-toggle').addEventListener('click', (e) => {
+        const b = e.target.closest('button[data-lang]');
+        if (b) {
+          S.lang = b.dataset.lang;
+          render();
+        }
+      });
+      document.getElementById('theme-toggle').addEventListener('click', (e) => {
+        const b = e.target.closest('button[data-theme-choice]');
+        if (b) {
+          S.theme = b.dataset.themeChoice;
+          render();
+        }
+      });
+      document.getElementById('viewport-toggle').addEventListener('click', (e) => {
+        const b = e.target.closest('button[data-viewport]');
+        if (!b) return;
+        const frame = document.getElementById('stage-frame');
+        frame.dataset.viewport = b.dataset.viewport;
+        document.getElementById('stage-frame-label').textContent =
+          b.dataset.viewport === 'mobile'
+            ? 'Mobile (~400px) · /app/earnings'
+            : 'Desktop · /app/earnings';
+        [...document.getElementById('viewport-toggle').querySelectorAll('button')].forEach((x) =>
+          x.setAttribute('aria-pressed', String(x === b)),
+        );
+        render();
+      });
+      render();
+    </script>
+  </body>
+</html>
