@@ -453,3 +453,79 @@ Task: "T070 chart option builders"   Task: "T071 MonthDetailComponent"
 - [x] T135 Document the Bundesbank and Bundeswehr payslip formats in the supported-formats sections of `README.md`, `README.de.md`, `docs/user-guide.md` and `docs/user-guide.de.md` (currently only the SAP payslip and the wage-tax certificate are named) per T121 (partial)
 - [x] T136 Reconcile the spec's "Iteration scope" assumption (SAP + wage-tax certificate only) with the shipped Bundesbank and Bundeswehr parsers of Phases 11–12 — update `spec.md` Assumptions and the parser mentions in `plan.md`/`design.md` (unrequested)
 - [x] T137 Record the imports-history behaviour (grouped by data year, all years collapsed on load, "Expand all"/"Collapse all" toggle) in `design.md` "Imports tab" and `spec.md` (FR-021 history), then verify it with the `verify-ui` skill (EN/DE, light/dark) per FR-021 (unrequested)
+
+---
+
+## Phase 14: Correct misread figures in the import preview (issue #63, Priority: P2)
+
+**Story**: extends US1 (import with checks) — spec FR-004, FR-012, FR-012a, FR-013, FR-021;
+decisions in [research.md](research.md) R15–R16; contracts in
+[earnings-lib.md](contracts/earnings-lib.md) and [earnings-api.md](contracts/earnings-api.md);
+storage in [data-model.md](data-model.md); UI in [design.md](design.md) ("Import screen addendum")
+and `mockup.html` (screen "Import: correct a figure").
+
+**Goal**: A file rejected by an arithmetic check opens the same "figures that will be sent" grid as
+a valid file; the user corrects the misread figure inline, checks re-run live on the device, and the
+server re-validates on import. Corrected figures stay marked in the preview, the import history and
+the month detail.
+
+**Independent Test**: Quickstart §9 — the synthetic "net off" payslip (and a Bundesbank-style
+misread digit) is rejected, shows its grid with the involved figures highlighted, becomes importable
+after a correct edit, imports with `correctedCount = 1`; the same file with a failing figure, an
+unknown name in `corrected`, or `corrected` on a certificate is rejected by the server.
+
+**Order**: tests (T138–T141, T147–T148, T154–T156) first and failing → lib (T142–T146) → backend
+(T149–T153) → frontend (T157–T161) → verification and docs. Backend work needs the lib and contract
+tasks; frontend work needs the contract tasks T145–T146 and a backend that accepts `corrected`
+(T150–T151) only for the final `verify-ui` run.
+
+### Tests first ⚠️
+
+- [ ] T138 [P] [US1] Extend `libs/earnings/src/lib/checks.spec.ts` for `collectCheckFailures` (research R15): a net-off record returns one `NET` failure with signed difference `-18.00`, `recordIndexes` and the nine involved keys (`gross`, `wageTax`, `soli`, `churchTax`, `health`, `care`, `pension`, `unemployment`, `net`); a payout mismatch returns a `PAYOUT` failure whose `involved` lists `net` and `payout` of every section carrying them; two failing records return two failures; a passing file returns `[]`; assert exact decimal strings and that `evaluateChecks` behaviour is unchanged
+- [ ] T139 [P] [US1] Create `libs/earnings/src/lib/corrections.spec.ts` for `parseMoneyInput` (`"1234.56"`, `"1.234,56"`, `"-45,00"`, `"1,234.56"`, `" 520 "` → canonical; `"52x"`, `""`, `"1.5"`, three decimals, `"12.345,6"`, values beyond 9 integer digits → `null`; never `-0.00`), `editableKeys` (equals the `involved` set; empty for a passing file) and `applyCorrection` (replaces exactly one figure, appends the key to `corrected` once, never mutates the input, returns `null` for a key outside the editable set, restoring the read value removes the key again)
+- [ ] T140 [P] [US1] Extend `libs/earnings/src/lib/parsers/registry.bundesbank.spec.ts` and `registry.spec.ts`: `parseDocument` on the net-off fixture returns `{ ok: false, error: CHECK_FAILED, partial }` with the parsed `employer`, `records` and `certificates`; other errors (`UNSUPPORTED_FORMAT`, `MISSING_FIELD`, `UNKNOWN_LINE`) carry no `partial`; a corrected `partial` run through `evaluateChecks` passes
+- [ ] T141 [P] [US1] Extend `libs/earnings/src/lib/validation.spec.ts` and `import-file.spec.ts`: `corrected` accepted on `PAYSLIP_PDF` records with distinct editable keys; rejected with `INVALID_VALUE` (`params.path`) for unknown names, duplicates, non-array, a key outside the editable set (e.g. `taxGross`, `other`), `corrected` on `CERTIFICATE_PDF` / `EXPORT_JSON`, and any other unknown field still `EARNINGS_UNKNOWN_FIELD`; a corrected record that still fails a check is `CHECK_FAILED`; `toImportFile` carries `corrected` through and nothing else new
+
+### Library and contract
+
+- [ ] T142 [US1] Add `collectCheckFailures`, `CheckFailure`, `EDITABLE_KEYS` and `editableKeys` to `libs/earnings/src/lib/checks.ts` per [earnings-lib.md](contracts/earnings-lib.md); keep `evaluateChecks` and `runRecordChecks` / `runPayoutCheck` untouched so server and registry behaviour does not change
+- [ ] T143 [US1] Create `libs/earnings/src/lib/corrections.ts` with `parseMoneyInput` and `applyCorrection` (pure, exact decimals via `decimal.js`, canonical output via the existing money helpers) and export them with the T142 additions from `libs/earnings/src/index.ts`
+- [ ] T144 [US1] Make `parseDocument` in `libs/earnings/src/lib/parsers/registry.ts` return `partial: ParsedFigures` on `CHECK_FAILED` only (type `ParseOutcome` in `libs/earnings/src/lib/model.ts` gains the optional `partial`); update `libs/earnings/src/lib/parsers/registry.bundesbank.spec.ts` expectations that assumed a figure-less rejection
+- [ ] T145 [P] [US1] Add `corrected?: EarningsPayAmountKey[]` to `EarningsPayRecordInput`, `corrected?` to `EarningsStoredPayRecordAmounts`, `correctedCount: number` to the import-summary type and the `EarningsCheckFailure` / partial-outcome types the browser needs in `libs/api-contract/src/lib/earnings.ts`
+- [ ] T146 [US1] Accept `corrected` in `libs/earnings/src/lib/validation.ts` (`RECORD_KEYS`, per-record validation: only on `PAYSLIP_PDF`, distinct, editable keys only, `INVALID_VALUE` with `path`) and carry it in `recordBody` of `libs/earnings/src/lib/import-file.ts`; re-export the new types in `libs/earnings/src/lib/model.ts`
+
+### Backend
+
+- [ ] T147 [P] [US1] Extend `apps/backend/src/earnings/earnings.repository.spec.ts` and `earnings-crypto.service.spec.ts`: `corrected` round-trips inside the encrypted payload (old rows without it read as `[]`), `corrected_count` is stored per import and returned by the history, the guarded `ALTER TABLE` adds the column to a database created without it and is idempotent
+- [ ] T148 [P] [US1] Extend `apps/backend/src/tests/earnings.e2e-spec.ts` and `earnings-e2e.helpers.ts`: (a) a corrected payslip (net-off fixture with the misread figure fixed and `corrected: ['wageTax']`) previews as `NEW`, commits `SAVED`, history shows `correctedCount: 1`, month detail shows `amounts.corrected`; (b) tampered requests are rejected — figure still failing → `CHECK_FAILED`, unknown name / duplicate / key outside the editable set → `INVALID_VALUE`, `corrected` on a certificate or export file → `INVALID_VALUE`, extra field → `EARNINGS_UNKNOWN_FIELD`; (c) a spied logger never receives an amount or the `corrected` list; exact decimal strings throughout
+- [ ] T149 [US1] Add `corrected_count INTEGER NOT NULL DEFAULT 0` to `earnings_imports` in `apps/backend/src/database/database.service.ts`: in the `CREATE TABLE` and as a guarded `ALTER TABLE ... ADD COLUMN` (`pragma_table_info` check, same pattern as `accounts.card_number`)
+- [ ] T150 [US1] Persist `corrected` inside the encrypted record payload and `corrected_count` on the import, and return `correctedCount` in the history and `corrected` in the record detail in `apps/backend/src/earnings/earnings.repository.ts` (count = sum of `corrected.length` over the file's records)
+- [ ] T151 [US1] Validate and forward `corrected` in `apps/backend/src/earnings/earnings.service.ts` (uses `validateImportFile`; preview and commit stay consistent); make sure no log line, exception `details` or rejection param contains `corrected` or an amount beyond the existing `difference` response field (FR-012a, FR-043)
+- [ ] T152 [US1] OpenAPI: add `corrected` to the record DTO and `correctedCount` to `EarningsImportSummary` (and the record-detail DTO) in `apps/backend/src/openapi/dto/earnings.ts`; run `npx nx run backend:openapi` and commit the regenerated `api/openapi.yml`
+- [ ] T153 [P] [US1] Update the Bruno requests `Preview Import.bru` and `Commit Import.bru` in `api/bruno/earnings/` with a corrected record (`corrected: ["wageTax"]`) and note the tampered cases in their docs block
+
+### Frontend
+
+- [ ] T154 [P] [US1] Extend `libs/frontend/domain/earnings/src/lib/import/import-session.store.spec.ts` (exact decimal strings): a `CHECK_FAILED` PDF becomes a `needs-correction` row with `draft`, `failures` and `editable`, no server preview call yet; `editFigure` with an invalid text keeps the row rejected and records an input error; a wrong amount keeps it `needs-correction` with the new difference; a right amount turns it into a `candidate` with `body.records[i].corrected`, triggers the preview and `commit()` sends the corrected body; `restoreFigure` brings the failure back and removes the key; editing a non-editable key is ignored; re-adding the same file discards edits; edits never reach logs (no `console` calls)
+- [ ] T155 [P] [US1] Extend `libs/frontend/domain/earnings/src/lib/import/earnings-import.component.spec.ts`: a rejected file shows the grid with highlighted involved figures (icon + `aria-invalid`/label, not colour alone), disabled confirm and the translated message with check, month, difference and involved figures; typing a correct amount flips the status to "Corrected by you", enables confirm and shows the "corrected by you" marker with the read value and a restore button; invalid input shows the inline error linked via `aria-describedby`; non-involved figures are disabled
+- [ ] T156 [P] [US1] Extend `libs/frontend/domain/earnings/src/lib/imports/earnings-imports.component.spec.ts` (history tag "N figure corrected by you") and the month-detail spec in `libs/frontend/domain/earnings/src/lib/overview/` (corrected figures marked in the statement)
+- [ ] T157 [US1] Implement the correction state in `libs/frontend/domain/earnings/src/lib/import/import-session.store.ts`: new `ImportRowState` `'needs-correction'`; row fields `draft`, `originalRecords`, `failures`, `editable`, `inputErrors`; `toCandidate` keeps `partial` figures for `CHECK_FAILED`; `editFigure(clientFileId, recordIndex, key, text)` (uses `parseMoneyInput`, `applyCorrection`, `collectCheckFailures`) and `restoreFigure`; the rejected counter and `ready` computed treat `needs-correction` as rejected until corrected; `commit()` unchanged apart from sending `corrected`
+- [ ] T158 [US1] Implement the editable figures grid: a new `libs/frontend/domain/earnings/src/lib/import/correction-grid/` component (inputs per [design.md](design.md): `inputmode="decimal"`, label per figure, `aria-describedby` to the check message, `aria-invalid` + inline error, "In failing check" label with warning icon, "corrected by you" tag, read value, "Restore read value") used by `earnings-import.component.ts` for `needs-correction` rows and for corrected candidates; add the check message block (check name, month, signed difference, involved figures) and the `data-testid`s from [docs/frontend/testid-conventions.md](../../docs/frontend/testid-conventions.md) (`earnings-import-figure-<key>`, `earnings-import-figure-restore`, `earnings-import-check-message`, `earnings-import-corrected-count`); use PrimeNG inputs per the `primeng-component-implementation` skill
+- [ ] T159 [P] [US1] Show the corrected marker in the imports history (`libs/frontend/domain/earnings/src/lib/imports/earnings-imports.component.ts`, tag with `data-testid="earnings-history-corrected"`) and next to corrected figures in the month-detail statement (`libs/frontend/domain/earnings/src/lib/overview/`)
+- [ ] T160 [P] [US1] Add EN and DE texts for the correction flow (check failed title/body, all-checks-pass title/body, "In failing check", "corrected by you", restore label and aria label, invalid-input hint, "only involved figures can be edited", history tag `N figure(s) corrected by you`, import-button label) to `libs/frontend/shared-ui/src/lib/i18n/translations/earnings.en.ts` and the German counterpart; the existing completeness spec (T122) must stay green; the German terms follow the glossary (FR-048)
+
+### Verification, export and docs
+
+- [ ] T161 [US1] Check that the 029 export (`libs/frontend/domain/earnings/src/lib/earnings-export.definition.ts`) and the companion `export-v1` reader behave correctly with the new optional `corrected` field (export includes the key names, the reader neither requires nor accepts `corrected`), with a spec case in `earnings-export.definition.spec.ts` and `libs/earnings/src/lib/export-v1.spec.ts`
+- [ ] T162 [US1] Verify with the `verify-ui` skill (quickstart §9): net-off synthetic PDF and a Bundesbank-style misread digit → grid with highlighted figures, wrong then right edit, restore, confirm, history tag, month-detail marker; EN/DE, light/dark, 400 px (no page scroll), keyboard-only flow and input labels; confirm in the network log that only JSON figures are sent
+- [ ] T163 [P] [US1] Document the correction in `README.md`, `README.de.md`, `docs/user-guide.md` and `docs/user-guide.de.md` (when a payslip is rejected, which figures can be corrected, that corrections are re-checked and stay marked) and add the correction flow to the Imports section of `design.md` if the verified UI differs from the mockup
+- [ ] T164 Run `npx nx run-many -t lint typecheck test` and `npx nx run backend:openapi:check`; fix all findings; then run the full [quickstart.md](quickstart.md) (§1–§5, §7–§9) end to end
+- [ ] T165 Run the `speckit-sonar-validate` skill for the branch and fix any new quality-gate findings introduced by Phase 14
+
+### Phase 14 dependencies
+
+- T138–T141 can be written in parallel; T142 → T143 → T144 and T145 → T146 follow their tests.
+- T147–T148 need T145–T146 for types; T149 → T150 → T151 → T152; T153 after T152.
+- T154–T156 need T145 for types; T157 → T158; T159 and T160 are independent of T158.
+- T161–T165 come last; T162 needs the backend tasks T149–T151 and the frontend tasks T157–T160.
+- **Ship gate**: US6's privacy checks (log hygiene, whitelist) must still pass — T148 (c) and T164 cover this.
