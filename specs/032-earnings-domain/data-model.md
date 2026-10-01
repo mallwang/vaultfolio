@@ -12,16 +12,17 @@ filters by it. Money in the application layer is always a canonical decimal stri
 
 One accepted file (FR-021).
 
-| Column           | Type | Notes                                                                              |
-| ---------------- | ---- | ---------------------------------------------------------------------------------- |
-| `id`             | TEXT | PK, UUID                                                                           |
-| `owner_id`       | TEXT | NOT NULL                                                                           |
-| `file_name`      | TEXT | NOT NULL, original file name as selected (display only)                            |
-| `source_type`    | TEXT | NOT NULL, CHECK IN (`PAYSLIP_PDF`, `CERTIFICATE_PDF`, `EXPORT_JSON`)               |
-| `file_sha256`    | TEXT | NOT NULL, lowercase hex (64 chars), computed in the browser                        |
-| `parser_id`      | TEXT | NOT NULL, e.g. `sap-entgeltnachweis`, `lohnsteuerbescheinigung`, `earnings-export` |
-| `parser_version` | TEXT | NOT NULL, e.g. `1.0.0`                                                             |
-| `imported_at`    | TEXT | NOT NULL, ISO timestamp default now                                                |
+| Column            | Type    | Notes                                                                                                                                                                                                       |
+| ----------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`              | TEXT    | PK, UUID                                                                                                                                                                                                    |
+| `owner_id`        | TEXT    | NOT NULL                                                                                                                                                                                                    |
+| `file_name`       | TEXT    | NOT NULL, original file name as selected (display only)                                                                                                                                                     |
+| `source_type`     | TEXT    | NOT NULL, CHECK IN (`PAYSLIP_PDF`, `CERTIFICATE_PDF`, `EXPORT_JSON`)                                                                                                                                        |
+| `file_sha256`     | TEXT    | NOT NULL, lowercase hex (64 chars), computed in the browser                                                                                                                                                 |
+| `parser_id`       | TEXT    | NOT NULL, e.g. `sap-entgeltnachweis`, `lohnsteuerbescheinigung`, `earnings-export`                                                                                                                          |
+| `parser_version`  | TEXT    | NOT NULL, e.g. `1.0.0`                                                                                                                                                                                      |
+| `imported_at`     | TEXT    | NOT NULL, ISO timestamp default now                                                                                                                                                                         |
+| `corrected_count` | INTEGER | NOT NULL DEFAULT 0 — number of figures the user corrected before import (FR-012a, FR-021). Added to existing databases with a guarded `ALTER TABLE ... ADD COLUMN` (same pattern as `accounts.card_number`) |
 
 Indexes: `UNIQUE (owner_id, file_sha256)` (duplicate detection, FR-015); `(owner_id)`.
 Record count and covered periods are derived (`COUNT`/`MIN`/`MAX` over records), so they stay
@@ -53,20 +54,21 @@ Indexes: `(owner_id, period)`, `(import_id)`.
 **`PayRecordAmounts`** (encrypted JSON; all values decimal strings; deductions positive from the
 employee's view, corrections may be negative):
 
-| Key                                         | Meaning                                                                                                                                                |
-| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `gross`                                     | Total gross (EBV Gesamtbrutto)                                                                                                                         |
-| `taxGross`                                  | Tax gross (Steuerbrutto)                                                                                                                               |
-| `svGrossKv`, `svGrossRv`                    | Social-insurance gross bases (KV/PV, RV/AV)                                                                                                            |
-| `wageTax`, `soli`, `churchTax`              | Taxes                                                                                                                                                  |
-| `health`, `care`, `pension`, `unemployment` | Employee share; voluntary KV/PV = contribution − subsidy (FR-019)                                                                                      |
-| `net`                                       | Statutory net                                                                                                                                          |
-| `other`                                     | Other deductions/additions (`payout − net` of this section)                                                                                            |
-| `payout`                                    | Payout; only on the section of the payslip's own month, else `null`                                                                                    |
-| `oneOff`                                    | Object with the one-off portion of `gross`, `taxGross`, `wageTax`, `soli`, `churchTax`, `health`, `care`, `pension`, `unemployment` (missing keys = 0) |
-| `employerSubsidy`                           | `{ health, care }` — employer subsidy for voluntary insurance, or `null`                                                                               |
-| `ytd`                                       | Printed year-to-date totals (regular record of the year's payslips only), keys as above, or `null`                                                     |
-| `checks`                                    | `[{ code, passed, difference }]` — per-record check results                                                                                            |
+| Key                                         | Meaning                                                                                                                                                        |
+| ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `gross`                                     | Total gross (EBV Gesamtbrutto)                                                                                                                                 |
+| `taxGross`                                  | Tax gross (Steuerbrutto)                                                                                                                                       |
+| `svGrossKv`, `svGrossRv`                    | Social-insurance gross bases (KV/PV, RV/AV)                                                                                                                    |
+| `wageTax`, `soli`, `churchTax`              | Taxes                                                                                                                                                          |
+| `health`, `care`, `pension`, `unemployment` | Employee share; voluntary KV/PV = contribution − subsidy (FR-019)                                                                                              |
+| `net`                                       | Statutory net                                                                                                                                                  |
+| `other`                                     | Other deductions/additions (`payout − net` of this section)                                                                                                    |
+| `payout`                                    | Payout; only on the section of the payslip's own month, else `null`                                                                                            |
+| `oneOff`                                    | Object with the one-off portion of `gross`, `taxGross`, `wageTax`, `soli`, `churchTax`, `health`, `care`, `pension`, `unemployment` (missing keys = 0)         |
+| `employerSubsidy`                           | `{ health, care }` — employer subsidy for voluntary insurance, or `null`                                                                                       |
+| `ytd`                                       | Printed year-to-date totals (regular record of the year's payslips only), keys as above, or `null`                                                             |
+| `checks`                                    | `[{ code, passed, difference }]` — per-record check results                                                                                                    |
+| `corrected`                                 | Optional `PayAmountKey[]` — names (never values) of the figures the user corrected in the import preview (FR-012a); absent/`[]` for read-from-document records |
 
 AAD for encryption: `earnings_records|<id>|<owner_id>`.
 
@@ -115,7 +117,10 @@ no remaining records or certificates are removed when an import is deleted.
 - `kind = CORRECTION ⇒ issued > period`; `REGULAR ⇒ issued = period`.
 - All amount strings match `^-?\d{1,9}\.\d{2}$`.
 - Per-record check (R4) must pass; per-payslip payout check must pass; any failure rejects the
-  whole file (FR-012).
+  whole file (FR-012) — including files whose figures were corrected (FR-013).
+- `corrected` (optional, per record): only on `PAYSLIP_PDF`; array of distinct keys from the
+  editable set (`gross`, `wageTax`, `soli`, `churchTax`, `health`, `care`, `pension`,
+  `unemployment`, `net`, `payout`); unknown/duplicate names → `INVALID_VALUE` (`path`).
 - `file_sha256` matches `^[0-9a-f]{64}$`; `fileName` ≤ 255 chars, no path separators.
 - Batch ≤ 400 files, file ≤ 2,000 records (R7).
 

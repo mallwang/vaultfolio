@@ -14,7 +14,8 @@ earnings-evolution app. Data enters **only by document import**: payslip and wag
 PDFs are read **in the browser** with PDF.js and turned into figures by deterministic parsers
 (SAP "Entgeltnachweis", Deutsche Bundesbank "Verdienstabrechnung", Bundeswehr "Wehrsoldabrechnung"; wage-tax certificate for any employer), and historic data comes
 from the companion tool's versioned `earnings-export` JSON. Only whitelisted figures reach the
-server, which re-runs the arithmetic checks, rejects any failing file as a whole, stores amounts
+server, which re-runs the arithmetic checks, rejects any failing file as a whole (a file rejected on
+the device can be corrected figure by figure in the preview until all checks pass — FR-012a), stores amounts
 **AES-256-GCM-encrypted** per row, and serves owner-only read models (overview, tables, data
 check, month detail). Parsers, checks and aggregations live in one new `scope:shared` library so
 the same code runs in the browser and on the server.
@@ -55,7 +56,7 @@ endpoints), 4 tables, 4 PDF parsers + 1 JSON reader, 5 screens + widget, EN/DE.
 
 ## Constitution Check
 
-_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._ (Constitution v3.5.0)
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._ (Constitution v3.6.0)
 
 - **I. Library-First** — Parsers, checks, export reader and all aggregations are framework-free in
   `libs/earnings`, testable without HTTP/UI. PASS.
@@ -75,16 +76,19 @@ _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._ (Const
   format versioned. One new dependency (`pdfjs-dist`) justified in research R2; one small
   `DatabaseService.transaction()` helper justified in R13. PASS.
 - **Product Scope** — Earnings is a listed planned domain; data origin is document import only;
-  no manual entry of figures (FR-004); no bank/brokerage/payroll APIs. PASS.
+  no manual entry of figures (FR-004); the single v3.6.0 exception — correcting a misread, check-involved
+  figure in the preview (FR-012a) — is re-validated on device and server and stays marked. PASS.
 - **Sensitive Personal Data** — Whitelist validation (unknown keys rejected), no server-side
   document handling, deterministic parsers without external services, owner-only queries (admins
   included), AES-256-GCM at rest with operator key and fail-closed behavior, log hygiene, delete
-  per import/all, lifecycle purge, in-app privacy note. PASS.
+  per import/all, lifecycle purge, in-app privacy note; user corrections are re-validated by the
+  server, stored as figure names only and shown as "corrected by you" (research R15). PASS.
 - **Stack Decision** — SQLite single file; money as exact decimals, stored as ciphertext per the
   carve-out; ECharts only; Material Symbols (`payments`); new frontend domain library tagged
   `scope:frontend-domain` depending only on `scope:shared`. PASS.
 
-Post-design re-check (after data-model/contracts): no new violations. The only boundary-relevant
+Post-design re-check (after data-model/contracts, incl. the #63 amendment R15/R16): no new
+violations. The only boundary-relevant
 choice — putting the shared earnings logic in `scope:shared` instead of `scope:domain` — follows
 the existing rules (R1).
 
@@ -114,7 +118,8 @@ libs/
 ├── earnings/                                  # NEW — @vaultfolio/earnings, scope:shared, framework-free
 │   └── src/lib/
 │       ├── model.ts                           # PayRecordInput, amounts, kinds, Money helpers (decimal.js)
-│       ├── checks.ts                          # NET / PAYOUT checks (±0.01)
+│       ├── checks.ts                          # NET / PAYOUT checks (±0.01); collectCheckFailures, editableKeys (R15)
+│       ├── corrections.ts                     # NEW (#63) — parseMoneyInput, applyCorrection
 │       ├── validation.ts                      # strict whitelist validation of import files
 │       ├── parsers/
 │       │   ├── pdf-text.ts                    # PdfDocumentText types + line helpers
@@ -174,6 +179,19 @@ browser-only PDF adapter; the backend module mirrors `holdings`/`account-overvie
 service / repository) plus a crypto service. The companion tool's `make export` is implemented in
 the separate earnings-evolution repository against
 [contracts/earnings-export-v1.md](contracts/earnings-export-v1.md).
+
+## Amendment: figure correction in the import preview (issue #63)
+
+Spec: FR-004, FR-012, FR-012a, FR-013, FR-021; decisions in [research.md](research.md) R15–R16.
+Touched areas:
+
+| Layer           | Change                                                                                                                                                                                                            |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `libs/earnings` | `parseDocument` returns `partial` on `CHECK_FAILED`; `collectCheckFailures`, `editableKeys`, `parseMoneyInput`, `applyCorrection`; `validation.ts` + `import-file.ts` accept `corrected`                          |
+| `api-contract`  | `EarningsPayRecordInput.corrected?`, `EarningsImportSummary.correctedCount`, optional `corrected` on stored amounts                                                                                               |
+| backend         | whitelist + `corrected` validation, encrypted payload carries `corrected`, `earnings_imports.corrected_count` (guarded `ALTER`), OpenAPI DTOs, Bruno, no logging of values                                        |
+| frontend        | `ImportSessionStore`: `needs-correction` row state, `editFigure` / `restoreFigure`, live re-validation; grid with editable cells, highlights, messages; history + month-detail marker; i18n EN/DE; `data-testid`s |
+| docs / tests    | design.md addendum (grid mockup), quickstart §9, store/validation specs with exact decimal strings, e2e for corrected submit and tampered request, `verify-ui` pass                                               |
 
 ## Complexity Tracking
 

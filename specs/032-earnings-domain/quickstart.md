@@ -89,3 +89,19 @@ counts, outcome).
 - "Delete all earnings data" empties the domain → empty state.
 - Full "Export my data" contains an `earnings/` folder with the user's records.
 - Purging a user (retention expiry) removes all four earnings tables' rows for that user.
+
+## 9. Correcting a misread figure (issue #63, FR-012a)
+
+Use the synthetic "net off by 12.40" payslip (or a Bundesbank-style fixture with a misread digit).
+
+1. Drop it on the import page → the file is **rejected**, but its figures are shown in the same
+   grid as a valid file; the failing check, month, difference and the involved figures are
+   highlighted (icon + colour, EN and DE).
+2. Correct one involved figure inline (type `1.234,56` or `1234.56`) → checks re-run on the device,
+   status switches to **corrected**, the figure shows "corrected by you"; a still-failing edit
+   keeps the file rejected and not importable.
+3. Confirm → saved; import history shows the corrected-figure count; month detail marks the figure.
+4. Tamper test (backend e2e): send the same file with a failing figure, an unknown name in
+   `corrected`, or `corrected` on a certificate → each is rejected by the server.
+5. Backend log contains no corrected value (FR-012a, FR-043).
+6. Run `verify-ui` (EN/DE, light/dark, 400 px) and check keyboard flow and labels.

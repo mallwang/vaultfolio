@@ -42,6 +42,7 @@ Request `EarningsImportBatch`:
           "kind": "REGULAR",
           "seq": 1,
           "amounts": {/* PayRecordAmounts without `checks` — see data-model.md */},
+          "corrected": ["wageTax"], // optional (FR-012a): names of figures the user corrected; PAYSLIP_PDF only
         },
       ],
       "certificates": [
@@ -88,7 +89,10 @@ Response `200 EarningsImportPreview`:
 ```
 
 Rejection codes: `CHECK_FAILED` (params `check`, `period`, `difference`), `EARNINGS_UNKNOWN_FIELD`
-(params `path`), `INVALID_VALUE` (params `path`), `LIMIT_EXCEEDED`.
+(params `path`), `INVALID_VALUE` (params `path` — also for an invalid `corrected` entry),
+`LIMIT_EXCEEDED`. User-corrected figures are validated exactly like parsed ones (FR-013): the
+server neither trusts nor needs to know what the document said; it re-runs every check on what it
+receives. `corrected` on a `CERTIFICATE_PDF` or `EXPORT_JSON` file → `INVALID_VALUE`.
 Whole-request `400 EARNINGS_UNKNOWN_FIELD` / `400 INVALID_BATCH` when the batch envelope itself is
 malformed.
 
@@ -107,7 +111,8 @@ transaction; `DUPLICATE` and `REJECTED` files are skipped. Response `201 Earning
 
 Import history (FR-021, FR-037). `200 EarningsImportSummary[]`:
 `{ id, fileName, sourceType, parserId, parserVersion, importedAt, recordCount, certificateCount,
-employers[], firstPeriod, lastPeriod, years[] }` — newest first.
+correctedCount, employers[], firstPeriod, lastPeriod, years[] }` — newest first. `correctedCount` is
+the number of figures the user corrected before importing (0 for read-from-document files).
 
 ### `DELETE /earnings/imports/:id`
 
@@ -163,7 +168,7 @@ Ratios are decimal strings with 4 decimal places (`"0.6160"`). `hasData: false` 
 
 Month detail (FR-029). `200 EarningsRecordDetail[]` ordered by `seq`:
 `{ id, employerId, employerLabel, period, issued, kind, seq, amounts (PayRecordAmounts incl.
-checks), import: { id, fileName } }`. Without `period`: all records (used by the 029 export).
+checks and optional `corrected`), import: { id, fileName } }`. Without `period`: all records (used by the 029 export).
 
 ### `GET /earnings/tables`
 
