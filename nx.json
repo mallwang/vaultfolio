@@ -79,6 +79,7 @@
     },
     "@angular/build:unit-test": {
       "cache": true,
+      "outputs": ["{workspaceRoot}/coverage/{projectName}"],
       "inputs": ["default", "^production"],
       "options": {
         "coverageReporters": ["lcov", "text-summary"],
