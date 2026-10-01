@@ -56,5 +56,5 @@
 
 ## Current Feature Plan
 
-Active implementation plan: [specs/032-earnings-domain/plan.md](specs/032-earnings-domain/plan.md)
+Active implementation plan: [specs/033-parser-requests/plan.md](specs/033-parser-requests/plan.md)
 <!-- SPECKIT END -->
