@@ -22,7 +22,7 @@ function escapeText(text: string): string {
   let out = '';
   for (const char of text) {
     const code = toWinAnsiByte(char.codePointAt(0) as number);
-    const byte = String.fromCharCode(code);
+    const byte = String.fromCodePoint(code);
     out += byte === '\\' || byte === '(' || byte === ')' ? `\\${byte}` : byte;
   }
   return out;
@@ -43,7 +43,7 @@ function contentStream(page: Sheet['pages'][number]): string {
 
 function toBytes(text: string): Uint8Array {
   const bytes = new Uint8Array(text.length);
-  for (let i = 0; i < text.length; i += 1) bytes[i] = text.charCodeAt(i) & 0xff;
+  for (let i = 0; i < text.length; i += 1) bytes[i] = (text.codePointAt(i) as number) & 0xff;
   return bytes;
 }
 

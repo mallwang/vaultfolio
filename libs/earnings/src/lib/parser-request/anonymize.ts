@@ -206,7 +206,10 @@ export function anonymizeLayout(
     }),
   }));
 
-  const anon: AnonymizedLayout = { pages, removedKinds: [...removedKinds].sort() };
+  const anon: AnonymizedLayout = {
+    pages,
+    removedKinds: [...removedKinds].sort((x, y) => x.localeCompare(y)),
+  };
   const ctx: RerollContext = { anon, original: layout, rng };
   rerollUnchanged(ctx, valueRefs);
   rerollUntilClean(ctx, valueRefs);

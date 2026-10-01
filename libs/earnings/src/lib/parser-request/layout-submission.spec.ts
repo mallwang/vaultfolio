@@ -172,9 +172,9 @@ describe('validateLayoutSubmission', () => {
     it.each([
       ['a control character', 'ab\u0007c'],
       ['a C1 control character', 'ab\u0085c'],
-      ['a bidi override', 'ab‮c'],
-      ['a zero-width space', 'ab​c'],
-      ['an isolate', 'ab⁧c'],
+      ['a bidi override', 'ab\u202ec'],
+      ['a zero-width space', 'ab\u200bc'],
+      ['an isolate', 'ab\u2067c'],
       ['whitespace inside a word', 'ab c'],
       ['a tab', 'ab\tc'],
       ['a newline', 'ab\nc'],
@@ -376,7 +376,7 @@ describe('sanitizeWordText', () => {
     expect(sanitizeWordText('’quoted’')).toBe("'quoted'");
     expect(sanitizeWordText('a–b')).toBe('a-b');
     expect(sanitizeWordText('a·b')).toBe('a?b');
-    expect(sanitizeWordText('a‮b')).toBe('a?b');
+    expect(sanitizeWordText('a\u202eb')).toBe('a?b');
   });
 
   it('clamps the length and never returns an empty word', () => {

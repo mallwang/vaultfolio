@@ -59,7 +59,7 @@ function validIban(compact: string): boolean {
   const rearranged = compact.slice(4) + compact.slice(0, 4);
   let remainder = 0;
   for (const char of rearranged) {
-    const value = char >= 'A' ? String(char.charCodeAt(0) - 55) : char;
+    const value = char >= 'A' ? String((char.codePointAt(0) as number) - 55) : char;
     for (const digit of value) remainder = (remainder * 10 + Number(digit)) % 97;
   }
   return remainder === 1;
@@ -128,7 +128,7 @@ function validSocialSecurity(compact: string): boolean {
   const serial = compact.slice(9, 11);
   const check = Number(compact[11]);
   if (day < 1 || day > 31 || month < 1 || month > 12) return false;
-  const letterValue = String(letter.charCodeAt(0) - 64).padStart(2, '0');
+  const letterValue = String((letter.codePointAt(0) as number) - 64).padStart(2, '0');
   const digits = [...area, ...compact.slice(2, 8), ...letterValue, ...serial].map(Number);
   const weights = [2, 1, 2, 5, 7, 1, 2, 1, 2, 1, 2, 1];
   const sum = digits.reduce((total, digit, i) => {
