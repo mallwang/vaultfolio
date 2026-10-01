@@ -9,7 +9,8 @@ interface PrivacyCard {
 
 /**
  * The privacy note (FR-035, FR-042): what happens to the documents and figures, who can see them
- * (administrators included), that the operator holds the key, and how to delete. Shown on the
+ * (administrators included), that the operator holds the key, the optional anonymized parser
+ * request (033, FR-044), and how to delete. Shown on the
  * Imports tab (anchor `#privacy`) and in the empty state.
  */
 @Component({
@@ -85,6 +86,11 @@ export class PrivacyNoteComponent {
       icon: 'visibility-off',
       titleKey: 'earnings.privacy.onlyYouTitle',
       bodyKey: 'earnings.privacy.onlyYou',
+    },
+    {
+      icon: 'send',
+      titleKey: 'earnings.privacy.requestTitle',
+      bodyKey: 'earnings.privacy.request',
     },
   ];
 }

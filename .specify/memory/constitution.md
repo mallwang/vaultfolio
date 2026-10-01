@@ -1,6 +1,21 @@
 <!--
 Sync Impact Report
-- Version change: 3.5.0 → 3.6.0 (MINOR: Earnings out-of-scope rule gains a narrow exception for
+- Version change: 3.6.0 → 3.7.0 (MINOR: the Sensitive Personal Data rule "No document handling on
+  the server" gains one narrow exception for an anonymized, rebuilt sample submitted in an opt-in
+  parser request, 033-parser-requests, FR-043)
+- Modified sections:
+  - Product Scope → Sensitive Personal Data → "No document handling on the server": originals and
+    raw text still never leave the device; a derived, anonymized, rebuilt sample (layout data only,
+    random same-shape values, personal identifiers removed and re-checked server-side) MAY be
+    stored for administrators only, never e-mailed, deleted 30 days after the request closes.
+  - Product Scope → In Scope: Earnings parser requests added.
+- Added/removed principles and sections: none
+- Templates requiring updates: none (generic templates carry no product-scope language)
+- Follow-up TODOs:
+  - Add a pointer to this exception in specs/032-earnings-domain/spec.md FR-008/FR-009 (outside
+    this command's scope; deferred).
+  - Update the in-app Earnings privacy note, user and operator docs (033 FR-044).
+- Previous: 3.5.0 → 3.6.0 (MINOR: Earnings out-of-scope rule gains a narrow exception for
   correcting a misread figure in the import preview, issue #63; details below the 3.5.0 report)
 - Previous: 3.4.0 → 3.5.0 (MINOR: new domain added to Product Scope, a new Sensitive
   Personal Data section added, and Principles IV/V plus the Money/decimal Stack Decision
@@ -176,6 +191,9 @@ stated.
   certificate PDFs interpreted on the user's own device, or the companion local tool's versioned,
   whitelisted JSON export. Every imported record MUST pass the domain's arithmetic checks, re-run
   by the backend; a file containing any failing record MUST be rejected as a whole.
+- Earnings domain: parser requests (033-parser-requests) — when an import is rejected as "format
+  not supported yet", an entitled user MAY request a new parser by submitting an anonymized, rebuilt
+  sample under the exception in Sensitive Personal Data; requests are handled by administrators.
 
 ### Out of Scope
 
@@ -226,6 +244,13 @@ constitution:
   backend MUST reject any payload containing fields outside the whitelist.
 - **No document handling on the server**: original documents and their extracted text MUST NOT be
   transmitted to or stored by the backend. Document interpretation happens on the user's device.
+  The single exception is an opt-in, explicitly consented, user-reviewed flow that transmits a
+  derived, anonymized, rebuilt sample — structured layout data only, never a file; every value
+  replaced by a random value of the same shape; personal identifiers removed on the device and
+  re-checked on the server — for the sole purpose of letting a developer build a parser. Such a
+  sample MUST be stored only for administrators, MUST NOT be sent by e-mail, and MUST be deleted
+  30 days after the request is closed. The original document, its raw text, personal identifiers,
+  and figures from the user's real document MUST still never leave the device.
 - **Deterministic interpretation, no external services**: document interpretation MUST be
   deterministic and reproducible for a given input and parser version, and MUST NOT use any
   external, cloud, or AI/LLM service.
@@ -348,4 +373,4 @@ alignment with the Core Principles; unresolved violations MUST be justified in t
 Complexity Tracking section or the plan MUST be revised to comply. Reviewers MUST treat this
 constitution as authoritative over informal team conventions.
 
-**Version**: 3.6.0 | **Ratified**: 2026-08-13 | **Last Amended**: 2026-10-01
+**Version**: 3.7.0 | **Ratified**: 2026-08-13 | **Last Amended**: 2026-10-01

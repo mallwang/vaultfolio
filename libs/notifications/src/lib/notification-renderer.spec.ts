@@ -155,4 +155,58 @@ describe('renderNotification', () => {
       spy.mockRestore();
     }
   });
+
+  // --- 033: parser requests ---
+
+  describe('request mails', () => {
+    const alert = {
+      featureName: 'Earnings',
+      typeName: 'New parser',
+      requestUrl: 'https://vaultfolio.example.com/app/admin/requests?id=abc',
+    };
+
+    it('renders the admin alert in English and German with the link and without figures', () => {
+      const en = renderNotification({
+        type: 'request-admin-alert',
+        preferredLanguage: 'en',
+        viewModel: alert,
+      });
+      expect(en.language).toBe('en');
+      expect(en.subject).toBe('New Earnings request: New parser');
+      // Handlebars HTML-escapes "=" in the HTML part; mail clients decode it back.
+      const escapedUrl = alert.requestUrl.replaceAll('=', '&#x3D;');
+      expect(en.text).toContain(alert.requestUrl);
+      expect(en.html).toContain(`<a href="${escapedUrl}">Open request</a>`);
+      for (const body of [en.html, en.text]) {
+        expect(body).toContain('New parser');
+        expect(body).toContain('no attachment and no sample content');
+      }
+
+      const de = renderNotification({
+        type: 'request-admin-alert',
+        preferredLanguage: 'de',
+        viewModel: { ...alert, featureName: 'Einkommen', typeName: 'Neuer Parser' },
+      });
+      expect(de.language).toBe('de');
+      expect(de.subject).toBe('Neue Anfrage (Einkommen): Neuer Parser');
+      expect(de.text).toContain('keinen Anhang');
+      expect(de.text).toContain(alert.requestUrl);
+    });
+
+    it('renders the done mail with the import link in both languages', () => {
+      const viewModel = {
+        featureName: 'Earnings',
+        typeName: 'New parser',
+        importUrl: 'https://vaultfolio.example.com/app/earnings/import',
+      };
+      const en = renderNotification({ type: 'request-done', preferredLanguage: null, viewModel });
+      expect(en.subject).toBe('Your Earnings request is done');
+      expect(en.html).toContain(`href="${viewModel.importUrl}"`);
+      expect(en.text).toContain(viewModel.importUrl);
+
+      const de = renderNotification({ type: 'request-done', preferredLanguage: 'de', viewModel });
+      expect(de.subject).toBe('Deine Anfrage (Earnings) ist erledigt');
+      expect(de.html).toContain('Zum Einkommen-Import');
+    });
+  });
 });

@@ -117,6 +117,31 @@ Not run locally, but part of the same maintainability/security net:
   `speckit-sonar-validate` Claude Code skill to check the quality gate for the current branch/PR
   before considering a change done.
 
+## Parser requests (privacy exception)
+
+Earnings payslips never leave the device (specs/032, FR-008/FR-009) — with one opt-in exception
+(constitution 3.7.0, specs/033): a user whose PDF is rejected as _format not supported yet_ may
+send an **anonymized, rebuilt layout** so the parser can be written.
+
+- **What is sent:** one `POST /requests` with Layout Submission v1 (structured words and
+  positions only, never a file). Personal data is removed on the device, every number is replaced
+  by a random one of the same shape, unknown words are masked unless the user keeps them. The
+  server re-validates strictly (exact keys, limits, character rule), scans again for personal
+  data (a hit rejects the request) and **writes the sample PDF itself** — text only, no scripts,
+  links, files or forms.
+- **Who sees it:** administrators, in the portal only (Admin → Requests, audited download); the
+  notification mail contains a link and no attachment. Operators with database access can see the
+  anonymized sample too.
+- **Retention:** sample and stored rule draft are deleted 30 days after Done/Rejected (hourly
+  sweep, reopening cancels); account deletion removes the user's requests.
+- **Rule hints** (optional markings of figure types/columns) are shown to administrators as
+  hints and are **never executed**: nothing in `libs/earnings/src/lib/parsers/` imports
+  `rule-draft.ts` (asserted by a test).
+- **Adding a request type:** one row in `libs/requests` (`REQUEST_TYPES`), a backend
+  `RequestTypeHandler` registered in `RequestsModule`, and an optional admin payload view in
+  `libs/frontend/admin/src/lib/requests/payload-views/`; the table, API and mail mechanism need no
+  change.
+
 ## CI pipeline overview
 
 [.github/workflows/ci.yml](../.github/workflows/ci.yml) runs on every PR and on push to `main`:

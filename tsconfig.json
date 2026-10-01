@@ -74,6 +74,9 @@
     },
     {
       "path": "./libs/observability"
+    },
+    {
+      "path": "./libs/requests"
     }
   ],
   "compilerOptions": {}

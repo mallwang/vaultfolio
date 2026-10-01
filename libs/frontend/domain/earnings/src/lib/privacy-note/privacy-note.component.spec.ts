@@ -3,17 +3,21 @@ import { I18nService } from '@vaultfolio/frontend-shared-ui';
 import { PrivacyNoteComponent } from './privacy-note.component';
 
 describe('PrivacyNoteComponent', () => {
-  it('renders the three privacy cards, naming administrators and the operator-held key', () => {
+  it('renders the four privacy cards, naming administrators, the operator-held key and the optional parser request', () => {
     const fixture = TestBed.createComponent(PrivacyNoteComponent);
     fixture.detectChanges();
     const text = fixture.nativeElement.textContent as string;
 
-    expect(fixture.nativeElement.querySelectorAll('.card')).toHaveLength(3);
+    expect(fixture.nativeElement.querySelectorAll('.card')).toHaveLength(4);
     expect(text).toContain('Documents stay on your device');
     expect(text).toContain('Only figures, no identifiers');
     expect(text).toContain('administrators included');
     expect(text).toContain('holds the encryption key');
     expect(text).toContain('encrypted');
+    expect(text).toContain('request a parser');
+    expect(text).toContain('anonymized, rebuilt copy');
+    expect(text).toContain('30 days after the request is closed');
+    expect(text).toContain('never leave your device');
   });
 
   it('renders in German', () => {

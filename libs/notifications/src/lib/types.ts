@@ -14,7 +14,9 @@ export type NotificationType =
   | 'signup-verification'
   | 'signup-admin-alert'
   | 'signup-welcome'
-  | 'signup-rejection';
+  | 'signup-rejection'
+  | 'request-admin-alert'
+  | 'request-done';
 
 /** The in-process render result consumed by `apps/backend/src/mail/mailer.service.ts`. */
 export interface RenderedNotificationEmail {

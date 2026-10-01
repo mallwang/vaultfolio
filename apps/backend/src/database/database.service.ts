@@ -349,6 +349,58 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     db.exec(
       'CREATE INDEX IF NOT EXISTS earnings_certificates_import_idx ON earnings_certificates (import_id)',
     );
+
+    // 033-parser-requests: generic requests (feature + type, status workflow) with an optional
+    // generated attachment and an admin download audit. Brand-new tables, so `IF NOT EXISTS` is
+    // enough. No monetary values and no personal identifiers of any document are stored here.
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS requests (
+        id                 TEXT PRIMARY KEY,
+        feature            TEXT NOT NULL,
+        type               TEXT NOT NULL,
+        requester_id       TEXT NOT NULL,
+        status             TEXT NOT NULL DEFAULT 'OPEN' CHECK (status IN ('OPEN', 'IN_PROGRESS', 'DONE', 'REJECTED')),
+        payload            TEXT,
+        layout_fingerprint TEXT,
+        possible_duplicate INTEGER NOT NULL DEFAULT 0 CHECK (possible_duplicate IN (0, 1)),
+        note               TEXT,
+        created_at         TEXT NOT NULL,
+        handled_by         TEXT,
+        handled_at         TEXT,
+        closed_at          TEXT,
+        payload_purged_at  TEXT
+      )
+    `);
+    db.exec(
+      'CREATE INDEX IF NOT EXISTS requests_status_created_idx ON requests (status, created_at DESC)',
+    );
+    db.exec('CREATE INDEX IF NOT EXISTS requests_requester_idx ON requests (requester_id)');
+    db.exec('CREATE INDEX IF NOT EXISTS requests_fingerprint_idx ON requests (layout_fingerprint)');
+    db.exec('CREATE INDEX IF NOT EXISTS requests_closed_at_idx ON requests (closed_at)');
+
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS request_attachments (
+        request_id   TEXT PRIMARY KEY,
+        content_type TEXT NOT NULL,
+        size_bytes   INTEGER NOT NULL,
+        sha256       TEXT NOT NULL CHECK (length(sha256) = 64),
+        page_count   INTEGER NOT NULL CHECK (page_count BETWEEN 1 AND 3),
+        content      BLOB NOT NULL,
+        created_at   TEXT NOT NULL
+      )
+    `);
+
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS request_download_audit (
+        id            TEXT PRIMARY KEY,
+        request_id    TEXT NOT NULL,
+        admin_id      TEXT,
+        downloaded_at TEXT NOT NULL
+      )
+    `);
+    db.exec(
+      'CREATE INDEX IF NOT EXISTS request_download_audit_request_idx ON request_download_audit (request_id)',
+    );
   }
 
   /**

@@ -55,12 +55,12 @@ export const earningsDe: TranslationDictionary = {
   sourceType: {
     PAYSLIP_PDF: 'Gehaltsabrechnung (PDF)',
     CERTIFICATE_PDF: 'Lohnsteuerbescheinigung (PDF)',
-    EXPORT_JSON: 'Export des Begleit-Tools',
+    EXPORT_JSON: 'Exportdatei (earnings-export)',
   },
   format: {
     'sap-entgeltnachweis': 'SAP-Entgeltnachweis',
     lohnsteuerbescheinigung: 'Lohnsteuerbescheinigung',
-    'earnings-export': 'Export des Begleit-Tools',
+    'earnings-export': 'Exportdatei (earnings-export)',
   },
   formatChips: {
     sap: 'SAP-Entgeltnachweis',
@@ -102,7 +102,7 @@ export const earningsDe: TranslationDictionary = {
     UNSUPPORTED_FORMAT:
       'Abgelehnt: Format wird noch nicht unterstützt. Aus dieser Datei wird nichts gespeichert.',
     IMAGE_ONLY:
-      'Abgelehnt: Format wird noch nicht unterstützt. Das scheint ein Scan ohne Text zu sein. Scans lassen sich mit dem Begleit-Tool verarbeiten und über dessen Exportdatei importieren.',
+      'Abgelehnt: Die Datei wurde als PDF erkannt, enthält aber keinen automatisch auswertbaren Text (z. B. ein Scan oder ein PDF mit in Grafik umgewandelter Schrift). Aus dieser Datei wird nichts gespeichert.',
     PASSWORD_PROTECTED:
       'Abgelehnt: Das PDF ist passwortgeschützt. Entfernen Sie das Passwort und versuchen Sie es erneut.',
     UNREADABLE:
@@ -282,6 +282,9 @@ export const earningsDe: TranslationDictionary = {
     onlyYouTitle: 'Nur Sie sehen sie',
     onlyYou:
       'Niemand sonst in Vaultfolio sieht Ihre Einkommensdaten, auch keine Administratoren. Der Betreiber dieser Vaultfolio-Instanz betreibt den Server und verwaltet den Schlüssel.',
+    requestTitle: 'Optional: Parser anfragen',
+    request:
+      'Wird ein Dokument nicht erkannt, können Sie einen Parser anfragen. Gesendet wird nur eine anonymisierte, neu aufgebaute Kopie – personenbezogene Daten werden entfernt, jede Zahl wird ersetzt und unbekannte Wörter werden maskiert, sofern Sie sie nicht behalten – nach Ihrer Prüfung und Einwilligung. Administratoren dieser Instanz können sie sehen; sie wird 30 Tage nach Abschluss der Anfrage gelöscht. Die Originaldatei und Ihre echten Beträge verlassen Ihr Gerät nie.',
     deleteHint:
       'Einzelne Importe oder alle Einkommensdaten können Sie jederzeit auf dem Reiter „Importe“ löschen.',
   },

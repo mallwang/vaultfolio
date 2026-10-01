@@ -33,6 +33,7 @@ infrastructure.
    - 7.3 [Overview, Tables and Month Detail](#73-overview-tables-and-month-detail)
    - 7.4 [Data Check](#74-data-check)
    - 7.5 [Imports, Renaming and Deleting](#75-imports-renaming-and-deleting)
+   - 7.6 [Requesting a Parser](#76-requesting-a-parser)
 8. [Settings](#8-settings)
    - 8.1 [Profile](#81-profile)
    - 8.2 [Preferences](#82-preferences)
@@ -40,7 +41,8 @@ infrastructure.
    - 9.1 [Managing Accounts](#91-managing-accounts)
    - 9.2 [Invitations](#92-invitations)
    - 9.3 [Sign-Up Requests](#93-sign-up-requests)
-   - 9.4 [System Health](#94-system-health)
+   - 9.4 [Parser and Other Requests](#94-parser-and-other-requests)
+   - 9.5 [System Health](#95-system-health)
 
 ---
 
@@ -240,6 +242,9 @@ other domains:
   server and holds the encryption key.
 - **Only you can see it.** Nobody else in Vaultfolio — administrators included — can
   see your earnings.
+- **One optional exception.** If a document is not recognized you may _request a parser_
+  (see [7.6](#76-requesting-a-parser)): only after you review and consent, an anonymized,
+  rebuilt copy — never the file and never your real figures — is sent to the administrators.
 
 The link **How your data is protected** in the toolbar opens this note at any time.
 If the page says _Earnings data is temporarily unavailable_, the server cannot decrypt
@@ -254,13 +259,12 @@ Supported are:
 - **Deutsche Bundesbank payslips** ("Verdienstabrechnung"), including corrections,
 - **Bundeswehr pay statements** ("Wehrsoldabrechnung"), including corrections for earlier months,
 - **wage-tax certificates** ("Lohnsteuerbescheinigung") from any employer,
-- **companion-tool export files** (`earnings-export`, version 1) — the way to bring in
-  other payslip layouts and scans.
+- **export files** (`earnings-export`, version 1).
 
 Every file gets a row with its outcome: **New**, **Replaces** (a newer version of
 figures you already imported), **Duplicate** (already imported — skipped) or
 **Rejected** with the reason, for example when gross − taxes − social insurance does
-not add up to net, or when a PDF is a scan without text. Rejected files are never
+not add up to net, or when a PDF contains no automatically readable text (a scan, for example). Rejected files are never
 saved.
 
 If a payslip is rejected because a check does not add up, its figures open in the row
@@ -308,6 +312,36 @@ belongs to; all years start collapsed — click a year to open it, or use **Expa
 - **Delete an import** — removes exactly the figures that file added.
 - **Delete all earnings data** — permanently removes all figures, certificates,
   employer names and the import history. Your other Vaultfolio data is not affected.
+
+### 7.6 Requesting a Parser
+
+If a PDF with text is rejected as **format not supported yet**, its row offers
+**Request a parser** (not for scans, password-protected files or files that failed a
+check). A four-step wizard guides you:
+
+1. **Consent** — what stays on your device (the PDF, its text, all real figures), what is
+   sent (only a rebuilt copy) and who sees it: the administrators of your instance, in
+   the portal only (never by e-mail), deleted 30 days after the request is closed. The
+   document check lists personal data found (bank account, tax ID, social-security
+   number, e-mail, phone, postcode and city — removed automatically, no redaction needed)
+   and text hidden under black boxes. Tick the consent box to continue.
+2. **Review words** — the rebuilt page. Numbers are replaced by random values of the same
+   shape; known labels stay; personal data is removed and locked. Decide for every other
+   word whether to **keep it as a label** or **mask** it (click a word or use the list).
+3. **Mark rules** _(optional)_ — mark which lines are which figure (gross, wage tax, …),
+   the number column and format, and the period. A live check reads your original
+   amounts on your device and tells you whether gross − taxes − social insurance = net
+   adds up; it is never sent. The markings are a hint for the developer and are never
+   executed. **Skip markings** drops them.
+4. **Preview & send** — exactly what the administrators will receive. **Send request** is
+   enabled once every word is decided and nothing personal remains; **Discard** throws
+   everything away.
+
+Only one request leaves your device: a structured, anonymized description of the layout —
+never a file. The server checks it again and writes the sample PDF itself. You can have
+three open requests and send five per day. When an administrator sets your request to
+_Done_ you receive an e-mail with a link back to the import page. If you delete your
+account, your requests and samples are deleted with it.
 
 ---
 
@@ -401,7 +435,21 @@ Per-row actions:
 - **Delete** — removes the entry and unblocks the email address so the person can
   sign up again.
 
-### 9.4 System Health
+### 9.4 Parser and Other Requests
+
+**Admin → Requests** lists requests sent by users, newest first, with a status filter and
+the number of open requests on the tab. Open a row (or the link in the notification
+e-mail, which needs a sign-in) to see who sent it and when, and — for a parser request —
+the **anonymized sample** (download as PDF; every download is logged), the **rule hints**
+the requester marked (shown as a hint only, never executed) and a **possible duplicate**
+note when another open request has the same layout.
+
+Set the **status** (Open, In progress, Done, Rejected) and an internal **note**. Setting
+_Done_ e-mails the requester. The sample and rule hints are deleted automatically 30 days
+after a request is Done or Rejected (reopening cancels this); the request and its status
+stay. Nobody but administrators can see requests, not even the person who sent them.
+
+### 9.5 System Health
 
 **Admin → General** shows the current system status: backend health (ok / degraded)
 and database connectivity (connected / unreachable), with a "last checked" timestamp.

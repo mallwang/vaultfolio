@@ -248,6 +248,63 @@ describe('UsersRepository', () => {
     }
   });
 
+  it("033: deleteById removes the user's requests, attachments and audit rows and clears admin references", async () => {
+    const member = await repository.create({
+      email: 'req-member@example.com',
+      displayName: 'Req Member',
+      passwordHash: 'h',
+      role: 'MEMBER',
+    });
+    const admin = await repository.create({
+      email: 'req-admin@example.com',
+      displayName: 'Req Admin',
+      passwordHash: 'h',
+      role: 'ADMIN',
+    });
+    const other = await repository.create({
+      email: 'req-other@example.com',
+      displayName: 'Req Other',
+      passwordHash: 'h',
+      role: 'MEMBER',
+    });
+    const insert = async (id: string, requester: string, handledBy: string | null) => {
+      await database.query(
+        `INSERT INTO requests (id, feature, type, requester_id, status, possible_duplicate, created_at, handled_by)
+         VALUES ($1, 'earnings', 'new-parser', $2, 'OPEN', 0, '2026-10-01T10:00:00.000Z', $3)`,
+        [id, requester, handledBy],
+      );
+      await database.query(
+        `INSERT INTO request_attachments (request_id, content_type, size_bytes, sha256, page_count, content, created_at)
+         VALUES ($1, 'application/pdf', 4, $2, 1, $3, '2026-10-01T10:00:00.000Z')`,
+        [id, 'a'.repeat(64), Buffer.from('%PDF')],
+      );
+      await database.query(
+        `INSERT INTO request_download_audit (id, request_id, admin_id, downloaded_at)
+         VALUES ($1, $2, $3, '2026-10-02T10:00:00.000Z')`,
+        [`audit-${id}`, id, admin.id],
+      );
+    };
+    await insert('req-of-member', member.id, null);
+    await insert('req-of-other', other.id, admin.id);
+
+    await repository.deleteById(member.id);
+    expect(await database.query('SELECT id FROM requests ORDER BY id')).toEqual([
+      { id: 'req-of-other' },
+    ]);
+    expect(await database.query('SELECT request_id FROM request_attachments')).toEqual([
+      { request_id: 'req-of-other' },
+    ]);
+    expect(await database.query('SELECT request_id FROM request_download_audit')).toEqual([
+      { request_id: 'req-of-other' },
+    ]);
+
+    await repository.deleteById(admin.id);
+    expect(await database.query('SELECT handled_by FROM requests')).toEqual([{ handled_by: null }]);
+    expect(await database.query('SELECT admin_id FROM request_download_audit')).toEqual([
+      { admin_id: null },
+    ]);
+  });
+
   it('008: updateDisplayName updates the display name only', async () => {
     const user = await repository.create({
       email: 'display-name-update@example.com',

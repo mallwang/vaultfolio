@@ -33,6 +33,7 @@ eigenen Infrastruktur.
    - 7.3 [Überblick, Tabellen und Monatsdetail](#73-überblick-tabellen-und-monatsdetail)
    - 7.4 [Datenprüfung](#74-datenprüfung)
    - 7.5 [Importe, Umbenennen und Löschen](#75-importe-umbenennen-und-löschen)
+   - 7.6 [Parser anfragen](#76-parser-anfragen)
 8. [Einstellungen](#8-einstellungen)
    - 8.1 [Profil](#81-profil)
    - 8.2 [Präferenzen](#82-präferenzen)
@@ -40,7 +41,8 @@ eigenen Infrastruktur.
    - 9.1 [Konten verwalten](#91-konten-verwalten)
    - 9.2 [Einladungen](#92-einladungen)
    - 9.3 [Registrierungsanfragen](#93-registrierungsanfragen)
-   - 9.4 [Systemstatus](#94-systemstatus)
+   - 9.4 [Parser- und andere Anfragen](#94-parser--und-andere-anfragen)
+   - 9.5 [Systemstatus](#95-systemstatus)
 
 ---
 
@@ -243,6 +245,10 @@ Einkommensentwicklung anders als andere Bereiche:
   betreibt den Server und verwaltet den Schlüssel.
 - **Nur du siehst sie.** Niemand sonst in Vaultfolio – auch keine Administratoren –
   kann deine Einkommensdaten sehen.
+- **Eine optionale Ausnahme.** Wird ein Dokument nicht erkannt, kannst du einen _Parser
+  anfragen_ (siehe [7.6](#76-parser-anfragen)): erst nach deiner Prüfung und Einwilligung
+  wird eine anonymisierte, neu aufgebaute Kopie – nie die Datei und nie deine echten
+  Beträge – an die Administratoren gesendet.
 
 Der Link **So werden Ihre Daten geschützt** in der Werkzeugleiste öffnet diesen Hinweis
 jederzeit. Zeigt die Seite _Einkommensdaten sind vorübergehend nicht verfügbar_, kann
@@ -258,13 +264,12 @@ Klicke auf **Dokumente importieren** und lege Dateien auf der Seite ab (oder nut
 - **Verdienstabrechnungen der Deutschen Bundesbank**, einschließlich Korrekturen,
 - **Wehrsoldabrechnungen der Bundeswehr**, einschließlich Korrekturen für frühere Monate,
 - **Lohnsteuerbescheinigungen** aller Arbeitgeber,
-- **Exportdateien des Begleit-Tools** (`earnings-export`, Version 1) – der Weg für
-  andere Abrechnungslayouts und Scans.
+- **Exportdateien** (`earnings-export`, Version 1).
 
 Jede Datei bekommt eine Zeile mit ihrem Ergebnis: **Neu**, **Ersetzt** (eine neuere
 Fassung bereits importierter Werte), **Duplikat** (bereits importiert – übersprungen)
 oder **Abgelehnt** mit Begründung, etwa wenn Brutto − Steuern − Sozialversicherung nicht
-das Netto ergibt oder ein PDF ein Scan ohne Text ist. Abgelehnte Dateien werden nie
+das Netto ergibt oder ein PDF keinen automatisch auswertbaren Text enthält (z. B. ein Scan). Abgelehnte Dateien werden nie
 gespeichert.
 
 Wird eine Abrechnung abgelehnt, weil eine Prüfung nicht aufgeht, öffnen sich ihre Werte in
@@ -317,6 +322,37 @@ auf ein Jahr, um es zu öffnen, oder nutze **Alle aufklappen**.
 - **Alle Einkommensdaten löschen** – entfernt dauerhaft alle Werte, Bescheinigungen,
   Arbeitgebernamen und den Importverlauf. Deine übrigen Vaultfolio-Daten bleiben
   unberührt.
+
+### 7.6 Parser anfragen
+
+Wird ein PDF mit Text als **Format noch nicht unterstützt** abgelehnt, bietet seine Zeile
+**Parser anfragen** an (nicht bei Scans, passwortgeschützten Dateien oder Dateien, die eine
+Prüfung nicht bestanden haben). Ein Assistent mit vier Schritten führt dich:
+
+1. **Einwilligung** – was auf deinem Gerät bleibt (das PDF, sein Text, alle echten Beträge),
+   was gesendet wird (nur eine neu aufgebaute Kopie) und wer es sieht: die Administratoren
+   deiner Instanz, nur im Portal (nie per E-Mail), gelöscht 30 Tage nach Abschluss der
+   Anfrage. Die Dokumentprüfung listet gefundene personenbezogene Daten (Bankkonto, Steuer-ID,
+   Sozialversicherungsnummer, E-Mail, Telefon, PLZ und Ort – automatisch entfernt, ohne
+   vorheriges Schwärzen) und Text unter schwarzen Kästen. Setze den Haken, um fortzufahren.
+2. **Wörter prüfen** – die neu aufgebaute Seite. Zahlen werden durch Zufallswerte gleicher
+   Form ersetzt; bekannte Bezeichnungen bleiben; personenbezogene Daten werden entfernt und
+   gesperrt. Entscheide bei jedem anderen Wort, ob du es **als Bezeichnung behältst** oder
+   **maskierst** (Wort anklicken oder Liste nutzen).
+3. **Regeln markieren** _(optional)_ – markiere, welche Zeilen welcher Betrag sind (Brutto,
+   Lohnsteuer, …), Zahlenspalte und -format sowie den Zeitraum. Eine Live-Prüfung liest deine
+   Originalbeträge auf deinem Gerät und zeigt, ob Brutto − Steuern − Sozialversicherung = Netto
+   stimmt; sie wird nie gesendet. Die Markierungen sind ein Hinweis für den Entwickler und
+   werden nie ausgeführt. **Markierungen überspringen** verwirft sie.
+4. **Vorschau & Senden** – genau das, was die Administratoren erhalten. **Anfrage senden**
+   ist aktiv, sobald jedes Wort entschieden ist und nichts Persönliches übrig bleibt;
+   **Verwerfen** wirft alles weg.
+
+Nur ein Aufruf verlässt dein Gerät: eine strukturierte, anonymisierte Beschreibung des
+Layouts – nie eine Datei. Der Server prüft sie erneut und erzeugt das Muster-PDF selbst. Du
+kannst drei offene Anfragen haben und fünf pro Tag senden. Setzt ein Administrator deine
+Anfrage auf _Erledigt_, erhältst du eine E-Mail mit Link zurück zur Importseite. Löschst du
+dein Konto, werden deine Anfragen und Muster mit gelöscht.
 
 ---
 
@@ -414,7 +450,23 @@ Zeilenaktionen:
 - **Löschen** – entfernt den Eintrag und gibt die E-Mail-Adresse für eine erneute Registrierung
   frei.
 
-### 9.4 Systemstatus
+### 9.4 Parser- und andere Anfragen
+
+**Admin → Anfragen** listet von Nutzern gesendete Anfragen, neueste zuerst, mit Statusfilter
+und der Zahl offener Anfragen am Reiter. Öffne eine Zeile (oder den Link in der
+Benachrichtigungs-E-Mail, der eine Anmeldung verlangt), um zu sehen, wer sie wann gesendet
+hat – und bei einer Parser-Anfrage das **anonymisierte Muster** (als PDF herunterladen; jeder
+Download wird protokolliert), die vom Anfragenden markierten **Regelhinweise** (nur als
+Hinweis, nie ausgeführt) und einen Hinweis auf ein **mögliches Duplikat**, wenn eine andere
+offene Anfrage dasselbe Layout hat.
+
+Setze den **Status** (Offen, In Bearbeitung, Erledigt, Abgelehnt) und eine interne **Notiz**.
+_Erledigt_ sendet dem Anfragenden eine E-Mail. Muster und Regelhinweise werden 30 Tage nach
+Erledigt oder Abgelehnt automatisch gelöscht (Wiedereröffnen bricht das ab); die Anfrage und
+ihr Status bleiben. Außer Administratoren sieht niemand Anfragen, auch nicht die Person, die
+sie gesendet hat.
+
+### 9.5 Systemstatus
 
 **Admin → Allgemein** zeigt den aktuellen Systemstatus: Backend-Zustand (ok / beeinträchtigt)
 und Datenbankverbindung (verbunden / nicht erreichbar), jeweils mit einem Zeitstempel der

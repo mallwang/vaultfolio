@@ -257,4 +257,50 @@ describe('DatabaseService — schema initialization', () => {
 
     await database.onModuleDestroy();
   });
+
+  it('creates the request tables, indexes and constraints', async () => {
+    const database = new DatabaseService();
+    await database.onModuleInit();
+
+    const tables = await database.query<{ name: string }>(
+      "SELECT name FROM sqlite_master WHERE type = 'table' AND name LIKE 'request%' ORDER BY name",
+    );
+    expect(tables.map((t) => t.name)).toEqual([
+      'request_attachments',
+      'request_download_audit',
+      'requests',
+    ]);
+
+    const indexes = await database.query<{ name: string }>(
+      "SELECT name FROM sqlite_master WHERE type = 'index' AND tbl_name = 'requests' AND name LIKE 'requests_%' ORDER BY name",
+    );
+    expect(indexes.map((i) => i.name)).toEqual([
+      'requests_closed_at_idx',
+      'requests_fingerprint_idx',
+      'requests_requester_idx',
+      'requests_status_created_idx',
+    ]);
+
+    const insert = (status?: string) =>
+      database.query(
+        `INSERT INTO requests (id, feature, type, requester_id, status, created_at)
+         VALUES ($1, 'earnings', 'new-parser', 'u1', COALESCE($2, 'OPEN'), '2026-10-01T10:00:00.000Z')`,
+        [`r-${status ?? 'default'}`, status ?? null],
+      );
+    await insert();
+    await expect(insert('BOGUS')).rejects.toThrow(/CHECK/);
+    const rows = await database.query<{ status: string; possible_duplicate: number }>(
+      "SELECT status, possible_duplicate FROM requests WHERE id = 'r-default'",
+    );
+    expect(rows).toEqual([{ status: 'OPEN', possible_duplicate: 0 }]);
+
+    await expect(
+      database.query(
+        `INSERT INTO request_attachments (request_id, content_type, size_bytes, sha256, page_count, content, created_at)
+         VALUES ('r-default', 'application/pdf', 3, 'short', 1, x'010203', '2026-10-01T10:00:00.000Z')`,
+      ),
+    ).rejects.toThrow(/CHECK/);
+
+    await database.onModuleDestroy();
+  });
 });

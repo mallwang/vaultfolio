@@ -47,13 +47,13 @@ Jahressummen und der Lohnsteuerbescheinigung vergleicht.
 
 **Unterstützte Dokumente**:
 
-| Dokument                                              | Gelesen von                                         |
-| ----------------------------------------------------- | --------------------------------------------------- |
-| SAP-Entgeltnachweis                                   | Parser `sap-entgeltnachweis`                        |
-| Verdienstabrechnung der Deutschen Bundesbank          | Parser `bundesbank-verdienstabrechnung`             |
-| Wehrsoldabrechnung der Bundeswehr                     | Parser `bundeswehr-wehrsoldabrechnung`              |
-| Lohnsteuerbescheinigung                               | Parser `lohnsteuerbescheinigung` (alle Arbeitgeber) |
-| Export des Begleit-Tools (`earnings-export`, Vers. 1) | JSON-Leser – der Weg für andere Layouts und Scans   |
+| Dokument                                     | Gelesen von                                         |
+| -------------------------------------------- | --------------------------------------------------- |
+| SAP-Entgeltnachweis                          | Parser `sap-entgeltnachweis`                        |
+| Verdienstabrechnung der Deutschen Bundesbank | Parser `bundesbank-verdienstabrechnung`             |
+| Wehrsoldabrechnung der Bundeswehr            | Parser `bundeswehr-wehrsoldabrechnung`              |
+| Lohnsteuerbescheinigung                      | Parser `lohnsteuerbescheinigung` (alle Arbeitgeber) |
+| Exportdatei (`earnings-export`, Vers. 1)     | JSON-Leser                                          |
 
 Alle anderen Layouts sowie gescannte PDFs (nur Bild) werden mit klarer Begründung abgelehnt; aus
 einer abgelehnten Datei wird nichts gespeichert. Jeder Wert durchläuft vor dem Import
@@ -94,7 +94,7 @@ angenommen; alle anderen Domänen funktionieren weiter. **Geht der Schlüssel ve
 geändert, sind alle gespeicherten Einkommensbeträge unwiederbringlich verloren** – sichern Sie ihn
 getrennt von der Datenbank. Eine Schlüsselrotation wird noch nicht unterstützt.
 
-Die Übereinstimmung der Parser mit dem Begleit-Tool lässt sich lokal prüfen (nie in der CI, echte
+Die Übereinstimmung der Parser mit dem Referenz-Extraktor (earnings-evolution) lässt sich lokal prüfen (nie in der CI, echte
 Abrechnungen verlassen den Rechner nicht) mit `tools/earnings/parity-check.mjs` – siehe
 [specs/032-earnings-domain/quickstart.md](specs/032-earnings-domain/quickstart.md) §6.
 

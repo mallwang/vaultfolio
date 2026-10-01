@@ -1,9 +1,11 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter, map, startWith } from 'rxjs';
 import { TabsModule } from 'primeng/tabs';
+import { TagModule } from 'primeng/tag';
 import { TranslatePipe } from '@vaultfolio/frontend-shared-ui';
+import { RequestsService } from './requests/requests.service';
 
 /**
  * Admin area (012-restructure-admin-nav): the admin-only "Accounts",
@@ -29,7 +31,7 @@ import { TranslatePipe } from '@vaultfolio/frontend-shared-ui';
  */
 @Component({
   selector: 'app-admin',
-  imports: [TabsModule, RouterOutlet, TranslatePipe],
+  imports: [TabsModule, TagModule, RouterOutlet, TranslatePipe],
   template: `
     <p-tabs [value]="activeTab()" (valueChange)="onTabChange($event)">
       <p-tablist>
@@ -42,6 +44,17 @@ import { TranslatePipe } from '@vaultfolio/frontend-shared-ui';
         <p-tab value="invitations" data-testid="admin-tab-invitations">{{
           'nav.invitations' | translate
         }}</p-tab>
+        <p-tab value="requests" data-testid="admin-tab-requests">
+          {{ 'nav.requests' | translate }}
+          @if (openRequests() > 0) {
+            <p-tag
+              severity="warn"
+              [rounded]="true"
+              [value]="'' + openRequests()"
+              data-testid="admin-tab-requests-count"
+            />
+          }
+        </p-tab>
         <p-tab value="general" data-testid="admin-tab-general">{{
           'admin.general' | translate
         }}</p-tab>
@@ -59,8 +72,10 @@ import { TranslatePipe } from '@vaultfolio/frontend-shared-ui';
     }
   `,
 })
-export class AdminComponent {
+export class AdminComponent implements OnInit {
   private readonly router = inject(Router);
+  private readonly requests = inject(RequestsService);
+  protected readonly openRequests = this.requests.openCount;
   private readonly route = inject(ActivatedRoute);
 
   protected readonly activeTab = toSignal(
@@ -71,6 +86,10 @@ export class AdminComponent {
     ),
     { initialValue: 'accounts' },
   );
+
+  ngOnInit(): void {
+    this.requests.refreshOpenCount();
+  }
 
   protected onTabChange(value: string | number | undefined): void {
     if (value === undefined) return;

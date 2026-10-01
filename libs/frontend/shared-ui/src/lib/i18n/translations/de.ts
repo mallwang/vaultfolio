@@ -1,3 +1,4 @@
+import { requestsDe } from './requests.de';
 import { earningsDe } from './earnings.de';
 import type { TranslationDictionary } from './en';
 
@@ -38,6 +39,7 @@ export const de: TranslationDictionary = {
     admin: 'Verwaltung',
     accounts: 'Konten',
     invitations: 'Einladungen',
+    requests: 'Anfragen',
     signups: 'Anmeldungen',
     healthStatus: 'Systemstatus',
     collapseSidebar: 'Navigation einklappen',
@@ -516,6 +518,7 @@ export const de: TranslationDictionary = {
     earningsCheck: 'Einkommensentwicklung · Datenprüfung',
     earningsImports: 'Einkommensentwicklung · Importe',
     earningsImport: 'Dokumente importieren',
+    earningsRequest: 'Parser anfragen',
     settings: 'Einstellungen',
     settingsProfile: 'Einstellungen · Profil',
     settingsPreferences: 'Einstellungen · Präferenzen',
@@ -523,6 +526,7 @@ export const de: TranslationDictionary = {
     adminAccounts: 'Verwaltung · Konten',
     adminSignups: 'Verwaltung · Anmeldungen',
     adminInvitations: 'Verwaltung · Einladungen',
+    adminRequests: 'Verwaltung · Anfragen',
     adminGeneral: 'Verwaltung · Allgemein',
     notFound: 'Nicht gefunden',
   },
@@ -622,4 +626,5 @@ export const de: TranslationDictionary = {
       'Über diesen Export — Vermögensentwicklung. Die historische Vermögensentwicklung ist in Vaultfolio noch nicht umgesetzt, daher enthält diese Datei heute keine Zeilen — sie wird automatisch Ihre Daten enthalten, sobald diese Funktion verfügbar ist.',
   },
   earnings: earningsDe,
+  requests: requestsDe,
 };

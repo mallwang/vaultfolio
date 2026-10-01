@@ -1,0 +1,59 @@
+meta {
+  name: Submit New Parser
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/requests
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "feature": "earnings",
+    "type": "new-parser",
+    "payload": {
+      "schemaVersion": 1,
+      "pages": [
+        {
+          "width": 595.3,
+          "height": 841.9,
+          "lines": [
+            {
+              "y": 96,
+              "size": 9,
+              "words": [
+                { "text": "Brutto", "x": 56.7 },
+                { "text": "3.842,17", "x": 391.4 }
+              ]
+            },
+            {
+              "y": 108,
+              "size": 9,
+              "words": [
+                { "text": "Lohnsteuer", "x": 56.7 },
+                { "text": "512,03", "x": 399.2 }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+
+assert {
+  res.status: eq 201
+}
+
+docs {
+  Anonymized layout only (every value is an invented replacement). The server re-validates,
+  re-scans for personal data and generates the sample PDF itself. 201 returns
+  `{ id, submittedAt, possibleDuplicate }` and never echoes content.
+}

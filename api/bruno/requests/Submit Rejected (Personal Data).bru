@@ -1,0 +1,51 @@
+meta {
+  name: Submit Rejected (Personal Data)
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/requests
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "feature": "earnings",
+    "type": "new-parser",
+    "payload": {
+      "schemaVersion": 1,
+      "pages": [
+        {
+          "width": 595.3,
+          "height": 841.9,
+          "lines": [
+            {
+              "y": 96,
+              "size": 9,
+              "words": [
+                { "text": "IBAN", "x": 56.7 },
+                { "text": "DE89370400440532013000", "x": 100 }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+
+assert {
+  res.status: eq 400
+  res.body.error: eq PERSONAL_DATA_DETECTED
+}
+
+docs {
+  The example IBAN is the publicly documented test IBAN. The response lists kinds and page/line
+  only (`details`), never the text, and nothing is stored.
+}

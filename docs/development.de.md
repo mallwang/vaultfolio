@@ -127,6 +127,33 @@ Läuft nicht lokal, gehört aber zum selben Wartbarkeits-/Sicherheitsnetz:
   `speckit-sonar-validate`-Claude-Code-Skill, um den Quality Gate für den aktuellen Branch/PR zu
   prüfen, bevor eine Änderung als fertig gilt.
 
+## Parser-Anfragen (Datenschutz-Ausnahme)
+
+Einkommens-Abrechnungen verlassen das Gerät nie (specs/032, FR-008/FR-009) – mit einer
+freiwilligen Ausnahme (Verfassung 3.7.0, specs/033): Wird das PDF einer Nutzerin oder eines
+Nutzers als _Format noch nicht unterstützt_ abgelehnt, kann ein **anonymisiertes, neu aufgebautes
+Layout** gesendet werden, damit der Parser geschrieben werden kann.
+
+- **Was gesendet wird:** ein `POST /requests` mit Layout Submission v1 (nur strukturierte Wörter
+  und Positionen, nie eine Datei). Personenbezogene Daten werden auf dem Gerät entfernt, jede Zahl
+  wird durch eine zufällige gleicher Form ersetzt, unbekannte Wörter werden maskiert, sofern sie
+  nicht behalten werden. Der Server validiert streng erneut (exakte Schlüssel, Limits,
+  Zeichenregel), scannt nochmals auf personenbezogene Daten (ein Treffer lehnt die Anfrage ab) und
+  **schreibt das Muster-PDF selbst** – nur Text, keine Skripte, Links, Dateien oder Formulare.
+- **Wer es sieht:** Administratoren, nur im Portal (Admin → Anfragen, protokollierter Download); die
+  Benachrichtigungs-E-Mail enthält einen Link und keinen Anhang. Betreiber mit Datenbankzugriff
+  können das anonymisierte Muster ebenfalls sehen.
+- **Aufbewahrung:** Muster und gespeicherter Regelentwurf werden 30 Tage nach Erledigt/Abgelehnt
+  gelöscht (stündlicher Lauf, Wiedereröffnen bricht ab); beim Löschen des Kontos werden die
+  Anfragen der Person entfernt.
+- **Regelhinweise** (optionale Markierungen von Betragsarten/Spalten) werden Administratoren als
+  Hinweis angezeigt und **nie ausgeführt**: nichts in `libs/earnings/src/lib/parsers/` importiert
+  `rule-draft.ts` (durch einen Test abgesichert).
+- **Neuen Anfragetyp hinzufügen:** eine Zeile in `libs/requests` (`REQUEST_TYPES`), ein Backend-
+  `RequestTypeHandler` in `RequestsModule` und optional eine Admin-Payload-Ansicht in
+  `libs/frontend/admin/src/lib/requests/payload-views/`; Tabelle, API und Mailmechanismus
+  bleiben unverändert.
+
 ## Überblick über die CI-Pipeline
 
 [.github/workflows/ci.yml](../.github/workflows/ci.yml) läuft bei jedem PR und bei Push auf

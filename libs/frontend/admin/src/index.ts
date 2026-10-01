@@ -10,3 +10,5 @@ export { InvitationsComponent } from './lib/invitations/invitations.component.js
 // `HoldingsService`'s identical export in `@vaultfolio/frontend-domain-holdings`).
 export { InvitationsService } from './lib/invitations/invitations.service.js';
 export { HealthStatusComponent } from './lib/health-status/health-status.component.js';
+export { RequestsComponent } from './lib/requests/requests.component.js';
+export { RequestsService } from './lib/requests/requests.service.js';

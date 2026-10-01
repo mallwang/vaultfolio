@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { renderNotification } from '@vaultfolio/notifications';
+import { requireAbsoluteUrl } from '../mail/absolute-url';
 import { MailerService } from '../mail/mailer.service';
 
 /**
@@ -22,27 +23,7 @@ export class EmailService {
    * resolves to English (data-model.md).
    */
   async sendInvitation(to: string, token: string): Promise<void> {
-    const acceptUrl = `${process.env.APP_BASE_URL ?? ''}/invite/${token}`;
-
-    // APP_BASE_URL must be an absolute http(s) URL. A missing/relative/
-    // schemeless value (e.g. unset, or "www.example.com" without the
-    // protocol) produces a link that most email clients render as
-    // "about:blank#blocked" instead of navigating anywhere — fail loudly
-    // here rather than silently mailing out a dead link.
-    let parsedUrl: URL;
-    try {
-      parsedUrl = new URL(acceptUrl);
-    } catch {
-      throw new Error(
-        `APP_BASE_URL is not a valid absolute URL (got "${process.env.APP_BASE_URL ?? ''}"). ` +
-          'Set it to e.g. "https://vaultfolio.example.com" (must include the protocol).',
-      );
-    }
-    if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
-      throw new Error(
-        `APP_BASE_URL must use http:// or https:// (got "${process.env.APP_BASE_URL ?? ''}").`,
-      );
-    }
+    const acceptUrl = requireAbsoluteUrl(`/invite/${token}`);
 
     const rendered = renderNotification({
       type: 'invitation',

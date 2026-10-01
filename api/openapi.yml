@@ -1603,6 +1603,194 @@ paths:
         Per employer and year: year-to-date, certificate and completeness
         checks.
       tags: *ref_14
+  /requests:
+    post:
+      operationId: RequestsController_submit
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmitRequestDto'
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmitRequestResponseDto'
+        '400':
+          description: >-
+            UNKNOWN_REQUEST_TYPE / INVALID_LAYOUT / LAYOUT_UNKNOWN_FIELD /
+            LIMIT_EXCEEDED / PERSONAL_DATA_DETECTED / INVALID_RULE_DRAFT.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '403':
+          description: Domain not entitled.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '413':
+          description: payload_too_large (> 512 kB).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '415':
+          description: UNSUPPORTED_MEDIA_TYPE (not JSON).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '429':
+          description: REQUEST_LIMIT_OPEN / REQUEST_LIMIT_DAILY.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+      security: &ref_15
+        - sessionCookie: []
+      summary: >-
+        Submit a request (e.g. earnings/new-parser: an anonymized layout; the
+        server generates the sample PDF).
+      tags: &ref_16
+        - requests
+    get:
+      operationId: RequestsController_list
+      parameters:
+        - name: status
+          required: false
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestListResponseDto'
+        '403':
+          description: Not an administrator.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+      security: *ref_15
+      summary: List requests, newest first (admin only).
+      tags: *ref_16
+  /requests/{id}:
+    get:
+      operationId: RequestsController_detail
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestDetailDto'
+        '403':
+          description: Not an administrator.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '404':
+          description: REQUEST_NOT_FOUND.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+      security: *ref_15
+      summary: Request detail (admin only).
+      tags: *ref_16
+    patch:
+      operationId: RequestsController_update
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRequestDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestDetailDto'
+        '400':
+          description: INVALID_REQUEST_UPDATE.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '403':
+          description: Not an administrator.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '404':
+          description: REQUEST_NOT_FOUND.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+      security: *ref_15
+      summary: Set the status and/or the note of a request (admin only).
+      tags: *ref_16
+  /requests/{id}/attachment:
+    get:
+      operationId: RequestsController_attachment
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: application/pdf attachment.
+        '403':
+          description: Not an administrator.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '404':
+          description: REQUEST_NOT_FOUND.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '410':
+          description: SAMPLE_DELETED.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+      security: *ref_15
+      summary: Download the anonymized sample PDF; audited (admin only).
+      tags: *ref_16
 info:
   title: Vaultfolio API
   description: >-
@@ -1759,7 +1947,7 @@ components:
       properties:
         assetType:
           type: string
-          enum: &ref_15
+          enum: &ref_17
             - ETF
         management:
           type: string
@@ -1785,7 +1973,7 @@ components:
       properties:
         assetType:
           type: string
-          enum: &ref_16
+          enum: &ref_18
             - SHARE
         management:
           type: string
@@ -1815,7 +2003,7 @@ components:
       properties:
         assetType:
           type: string
-          enum: &ref_17
+          enum: &ref_19
             - PRECIOUS_METAL
         management:
           type: string
@@ -1838,7 +2026,7 @@ components:
       properties:
         assetType:
           type: string
-          enum: &ref_18
+          enum: &ref_20
             - CRYPTO
         management:
           type: string
@@ -1865,7 +2053,7 @@ components:
       properties:
         assetType:
           type: string
-          enum: &ref_19
+          enum: &ref_21
             - DEPOSIT_MONEY
         management:
           type: string
@@ -1906,7 +2094,7 @@ components:
       properties:
         assetType:
           type: string
-          enum: *ref_15
+          enum: *ref_17
         management:
           type: string
         isin:
@@ -1931,7 +2119,7 @@ components:
       properties:
         assetType:
           type: string
-          enum: *ref_16
+          enum: *ref_18
         management:
           type: string
         isin:
@@ -1960,7 +2148,7 @@ components:
       properties:
         assetType:
           type: string
-          enum: *ref_17
+          enum: *ref_19
         management:
           type: string
         name:
@@ -1982,7 +2170,7 @@ components:
       properties:
         assetType:
           type: string
-          enum: *ref_18
+          enum: *ref_20
         management:
           type: string
         name:
@@ -2008,7 +2196,7 @@ components:
       properties:
         assetType:
           type: string
-          enum: *ref_19
+          enum: *ref_21
         management:
           type: string
         name:
@@ -2350,7 +2538,7 @@ components:
           nullable: true
         emailLanguage:
           type: string
-          enum: &ref_20
+          enum: &ref_22
             - en
             - de
           nullable: true
@@ -2393,7 +2581,7 @@ components:
       properties:
         emailLanguage:
           type: string
-          enum: *ref_20
+          enum: *ref_22
           nullable: true
       required:
         - emailLanguage
@@ -2445,7 +2633,7 @@ components:
           type: string
         category:
           type: string
-          enum: &ref_21
+          enum: &ref_23
             - GENERAL
             - LEISURE
             - SAVINGS
@@ -2454,7 +2642,7 @@ components:
             - OTHER
         status:
           type: string
-          enum: &ref_22
+          enum: &ref_24
             - ACTIVE
             - DECOMMISSIONED
           description: >-
@@ -2507,11 +2695,11 @@ components:
           type: string
         category:
           type: string
-          enum: *ref_21
+          enum: *ref_23
           description: Omit to default to 'OTHER'.
         status:
           type: string
-          enum: *ref_22
+          enum: *ref_24
           description: Omit to default to 'ACTIVE'.
         provider:
           type: string
@@ -2561,11 +2749,11 @@ components:
           type: string
         category:
           type: string
-          enum: *ref_21
+          enum: *ref_23
           description: Omit to default to 'OTHER'.
         status:
           type: string
-          enum: *ref_22
+          enum: *ref_24
           description: Omit to default to 'ACTIVE'.
         provider:
           type: string
@@ -2758,7 +2946,7 @@ components:
           pattern: ^\d{4}-(0[1-9]|1[0-2])$
         kind:
           type: string
-          enum: &ref_23
+          enum: &ref_25
             - REGULAR
             - CORRECTION
             - PAYOUT_ONLY
@@ -2775,7 +2963,7 @@ components:
             server re-runs every check on the submitted figures.
           items:
             type: string
-            enum: &ref_25
+            enum: &ref_27
               - gross
               - wageTax
               - soli
@@ -2898,7 +3086,7 @@ components:
           maxLength: 255
         sourceType:
           type: string
-          enum: &ref_24
+          enum: &ref_26
             - PAYSLIP_PDF
             - CERTIFICATE_PDF
             - EXPORT_JSON
@@ -2952,7 +3140,7 @@ components:
           nullable: true
         kind:
           type: string
-          enum: *ref_23
+          enum: *ref_25
           nullable: true
         seq:
           type: object
@@ -3113,7 +3301,7 @@ components:
           type: string
         sourceType:
           type: string
-          enum: *ref_24
+          enum: *ref_26
         parserId:
           type: string
         parserVersion:
@@ -3554,7 +3742,7 @@ components:
             saved before figure correction.
           items:
             type: string
-            enum: *ref_25
+            enum: *ref_27
       required:
         - gross
         - taxGross
@@ -3606,7 +3794,7 @@ components:
           pattern: ^\d{4}-(0[1-9]|1[0-2])$
         kind:
           type: string
-          enum: *ref_23
+          enum: *ref_25
         seq:
           type: number
         amounts:
@@ -3628,40 +3816,40 @@ components:
       properties:
         gross:
           type: object
-          additionalProperties: &ref_26
+          additionalProperties: &ref_28
             type: string
-          example: &ref_27
+          example: &ref_29
             2026-09: '5200.00'
           description: period → amount
         regular:
           type: object
-          additionalProperties: *ref_26
-          example: *ref_27
+          additionalProperties: *ref_28
+          example: *ref_29
           description: period → amount
         bonus:
           type: object
-          additionalProperties: *ref_26
-          example: *ref_27
+          additionalProperties: *ref_28
+          example: *ref_29
           description: period → amount
         net:
           type: object
-          additionalProperties: *ref_26
-          example: *ref_27
+          additionalProperties: *ref_28
+          example: *ref_29
           description: period → amount
         taxes:
           type: object
-          additionalProperties: *ref_26
-          example: *ref_27
+          additionalProperties: *ref_28
+          example: *ref_29
           description: period → amount
         social:
           type: object
-          additionalProperties: *ref_26
-          example: *ref_27
+          additionalProperties: *ref_28
+          example: *ref_29
           description: period → amount
         payout:
           type: object
-          additionalProperties: *ref_26
-          example: *ref_27
+          additionalProperties: *ref_28
+          example: *ref_29
           description: period → amount
       required:
         - gross
@@ -3911,3 +4099,214 @@ components:
         - certificate
         - completeness
         - lateCorrections
+    SubmitRequestDto:
+      type: object
+      properties:
+        feature:
+          type: string
+          example: earnings
+          description: Registry feature key.
+        type:
+          type: string
+          example: new-parser
+          description: Registry request-type key.
+        payload:
+          type: object
+          additionalProperties: true
+          description: >-
+            Type-specific payload. For earnings/new-parser: a Layout Submission
+            v1 — anonymized, structured layout data only (never a file, never
+            original values).
+          example:
+            schemaVersion: 1
+            pages:
+              - width: 595.3
+                height: 841.9
+                lines:
+                  - 'y': 96
+                    size: 9
+                    words:
+                      - text: Brutto
+                        x: 56.7
+                      - text: 3.842,17
+                        x: 391.4
+      required:
+        - feature
+        - type
+        - payload
+    SubmitRequestResponseDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        submittedAt:
+          type: string
+          format: date-time
+        possibleDuplicate:
+          type: boolean
+          description: Another open request has the same layout (non-blocking hint).
+      required:
+        - id
+        - submittedAt
+        - possibleDuplicate
+    RequestListItemDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        feature:
+          type: string
+        type:
+          type: string
+        requesterEmail:
+          type: string
+        status:
+          type: string
+          enum: &ref_30
+            - OPEN
+            - IN_PROGRESS
+            - DONE
+            - REJECTED
+        createdAt:
+          type: string
+          format: date-time
+        possibleDuplicate:
+          type: boolean
+        closedAt:
+          type: string
+          format: date-time
+          nullable: true
+        sampleDeletesAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: closedAt + 30 days while a sample exists.
+        hasSample:
+          type: boolean
+      required:
+        - id
+        - feature
+        - type
+        - requesterEmail
+        - status
+        - createdAt
+        - possibleDuplicate
+        - closedAt
+        - sampleDeletesAt
+        - hasSample
+    RequestListResponseDto:
+      type: object
+      properties:
+        openCount:
+          type: number
+          description: OPEN + IN_PROGRESS regardless of the status filter.
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/RequestListItemDto'
+      required:
+        - openCount
+        - items
+    RequestAttachmentMetaDto:
+      type: object
+      properties:
+        contentType:
+          type: string
+        sizeBytes:
+          type: number
+        pageCount:
+          type: number
+        sha256:
+          type: string
+        downloadCount:
+          type: number
+        lastDownloadedAt:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+        - contentType
+        - sizeBytes
+        - pageCount
+        - sha256
+        - downloadCount
+        - lastDownloadedAt
+    RequestDetailDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        feature:
+          type: string
+        type:
+          type: string
+        requesterEmail:
+          type: string
+        status:
+          type: string
+          enum: *ref_30
+        note:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        handledByEmail:
+          type: string
+          nullable: true
+        handledAt:
+          type: string
+          format: date-time
+          nullable: true
+        closedAt:
+          type: string
+          format: date-time
+          nullable: true
+        sampleDeletesAt:
+          type: string
+          format: date-time
+          nullable: true
+        possibleDuplicate:
+          type: boolean
+        payload:
+          type: object
+          additionalProperties: true
+          nullable: true
+          description: >-
+            Type-specific stored payload; null once the retention sweep removed
+            it.
+        attachment:
+          nullable: true
+          type: object
+          allOf:
+            - $ref: '#/components/schemas/RequestAttachmentMetaDto'
+        sampleDeleted:
+          type: boolean
+      required:
+        - id
+        - feature
+        - type
+        - requesterEmail
+        - status
+        - note
+        - createdAt
+        - handledByEmail
+        - handledAt
+        - closedAt
+        - sampleDeletesAt
+        - possibleDuplicate
+        - payload
+        - attachment
+        - sampleDeleted
+    UpdateRequestDto:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: *ref_30
+        note:
+          type: string
+          maxLength: 2000
