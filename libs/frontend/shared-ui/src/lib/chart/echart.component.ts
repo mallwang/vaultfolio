@@ -111,7 +111,7 @@ export class EchartComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    loadEcharts().then((echarts) => {
+    void loadEcharts().then((echarts) => {
       this.instance = echarts.init(this.hostRef.nativeElement);
       this.instance.on?.('click', (params) => {
         const p = params as { dataIndex: number; name: string; seriesName?: string };

@@ -93,7 +93,7 @@ export function employedPeriods(records: readonly StoredRecord[]): string[] {
       .filter((r) => r.kind === 'REGULAR' && parseMoney(r.amounts.gross).greaterThan(0))
       .map((r) => r.period),
   );
-  return [...set].sort();
+  return [...set].sort((a, b) => a.localeCompare(b));
 }
 
 export function groupBy<T, K>(items: readonly T[], key: (item: T) => K): Map<K, T[]> {

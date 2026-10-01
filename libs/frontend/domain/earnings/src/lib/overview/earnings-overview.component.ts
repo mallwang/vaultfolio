@@ -301,7 +301,7 @@ export class EarningsOverviewComponent {
   protected onMonthClick(event: EchartClickEvent): void {
     const period = this.monthly().periods[event.dataIndex];
     if (!period) return;
-    this.router.navigate([], {
+    void this.router.navigate([], {
       relativeTo: this.route,
       queryParams: { month: period },
       queryParamsHandling: 'merge',

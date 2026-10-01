@@ -534,7 +534,8 @@ export class EarningsImportComponent {
       ...new Set(row.body?.certificates.map((c) => c.year) ?? []),
     ];
     const periods =
-      row.preview?.periods ?? [...new Set(row.body?.records.map((r) => r.period) ?? [])].sort();
+      row.preview?.periods ??
+      [...new Set(row.body?.records.map((r) => r.period) ?? [])].sort((a, b) => a.localeCompare(b));
     const parts: string[] = [];
     if (periods.length > 0) {
       const first = formatMonth(periods[0], lang);

@@ -28,7 +28,7 @@ function totalsView(t: Totals): EarningsTotals {
 function entry(key: string, label: string, records: readonly StoredRecord[]): CareerEntry {
   const t = totalsOf(records);
   const months = employedPeriods(records).length;
-  const periods = records.map((r) => r.period).sort();
+  const periods = records.map((r) => r.period).sort((a, b) => a.localeCompare(b));
   return {
     key,
     label,
@@ -77,7 +77,9 @@ function figures(records: readonly StoredRecord[]): LatestYearFigures {
  */
 export function latestYearComparison(records: readonly StoredRecord[]): LatestYear | null {
   if (records.length === 0) return null;
-  const latest = records.map((r) => r.period).sort()[records.length - 1];
+  const latest = records.map((r) => r.period).sort((a, b) => a.localeCompare(b))[
+    records.length - 1
+  ];
   const year = periodYear(latest);
   const months = periodMonth(latest);
   const inRange = (y: number) =>

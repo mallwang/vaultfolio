@@ -173,7 +173,7 @@ export class EarningsAreaComponent {
 
   protected onTabChange(value: string | number | undefined): void {
     if (value === undefined) return;
-    this.router.navigate([String(value)], { relativeTo: this.route });
+    void this.router.navigate([String(value)], { relativeTo: this.route });
   }
 
   private currentTab(): string {

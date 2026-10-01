@@ -331,7 +331,7 @@ export class EarningsService {
             ...file.certificates.map((c) => c.employer),
           ]),
         ],
-        periods: [...new Set(file.records.map((r) => r.period))].sort(),
+        periods: [...new Set(file.records.map((r) => r.period))].sort((a, b) => a.localeCompare(b)),
         years: [...new Set(file.certificates.map((c) => c.year))].sort((a, b) => a - b),
         recordCount: file.records.length,
         certificateCount: file.certificates.length,
@@ -388,7 +388,7 @@ export class EarningsService {
     for (const list of claims.values()) {
       const live = list.filter((c) => c.entry.file);
       if (live.length < 2) continue;
-      const winner = live.reduce((best, c) => (c.issued >= best.issued ? c : best));
+      const winner = live.reduce((best, c) => (c.issued >= best.issued ? c : best), live[0]);
       for (const loser of live) {
         if (loser === winner) continue;
         reject(loser.entry, {

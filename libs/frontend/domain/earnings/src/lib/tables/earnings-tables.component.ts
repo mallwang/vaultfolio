@@ -380,7 +380,7 @@ export class EarningsTablesComponent {
   }
 
   protected openMonth(period: string): void {
-    this.router.navigate(['../overview'], {
+    void this.router.navigate(['../overview'], {
       relativeTo: this.route,
       queryParams: { month: period },
     });

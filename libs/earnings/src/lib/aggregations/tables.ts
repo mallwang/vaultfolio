@@ -32,7 +32,7 @@ export function missingRegularPeriods(records: readonly StoredRecord[]): string[
       if (r.kind === 'CORRECTION' && !regular.has(r.period)) missing.add(r.period);
     }
   }
-  return [...missing].sort();
+  return [...missing].sort((a, b) => a.localeCompare(b));
 }
 
 /** Year × month grid for every metric (FR-030). */
