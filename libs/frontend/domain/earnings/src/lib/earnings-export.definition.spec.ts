@@ -84,6 +84,19 @@ describe('createEarningsExportDefinition', () => {
     expect(result[0]['payout']).toBeNull();
   });
 
+  it('exports the names of corrected figures, never values', async () => {
+    const definition = TestBed.runInInjectionContext(createEarningsExportDefinition);
+    const rows = definition.fetchData();
+    const corrected = record('2026-09', '2026-09', 'REGULAR', 1);
+    corrected.amounts.corrected = ['wageTax', 'net'];
+    http
+      .expectOne('/api/earnings/records')
+      .flush([corrected, record('2026-08', '2026-08', 'REGULAR', 1)]);
+    const result = await rows;
+    expect(result.map((r) => r['corrected'])).toEqual(['', 'wageTax, net']);
+    expect(definition.columns.map((c) => c.key)).toContain('corrected');
+  });
+
   it('returns no rows for a member without the Earnings domain', async () => {
     const definition = TestBed.runInInjectionContext(createEarningsExportDefinition);
     const rows = definition.fetchData();

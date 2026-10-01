@@ -164,6 +164,7 @@ export const earningsDe: TranslationDictionary = {
     ratiosSub: 'Pro Kalenderjahr',
   },
   detail: {
+    corrected: 'von Ihnen korrigiert',
     title: 'Monatsdetail',
     pick: 'Klicken Sie im Diagramm oder in der Tabelle auf einen Monat, um seine Abrechnungen zu sehen.',
     sections: '{{count}} Abrechnungsteile',
@@ -246,6 +247,8 @@ export const earningsDe: TranslationDictionary = {
     countOne: '1 Import',
     expandAll: 'Alle aufklappen',
     collapseAll: 'Alle zuklappen',
+    correctedTag: '{{count}} Werte von Ihnen korrigiert',
+    correctedTagOne: '1 Wert von Ihnen korrigiert',
     deleteImport: 'Import löschen',
     deleteHeader: 'Import löschen',
     deleteMessage:
@@ -319,6 +322,25 @@ export const earningsDe: TranslationDictionary = {
     done: '{{count}} Dateien importiert',
     doneOne: '1 Datei importiert',
     year: 'Jahr {{year}}',
+    statusCORRECTED: 'Von Ihnen korrigiert',
+    checkFailedCorrectable:
+      'Prüfung für {{period}} fehlgeschlagen: {{check}} weicht um {{difference}} ab.',
+    correctHint:
+      'Vergleichen Sie die Werte unten mit Ihrer Abrechnung und korrigieren Sie einen falsch gelesenen Wert.',
+    involved: 'Werte in der fehlgeschlagenen Prüfung: {{figures}}.',
+    passTitle: 'Alle Prüfungen bestehen wieder',
+    passBody:
+      'Korrigierte Werte bleiben als „von Ihnen korrigiert“ markiert und werden beim Import erneut geprüft.',
+    inFailingCheck: 'In fehlgeschlagener Prüfung',
+    onlyInvolved:
+      'Nur Werte, die an der fehlgeschlagenen Prüfung beteiligt sind, können bearbeitet werden.',
+    correctedByYou: 'von Ihnen korrigiert',
+    readValue: 'Aus dem Dokument gelesen: {{value}}',
+    restore: 'Gelesenen Wert wiederherstellen',
+    restoreAria: 'Gelesenen Wert von {{figure}} wiederherstellen',
+    invalidAmount: 'Geben Sie einen Betrag ein, zum Beispiel 1.234,56',
+    corrected: '{{count}} Werte von Ihnen korrigiert',
+    correctedOne: '1 Wert von Ihnen korrigiert',
     removeFile: 'Datei entfernen',
   },
   widget: {
@@ -334,6 +356,7 @@ export const earningsDe: TranslationDictionary = {
     columnPeriod: 'Zeitraum',
     columnIssued: 'Abgerechnet',
     columnKind: 'Art',
+    columnCorrected: 'Korrigierte Werte',
     columnSource: 'Quelldatei',
   },
 };

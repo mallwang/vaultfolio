@@ -9,6 +9,7 @@ import type {
   EarningsMoney,
   EarningsOneOffAmounts,
   EarningsOneOffKey,
+  EarningsPayAmountKey,
   EarningsPayRecordAmounts,
   EarningsPayRecordInput,
   EarningsRecordKind,
@@ -42,9 +43,20 @@ export interface ParseError {
   params?: Record<string, string>;
 }
 
+/** A figure the user may correct in the import preview (FR-012a): one taking part in a check. */
+export type EditableKey = EarningsPayAmountKey;
+
+/** What a parser read from a document, before or despite the arithmetic checks. */
+export interface ParsedFigures {
+  employer: string;
+  records: PayRecordInput[];
+  certificates: CertificateInput[];
+}
+
 export type ParseOutcome =
-  | { ok: true; employer: string; records: PayRecordInput[]; certificates: CertificateInput[] }
-  | { ok: false; error: ParseError };
+  | ({ ok: true } & ParsedFigures)
+  /** `partial` is set for `CHECK_FAILED` only, so the preview can show and correct the figures. */
+  | { ok: false; error: ParseError; partial?: ParsedFigures };
 
 /** A decrypted record as the backend loads it for aggregation. */
 export interface StoredRecord {

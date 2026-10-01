@@ -17,6 +17,18 @@ const RATIO = { type: String, example: '0.6160', description: 'Decimal string, 4
 const PERIOD = { type: String, example: '2026-09', pattern: String.raw`^\d{4}-(0[1-9]|1[0-2])$` };
 const RECORD_KINDS = ['REGULAR', 'CORRECTION', 'PAYOUT_ONLY'] as const;
 const SOURCE_TYPES = ['PAYSLIP_PDF', 'CERTIFICATE_PDF', 'EXPORT_JSON'] as const;
+const CORRECTABLE_KEYS = [
+  'gross',
+  'wageTax',
+  'soli',
+  'churchTax',
+  'health',
+  'care',
+  'pension',
+  'unemployment',
+  'net',
+  'payout',
+] as const;
 
 export class EarningsOneOffAmountsDto {
   @ApiPropertyOptional(MONEY) gross?: string;
@@ -73,6 +85,13 @@ export class EarningsPayRecordAmountsDto {
 
 export class EarningsStoredPayRecordAmountsDto extends EarningsPayRecordAmountsDto {
   @ApiProperty({ type: [EarningsCheckResultDto] }) checks!: EarningsCheckResultDto[];
+  @ApiPropertyOptional({
+    enum: CORRECTABLE_KEYS,
+    isArray: true,
+    description:
+      'Names (never values) of figures the user corrected in the import preview (FR-012a). Always present on read routes, `[]` for rows saved before figure correction.',
+  })
+  corrected?: (typeof CORRECTABLE_KEYS)[number][];
 }
 
 export class EarningsCertificateAmountsDto {
@@ -102,6 +121,13 @@ export class EarningsPayRecordInputDto {
   @ApiProperty({ enum: RECORD_KINDS }) kind!: (typeof RECORD_KINDS)[number];
   @ApiProperty({ minimum: 1 }) seq!: number;
   @ApiProperty({ type: EarningsPayRecordAmountsDto }) amounts!: EarningsPayRecordAmountsDto;
+  @ApiPropertyOptional({
+    enum: CORRECTABLE_KEYS,
+    isArray: true,
+    description:
+      'Names of figures the user corrected in the preview; distinct, only figures taking part in a check, only on PAYSLIP_PDF files. The server re-runs every check on the submitted figures.',
+  })
+  corrected?: (typeof CORRECTABLE_KEYS)[number][];
 }
 
 export class EarningsCertificateInputDto {
@@ -203,6 +229,10 @@ export class EarningsImportSummaryDto {
   @ApiProperty({ ...PERIOD, nullable: true }) firstPeriod!: string | null;
   @ApiProperty({ ...PERIOD, nullable: true }) lastPeriod!: string | null;
   @ApiProperty({ type: [Number] }) years!: number[];
+  @ApiProperty({
+    description: 'Number of figures the user corrected in the preview before importing (FR-012a).',
+  })
+  correctedCount!: number;
 }
 
 // ------------------------------------------------------------------ employers

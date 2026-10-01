@@ -221,3 +221,58 @@ describe('validateImportFile', () => {
     expect(errorOf([])).toEqual({ code: 'INVALID_VALUE', params: { path: '' } });
   });
 });
+
+describe('validateImportFile — corrected figures', () => {
+  const fixed = (corrected: unknown) => file({ records: [{ ...payRecord(), corrected }] });
+
+  it('accepts distinct editable names on a payslip PDF and keeps them', () => {
+    const out = validateImportFile(fixed(['wageTax', 'net']));
+    expect(out.ok).toBe(true);
+    if (out.ok) expect(out.value.records[0].corrected).toEqual(['wageTax', 'net']);
+  });
+
+  it('accepts a record without the marker', () => {
+    const out = validateImportFile(file());
+    expect(out.ok && out.value.records[0].corrected).toBeFalsy();
+  });
+
+  it.each([
+    [['bogus'], 'records[0].corrected[0]'],
+    [['net', 'net'], 'records[0].corrected[1]'],
+    [['taxGross'], 'records[0].corrected[0]'],
+    [['other'], 'records[0].corrected[0]'],
+    ['net', 'records[0].corrected'],
+    [[5], 'records[0].corrected[0]'],
+  ])('rejects %j with INVALID_VALUE', (corrected, path) => {
+    expect(errorOf(fixed(corrected))).toEqual({ code: 'INVALID_VALUE', params: { path } });
+  });
+
+  it.each(['CERTIFICATE_PDF', 'EXPORT_JSON'])('rejects the marker on %s', (sourceType) => {
+    expect(errorOf({ ...fixed(['net']), sourceType })).toEqual({
+      code: 'INVALID_VALUE',
+      params: { path: 'records[0].corrected' },
+    });
+  });
+
+  it('still rejects any other unknown field', () => {
+    expect(errorOf(file({ records: [{ ...payRecord(), correction: [] }] }))).toEqual({
+      code: 'EARNINGS_UNKNOWN_FIELD',
+      params: { path: 'records[0].correction' },
+    });
+  });
+
+  it('rejects a corrected record that still fails a check', () => {
+    const bad = file({
+      records: [
+        {
+          ...payRecord({ amounts: { net: '3162.00', payout: '3162.00' } }),
+          corrected: ['wageTax'],
+        },
+      ],
+    });
+    expect(errorOf(bad)).toEqual({
+      code: 'CHECK_FAILED',
+      params: { check: 'NET', period: '2026-09', difference: '-18.00' },
+    });
+  });
+});

@@ -17,6 +17,7 @@ import { ButtonModule } from 'primeng/button';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
+import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { I18nService, IconComponent, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
 import { EarningsFilterStore } from '../earnings-area/earnings-filter.store';
@@ -38,6 +39,7 @@ import { PrivacyNoteComponent } from '../privacy-note/privacy-note.component';
     ConfirmDialogModule,
     InputTextModule,
     TableModule,
+    TagModule,
     ToastModule,
     IconComponent,
     TranslatePipe,
@@ -120,7 +122,16 @@ import { PrivacyNoteComponent } from '../privacy-note/privacy-note.component';
           <ng-template #body let-item>
             @if (isOpen(item.year)) {
               <tr [attr.data-testid]="'earnings-imports-row-' + item.id">
-                <td class="file">{{ item.fileName }}</td>
+                <td class="file">
+                  {{ item.fileName }}
+                  @if (item.correctedCount > 0) {
+                    <p-tag
+                      severity="success"
+                      [value]="correctedLabel(item.correctedCount)"
+                      data-testid="earnings-history-corrected"
+                    />
+                  }
+                </td>
                 <td>{{ 'earnings.sourceType.' + item.sourceType | translate }}</td>
                 <td>{{ periodsOf(item) }}</td>
                 <td>{{ countOf(item) }}</td>
@@ -360,6 +371,12 @@ export class EarningsImportsComponent implements OnInit, AfterViewInit {
       return first === last ? first : `${first} – ${last}`;
     }
     return item.years.join(', ') || '–';
+  }
+
+  protected correctedLabel(count: number): string {
+    return count === 1
+      ? this.i18n.translate('earnings.imports.correctedTagOne')
+      : fill(this.i18n.translate('earnings.imports.correctedTag'), { count });
   }
 
   protected countOf(item: EarningsImportSummary): string {

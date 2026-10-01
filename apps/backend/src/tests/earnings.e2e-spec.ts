@@ -12,6 +12,7 @@ import {
   largeExport,
   LSTB_2025_BRIGHTLINE,
   SAP_AUG_2026,
+  SAP_AUG_2026_NET_OFF,
   SAP_DEC_2025_BONUS,
   SAP_MAR_2026_VOLUNTARY,
   SAP_SEP_2026_WITH_CORRECTION,
@@ -21,6 +22,7 @@ import {
   balancedRecord,
   bootEarningsApp,
   client,
+  correctedImportFile,
   createMember,
   type EarningsTestApp,
   importFileFromPages,
@@ -647,6 +649,113 @@ describe('/earnings', () => {
   });
 
   // ---------------------------------------------------------------- US6 privacy
+
+  describe('corrected figures (FR-012a)', () => {
+    const corrected = (clientFileId = 'fixed') =>
+      correctedImportFile(SAP_AUG_2026_NET_OFF.pages, '12.40', {
+        clientFileId,
+        fileName: SAP_AUG_2026_NET_OFF.fileName,
+      });
+
+    it('previews a corrected payslip as NEW, saves it and reports the count and the marker', async () => {
+      const body = corrected();
+      expect(body.records[0].corrected).toEqual(['wageTax']);
+      const [file] = (await preview([body])).body.files as EarningsFilePreview[];
+      expect(file).toMatchObject({ status: 'NEW', rejection: null });
+      const [saved] = (await commit([body])).body.files;
+      expect(saved).toMatchObject({ status: 'SAVED', recordCount: 1 });
+
+      const [history] = (await member.get('/earnings/imports')).body as EarningsImportSummary[];
+      expect(history.correctedCount).toBe(1);
+      const [record] = (await member.get('/earnings/records?period=2026-08')).body;
+      expect(record.amounts.corrected).toEqual(['wageTax']);
+      expect(record.amounts.wageTax).toBe('787.60');
+      expect(record.amounts.net).toBe('3128.40');
+    });
+
+    it('reads an uncorrected import with correctedCount 0 and corrected []', async () => {
+      await commit([aug()]);
+      const [history] = (await member.get('/earnings/imports')).body as EarningsImportSummary[];
+      expect(history.correctedCount).toBe(0);
+      const [record] = (await member.get('/earnings/records?period=2026-08')).body;
+      expect(record.amounts.corrected).toEqual([]);
+    });
+
+    const rejection = async (file: unknown) => {
+      const [result] = (await member.post('/earnings/imports/preview').send({ files: [file] })).body
+        .files;
+      expect(result.status).toBe('REJECTED');
+      const [committed] = (await member.post('/earnings/imports').send({ files: [file] })).body
+        .files;
+      expect(committed.status).toBe('REJECTED');
+      expect((await member.get('/earnings/imports')).body).toHaveLength(0);
+      return result.rejection;
+    };
+
+    it('rejects a "correction" that does not make the checks pass', async () => {
+      const body = corrected();
+      body.records[0].amounts.wageTax = '800.00';
+      expect(await rejection(body)).toEqual({
+        code: 'CHECK_FAILED',
+        params: { check: 'NET', period: '2026-08', difference: '12.40' },
+      });
+    });
+
+    it.each([
+      ['an unknown figure name', ['bogus'], 'records[0].corrected[0]'],
+      ['a duplicate name', ['wageTax', 'wageTax'], 'records[0].corrected[1]'],
+      ['a figure outside the editable set', ['taxGross'], 'records[0].corrected[0]'],
+      ['a derived figure', ['other'], 'records[0].corrected[0]'],
+      ['a non-array value', 'wageTax', 'records[0].corrected'],
+    ])('rejects %s with INVALID_VALUE', async (_name, value, path) => {
+      const body = corrected();
+      (body.records[0] as { corrected: unknown }).corrected = value;
+      expect(await rejection(body)).toEqual({ code: 'INVALID_VALUE', params: { path } });
+    });
+
+    it.each(['CERTIFICATE_PDF', 'EXPORT_JSON'] as const)(
+      'rejects corrected figures on a %s file with INVALID_VALUE',
+      async (sourceType) => {
+        const body = { ...corrected(), sourceType };
+        expect(await rejection(body)).toEqual({
+          code: 'INVALID_VALUE',
+          params: { path: 'records[0].corrected' },
+        });
+      },
+    );
+
+    it('rejects an extra field next to corrected with EARNINGS_UNKNOWN_FIELD', async () => {
+      const body = corrected();
+      (body.records[0] as unknown as Record<string, unknown>)['notes'] = 'x';
+      expect(await rejection(body)).toEqual({
+        code: 'EARNINGS_UNKNOWN_FIELD',
+        params: { path: 'records[0].notes' },
+      });
+    });
+
+    it('never logs an amount or the corrected list', async () => {
+      const lines: string[] = [];
+      const capture = (...args: unknown[]) =>
+        void lines.push(args.map((a) => (typeof a === 'string' ? a : JSON.stringify(a))).join(' '));
+      const spies = (['log', 'warn', 'error', 'debug', 'verbose'] as const).map((m) =>
+        jest.spyOn(Logger.prototype, m).mockImplementation(capture),
+      );
+      try {
+        const bad = corrected('bad');
+        bad.records[0].amounts.wageTax = '800.00';
+        await preview([corrected(), bad]);
+        await commit([corrected(), bad]);
+        await member.get('/earnings/records?period=2026-08');
+      } finally {
+        spies.forEach((s) => s.mockRestore());
+      }
+      const log = lines.join('\n');
+      for (const secret of ['787.60', '3128.40', '12.40', 'wageTax', 'corrected']) {
+        expect(log).not.toContain(secret);
+      }
+      expect(lines.filter((l) => l.includes('"outcome":"SAVED"'))).toHaveLength(1);
+    });
+  });
 
   describe('privacy (US6)', () => {
     const READS = [

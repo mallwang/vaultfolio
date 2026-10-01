@@ -57,7 +57,12 @@ Jahressummen und der Lohnsteuerbescheinigung vergleicht.
 
 Alle anderen Layouts sowie gescannte PDFs (nur Bild) werden mit klarer Begründung abgelehnt; aus
 einer abgelehnten Datei wird nichts gespeichert. Jeder Wert durchläuft vor dem Import
-Rechenprüfungen (Brutto − Steuern − Sozialversicherung = Netto, Netto ± Sonstiges = Auszahlung).
+Rechenprüfungen (Brutto − Steuern − Sozialversicherung = Netto, Netto ± Sonstiges = Auszahlung). Besteht eine
+Abrechnung eine Prüfung nicht, bleiben ihre Werte in der Importvorschau sichtbar: Die an der
+fehlgeschlagenen Prüfung beteiligten Werte lassen sich dort korrigieren (falsch gelesene Ziffer),
+die Prüfungen laufen bei jeder Änderung neu, und der Server prüft beim Import erneut. Gespeichert
+werden nur die Namen korrigierter Werte; sie bleiben in Vorschau, Importverlauf und Monatsdetail
+als „von Ihnen korrigiert“ markiert.
 
 **Datenschutz und Bedrohungsmodell**
 

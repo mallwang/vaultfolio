@@ -51,4 +51,26 @@ describe('toImportFile', () => {
     const file = toImportFile({ records: [payRecord()], certificates: [] }, META);
     expect(validateImportFile(JSON.parse(JSON.stringify(file))).ok).toBe(true);
   });
+
+  it('carries the names of corrected figures through and nothing else new', () => {
+    const file = toImportFile(
+      {
+        records: [{ ...payRecord(), corrected: ['net', 'payout'] }, payRecord({ seq: 2 })],
+        certificates: [],
+      },
+      META,
+    );
+    expect(Object.keys(file.records[0])).toEqual([
+      'employer',
+      'period',
+      'issued',
+      'kind',
+      'seq',
+      'amounts',
+      'corrected',
+    ]);
+    expect(file.records[0].corrected).toEqual(['net', 'payout']);
+    expect(file.records[1]).not.toHaveProperty('corrected');
+    expect(validateImportFile(JSON.parse(JSON.stringify(file))).ok).toBe(true);
+  });
 });

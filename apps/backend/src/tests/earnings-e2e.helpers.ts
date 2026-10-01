@@ -8,7 +8,15 @@ import * as argon2 from 'argon2';
 import cookieParser from 'cookie-parser';
 import request from 'supertest';
 import type { EarningsImportFile, EarningsPayRecordInput } from '@vaultfolio/api-contract';
-import { parseDocument, textDocument, toImportFile } from '@vaultfolio/earnings';
+import {
+  applyCorrection,
+  collectCheckFailures,
+  editableKeys,
+  parseDocument,
+  sub,
+  textDocument,
+  toImportFile,
+} from '@vaultfolio/earnings';
 import { AppModule } from '../app/app.module';
 import { configureBodyParsers } from '../app/body-parsers';
 import { DatabaseService } from '../database/database.service';
@@ -106,6 +114,38 @@ export function importFileFromPages(
     parserId: parsed.parserId as string,
     parserVersion: parsed.parserVersion as string,
   });
+}
+
+/**
+ * A payslip the parser rejected with a NET difference of `misread` (the wage tax was read
+ * `misread` too high), fixed the way a user does it in the preview: the figure is replaced and
+ * its name is listed in `corrected` (FR-012a).
+ */
+export function correctedImportFile(
+  pages: string[][],
+  misread: string,
+  meta: { clientFileId: string; fileName: string },
+): EarningsImportFile {
+  const parsed = parseDocument(textDocument(pages));
+  if (parsed.ok || !parsed.partial) throw new Error('fixture is expected to fail a check');
+  const { records, certificates } = parsed.partial;
+  const editable = editableKeys(collectCheckFailures(records));
+  const fixed = applyCorrection(
+    records,
+    { recordIndex: 0, key: 'wageTax', value: sub(records[0].amounts.wageTax, misread) },
+    editable,
+  );
+  if (!fixed) throw new Error('wageTax is not editable');
+  return toImportFile(
+    { records: fixed, certificates },
+    {
+      ...meta,
+      sourceType: 'PAYSLIP_PDF',
+      fileSha256: sha(JSON.stringify(pages)),
+      parserId: parsed.parserId as string,
+      parserVersion: parsed.parserVersion as string,
+    },
+  );
 }
 
 /** A balanced regular record with invented figures (gross 5000.00 → net 3180.00). */

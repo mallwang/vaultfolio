@@ -36,6 +36,7 @@ const COLUMNS: ExportColumn[] = [
     ...(summable ? { summable } : {}),
   })),
   { key: 'source', labelKey: 'earnings.export.columnSource', format: 'text' },
+  { key: 'corrected', labelKey: 'earnings.export.columnCorrected', format: 'text' },
 ];
 
 /** One export row per payslip section, amounts as their canonical decimal strings (FR-017). */
@@ -62,6 +63,8 @@ export function toExportRow(record: EarningsRecordDetail, kindLabel: string): Ex
     other: a.other,
     payout: a.payout,
     source: record.import.fileName,
+    // names of figures the user corrected in the import preview (FR-012a), never values
+    corrected: (a.corrected ?? []).join(', '),
   };
 }
 

@@ -60,7 +60,11 @@ with the year-to-date totals and the wage-tax certificate.
 
 Every other layout and scanned (image-only) PDFs are rejected with a clear reason; nothing from a
 rejected file is saved. Every figure passes arithmetic checks (gross − taxes − social insurance =
-net, net ± other = payout) before it can be imported.
+net, net ± other = payout) before it can be imported. When a payslip fails a check, its figures
+stay visible in the import preview: the figures taking part in the failing check can be corrected
+there (misread digit), the checks re-run on every edit, and the server re-checks on import. Only
+the names of corrected figures are stored (never a second value) and they stay marked "corrected
+by you" in the preview, the import history and the month detail.
 
 **Privacy and threat model**
 

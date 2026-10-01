@@ -158,7 +158,7 @@ describe('EarningsImportComponent', () => {
     );
     expect(byTestId(root, 'earnings-import-status-file-3')?.textContent).toContain('Rejected');
     expect(byTestId(root, 'earnings-import-row-file-3')?.textContent).toContain(
-      'Gross − taxes − social insurance = net does not add up for Aug 2026 (difference +€12.40)',
+      'Check failed for Aug 2026: Gross − taxes − social insurance = net is off by +€12.40.',
     );
     expect(byTestId(root, 'earnings-import-row-file-4')?.textContent).toContain('scanned document');
     expect(byTestId(root, 'earnings-import-row-file-5')?.textContent).toContain(
@@ -194,5 +194,96 @@ describe('EarningsImportComponent', () => {
 
     expect(byTestId(root, 'earnings-import-done')?.textContent).toContain('2 files imported');
     expect(byTestId(root, 'earnings-import-row-file-1')).toBeNull();
+  });
+
+  describe('correcting a misread figure (FR-012a)', () => {
+    async function openNetOff() {
+      const fixture = TestBed.createComponent(EarningsImportComponent);
+      fixture.detectChanges();
+      const root = fixture.nativeElement as HTMLElement;
+      const input = byTestId(root, 'earnings-import-input') as HTMLInputElement;
+      Object.defineProperty(input, 'files', {
+        value: [pdf(SAP_AUG_2026_NET_OFF.fileName)],
+        configurable: true,
+      });
+      input.dispatchEvent(new Event('change'));
+      await settle(fixture);
+      return { fixture, root };
+    }
+
+    const wageTax = 'earnings-import-figure-wageTax-file-1-0';
+
+    function type(root: HTMLElement, id: string, text: string) {
+      const field = byTestId(root, id) as HTMLInputElement;
+      field.value = text;
+      field.dispatchEvent(new Event('input'));
+    }
+
+    it('shows the grid of a rejected file with the involved figures flagged and confirm disabled', async () => {
+      const { root } = await openNetOff();
+      expect(byTestId(root, 'earnings-import-status-file-1')?.textContent).toContain('Rejected');
+      const message = byTestId(root, 'earnings-import-check-message-file-1');
+      expect(message?.textContent).toContain('Gross (total gross)');
+      expect(message?.textContent).toContain('Statutory net');
+
+      const field = byTestId(root, wageTax) as HTMLInputElement;
+      expect(field.value).toBe('800.00');
+      expect(field.disabled).toBe(false);
+      expect(field.getAttribute('aria-invalid')).toBe('true');
+      expect(field.getAttribute('aria-describedby')).toBe(message?.id);
+      expect(field.closest('.field')?.textContent).toContain('In failing check');
+
+      const taxGross = byTestId(
+        root,
+        'earnings-import-figure-taxGross-file-1-0',
+      ) as HTMLInputElement;
+      expect(taxGross.disabled).toBe(true);
+      expect((byTestId(root, 'earnings-import-confirm') as HTMLButtonElement).disabled).toBe(true);
+      expect(root.querySelector('label[for="' + wageTax + '"]')?.textContent).toContain('Wage tax');
+    });
+
+    it('shows an inline error linked by aria-describedby for text that is no amount', async () => {
+      const { fixture, root } = await openNetOff();
+      type(root, wageTax, '78x');
+      fixture.detectChanges();
+      const field = byTestId(root, wageTax) as HTMLInputElement;
+      expect(field.getAttribute('aria-invalid')).toBe('true');
+      expect(field.getAttribute('aria-describedby')).toContain(wageTax + '-error');
+      expect(root.querySelector('#' + wageTax + '-error')?.textContent).toContain(
+        'Enter an amount, for example 1,234.56',
+      );
+    });
+
+    it('flips to "Corrected by you" and enables confirm once the checks pass, and restores', async () => {
+      const { fixture, root } = await openNetOff();
+      type(root, wageTax, '787,60');
+      http.expectOne('/api/earnings/imports/preview').flush({ files: [preview('file-1')] });
+      await settle(fixture);
+
+      expect(byTestId(root, 'earnings-import-status-file-1')?.textContent).toContain(
+        'Corrected by you',
+      );
+      expect(byTestId(root, 'earnings-import-check-message-file-1')?.textContent).toContain(
+        'All checks pass again',
+      );
+      expect(byTestId(root, 'earnings-import-corrected-count-file-1')?.textContent).toContain(
+        '1 figure corrected by you',
+      );
+      expect(byTestId(root, 'earnings-import-corrected-count')?.textContent).toContain(
+        '1 figure corrected by you',
+      );
+      const field = byTestId(root, wageTax) as HTMLInputElement;
+      expect(field.closest('.field')?.textContent).toContain('corrected by you');
+      expect(field.closest('.field')?.textContent).toContain('Read from document: €800.00');
+      expect((byTestId(root, 'earnings-import-confirm') as HTMLButtonElement).disabled).toBe(false);
+
+      (
+        byTestId(root, 'earnings-import-figure-restore-wageTax-file-1-0') as HTMLButtonElement
+      ).click();
+      await settle(fixture);
+      expect(byTestId(root, 'earnings-import-status-file-1')?.textContent).toContain('Rejected');
+      expect((byTestId(root, wageTax) as HTMLInputElement).value).toBe('800.00');
+      expect((byTestId(root, 'earnings-import-confirm') as HTMLButtonElement).disabled).toBe(true);
+    });
   });
 });

@@ -1,8 +1,9 @@
-import { evaluateChecks } from './checks';
+import { EDITABLE_KEYS, evaluateChecks } from './checks';
 import {
   CERTIFICATE_KEYS,
   type CertificateAmounts,
   type CertificateInput,
+  type EditableKey,
   type EmployerSubsidy,
   type ImportFileInput,
   isMoney,
@@ -39,7 +40,16 @@ const FILE_KEYS = [
   'records',
   'certificates',
 ] as const;
-const RECORD_KEYS = ['employer', 'period', 'issued', 'kind', 'seq', 'amounts'] as const;
+const RECORD_KEYS = [
+  'employer',
+  'period',
+  'issued',
+  'kind',
+  'seq',
+  'amounts',
+  'corrected',
+] as const;
+const RECORD_REQUIRED = ['employer', 'period', 'issued', 'kind', 'seq', 'amounts'] as const;
 const AMOUNT_KEYS = [...PAY_AMOUNT_KEYS, 'payout', 'oneOff', 'employerSubsidy', 'ytd'] as const;
 const SUBSIDY_KEYS = ['health', 'care'] as const;
 const CERT_KEYS = ['employer', 'year', 'amounts'] as const;
@@ -138,7 +148,7 @@ function amounts(value: unknown, path: string): PayRecordAmounts {
 }
 
 function record(value: unknown, path: string): PayRecordInput {
-  const o = object(value, path, RECORD_KEYS);
+  const o = object(value, path, RECORD_KEYS, RECORD_REQUIRED);
   const period = string(o['period'], join(path, 'period'), (s) => PERIOD_PATTERN.test(s));
   const issued = string(o['issued'], join(path, 'issued'), (s) => PERIOD_PATTERN.test(s));
   const kind = string(o['kind'], join(path, 'kind'), (s) =>
@@ -149,7 +159,7 @@ function record(value: unknown, path: string): PayRecordInput {
     (kind === 'CORRECTION' && issued > period) ||
     (kind === 'PAYOUT_ONLY' && issued >= period);
   if (!consistent) fail('INVALID_VALUE', join(path, 'issued'));
-  return {
+  const out: PayRecordInput = {
     employer: employerName(o['employer'], join(path, 'employer')),
     period,
     issued,
@@ -157,6 +167,23 @@ function record(value: unknown, path: string): PayRecordInput {
     seq: integer(o['seq'], join(path, 'seq'), 1, 999),
     amounts: amounts(o['amounts'], join(path, 'amounts')),
   };
+  if ('corrected' in o) {
+    out.corrected = correctedKeys(o['corrected'], join(path, 'corrected'));
+  }
+  return out;
+}
+
+/** Names of user-corrected figures: distinct members of the editable set (FR-012a). */
+function correctedKeys(value: unknown, path: string): EditableKey[] {
+  const list = array(value, path, EDITABLE_KEYS.length);
+  const seen = new Set<string>();
+  return list.map((k, i) => {
+    if (typeof k !== 'string' || !(EDITABLE_KEYS as readonly string[]).includes(k) || seen.has(k)) {
+      fail('INVALID_VALUE', `${path}[${i}]`);
+    }
+    seen.add(k);
+    return k as EditableKey;
+  });
 }
 
 function certificate(value: unknown, path: string): CertificateInput {
@@ -208,6 +235,11 @@ function parse(file: unknown): ImportFileInput {
   };
   if (value.records.length === 0 && value.certificates.length === 0)
     fail('INVALID_VALUE', 'records');
+  if (value.sourceType !== 'PAYSLIP_PDF') {
+    value.records.forEach((r, i) => {
+      if (r.corrected) fail('INVALID_VALUE', `records[${i}].corrected`);
+    });
+  }
   const seen = new Set<string>();
   value.records.forEach((r, i) => {
     const id = recordIdentity(r);
@@ -240,5 +272,6 @@ export function validateImportFile(
     throw e;
   }
   const { failure } = evaluateChecks(value.records);
-  return failure ? { ok: false, error: failure } : { ok: true, value };
+  if (failure) return { ok: false, error: failure };
+  return { ok: true, value };
 }

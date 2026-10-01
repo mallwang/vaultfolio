@@ -37,7 +37,8 @@ export type DocumentParseResult = ParseOutcome & {
 
 /**
  * Picks the first matching parser, parses, then runs every arithmetic check (NET per record,
- * PAYOUT per payslip). Any failing check turns the outcome into `CHECK_FAILED` (FR-012).
+ * PAYOUT per payslip). Any failing check turns the outcome into `CHECK_FAILED` (FR-012) that carries
+ * the parsed figures as `partial`, so the preview can show and correct them (FR-012a).
  */
 export function parseDocument(
   doc: PdfDocumentText,
@@ -57,5 +58,7 @@ export function parseDocument(
     return { ...outcome, ...meta };
   }
   const { failure } = evaluateChecks(outcome.records);
-  return failure ? { ok: false, error: failure, ...meta } : { ...outcome, ...meta };
+  if (!failure) return { ...outcome, ...meta };
+  const { employer, records, certificates } = outcome;
+  return { ok: false, error: failure, partial: { employer, records, certificates }, ...meta };
 }

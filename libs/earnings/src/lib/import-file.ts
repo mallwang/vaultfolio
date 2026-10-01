@@ -26,7 +26,7 @@ function pick<T extends object>(source: T, keys: readonly string[]): Partial<T> 
 
 function recordBody(r: PayRecordInput): PayRecordInput {
   const a = r.amounts;
-  return {
+  const body: PayRecordInput = {
     employer: r.employer,
     period: r.period,
     issued: r.issued,
@@ -45,6 +45,8 @@ function recordBody(r: PayRecordInput): PayRecordInput {
       ytd: a.ytd ? pick(a.ytd, ONE_OFF_KEYS) : null,
     },
   };
+  // only the names of corrected figures, never values (FR-012a)
+  return r.corrected && r.corrected.length > 0 ? { ...body, corrected: [...r.corrected] } : body;
 }
 
 function certificateBody(c: CertificateInput): CertificateInput {

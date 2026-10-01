@@ -7,9 +7,11 @@ import { ProgressBarModule } from 'primeng/progressbar';
 import { TagModule } from 'primeng/tag';
 import { I18nService, IconComponent, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
 import { fill, formatDate, formatMonth, formatMoney, rejectionText } from '../earnings-format';
-import { type ImportRow, ImportSessionStore } from './import-session.store';
+import { CorrectionGridComponent } from './correction-grid/correction-grid.component';
+import { RECORD_FIGURES } from './figures';
+import { type ImportRow, ImportSessionStore, correctedCount } from './import-session.store';
 
-type RowStatus = EarningsPreviewStatus | 'READING';
+type RowStatus = EarningsPreviewStatus | 'READING' | 'CORRECTED';
 
 const STATUS_SEVERITY: Record<RowStatus, 'success' | 'info' | 'secondary' | 'danger' | 'contrast'> =
   {
@@ -18,24 +20,8 @@ const STATUS_SEVERITY: Record<RowStatus, 'success' | 'info' | 'secondary' | 'dan
     DUPLICATE: 'secondary',
     REJECTED: 'danger',
     READING: 'contrast',
+    CORRECTED: 'success',
   };
-
-const RECORD_FIGURES: [key: string, label: string][] = [
-  ['gross', 'grossTotal'],
-  ['taxGross', 'taxGross'],
-  ['svGrossKv', 'svGrossKv'],
-  ['svGrossRv', 'svGrossRv'],
-  ['wageTax', 'wageTax'],
-  ['soli', 'soli'],
-  ['churchTax', 'churchTax'],
-  ['health', 'health'],
-  ['care', 'care'],
-  ['pension', 'pension'],
-  ['unemployment', 'unemployment'],
-  ['net', 'statutoryNet'],
-  ['other', 'other'],
-  ['payout', 'payout'],
-];
 
 interface FigureGroup {
   title: string;
@@ -57,6 +43,7 @@ interface FigureGroup {
     TagModule,
     IconComponent,
     TranslatePipe,
+    CorrectionGridComponent,
   ],
   providers: [ImportSessionStore],
   template: `
@@ -175,7 +162,17 @@ interface FigureGroup {
             @for (line of notesOf(row); track $index) {
               <p class="row__note" [class.row__note--error]="line.error">{{ line.text }}</p>
             }
-            @if (row.body && status !== 'REJECTED') {
+            @if (row.draft) {
+              @if (correctedCount(row) > 0) {
+                <p
+                  class="row__note"
+                  [attr.data-testid]="'earnings-import-corrected-count-' + row.clientFileId"
+                >
+                  {{ correctedText(correctedCount(row)) }}
+                </p>
+              }
+              <app-earnings-correction-grid [row]="row" />
+            } @else if (row.body && status !== 'REJECTED') {
               <button
                 type="button"
                 class="link"
@@ -218,6 +215,13 @@ interface FigureGroup {
             [value]="readyText()"
             data-testid="earnings-import-summary-ready"
           />
+          @if (store.correctedFigures() > 0) {
+            <p-tag
+              severity="success"
+              [value]="correctedText(store.correctedFigures())"
+              data-testid="earnings-import-corrected-count"
+            />
+          }
           @if (store.skipped() > 0) {
             <p-tag
               severity="secondary"
@@ -504,8 +508,9 @@ export class EarningsImportComponent {
   }
 
   protected statusOf(row: ImportRow): RowStatus {
-    if (row.state === 'local-rejected') return 'REJECTED';
-    return row.preview?.status ?? 'READING';
+    if (row.state === 'local-rejected' || row.state === 'needs-correction') return 'REJECTED';
+    const status = row.preview?.status ?? 'READING';
+    return status === 'NEW' && correctedCount(row) > 0 ? 'CORRECTED' : status;
   }
 
   protected severityOf(status: RowStatus) {
@@ -549,7 +554,14 @@ export class EarningsImportComponent {
   protected notesOf(row: ImportRow): { text: string; error: boolean }[] {
     const lang = this.i18n.language();
     const rejection = row.localRejection ?? row.preview?.rejection;
-    if (rejection) return [{ text: rejectionText(rejection, (k) => this.t(k), lang), error: true }];
+    if (rejection) {
+      const template =
+        row.state === 'needs-correction' ? 'earnings.import.checkFailedCorrectable' : undefined;
+      return [{ text: rejectionText(rejection, (k) => this.t(k), lang, template), error: true }];
+    }
+    if (row.state === 'needs-correction') {
+      return [{ text: this.t('earnings.import.invalidAmount'), error: true }];
+    }
     const preview = row.preview;
     if (!preview) return [];
     const notes: { text: string; error: boolean }[] = [];
@@ -634,6 +646,14 @@ export class EarningsImportComponent {
       });
     }
     return groups;
+  }
+
+  protected readonly correctedCount = correctedCount;
+
+  protected correctedText(count: number): string {
+    return count === 1
+      ? this.t('earnings.import.correctedOne')
+      : fill(this.t('earnings.import.corrected'), { count });
   }
 
   protected countText(key: string, count: number): string {

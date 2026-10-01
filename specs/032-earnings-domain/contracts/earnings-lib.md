@@ -132,6 +132,7 @@ function applyCorrection(
   records: readonly PayRecordInput[],
   edit: { recordIndex: number; key: PayAmountKey; value: Money },
   editable: readonly { recordIndex: number; key: PayAmountKey }[],
+  original?: readonly PayRecordInput[], // with it, putting the read value back removes the name again
 ): PayRecordInput[] | null;
 
 function runRecordChecks(r: PayRecordInput): CheckResult[]; // NET: gross − taxes − social = net (±0.01)
