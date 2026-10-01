@@ -1,0 +1,2860 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Parser Requests Review</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    />
+    <style>
+      /* Layout: review chrome on top, one app-shell canvas below; screens switch via data-screen on #canvas.
+     Tokens: PrimeNG Aura approximation, same values as specs/032-earnings-domain/mockup.html. */
+      :root {
+        color-scheme: light;
+        --p-content-background: #ffffff;
+        --p-surface-2: #f8f9fb;
+        --p-text-color: #1f2430;
+        --p-text-muted-color: #6b7280;
+        --p-content-border-color: #e5e7eb;
+        --p-content-hover-background: #f4f4f6;
+        --p-highlight-background: #eef1ff;
+        --p-primary-color: #6366f1;
+        --p-primary-600: #4f46e5;
+        --p-primary-contrast: #ffffff;
+        --p-info-color: #0284c7;
+        --p-info-bg: #e0f2fe;
+        --p-success-color: #15803d;
+        --p-success-bg: #dcfce7;
+        --p-danger-color: #dc2626;
+        --p-danger-bg: #fee2e2;
+        --p-warn-color: #b45309;
+        --p-warn-bg: #fef3c7;
+        --p-muted-bg: #f1f2f4;
+        --sheet-bg: #ffffff;
+        --sheet-line: #d9dce3;
+        --review-bg: #f3f2ee;
+        --review-ink: #2c2a25;
+        --review-muted: #7a7669;
+        --review-line: #ddd9d0;
+        --review-accent: #b45f2c;
+      }
+      .canvas[data-theme='dark'] {
+        color-scheme: dark;
+        --p-content-background: #18181b;
+        --p-surface-2: #1f1f23;
+        --p-text-color: #f4f4f5;
+        --p-text-muted-color: #a1a1aa;
+        --p-content-border-color: #34343a;
+        --p-content-hover-background: #27272a;
+        --p-highlight-background: rgba(129, 140, 248, 0.16);
+        --p-primary-color: #818cf8;
+        --p-primary-600: #a5b4fc;
+        --p-primary-contrast: #111827;
+        --p-info-color: #38bdf8;
+        --p-info-bg: rgba(14, 165, 233, 0.15);
+        --p-success-color: #4ade80;
+        --p-success-bg: rgba(34, 197, 94, 0.15);
+        --p-danger-color: #f87171;
+        --p-danger-bg: rgba(239, 68, 68, 0.16);
+        --p-warn-color: #fbbf24;
+        --p-warn-bg: rgba(245, 158, 11, 0.15);
+        --p-muted-bg: #242428;
+        --sheet-bg: #26262b;
+        --sheet-line: #3a3a41;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--review-bg);
+        color: var(--review-ink);
+        font-family:
+          'Inter',
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      h1,
+      h2,
+      h3,
+      p {
+        text-wrap: balance;
+      }
+
+      /* ===== review chrome ===== */
+      .review-header {
+        padding: 1.5rem 1.5rem 1rem;
+        border-bottom: 1px solid var(--review-line);
+      }
+      .review-eyebrow {
+        font-size: 0.72rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--review-accent);
+        font-weight: 700;
+        margin: 0 0 0.25rem;
+      }
+      .review-header h1 {
+        margin: 0 0 0.35rem;
+        font-size: 1.35rem;
+        font-weight: 800;
+      }
+      .review-header p {
+        margin: 0;
+        color: var(--review-muted);
+        font-size: 0.9rem;
+        max-width: 76ch;
+        line-height: 1.5;
+      }
+      .review-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem 1.25rem;
+        align-items: center;
+        padding: 0.85rem 1.5rem;
+        background: #fff;
+        border-bottom: 1px solid var(--review-line);
+        position: sticky;
+        top: env(safe-area-inset-top, 0px);
+        z-index: 10;
+      }
+      .control-group {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        min-width: 0;
+      }
+      .control-group .label {
+        font-size: 0.72rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--review-muted);
+        font-weight: 700;
+      }
+      .segmented {
+        display: inline-flex;
+        border: 1px solid var(--review-line);
+        border-radius: 8px;
+        overflow: hidden;
+        flex-wrap: wrap;
+      }
+      .segmented button {
+        appearance: none;
+        border: none;
+        background: #fff;
+        color: var(--review-ink);
+        font: inherit;
+        font-size: 0.8rem;
+        font-weight: 600;
+        padding: 0.4rem 0.7rem;
+        cursor: pointer;
+        border-right: 1px solid var(--review-line);
+      }
+      .segmented button:last-child {
+        border-right: none;
+      }
+      .segmented button:hover {
+        background: #f1efe9;
+      }
+      .segmented button:focus-visible {
+        outline: 2px solid var(--review-accent);
+        outline-offset: -2px;
+      }
+      .segmented button[aria-pressed='true'] {
+        background: var(--review-accent);
+        color: #fff;
+      }
+      .review-stage {
+        padding: 1.5rem;
+        display: flex;
+        justify-content: center;
+      }
+      .stage-frame {
+        width: 100%;
+        max-width: 1180px;
+        background: #d9d4c8;
+        border-radius: 14px;
+        padding: 1rem;
+        transition: max-width 0.2s ease;
+      }
+      .stage-frame[data-viewport='mobile'] {
+        max-width: 400px;
+      }
+      .stage-frame-label {
+        font-size: 0.72rem;
+        color: var(--review-muted);
+        text-align: center;
+        margin: 0 0 0.5rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      .canvas {
+        background: var(--p-content-background);
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+        color: var(--p-text-color);
+        font-size: 0.875rem;
+      }
+      .review-footer {
+        padding: 0 1.5rem 2rem;
+        max-width: 1180px;
+        margin: 0 auto;
+        font-size: 0.85rem;
+        color: var(--review-muted);
+        line-height: 1.55;
+      }
+      .review-footer h3 {
+        margin: 0.75rem 0 0;
+        font-size: 0.8rem;
+        color: var(--review-ink);
+      }
+      .review-footer ul {
+        margin: 0.25rem 0 0.5rem;
+        padding-left: 1.1rem;
+      }
+
+      /* ===== screen visibility ===== */
+      [data-show] {
+        display: none;
+      }
+      [data-screen='import'] [data-show~='import'],
+      [data-screen='consent'] [data-show~='consent'],
+      [data-screen='refused'] [data-show~='refused'],
+      [data-screen='words'] [data-show~='words'],
+      [data-screen='rules'] [data-show~='rules'],
+      [data-screen='confirm'] [data-show~='confirm'],
+      [data-screen='submitted'] [data-show~='submitted'],
+      [data-screen='admin-list'] [data-show~='admin-list'],
+      [data-screen='admin-detail'] [data-show~='admin-detail'],
+      [data-screen='mail'] [data-show~='mail'] {
+        display: block;
+      }
+      [data-screen='mail'] .app-shell {
+        display: none;
+      }
+
+      /* ===== app shell (snapshot from 032 mockup) ===== */
+      .app-shell {
+        display: grid;
+        grid-template-columns: 220px 1fr;
+        min-height: 720px;
+      }
+      .stage-frame[data-viewport='mobile'] .app-shell {
+        grid-template-columns: 1fr;
+      }
+      .app-sidebar {
+        background: var(--p-content-background);
+        border-right: 1px solid var(--p-content-border-color);
+        display: flex;
+        flex-direction: column;
+        padding: 1.1rem 0.85rem;
+        gap: 1.5rem;
+      }
+      .stage-frame[data-viewport='mobile'] .app-sidebar {
+        flex-direction: row;
+        align-items: center;
+        border-right: none;
+        border-bottom: 1px solid var(--p-content-border-color);
+        padding: 0.65rem 0.85rem;
+        gap: 0.75rem;
+        overflow-x: auto;
+      }
+      .app-brand {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        padding: 0 0.4rem;
+      }
+      .app-brand__mark {
+        width: 26px;
+        height: 26px;
+        border-radius: 7px;
+        background: linear-gradient(135deg, var(--p-primary-color), var(--p-primary-600));
+        flex: 0 0 auto;
+      }
+      .app-brand__name {
+        font-weight: 800;
+        font-size: 0.98rem;
+        letter-spacing: -0.01em;
+      }
+      .stage-frame[data-viewport='mobile'] .app-brand__name {
+        display: none;
+      }
+      .app-nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+      }
+      .stage-frame[data-viewport='mobile'] .app-nav {
+        flex-direction: row;
+        gap: 0.3rem;
+      }
+      .app-nav__item {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        padding: 0.55rem 0.6rem;
+        border-radius: 8px;
+        font-size: 0.86rem;
+        font-weight: 600;
+        color: var(--p-text-muted-color);
+        position: relative;
+      }
+      .app-nav__item .ic {
+        width: 17px;
+        height: 17px;
+        flex: 0 0 auto;
+      }
+      .app-nav__item--active {
+        background: var(--p-highlight-background);
+        color: var(--p-primary-color);
+      }
+      .app-nav__item--active::before {
+        content: '';
+        position: absolute;
+        left: -0.85rem;
+        top: 0.35rem;
+        bottom: 0.35rem;
+        width: 3px;
+        border-radius: 2px;
+        background: var(--p-primary-color);
+      }
+      .stage-frame[data-viewport='mobile'] .app-nav__item {
+        flex-direction: column;
+        gap: 0.2rem;
+        min-width: 64px;
+        padding: 0.45rem 0.4rem;
+        font-size: 0.64rem;
+        text-align: center;
+      }
+      .stage-frame[data-viewport='mobile'] .app-nav__item--active::before {
+        display: none;
+      }
+      .app-main {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+      }
+      .app-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--p-content-border-color);
+      }
+      .app-header__crumb {
+        font-size: 0.75rem;
+        color: var(--p-text-muted-color);
+        margin: 0 0 0.15rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+      }
+      .app-header__title {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 800;
+      }
+      .app-header__meta {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+        color: var(--p-text-muted-color);
+      }
+      .stage-frame[data-viewport='mobile'] .app-header__meta .meta-name,
+      .stage-frame[data-viewport='mobile'] .app-header__meta .role-badge,
+      .stage-frame[data-viewport='mobile'] .btn-signout span {
+        display: none;
+      }
+      .role-badge {
+        font-size: 0.68rem;
+        font-weight: 700;
+        color: var(--p-primary-600);
+        background: var(--p-highlight-background);
+        padding: 0.15rem 0.5rem;
+        border-radius: 999px;
+      }
+      .avatar {
+        width: 28px;
+        height: 28px;
+        border-radius: 999px;
+        background: var(--p-primary-color);
+        color: var(--p-primary-contrast);
+        font-size: 0.72rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .btn-signout,
+      .theme-toggle {
+        appearance: none;
+        border: none;
+        background: none;
+        color: var(--p-text-muted-color);
+        font: inherit;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        border-radius: 6px;
+      }
+      .theme-toggle {
+        width: 30px;
+        height: 30px;
+        justify-content: center;
+        border-radius: 999px;
+      }
+      .btn-signout {
+        font-size: 0.8rem;
+        font-weight: 600;
+        padding: 0.35rem 0.5rem;
+      }
+      .btn-signout .ic,
+      .theme-toggle .ic {
+        width: 16px;
+        height: 16px;
+      }
+      .app-content {
+        flex: 1;
+        padding: 1.25rem 1.5rem 1.75rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        min-width: 0;
+      }
+      .stage-frame[data-viewport='mobile'] .app-content {
+        padding: 1rem;
+      }
+      .ic {
+        width: 16px;
+        height: 16px;
+        flex: 0 0 auto;
+      }
+
+      /* ===== shared bits ===== */
+      .muted {
+        color: var(--p-text-muted-color);
+      }
+      .num {
+        font-variant-numeric: tabular-nums;
+      }
+      .btn {
+        appearance: none;
+        border: 1px solid transparent;
+        font: inherit;
+        font-size: 0.84rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.45rem 0.85rem;
+        border-radius: 6px;
+        cursor: pointer;
+      }
+      .btn:focus-visible,
+      .seg button:focus-visible,
+      .select:focus-visible,
+      .row-sel:focus-visible,
+      input:focus-visible,
+      textarea:focus-visible {
+        outline: 2px solid var(--p-primary-color);
+        outline-offset: 2px;
+      }
+      .btn--primary {
+        background: var(--p-primary-color);
+        color: var(--p-primary-contrast);
+      }
+      .btn--primary:hover {
+        background: var(--p-primary-600);
+      }
+      .btn--info {
+        background: var(--p-info-color);
+        color: #fff;
+      }
+      .btn--outline {
+        background: transparent;
+        border-color: var(--p-content-border-color);
+        color: var(--p-text-color);
+      }
+      .btn--outline:hover {
+        background: var(--p-content-hover-background);
+      }
+      .btn--danger-outline {
+        background: transparent;
+        border-color: var(--p-danger-color);
+        color: var(--p-danger-color);
+      }
+      .btn--text {
+        background: none;
+        color: var(--p-primary-color);
+        padding-inline: 0.3rem;
+      }
+      .btn[disabled] {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+      .tag {
+        font-size: 0.68rem;
+        font-weight: 700;
+        padding: 0.12rem 0.45rem;
+        border-radius: 999px;
+        background: var(--p-muted-bg);
+        color: var(--p-text-muted-color);
+        white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+      }
+      .tag--ok {
+        background: var(--p-success-bg);
+        color: var(--p-success-color);
+      }
+      .tag--bad {
+        background: var(--p-danger-bg);
+        color: var(--p-danger-color);
+      }
+      .tag--warn {
+        background: var(--p-warn-bg);
+        color: var(--p-warn-color);
+      }
+      .tag--info {
+        background: var(--p-info-bg);
+        color: var(--p-info-color);
+      }
+      .tag--primary {
+        background: var(--p-highlight-background);
+        color: var(--p-primary-600);
+      }
+      .select,
+      .input,
+      .textarea {
+        font: inherit;
+        font-size: 0.84rem;
+        color: var(--p-text-color);
+        background: var(--p-content-background);
+        border: 1px solid var(--p-content-border-color);
+        border-radius: 6px;
+        padding: 0.42rem 0.65rem;
+        max-width: 100%;
+      }
+      .textarea {
+        width: 100%;
+        min-height: 84px;
+        resize: vertical;
+      }
+      .field-label {
+        display: block;
+        font-size: 0.76rem;
+        font-weight: 600;
+        color: var(--p-text-muted-color);
+        margin-bottom: 0.3rem;
+      }
+      .seg {
+        display: inline-flex;
+        border: 1px solid var(--p-content-border-color);
+        border-radius: 6px;
+        overflow: hidden;
+      }
+      .seg button {
+        appearance: none;
+        border: none;
+        border-right: 1px solid var(--p-content-border-color);
+        background: var(--p-content-background);
+        color: var(--p-text-color);
+        font: inherit;
+        font-size: 0.78rem;
+        font-weight: 600;
+        padding: 0.32rem 0.6rem;
+        cursor: pointer;
+      }
+      .seg button:last-child {
+        border-right: none;
+      }
+      .seg button[aria-pressed='true'] {
+        background: var(--p-primary-color);
+        color: var(--p-primary-contrast);
+      }
+      .seg--keep button[aria-pressed='true'][data-v='keep'] {
+        background: var(--p-success-color);
+        color: #fff;
+      }
+      .seg--keep button[aria-pressed='true'][data-v='mask'] {
+        background: var(--p-text-color);
+        color: var(--p-content-background);
+      }
+      .card {
+        border: 1px solid var(--p-content-border-color);
+        border-radius: 10px;
+        background: var(--p-content-background);
+      }
+      .card__head {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid var(--p-content-border-color);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+      }
+      .card__head h3 {
+        margin: 0;
+        font-size: 0.92rem;
+        font-weight: 700;
+      }
+      .card__body {
+        padding: 1rem;
+      }
+      .callout {
+        display: flex;
+        gap: 0.7rem;
+        padding: 0.75rem 0.9rem;
+        border-radius: 8px;
+        font-size: 0.84rem;
+        line-height: 1.5;
+        background: var(--p-info-bg);
+        color: var(--p-text-color);
+        border: 1px solid transparent;
+      }
+      .callout .ic {
+        width: 18px;
+        height: 18px;
+        margin-top: 0.1rem;
+        color: var(--p-info-color);
+      }
+      .callout--warn {
+        background: var(--p-warn-bg);
+      }
+      .callout--warn .ic {
+        color: var(--p-warn-color);
+      }
+      .callout--bad {
+        background: var(--p-danger-bg);
+      }
+      .callout--bad .ic {
+        color: var(--p-danger-color);
+      }
+      .callout--ok {
+        background: var(--p-success-bg);
+      }
+      .callout--ok .ic {
+        color: var(--p-success-color);
+      }
+      .callout strong {
+        font-weight: 700;
+      }
+      .page-title {
+        margin: 0;
+        font-size: 1.15rem;
+        font-weight: 800;
+      }
+      .page-sub {
+        margin: 0.2rem 0 0;
+        color: var(--p-text-muted-color);
+        max-width: 70ch;
+        line-height: 1.5;
+      }
+      .actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .actions--end {
+        justify-content: flex-end;
+      }
+      .split {
+        display: grid;
+        grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+        gap: 1rem;
+        align-items: start;
+      }
+      .stage-frame[data-viewport='mobile'] .split {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .cols3 {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.75rem;
+      }
+      .stage-frame[data-viewport='mobile'] .cols3 {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .stage-frame[data-viewport='mobile'] .hide-m {
+        display: none;
+      }
+
+      /* stepper */
+      .stepper {
+        display: flex;
+        gap: 0.4rem;
+        flex-wrap: wrap;
+      }
+      .step {
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: var(--p-text-muted-color);
+        padding: 0.25rem 0.65rem 0.25rem 0.3rem;
+        border-radius: 999px;
+        border: 1px solid var(--p-content-border-color);
+      }
+      .step__n {
+        width: 20px;
+        height: 20px;
+        border-radius: 999px;
+        background: var(--p-muted-bg);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7rem;
+        font-weight: 700;
+      }
+      .step--done .step__n {
+        background: var(--p-success-bg);
+        color: var(--p-success-color);
+      }
+      .step--current {
+        color: var(--p-primary-600);
+        border-color: var(--p-primary-color);
+        background: var(--p-highlight-background);
+      }
+      .step--current .step__n {
+        background: var(--p-primary-color);
+        color: var(--p-primary-contrast);
+      }
+      .step em {
+        font-style: normal;
+        font-weight: 500;
+        opacity: 0.8;
+      }
+
+      /* import file rows */
+      .file-row {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        gap: 0.75rem;
+        align-items: start;
+        padding: 0.8rem 1rem;
+      }
+      .file-row + .file-row {
+        border-top: 1px solid var(--p-content-border-color);
+      }
+      .file-row .status {
+        width: 22px;
+        height: 22px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .file-row .status .ic {
+        width: 13px;
+        height: 13px;
+      }
+      .status--bad {
+        background: var(--p-danger-bg);
+        color: var(--p-danger-color);
+      }
+      .status--ok {
+        background: var(--p-success-bg);
+        color: var(--p-success-color);
+      }
+      .file-name {
+        font-weight: 600;
+        word-break: break-all;
+      }
+      .reason {
+        margin-top: 0.25rem;
+        color: var(--p-danger-color);
+        font-size: 0.82rem;
+        line-height: 1.45;
+      }
+      .stage-frame[data-viewport='mobile'] .file-row {
+        grid-template-columns: auto minmax(0, 1fr);
+      }
+      .stage-frame[data-viewport='mobile'] .file-row .file-cta {
+        grid-column: 2;
+      }
+
+      /* checklist */
+      .checks {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+      .checks li {
+        display: flex;
+        gap: 0.55rem;
+        align-items: flex-start;
+        line-height: 1.45;
+      }
+      .checks .ic {
+        width: 18px;
+        height: 18px;
+        margin-top: 0.05rem;
+      }
+      .checks .ok {
+        color: var(--p-success-color);
+      }
+      .checks .bad {
+        color: var(--p-danger-color);
+      }
+      .consent {
+        display: flex;
+        gap: 0.65rem;
+        align-items: flex-start;
+        padding: 0.85rem 1rem;
+        border: 1px solid var(--p-content-border-color);
+        border-radius: 8px;
+        background: var(--p-surface-2);
+        line-height: 1.5;
+      }
+      .consent input {
+        width: 18px;
+        height: 18px;
+        margin-top: 0.15rem;
+        accent-color: var(--p-primary-color);
+        flex: 0 0 auto;
+      }
+      .fact h4 {
+        margin: 0 0 0.35rem;
+        font-size: 0.82rem;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+      .fact ul {
+        margin: 0;
+        padding-left: 1.05rem;
+        color: var(--p-text-muted-color);
+        line-height: 1.55;
+        font-size: 0.82rem;
+      }
+      .fact {
+        padding: 0.85rem 1rem;
+        border: 1px solid var(--p-content-border-color);
+        border-radius: 8px;
+      }
+      .fact--stay {
+        background: var(--p-success-bg);
+        border-color: transparent;
+      }
+      .fact--stay h4 {
+        color: var(--p-success-color);
+      }
+      .fact--sent {
+        background: var(--p-info-bg);
+        border-color: transparent;
+      }
+      .fact--sent h4 {
+        color: var(--p-info-color);
+      }
+      .fact--stay ul,
+      .fact--sent ul {
+        color: var(--p-text-color);
+      }
+
+      /* sheet: the rebuilt, anonymized page */
+      .sheet-wrap {
+        overflow-x: auto;
+        border: 1px solid var(--p-content-border-color);
+        border-radius: 8px;
+        background: var(--p-surface-2);
+        padding: 0.75rem;
+      }
+      .sheet {
+        min-width: 540px;
+        background: var(--sheet-bg);
+        border: 1px solid var(--sheet-line);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+        padding: 1rem 1.1rem 1.1rem;
+        font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+        font-size: 0.74rem;
+        line-height: 1.25;
+      }
+      .sheet-title {
+        font-weight: 700;
+        margin-bottom: 0.15rem;
+        font-size: 0.8rem;
+      }
+      .sheet-meta {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        color: var(--p-text-muted-color);
+        padding-bottom: 0.45rem;
+        margin-bottom: 0.35rem;
+        border-bottom: 1px solid var(--sheet-line);
+      }
+      .srow {
+        display: grid;
+        grid-template-columns: 3rem minmax(0, 1fr) 6.2rem 6.2rem 5.2rem;
+        gap: 0.5rem;
+        padding: 0.28rem 0.3rem;
+        border-radius: 3px;
+        align-items: baseline;
+      }
+      .srow--head {
+        color: var(--p-text-muted-color);
+        font-weight: 700;
+        border-bottom: 1px solid var(--sheet-line);
+        border-radius: 0;
+        margin-bottom: 0.15rem;
+      }
+      .srow .r {
+        text-align: right;
+      }
+      .srow .chip-col {
+        text-align: right;
+        min-height: 1rem;
+      }
+      .rnd {
+        background-image: linear-gradient(to right, var(--p-text-muted-color) 40%, transparent 0);
+        background-size: 4px 1px;
+        background-repeat: repeat-x;
+        background-position: 0 100%;
+        padding-bottom: 1px;
+      }
+      .sheet--rules .srow:not(.srow--head) {
+        cursor: pointer;
+      }
+      .sheet--rules .srow:not(.srow--head):hover {
+        background: var(--p-content-hover-background);
+      }
+      .sheet--rules .srow.is-selected {
+        background: var(--p-highlight-background);
+        outline: 1px solid var(--p-primary-color);
+      }
+      .row-sel {
+        appearance: none;
+        border: none;
+        background: none;
+        font: inherit;
+        color: inherit;
+        padding: 0;
+        text-align: left;
+        cursor: pointer;
+        display: contents;
+      }
+      .col-pick {
+        background: var(--p-highlight-background);
+        outline: 1px dashed var(--p-primary-color);
+        border-radius: 2px;
+      }
+      .unk {
+        border-radius: 3px;
+        padding: 0 0.15rem;
+        cursor: pointer;
+        font: inherit;
+        border: 0;
+        color: inherit;
+      }
+      .unk--pending {
+        background: var(--p-warn-bg);
+        outline: 1px dashed var(--p-warn-color);
+      }
+      .unk--keep {
+        background: var(--p-success-bg);
+      }
+      .unk--pii {
+        background: var(--p-text-muted-color);
+        color: transparent;
+        user-select: none;
+        border-radius: 3px;
+        padding: 0 0.15rem;
+        cursor: default;
+        letter-spacing: -0.05em;
+      }
+      .unk--mask {
+        background: var(--p-muted-bg);
+        letter-spacing: 0.04em;
+      }
+      .legend {
+        display: flex;
+        gap: 0.85rem;
+        flex-wrap: wrap;
+        font-size: 0.76rem;
+        color: var(--p-text-muted-color);
+        align-items: center;
+      }
+      .legend i {
+        display: inline-block;
+        width: 14px;
+        height: 10px;
+        border-radius: 2px;
+        vertical-align: -1px;
+        margin-right: 0.3rem;
+      }
+
+      /* word decisions */
+      .word-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.6rem 0.9rem;
+        flex-wrap: wrap;
+      }
+      .word-row + .word-row {
+        border-top: 1px solid var(--p-content-border-color);
+      }
+      .word-row .w {
+        font-family: ui-monospace, Menlo, Consolas, monospace;
+        font-weight: 600;
+        word-break: break-all;
+      }
+      .word-row .ctx {
+        display: block;
+        font-size: 0.74rem;
+        color: var(--p-text-muted-color);
+        font-weight: 400;
+        font-family: 'Inter', system-ui, sans-serif;
+      }
+      .progress {
+        height: 6px;
+        border-radius: 999px;
+        background: var(--p-muted-bg);
+        overflow: hidden;
+      }
+      .progress > span {
+        display: block;
+        height: 100%;
+        background: var(--p-primary-color);
+        width: 0;
+        transition: width 0.2s;
+      }
+
+      /* rules panel */
+      .figchip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-family: 'Inter', system-ui, sans-serif;
+        font-size: 0.64rem;
+        font-weight: 700;
+        padding: 0.08rem 0.4rem;
+        border-radius: 999px;
+        background: var(--p-highlight-background);
+        color: var(--p-primary-600);
+      }
+      .figchip--ignore {
+        background: var(--p-muted-bg);
+        color: var(--p-text-muted-color);
+      }
+      .calc {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.82rem;
+      }
+      .calc td {
+        padding: 0.28rem 0;
+      }
+      .calc td:last-child {
+        text-align: right;
+      }
+      .calc tr.sum td {
+        border-top: 1px solid var(--p-content-border-color);
+        font-weight: 700;
+        padding-top: 0.4rem;
+      }
+      .check-line {
+        display: flex;
+        gap: 0.5rem;
+        align-items: flex-start;
+        padding: 0.55rem 0.7rem;
+        border-radius: 8px;
+        font-size: 0.82rem;
+        line-height: 1.45;
+      }
+      .check-line + .check-line {
+        margin-top: 0.4rem;
+      }
+      .check-line .ic {
+        width: 17px;
+        height: 17px;
+        margin-top: 0.05rem;
+      }
+      .check--ok {
+        background: var(--p-success-bg);
+      }
+      .check--ok .ic {
+        color: var(--p-success-color);
+      }
+      .check--bad {
+        background: var(--p-danger-bg);
+      }
+      .check--bad .ic {
+        color: var(--p-danger-color);
+      }
+      .hl-bad {
+        box-shadow: inset 0 -2px 0 var(--p-danger-color);
+      }
+      .device-note {
+        display: flex;
+        gap: 0.4rem;
+        align-items: center;
+        font-size: 0.74rem;
+        color: var(--p-text-muted-color);
+      }
+      .device-note .ic {
+        width: 13px;
+        height: 13px;
+      }
+
+      /* tables */
+      .tbl-wrap {
+        overflow-x: auto;
+      }
+      table.tbl {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.84rem;
+        min-width: 640px;
+      }
+      .tbl th {
+        text-align: left;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        color: var(--p-text-muted-color);
+        padding: 0.6rem 0.9rem;
+        border-bottom: 1px solid var(--p-content-border-color);
+        background: var(--p-surface-2);
+        white-space: nowrap;
+      }
+      .tbl td {
+        padding: 0.65rem 0.9rem;
+        border-bottom: 1px solid var(--p-content-border-color);
+        vertical-align: middle;
+      }
+      .tbl tbody tr:hover {
+        background: var(--p-content-hover-background);
+      }
+      .tbl tr.is-new td:first-child {
+        box-shadow: inset 3px 0 0 var(--p-primary-color);
+      }
+      .tabs {
+        display: flex;
+        gap: 0.2rem;
+        border-bottom: 1px solid var(--p-content-border-color);
+        overflow-x: auto;
+      }
+      .tab {
+        padding: 0.6rem 0.9rem;
+        font-weight: 600;
+        color: var(--p-text-muted-color);
+        border-bottom: 2px solid transparent;
+        white-space: nowrap;
+        display: inline-flex;
+        gap: 0.4rem;
+        align-items: center;
+      }
+      .tab--active {
+        color: var(--p-primary-color);
+        border-bottom-color: var(--p-primary-color);
+      }
+      .kv {
+        display: grid;
+        grid-template-columns: max-content 1fr;
+        gap: 0.35rem 1rem;
+        font-size: 0.84rem;
+      }
+      .kv dt {
+        color: var(--p-text-muted-color);
+      }
+      .kv dd {
+        margin: 0;
+        word-break: break-word;
+      }
+      .mono {
+        font-family: ui-monospace, Menlo, Consolas, monospace;
+        font-size: 0.78rem;
+      }
+      .backlink {
+        display: inline-flex;
+        gap: 0.35rem;
+        align-items: center;
+        color: var(--p-primary-color);
+        font-weight: 600;
+        font-size: 0.84rem;
+      }
+
+      /* e-mail */
+      .mail-stage {
+        padding: 1.5rem 1rem 2rem;
+        background: var(--p-surface-2);
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+        align-items: center;
+      }
+      .mail {
+        width: 100%;
+        max-width: 560px;
+        background: var(--p-content-background);
+        border: 1px solid var(--p-content-border-color);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .mail__head {
+        padding: 0.8rem 1rem;
+        border-bottom: 1px solid var(--p-content-border-color);
+        background: var(--p-muted-bg);
+        font-size: 0.78rem;
+        color: var(--p-text-muted-color);
+        line-height: 1.6;
+      }
+      .mail__head b {
+        color: var(--p-text-color);
+      }
+      .mail__body {
+        padding: 1.1rem 1.1rem 1.25rem;
+        line-height: 1.6;
+      }
+      .mail__body p {
+        margin: 0 0 0.8rem;
+        text-wrap: pretty;
+      }
+      .mail__note {
+        padding: 0.6rem 1rem;
+        border-top: 1px dashed var(--p-content-border-color);
+        font-size: 0.74rem;
+        color: var(--p-text-muted-color);
+        display: flex;
+        gap: 0.4rem;
+        align-items: center;
+      }
+      .mail__label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: var(--p-text-muted-color);
+        align-self: flex-start;
+        max-width: 560px;
+        width: 100%;
+        margin: 0 auto -0.6rem;
+      }
+    </style>
+  </head>
+  <body>
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <defs>
+        <symbol
+          id="i-check"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.4"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M5 13l4 4L19 7" />
+        </symbol>
+        <symbol
+          id="i-x"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.4"
+          stroke-linecap="round"
+        >
+          <path d="M6 6l12 12M18 6L6 18" />
+        </symbol>
+        <symbol
+          id="i-alert"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"
+          />
+        </symbol>
+        <symbol
+          id="i-info"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+        >
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 11v5M12 8h.01" />
+        </symbol>
+        <symbol
+          id="i-lock"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <rect x="5" y="11" width="14" height="10" rx="2" />
+          <path d="M8 11V7a4 4 0 018 0v4" />
+        </symbol>
+        <symbol
+          id="i-upload"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M12 16V4M7 9l5-5 5 5M4 20h16" />
+        </symbol>
+        <symbol
+          id="i-download"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M12 4v12M7 11l5 5 5-5M4 20h16" />
+        </symbol>
+        <symbol
+          id="i-mail"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <rect x="3" y="5" width="18" height="14" rx="2" />
+          <path d="M3 7l9 7 9-7" />
+        </symbol>
+        <symbol id="i-grid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7" rx="1.5" />
+          <rect x="14" y="3" width="7" height="7" rx="1.5" />
+          <rect x="3" y="14" width="7" height="7" rx="1.5" />
+          <rect x="14" y="14" width="7" height="7" rx="1.5" />
+        </symbol>
+        <symbol
+          id="i-wallet"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="M3 7h16a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7zm0 0V6a2 2 0 012-2h11M16 14h2"
+          />
+        </symbol>
+        <symbol
+          id="i-trend"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M3 17l6-6 4 4 8-8M15 7h6v6" />
+        </symbol>
+        <symbol
+          id="i-sliders"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+        >
+          <path d="M4 6h10M18 6h2M4 12h2M10 12h10M4 18h12M20 18h0" />
+          <circle cx="16" cy="6" r="2" />
+          <circle cx="8" cy="12" r="2" />
+          <circle cx="18" cy="18" r="2" />
+        </symbol>
+        <symbol
+          id="i-shield"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linejoin="round"
+        >
+          <path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z" />
+        </symbol>
+        <symbol
+          id="i-sun"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+        >
+          <circle cx="12" cy="12" r="4" />
+          <path
+            d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"
+          />
+        </symbol>
+        <symbol
+          id="i-signout"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" />
+        </symbol>
+        <symbol
+          id="i-back"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M15 6l-6 6 6 6" />
+        </symbol>
+        <symbol
+          id="i-file"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linejoin="round"
+        >
+          <path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8l-5-5zM14 3v5h5" />
+        </symbol>
+      </defs>
+    </svg>
+
+    <header class="review-header">
+      <p class="review-eyebrow">Non-functional review mockup</p>
+      <h1>Parser Requests Review</h1>
+      <p>
+        Static mockup of the request flow (user), the Requests tab (administrator) and the
+        notification e-mail. All data is invented. Switch screens below; the amber-marked words, the
+        line assignment on "3 Mark rules" and the consent box are clickable so you can feel the
+        flow.
+      </p>
+    </header>
+
+    <div class="review-controls">
+      <div class="control-group">
+        <span class="label">Viewport</span>
+        <div class="segmented" id="viewport-toggle">
+          <button type="button" data-viewport="desktop" aria-pressed="true">Desktop</button>
+          <button type="button" data-viewport="mobile" aria-pressed="false">Mobile</button>
+        </div>
+      </div>
+      <div class="control-group">
+        <span class="label">Theme</span>
+        <div class="segmented" id="theme-toggle">
+          <button type="button" data-theme-set="light" aria-pressed="true">Light</button>
+          <button type="button" data-theme-set="dark" aria-pressed="false">Dark</button>
+        </div>
+      </div>
+      <div class="control-group">
+        <span class="label">Screen</span>
+        <div class="segmented" id="screen-toggle">
+          <button type="button" data-screen="import" aria-pressed="true">Import: rejected</button>
+          <button type="button" data-screen="consent" aria-pressed="false">1 Consent</button>
+          <button type="button" data-screen="refused" aria-pressed="false">
+            Refused (scan etc.)
+          </button>
+          <button type="button" data-screen="words" aria-pressed="false">2 Review words</button>
+          <button type="button" data-screen="rules" aria-pressed="false">3 Mark rules</button>
+          <button type="button" data-screen="confirm" aria-pressed="false">
+            4 Preview &amp; send
+          </button>
+          <button type="button" data-screen="submitted" aria-pressed="false">Sent</button>
+          <button type="button" data-screen="admin-list" aria-pressed="false">
+            Admin: Requests
+          </button>
+          <button type="button" data-screen="admin-detail" aria-pressed="false">
+            Admin: Detail
+          </button>
+          <button type="button" data-screen="mail" aria-pressed="false">E-mails</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="review-stage">
+      <div class="stage-frame" id="stage-frame" data-viewport="desktop">
+        <p class="stage-frame-label" id="stage-frame-label">Desktop (≥1024px)</p>
+        <div class="canvas" id="canvas" data-screen="import" data-theme="light">
+          <!-- ============ app shell ============ -->
+          <div class="app-shell">
+            <nav class="app-sidebar" aria-label="Primary">
+              <div class="app-brand">
+                <span class="app-brand__mark"></span><span class="app-brand__name">Vaultfolio</span>
+              </div>
+              <div class="app-nav">
+                <span class="app-nav__item"
+                  ><svg class="ic"><use href="#i-grid" /></svg><span>Dashboard</span></span
+                >
+                <span class="app-nav__item"
+                  ><svg class="ic"><use href="#i-wallet" /></svg><span>Holdings</span></span
+                >
+                <span class="app-nav__item" data-area="earnings"
+                  ><svg class="ic"><use href="#i-trend" /></svg><span>Earnings</span></span
+                >
+                <span class="app-nav__item"
+                  ><svg class="ic"><use href="#i-sliders" /></svg><span>Settings</span></span
+                >
+                <span class="app-nav__item" data-area="admin"
+                  ><svg class="ic"><use href="#i-shield" /></svg><span>Administration</span></span
+                >
+              </div>
+            </nav>
+            <div class="app-main">
+              <div class="app-header">
+                <div>
+                  <p class="app-header__crumb" id="hdr-crumb">Earnings</p>
+                  <h2 class="app-header__title" id="hdr-title">Import documents</h2>
+                </div>
+                <div class="app-header__meta">
+                  <span class="meta-name" id="hdr-user">Mira Keller</span>
+                  <span class="role-badge" id="hdr-role">Member</span>
+                  <span class="avatar" id="hdr-avatar">MK</span>
+                  <button type="button" class="theme-toggle" aria-label="Switch theme">
+                    <svg class="ic"><use href="#i-sun" /></svg>
+                  </button>
+                  <button type="button" class="btn-signout">
+                    <svg class="ic"><use href="#i-signout" /></svg><span>Sign out</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="app-content">
+                <!-- ====== Import: rejected file → CTA ====== -->
+                <div data-show="import">
+                  <div style="display: flex; flex-direction: column; gap: 1rem">
+                    <div>
+                      <h3 class="page-title">3 files read</h3>
+                      <p class="page-sub">
+                        Nothing is saved until you confirm. One file is not supported yet.
+                      </p>
+                    </div>
+                    <div class="card">
+                      <div class="file-row">
+                        <span class="status status--ok"
+                          ><svg class="ic"><use href="#i-check" /></svg
+                        ></span>
+                        <div>
+                          <div class="file-name">Entgeltnachweis_2026-08.pdf</div>
+                          <div class="muted">SAP payslip · Aug 2026 · all checks passed</div>
+                        </div>
+                        <span class="tag tag--ok">New</span>
+                      </div>
+                      <div class="file-row" data-testid-note="rejected-check">
+                        <span class="status status--bad"
+                          ><svg class="ic"><use href="#i-x" /></svg
+                        ></span>
+                        <div>
+                          <div class="file-name">Lohnabrechnung_Mai.pdf</div>
+                          <div class="reason">
+                            Rejected: gross − taxes − social insurance = net does not add up for May
+                            2026 (difference 12.40 €).
+                          </div>
+                          <div class="muted" style="margin-top: 0.25rem; font-size: 0.78rem">
+                            A failed check is corrected in the preview, not requested as a new
+                            parser.
+                          </div>
+                        </div>
+                        <span class="tag tag--bad">Rejected</span>
+                      </div>
+                      <div class="file-row">
+                        <span class="status status--bad"
+                          ><svg class="ic"><use href="#i-x" /></svg
+                        ></span>
+                        <div>
+                          <div class="file-name">Abrechnung_Muster-Logistik_2026-09.pdf</div>
+                          <div class="reason">
+                            Rejected: format not supported yet. This layout is not recognized by any
+                            parser.
+                          </div>
+                          <div
+                            class="muted"
+                            style="margin-top: 0.35rem; font-size: 0.82rem; line-height: 1.5"
+                          >
+                            You can ask for support for this format. You send an anonymized copy of
+                            the layout, never your real figures or personal data.
+                          </div>
+                        </div>
+                        <div
+                          class="file-cta"
+                          style="
+                            display: flex;
+                            flex-direction: column;
+                            gap: 0.4rem;
+                            align-items: flex-end;
+                          "
+                        >
+                          <span class="tag tag--bad">Rejected</span>
+                          <button
+                            type="button"
+                            class="btn btn--primary"
+                            data-goto="consent"
+                            data-testid="request-parser-button"
+                          >
+                            <svg class="ic"><use href="#i-upload" /></svg>Request a parser
+                          </button>
+                        </div>
+                      </div>
+                      <div class="file-row">
+                        <span class="status status--bad"
+                          ><svg class="ic"><use href="#i-x" /></svg
+                        ></span>
+                        <div>
+                          <div class="file-name">Scan_Abrechnung.pdf</div>
+                          <div class="reason">
+                            Rejected: format not supported yet. This looks like a scanned document
+                            without text. Scans can be processed with the companion tool and
+                            imported through its export file.
+                          </div>
+                          <div class="muted" style="margin-top: 0.25rem; font-size: 0.78rem">
+                            No request offered: scans cannot be rebuilt as text.
+                          </div>
+                        </div>
+                        <span class="tag tag--bad">Rejected</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ====== stepper (shared by wizard screens) ====== -->
+                <div data-show="consent words rules confirm">
+                  <div style="display: flex; flex-direction: column; gap: 0.35rem">
+                    <h3 class="page-title">Request a parser</h3>
+                    <div class="stepper" id="stepper"></div>
+                  </div>
+                </div>
+
+                <!-- ====== 1 Consent ====== -->
+                <div data-show="consent">
+                  <div style="display: flex; flex-direction: column; gap: 1rem">
+                    <p class="page-sub" style="margin: 0">
+                      Administrators can build support for your payslip format if they see how it is
+                      laid out. You decide what they get to see, and you check it before anything is
+                      sent.
+                    </p>
+                    <div class="cols3">
+                      <div class="fact fact--stay">
+                        <h4>
+                          <svg class="ic"><use href="#i-lock" /></svg>Stays on your device
+                        </h4>
+                        <ul>
+                          <li>Your original PDF</li>
+                          <li>Its text and your real amounts</li>
+                          <li>Names, address, IDs, IBAN (removed from the copy)</li>
+                        </ul>
+                      </div>
+                      <div class="fact fact--sent">
+                        <h4>
+                          <svg class="ic"><use href="#i-upload" /></svg>Sent after you confirm
+                        </h4>
+                        <ul>
+                          <li>
+                            A rebuilt copy: same layout and labels, all amounts and dates replaced
+                            by random values
+                          </li>
+                          <li>Your optional line markings (no figures)</li>
+                        </ul>
+                      </div>
+                      <div class="fact">
+                        <h4>
+                          <svg class="ic"><use href="#i-shield" /></svg>Who sees it, how long
+                        </h4>
+                        <ul>
+                          <li>Administrators of this instance</li>
+                          <li>Until handled, then deleted after 30 days</li>
+                          <li>Never sent by e-mail</li>
+                        </ul>
+                      </div>
+                    </div>
+
+                    <div class="card">
+                      <div class="card__head">
+                        <h3>Document checks (on this device)</h3>
+                        <span class="tag tag--warn">Personal data will be removed</span>
+                      </div>
+                      <div class="card__body">
+                        <div
+                          class="file-name"
+                          style="
+                            display: flex;
+                            gap: 0.5rem;
+                            align-items: center;
+                            margin-bottom: 0.75rem;
+                          "
+                        >
+                          <svg class="ic"><use href="#i-file" /></svg
+                          >Abrechnung_Muster-Logistik_2026-09.pdf
+                          <span class="muted" style="font-weight: 400">· 1 page · 41 lines</span>
+                        </div>
+                        <ul class="checks">
+                          <li>
+                            <svg class="ic ok"><use href="#i-check" /></svg
+                            ><span>Text can be read (not a scan, no password).</span>
+                          </li>
+                          <li>
+                            <svg class="ic" style="color: var(--p-warn-color)">
+                              <use href="#i-alert" /></svg
+                            ><span
+                              ><strong>Personal data found:</strong> bank account (IBAN), tax ID,
+                              postcode with city. It was found and processed only in your browser.
+                              It is removed automatically from the copy you preview next, so you do
+                              not need to redact your document first.</span
+                            >
+                          </li>
+                          <li>
+                            <svg class="ic ok"><use href="#i-check" /></svg
+                            ><span
+                              >Text hidden under black boxes was found as well and is handled the
+                              same way.</span
+                            >
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+
+                    <label class="consent" for="consent-box">
+                      <input type="checkbox" id="consent-box" data-testid="request-consent" />
+                      <span
+                        >I understand that an anonymized copy of this document's layout will be sent
+                        to the administrators. I will review it before sending, and I am responsible
+                        for the final check that it shows no personal data.</span
+                      >
+                    </label>
+                    <div class="actions actions--end">
+                      <button type="button" class="btn btn--outline" data-goto="import">
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn--primary"
+                        id="consent-next"
+                        data-goto="words"
+                        disabled
+                      >
+                        Continue to review
+                      </button>
+                    </div>
+                    <p class="muted" style="margin: 0; font-size: 0.78rem">
+                      Review-only: tick the box to enable "Continue".
+                    </p>
+                  </div>
+                </div>
+
+                <!-- ====== Refused ====== -->
+                <div data-show="refused">
+                  <div style="display: flex; flex-direction: column; gap: 1rem">
+                    <h3 class="page-title">Request a parser</h3>
+                    <div class="callout callout--bad" role="alert">
+                      <svg class="ic"><use href="#i-alert" /></svg>
+                      <div>
+                        <strong>This document cannot be used for a request.</strong><br />It looks
+                        like a scan without text. A rebuilt copy needs readable text. Scans can be
+                        processed with the companion tool and imported through its export file.
+                        Nothing was sent.
+                      </div>
+                    </div>
+                    <div class="actions">
+                      <button type="button" class="btn btn--primary" data-goto="import">
+                        Choose another file
+                      </button>
+                    </div>
+                    <div class="card">
+                      <div class="card__head">
+                        <h3>Reasons a request is refused</h3>
+                        <span class="muted">personal data is not one of them</span>
+                      </div>
+                      <div class="card__body">
+                        <ul class="checks">
+                          <li>
+                            <svg class="ic bad"><use href="#i-x" /></svg
+                            ><span>The file is a scan without text.</span>
+                          </li>
+                          <li>
+                            <svg class="ic bad"><use href="#i-x" /></svg
+                            ><span>The file is password protected or cannot be read.</span>
+                          </li>
+                          <li>
+                            <svg class="ic bad"><use href="#i-x" /></svg
+                            ><span
+                              >The document has more than 3 pages. Send only the pages that show the
+                              layout.</span
+                            >
+                          </li>
+                          <li>
+                            <svg class="ic bad"><use href="#i-x" /></svg
+                            ><span
+                              >You already have 3 open requests, or reached today's limit of 5. Try
+                              again later.</span
+                            >
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ====== 2 Review words ====== -->
+                <div data-show="words">
+                  <div style="display: flex; flex-direction: column; gap: 1rem">
+                    <div class="callout callout--warn" data-testid="pii-notice">
+                      <svg class="ic"><use href="#i-lock" /></svg>
+                      <div>
+                        <strong>Personal data was found and removed.</strong> A bank account (IBAN),
+                        a tax ID and a postcode with city were found. They were processed only in
+                        your browser and are replaced by grey blocks in this preview, so they will
+                        not be sent. Please check the preview yourself before you continue.
+                      </div>
+                    </div>
+                    <p class="page-sub" style="margin: 0">
+                      Amounts, dates and numbers are replaced as well. Words the system does not
+                      know could be a name or an address. Decide for each marked word: keep it as a
+                      label, or mask it.
+                    </p>
+                    <div class="split">
+                      <div style="display: flex; flex-direction: column; gap: 0.5rem; min-width: 0">
+                        <div class="legend">
+                          <span
+                            ><i
+                              style="
+                                background: var(--p-warn-bg);
+                                outline: 1px dashed var(--p-warn-color);
+                              "
+                            ></i
+                            >Needs your decision</span
+                          >
+                          <span><i style="background: var(--p-success-bg)"></i>Kept</span>
+                          <span><i style="background: var(--p-muted-bg)"></i>Masked</span>
+                          <span
+                            ><i style="background: var(--p-text-muted-color)"></i>Personal data,
+                            removed</span
+                          >
+                          <span><span class="rnd">1.234,56</span> replaced value</span>
+                        </div>
+                        <div class="sheet-wrap"><div class="sheet" id="sheet-words"></div></div>
+                      </div>
+                      <div class="card">
+                        <div class="card__head">
+                          <h3>Marked words</h3>
+                          <span class="muted num" id="words-count">0 of 4 decided</span>
+                        </div>
+                        <div style="padding: 0.5rem 1rem 0">
+                          <div class="progress"><span id="words-bar"></span></div>
+                        </div>
+                        <div id="word-list" style="margin-top: 0.5rem"></div>
+                      </div>
+                    </div>
+                    <div class="actions actions--end">
+                      <button type="button" class="btn btn--outline" data-goto="consent">
+                        Back
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn--primary"
+                        id="words-next"
+                        data-goto="rules"
+                        disabled
+                        data-testid="words-continue"
+                      >
+                        Continue
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ====== 3 Mark rules ====== -->
+                <div data-show="rules">
+                  <div style="display: flex; flex-direction: column; gap: 1rem">
+                    <div class="callout">
+                      <svg class="ic"><use href="#i-info" /></svg>
+                      <div>
+                        <strong>Optional.</strong> Click a line and say what it is. This helps the
+                        developer build the parser faster. Your markings are sent as hints only
+                        (labels, positions, formats, never figures) and are not used to read any
+                        document.
+                      </div>
+                    </div>
+                    <div class="split">
+                      <div style="display: flex; flex-direction: column; gap: 0.5rem; min-width: 0">
+                        <div class="sheet-wrap">
+                          <div class="sheet sheet--rules" id="sheet-rules"></div>
+                        </div>
+                      </div>
+                      <div style="display: flex; flex-direction: column; gap: 1rem; min-width: 0">
+                        <div class="card">
+                          <div class="card__head">
+                            <h3>Selected line</h3>
+                            <span class="mono muted" id="sel-label">Lohnsteuer</span>
+                          </div>
+                          <div
+                            class="card__body"
+                            style="display: flex; flex-direction: column; gap: 0.8rem"
+                          >
+                            <div>
+                              <label class="field-label" for="fig-type">This line is</label>
+                              <select class="select" id="fig-type" style="width: 100%">
+                                <option value="">Not marked</option>
+                                <option value="gross">Gross</option>
+                                <option value="taxGross">Tax gross</option>
+                                <option value="wageTax">Wage tax</option>
+                                <option value="soli">Solidarity surcharge</option>
+                                <option value="churchTax">Church tax</option>
+                                <option value="health">Health insurance</option>
+                                <option value="care">Long-term care insurance</option>
+                                <option value="pension">Pension insurance</option>
+                                <option value="unemployment">Unemployment insurance</option>
+                                <option value="net">Statutory net</option>
+                                <option value="payout">Payout</option>
+                                <option value="ignore">Ignore</option>
+                              </select>
+                            </div>
+                            <div style="display: flex; gap: 1rem; flex-wrap: wrap">
+                              <div>
+                                <span class="field-label">Sign</span>
+                                <div class="seg" id="sign-seg">
+                                  <button type="button" aria-pressed="true">Deduction</button
+                                  ><button type="button" aria-pressed="false">Addition</button>
+                                </div>
+                              </div>
+                              <div>
+                                <span class="field-label">Number column</span>
+                                <div class="seg" id="col-seg">
+                                  <button type="button" aria-pressed="true" data-col="amt">
+                                    Amount</button
+                                  ><button type="button" aria-pressed="false" data-col="ytd">
+                                    Year to date
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                            <div>
+                              <label class="field-label" for="fmt">Number format</label>
+                              <select class="select" id="fmt" style="width: 100%">
+                                <option>1.234,56</option>
+                                <option>123456 (cents, no separator)</option>
+                                <option>1.234,56- (trailing minus)</option>
+                              </select>
+                            </div>
+                            <div class="muted" style="font-size: 0.78rem">
+                              Period (month) printed in the header:
+                              <span class="tag tag--primary">marked: "Abrechnungsmonat"</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="card">
+                          <div class="card__head">
+                            <h3>Live check</h3>
+                            <span class="tag tag--ok" id="live-tag">All checks pass</span>
+                          </div>
+                          <div class="card__body">
+                            <div class="device-note" style="margin-bottom: 0.6rem">
+                              <svg class="ic"><use href="#i-lock" /></svg>Calculated on this device
+                              from your original amounts. These amounts are never sent.
+                            </div>
+                            <table class="calc num">
+                              <tr>
+                                <td>Gross</td>
+                                <td>4.800,00 €</td>
+                              </tr>
+                              <tr>
+                                <td>− Taxes (wage tax, solidarity, church)</td>
+                                <td id="calc-tax">732,98 €</td>
+                              </tr>
+                              <tr>
+                                <td>− Social insurance</td>
+                                <td>942,00 €</td>
+                              </tr>
+                              <tr class="sum">
+                                <td>= Statutory net</td>
+                                <td>3.125,02 €</td>
+                              </tr>
+                            </table>
+                            <div id="live-lines" style="margin-top: 0.7rem">
+                              <div class="check-line check--ok">
+                                <svg class="ic"><use href="#i-check" /></svg>
+                                <div>
+                                  <strong>Net check</strong> passes: gross − taxes − social
+                                  insurance equals the marked net line.
+                                </div>
+                              </div>
+                              <div class="check-line check--ok">
+                                <svg class="ic"><use href="#i-check" /></svg>
+                                <div><strong>Payout check</strong> passes: payout equals net.</div>
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              class="btn btn--text"
+                              id="toggle-fail"
+                              style="margin-top: 0.5rem"
+                            >
+                              Review only: show a failing mapping
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="actions actions--end">
+                      <button type="button" class="btn btn--outline" data-goto="words">Back</button>
+                      <button type="button" class="btn btn--text" data-goto="confirm">
+                        Skip markings
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn--primary"
+                        data-goto="confirm"
+                        data-testid="rules-continue"
+                      >
+                        Continue
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ====== 4 Preview & send ====== -->
+                <div data-show="confirm">
+                  <div style="display: flex; flex-direction: column; gap: 1rem">
+                    <div class="callout callout--ok">
+                      <svg class="ic"><use href="#i-check" /></svg>
+                      <div>
+                        <strong>This is exactly what the administrators will receive.</strong> The
+                        PDF is rebuilt from this layout on the server; your original is never sent.
+                      </div>
+                    </div>
+                    <div class="split">
+                      <div class="sheet-wrap"><div class="sheet" id="sheet-final"></div></div>
+                      <div style="display: flex; flex-direction: column; gap: 1rem; min-width: 0">
+                        <div class="card">
+                          <div class="card__head"><h3>Summary</h3></div>
+                          <div class="card__body">
+                            <dl class="kv">
+                              <dt>Pages</dt>
+                              <dd>1</dd>
+                              <dt>Words kept</dt>
+                              <dd id="sum-keep">0</dd>
+                              <dt>Words masked</dt>
+                              <dd id="sum-mask">0</dd>
+                              <dt>Personal data</dt>
+                              <dd>3 kinds removed automatically</dd>
+                              <dt>Values replaced</dt>
+                              <dd>All amounts, dates, numbers</dd>
+                              <dt>Rule hints</dt>
+                              <dd>11 lines marked <span class="muted">(optional)</span></dd>
+                              <dt>Consent</dt>
+                              <dd>Given for this request</dd>
+                            </dl>
+                          </div>
+                        </div>
+                        <div class="actions" style="justify-content: flex-start">
+                          <button
+                            type="button"
+                            class="btn btn--primary"
+                            data-goto="submitted"
+                            data-testid="request-send"
+                          >
+                            <svg class="ic"><use href="#i-upload" /></svg>Send request
+                          </button>
+                          <button
+                            type="button"
+                            class="btn btn--danger-outline"
+                            data-goto="import"
+                            data-testid="request-discard"
+                          >
+                            Discard
+                          </button>
+                          <button type="button" class="btn btn--outline" data-goto="rules">
+                            Back
+                          </button>
+                        </div>
+                        <p class="muted" style="margin: 0; font-size: 0.78rem">
+                          Discarding sends and stores nothing.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ====== Sent ====== -->
+                <div data-show="submitted">
+                  <div style="display: flex; flex-direction: column; gap: 1rem; max-width: 640px">
+                    <div class="callout callout--ok" role="status">
+                      <svg class="ic"><use href="#i-check" /></svg>
+                      <div>
+                        <strong>Request sent.</strong> The administrators were notified. We will
+                        e-mail you when your format is supported, then import your document again.
+                      </div>
+                    </div>
+                    <dl class="kv card" style="padding: 1rem">
+                      <dt>Feature</dt>
+                      <dd>Earnings</dd>
+                      <dt>Request</dt>
+                      <dd>New parser</dd>
+                      <dt>Sent</dt>
+                      <dd>1 Oct 2026, 14:12</dd>
+                      <dt>Kept until</dt>
+                      <dd>It has been handled, plus 30 days</dd>
+                    </dl>
+                    <div class="actions">
+                      <button type="button" class="btn btn--primary" data-goto="import">
+                        Back to import
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ====== Admin: Requests ====== -->
+                <div data-show="admin-list admin-detail">
+                  <div class="tabs" role="tablist" aria-label="Administration">
+                    <span class="tab">Accounts</span><span class="tab">Sign-ups</span
+                    ><span class="tab">Invitations</span>
+                    <span class="tab tab--active" data-testid="admin-tab-requests"
+                      >Requests <span class="tag tag--warn">2</span></span
+                    >
+                    <span class="tab">General</span>
+                  </div>
+                </div>
+
+                <div data-show="admin-list">
+                  <div style="display: flex; flex-direction: column; gap: 1rem">
+                    <div
+                      style="
+                        display: flex;
+                        justify-content: space-between;
+                        gap: 0.75rem;
+                        flex-wrap: wrap;
+                        align-items: center;
+                      "
+                    >
+                      <div>
+                        <h3 class="page-title">Requests</h3>
+                        <p class="page-sub">Requests from all features, newest first.</p>
+                      </div>
+                      <div class="actions">
+                        <select class="select" aria-label="Filter by status">
+                          <option>All statuses</option>
+                          <option>Open</option>
+                          <option>In progress</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="card tbl-wrap">
+                      <table class="tbl" data-testid="requests-table">
+                        <thead>
+                          <tr>
+                            <th>Feature</th>
+                            <th>Request</th>
+                            <th>From</th>
+                            <th>Submitted</th>
+                            <th>Status</th>
+                            <th></th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr class="is-new">
+                            <td>Earnings</td>
+                            <td>
+                              New parser
+                              <span class="tag tag--info" title="Same layout as an open request"
+                                >Possible duplicate</span
+                              >
+                            </td>
+                            <td>mira.keller@example.org</td>
+                            <td class="num">1 Oct 2026, 14:12</td>
+                            <td><span class="tag tag--warn">Open</span></td>
+                            <td>
+                              <button
+                                type="button"
+                                class="btn btn--outline"
+                                data-goto="admin-detail"
+                                data-testid="request-open"
+                              >
+                                Open
+                              </button>
+                            </td>
+                          </tr>
+                          <tr class="is-new">
+                            <td>Earnings</td>
+                            <td>New parser</td>
+                            <td>jonas.brandt@example.org</td>
+                            <td class="num">30 Sep 2026, 09:40</td>
+                            <td><span class="tag tag--warn">Open</span></td>
+                            <td>
+                              <button
+                                type="button"
+                                class="btn btn--outline"
+                                data-goto="admin-detail"
+                              >
+                                Open
+                              </button>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>Earnings</td>
+                            <td>New parser</td>
+                            <td>a.sommer@example.org</td>
+                            <td class="num">28 Sep 2026, 16:05</td>
+                            <td><span class="tag tag--primary">In progress</span></td>
+                            <td>
+                              <button
+                                type="button"
+                                class="btn btn--outline"
+                                data-goto="admin-detail"
+                              >
+                                Open
+                              </button>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>Earnings</td>
+                            <td>New parser</td>
+                            <td>t.wolf@example.org</td>
+                            <td class="num">12 Sep 2026, 11:20</td>
+                            <td>
+                              <span class="tag tag--ok">Done</span>
+                              <span class="muted" style="font-size: 0.74rem"
+                                >sample deleted in 12 days</span
+                              >
+                            </td>
+                            <td>
+                              <button
+                                type="button"
+                                class="btn btn--outline"
+                                data-goto="admin-detail"
+                              >
+                                Open
+                              </button>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>Holdings <span class="tag">illustrative</span></td>
+                            <td>Import format</td>
+                            <td>l.hartmann@example.org</td>
+                            <td class="num">3 Sep 2026, 08:02</td>
+                            <td><span class="tag tag--bad">Rejected</span></td>
+                            <td>
+                              <button
+                                type="button"
+                                class="btn btn--outline"
+                                data-goto="admin-detail"
+                              >
+                                Open
+                              </button>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                    <p class="muted" style="margin: 0; font-size: 0.78rem">
+                      Any feature can register a request type; its requests appear in this same
+                      table without changes. "Holdings / Import format" is only an illustration of
+                      that.
+                    </p>
+                  </div>
+                </div>
+
+                <!-- ====== Admin: Detail ====== -->
+                <div data-show="admin-detail">
+                  <div style="display: flex; flex-direction: column; gap: 1rem">
+                    <div>
+                      <span class="backlink" data-goto="admin-list" role="link" tabindex="0"
+                        ><svg class="ic"><use href="#i-back" /></svg>All requests</span
+                      >
+                    </div>
+                    <div
+                      style="
+                        display: flex;
+                        justify-content: space-between;
+                        gap: 0.75rem;
+                        flex-wrap: wrap;
+                        align-items: center;
+                      "
+                    >
+                      <div>
+                        <h3 class="page-title">
+                          New parser <span class="muted" style="font-weight: 600">· Earnings</span>
+                        </h3>
+                        <p class="page-sub">
+                          Requested by mira.keller@example.org on 1 Oct 2026, 14:12
+                        </p>
+                      </div>
+                      <span class="tag tag--warn">Open</span>
+                    </div>
+                    <div class="callout callout--warn">
+                      <svg class="ic"><use href="#i-info" /></svg>
+                      <div>
+                        <strong>Possible duplicate.</strong> The layout matches request #5
+                        (jonas.brandt@example.org, 30 Sep 2026).
+                      </div>
+                    </div>
+                    <div class="split">
+                      <div style="display: flex; flex-direction: column; gap: 1rem; min-width: 0">
+                        <div class="card">
+                          <div class="card__head">
+                            <h3>Anonymized sample</h3>
+                            <button
+                              type="button"
+                              class="btn btn--info"
+                              data-testid="request-download"
+                            >
+                              <svg class="ic"><use href="#i-download" /></svg>Download PDF
+                            </button>
+                          </div>
+                          <div class="card__body">
+                            <dl class="kv">
+                              <dt>File</dt>
+                              <dd class="mono">parser-request-0007.pdf</dd>
+                              <dt>Size</dt>
+                              <dd>38 KB · 1 page</dd>
+                              <dt>SHA-256</dt>
+                              <dd class="mono">9f3a…c21e</dd>
+                              <dt>Origin</dt>
+                              <dd>
+                                Generated by the server from validated layout data. Static text
+                                only: no scripts, links or embedded files.
+                              </dd>
+                              <dt>Downloads</dt>
+                              <dd>You, 1 Oct 2026, 15:03 <span class="muted">(audit log)</span></dd>
+                            </dl>
+                          </div>
+                        </div>
+                        <div class="card">
+                          <div class="card__head">
+                            <h3>Rule hints from the user</h3>
+                            <span class="muted">not executed</span>
+                          </div>
+                          <div class="tbl-wrap">
+                            <table class="tbl" style="min-width: 520px">
+                              <thead>
+                                <tr>
+                                  <th>Line label</th>
+                                  <th>Figure</th>
+                                  <th>Sign</th>
+                                  <th>Column</th>
+                                  <th>Format</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <tr>
+                                  <td class="mono">Gesamtbrutto</td>
+                                  <td>Gross</td>
+                                  <td>+</td>
+                                  <td>Amount</td>
+                                  <td class="mono">1.234,56</td>
+                                </tr>
+                                <tr>
+                                  <td class="mono">Lohnsteuer</td>
+                                  <td>Wage tax</td>
+                                  <td>−</td>
+                                  <td>Amount</td>
+                                  <td class="mono">1.234,56</td>
+                                </tr>
+                                <tr>
+                                  <td class="mono">Krankenversicherung</td>
+                                  <td>Health</td>
+                                  <td>−</td>
+                                  <td>Amount</td>
+                                  <td class="mono">1.234,56</td>
+                                </tr>
+                                <tr>
+                                  <td class="mono">Nettoentgelt</td>
+                                  <td>Statutory net</td>
+                                  <td>+</td>
+                                  <td>Amount</td>
+                                  <td class="mono">1.234,56</td>
+                                </tr>
+                                <tr>
+                                  <td class="mono">Jobticket-Zuschuss</td>
+                                  <td>Ignore</td>
+                                  <td>+</td>
+                                  <td>Amount</td>
+                                  <td class="mono">1.234,56</td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </div>
+                          <div class="card__body" style="padding-top: 0.6rem">
+                            <span class="muted" style="font-size: 0.78rem"
+                              >5 of 11 marked lines shown. Period printed in header line
+                              "Abrechnungsmonat".</span
+                            >
+                          </div>
+                        </div>
+                      </div>
+                      <div class="card">
+                        <div class="card__head"><h3>Handling</h3></div>
+                        <div
+                          class="card__body"
+                          style="display: flex; flex-direction: column; gap: 0.8rem"
+                        >
+                          <div>
+                            <label class="field-label" for="status">Status</label>
+                            <select class="select" id="status" style="width: 100%">
+                              <option>Open</option>
+                              <option>In progress</option>
+                              <option>Done</option>
+                              <option>Rejected</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label class="field-label" for="note">Note</label>
+                            <textarea
+                              class="textarea"
+                              id="note"
+                              placeholder="Internal note for other administrators"
+                            ></textarea>
+                          </div>
+                          <p class="muted" style="margin: 0; font-size: 0.78rem; line-height: 1.5">
+                            Setting "Done" e-mails the requester to import their document again. The
+                            sample is deleted 30 days after "Done" or "Rejected".
+                          </p>
+                          <div class="actions">
+                            <button
+                              type="button"
+                              class="btn btn--primary"
+                              data-testid="request-save"
+                            >
+                              Save
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ====== E-mails (no app chrome) ====== -->
+          <div data-show="mail">
+            <div class="mail-stage">
+              <div class="mail__label">To each administrator, in their language</div>
+              <div class="mail">
+                <div class="mail__head">
+                  <b>From:</b> Vaultfolio &lt;no-reply@vaultfolio.example&gt;<br /><b>Subject:</b>
+                  New request: Earnings – New parser
+                </div>
+                <div class="mail__body">
+                  <p>Hello,</p>
+                  <p>A new request was submitted: <strong>Earnings – New parser</strong>.</p>
+                  <p>
+                    Open it in Vaultfolio to review and download the sample. You need to be signed
+                    in as an administrator.
+                  </p>
+                  <p>
+                    <span class="btn btn--primary" style="display: inline-flex">Open request</span>
+                  </p>
+                  <p class="muted mono" style="font-size: 0.72rem">
+                    https://vaultfolio.example/app/admin/requests?id=7
+                  </p>
+                </div>
+                <div class="mail__note">
+                  <svg class="ic"><use href="#i-lock" /></svg>No attachment. No sample content,
+                  figures or names in the e-mail.
+                </div>
+              </div>
+              <div class="mail__label">To the requester when set to Done</div>
+              <div class="mail">
+                <div class="mail__head">
+                  <b>From:</b> Vaultfolio &lt;no-reply@vaultfolio.example&gt;<br /><b>Subject:</b>
+                  Your parser request is done
+                </div>
+                <div class="mail__body">
+                  <p>Hello,</p>
+                  <p>
+                    The payslip format you requested is now supported. Please import your document
+                    again in Earnings.
+                  </p>
+                  <p>
+                    <span class="btn btn--primary" style="display: inline-flex"
+                      >Go to Earnings import</span
+                    >
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="review-footer">
+      <h3>Out of scope for this mockup</h3>
+      <ul>
+        <li>
+          Real PDF rendering: the sheet approximates the rebuilt page (static text at original
+          positions). Fonts and exact positions come from the shared renderer.
+        </li>
+        <li>
+          German texts: the mockup is English only; every string exists in English and German in the
+          implementation (FR-045).
+        </li>
+        <li>
+          Validation and storage rules (strict schema, server-side personal-data scan, retention
+          sweep, request limits) are behaviour, not layout.
+        </li>
+        <li>Words of the sheet are invented. Marked words are three-way: pending, kept, masked.</li>
+      </ul>
+      <h3>Visual language</h3>
+      <p>
+        Approximates the PrimeNG Aura preset, using the same tokens as the Earnings mockup (032).
+        Exact tokens come from the app theme at implementation time.
+      </p>
+    </footer>
+
+    <script>
+      const canvas = document.getElementById('canvas');
+      const stageFrame = document.getElementById('stage-frame');
+      const stageLabel = document.getElementById('stage-frame-label');
+
+      const SCREENS = {
+        import: { area: 'earnings', crumb: 'Earnings', title: 'Import documents', admin: false },
+        consent: { area: 'earnings', crumb: 'Earnings', title: 'Request a parser', admin: false },
+        refused: { area: 'earnings', crumb: 'Earnings', title: 'Request a parser', admin: false },
+        words: { area: 'earnings', crumb: 'Earnings', title: 'Request a parser', admin: false },
+        rules: { area: 'earnings', crumb: 'Earnings', title: 'Request a parser', admin: false },
+        confirm: { area: 'earnings', crumb: 'Earnings', title: 'Request a parser', admin: false },
+        submitted: { area: 'earnings', crumb: 'Earnings', title: 'Request a parser', admin: false },
+        'admin-list': { area: 'admin', crumb: 'Vaultfolio', title: 'Administration', admin: true },
+        'admin-detail': {
+          area: 'admin',
+          crumb: 'Administration / Requests',
+          title: 'Administration',
+          admin: true,
+        },
+        mail: { area: null, admin: true },
+      };
+
+      function setScreen(name) {
+        canvas.setAttribute('data-screen', name);
+        document
+          .querySelectorAll('#screen-toggle button')
+          .forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.screen === name)));
+        const s = SCREENS[name];
+        if (s.area) {
+          document.getElementById('hdr-crumb').textContent = s.crumb;
+          document.getElementById('hdr-title').textContent = s.title;
+          document.getElementById('hdr-user').textContent = s.admin
+            ? 'Markus Allwang'
+            : 'Mira Keller';
+          document.getElementById('hdr-role').textContent = s.admin ? 'Admin' : 'Member';
+          document.getElementById('hdr-avatar').textContent = s.admin ? 'MA' : 'MK';
+          document
+            .querySelectorAll('.app-nav__item[data-area]')
+            .forEach((n) => n.classList.toggle('app-nav__item--active', n.dataset.area === s.area));
+        }
+        renderStepper(name);
+      }
+
+      document.getElementById('viewport-toggle').addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-viewport]');
+        if (!btn) return;
+        const v = btn.dataset.viewport;
+        stageFrame.setAttribute('data-viewport', v);
+        stageLabel.textContent = v === 'mobile' ? 'Mobile (≈400px)' : 'Desktop (≥1024px)';
+        document
+          .querySelectorAll('#viewport-toggle button')
+          .forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+      });
+      document.getElementById('theme-toggle').addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-theme-set]');
+        if (!btn) return;
+        canvas.setAttribute('data-theme', btn.dataset.themeSet);
+        document
+          .querySelectorAll('#theme-toggle button')
+          .forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+      });
+      document.getElementById('screen-toggle').addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-screen]');
+        if (btn) setScreen(btn.dataset.screen);
+      });
+      canvas.addEventListener('click', (e) => {
+        const go = e.target.closest('[data-goto]');
+        if (go && !go.disabled) setScreen(go.dataset.goto);
+      });
+
+      /* ---- stepper ---- */
+      const STEPS = [
+        ['consent', 'Consent'],
+        ['words', 'Review words'],
+        ['rules', 'Mark rules', 'optional'],
+        ['confirm', 'Preview & send'],
+      ];
+      function renderStepper(name) {
+        const idx = STEPS.findIndex((s) => s[0] === name);
+        document.getElementById('stepper').innerHTML = STEPS.map((s, i) => {
+          const cls = i < idx ? 'step--done' : i === idx ? 'step--current' : '';
+          const n =
+            i < idx
+              ? '<svg class="ic" style="width:12px;height:12px"><use href="#i-check"/></svg>'
+              : i + 1;
+          return `<span class="step ${cls}" ${i === idx ? 'aria-current="step"' : ''}><span class="step__n">${n}</span>${s[1]}${s[2] ? ` <em>(${s[2]})</em>` : ''}</span>`;
+        }).join('');
+      }
+
+      /* ---- consent ---- */
+      const consentBox = document.getElementById('consent-box');
+      consentBox.addEventListener('change', () => {
+        document.getElementById('consent-next').disabled = !consentBox.checked;
+      });
+
+      /* ---- sheet ---- */
+      const ROWS = [
+        { code: '1000', label: 'Gehalt', amt: '6.402,18', ytd: '19.206,54', fig: 'ignore' },
+        {
+          code: '1210',
+          label: ['unk', 'w1', 'Nachtzuschlag'],
+          amt: '713,90',
+          ytd: '2.141,70',
+          fig: 'ignore',
+        },
+        {
+          code: '2010',
+          label: ['unk', 'w2', 'Jobticket-Zuschuss'],
+          amt: '49,00',
+          ytd: '147,00',
+          fig: 'ignore',
+        },
+        { code: '9000', label: 'Gesamtbrutto', amt: '7.165,08', ytd: '21.495,24', fig: 'gross' },
+        {
+          code: '/101',
+          label: 'Lohnsteuer',
+          amt: '1.074,33',
+          ytd: '3.222,99',
+          fig: 'wageTax',
+          sign: '−',
+        },
+        {
+          code: '/102',
+          label: 'Solidaritätszuschlag',
+          amt: '58,21',
+          ytd: '174,63',
+          fig: 'soli',
+          sign: '−',
+        },
+        {
+          code: '/103',
+          label: 'Kirchensteuer',
+          amt: '96,05',
+          ytd: '288,15',
+          fig: 'churchTax',
+          sign: '−',
+        },
+        {
+          code: '/201',
+          label: 'Krankenversicherung',
+          amt: '412,76',
+          ytd: '1.238,28',
+          fig: 'health',
+          sign: '−',
+        },
+        {
+          code: '/202',
+          label: 'Pflegeversicherung',
+          amt: '87,30',
+          ytd: '261,90',
+          fig: 'care',
+          sign: '−',
+        },
+        {
+          code: '/203',
+          label: 'Rentenversicherung',
+          amt: '503,18',
+          ytd: '1.509,54',
+          fig: 'pension',
+          sign: '−',
+        },
+        {
+          code: '/204',
+          label: 'Arbeitslosenvers.',
+          amt: '73,64',
+          ytd: '220,92',
+          fig: 'unemployment',
+          sign: '−',
+        },
+        { code: '9500', label: 'Nettoentgelt', amt: '4.859,61', ytd: '14.578,83', fig: 'net' },
+        { code: '9900', label: 'Auszahlungsbetrag', amt: '4.859,61', ytd: '', fig: 'payout' },
+      ];
+      const FIG_NAMES = {
+        gross: 'Gross',
+        taxGross: 'Tax gross',
+        wageTax: 'Wage tax',
+        soli: 'Solidarity',
+        churchTax: 'Church tax',
+        health: 'Health',
+        care: 'Care',
+        pension: 'Pension',
+        unemployment: 'Unemployment',
+        net: 'Net',
+        payout: 'Payout',
+        ignore: 'Ignore',
+      };
+      const decisions = { w1: null, w2: null, w3: null, w4: null };
+      const WORDS = [
+        { id: 'w1', text: 'Nachtzuschlag', ctx: 'Line 1210 · wage type label' },
+        { id: 'w2', text: 'Jobticket-Zuschuss', ctx: 'Line 2010 · wage type label' },
+        { id: 'w3', text: 'Muster-Logistik', ctx: 'Header · could be the employer name' },
+        { id: 'w4', text: 'Kostenstelle', ctx: 'Header · label of a cost-centre field' },
+      ];
+      // two more unknown words live in the header, so register them as pseudo-rows via the meta line
+      const PII = (n) =>
+        `<span class="unk unk--pii" title="Personal data, removed automatically">${'█'.repeat(n)}</span>`;
+      const RND = (s) => `<span class="rnd">${s}</span>`;
+      function wordHtml(id, text, mode) {
+        const d = decisions[id];
+        if (mode !== 'words')
+          return d === 'mask' ? '▒'.repeat(Math.max(4, Math.round(text.length * 0.8))) : text;
+        const cls = d === 'keep' ? 'unk--keep' : d === 'mask' ? 'unk--mask' : 'unk--pending';
+        const shown = d === 'mask' ? '▒'.repeat(Math.max(4, Math.round(text.length * 0.8))) : text;
+        return `<button type="button" class="unk ${cls}" data-word="${id}" title="Click to change">${shown}</button>`;
+      }
+      function renderSheet(el, mode) {
+        const rules = mode === 'rules';
+        const head = `<div class="sheet-title">Entgeltabrechnung</div>
+      <div class="sheet-meta"><span>IBAN ${PII(22)}</span><span>Steuer-ID ${PII(11)}</span><span>${PII(5)} ${PII(9)}</span></div>
+      <div class="sheet-meta"><span>${wordHtml('w3', 'Muster-Logistik', mode)}</span><span>Abrechnungsmonat ${RND('07/2031')}</span><span>${wordHtml('w4', 'Kostenstelle', mode)} ${RND('48392')}</span></div>
+      <div class="srow srow--head"><span>Art</span><span>Bezeichnung</span><span class="r">Betrag</span><span class="r">Gesamt</span><span class="r"></span></div>`;
+        const body = ROWS.map((r, i) => {
+          const lab = Array.isArray(r.label) ? wordHtml(r.label[1], r.label[2], mode) : r.label;
+          const chip =
+            rules && r.fig
+              ? `<span class="figchip ${r.fig === 'ignore' ? 'figchip--ignore' : ''}" data-chip="${i}">${FIG_NAMES[r.fig]}</span>`
+              : '';
+          return `<div class="srow ${rules && i === selected ? 'is-selected' : ''}" data-row="${i}"><span>${RND(r.code.replace(/\d/g, (d) => (+d + 3) % 10))}</span><span>${lab}</span><span class="r ${rules && i === selected && colSel === 'amt' ? 'col-pick' : ''}">${RND(shuffle(r.amt))}</span><span class="r ${rules && i === selected && colSel === 'ytd' ? 'col-pick' : ''}">${r.ytd ? RND(shuffle(r.ytd)) : ''}</span><span class="chip-col">${chip}</span></div>`;
+        }).join('');
+        el.innerHTML = head + body;
+      }
+      function shuffle(s) {
+        return s.replace(/\d/g, (d) => String((+d * 7 + 3) % 10));
+      }
+
+      /* ---- words ---- */
+      function renderWordList() {
+        const piiHtml = `<div class="word-row" style="background:var(--p-surface-2)"><div class="w" style="font-family:inherit"><span style="font-size:.74rem;text-transform:uppercase;letter-spacing:.04em" class="muted">Removed automatically</span><span class="ctx" style="margin-top:.2rem">Bank account (IBAN) · Tax ID · Postcode with city</span></div><span class="tag"><svg class="ic" style="width:11px;height:11px"><use href="#i-lock" /></svg>Locked</span></div>`;
+        document.getElementById('word-list').innerHTML =
+          piiHtml +
+          WORDS.map((w) => {
+            const d = decisions[w.id];
+            return `<div class="word-row"><div class="w">${w.text}<span class="ctx">${w.ctx}</span></div>
+        <div class="seg seg--keep" data-w="${w.id}"><button type="button" data-v="keep" aria-pressed="${d === 'keep'}">Keep as label</button><button type="button" data-v="mask" aria-pressed="${d === 'mask'}">Mask</button></div></div>`;
+          }).join('');
+        const done = Object.values(decisions).filter(Boolean).length;
+        document.getElementById('words-count').textContent = `${done} of ${WORDS.length} decided`;
+        document.getElementById('words-bar').style.width = `${(done / WORDS.length) * 100}%`;
+        document.getElementById('words-next').disabled = done < WORDS.length;
+        document.getElementById('sum-keep').textContent =
+          Object.values(decisions).filter((d) => d === 'keep').length +
+          ' of ' +
+          WORDS.length +
+          ' marked';
+        document.getElementById('sum-mask').textContent =
+          Object.values(decisions).filter((d) => d === 'mask').length +
+          ' of ' +
+          WORDS.length +
+          ' marked';
+        renderSheet(document.getElementById('sheet-words'), 'words');
+        renderSheet(document.getElementById('sheet-final'), 'final');
+        renderSheet(document.getElementById('sheet-rules'), 'rules');
+      }
+      document.getElementById('word-list').addEventListener('click', (e) => {
+        const b = e.target.closest('button[data-v]');
+        if (!b) return;
+        decisions[b.closest('[data-w]').dataset.w] = b.dataset.v;
+        renderWordList();
+      });
+      document.getElementById('sheet-words').addEventListener('click', (e) => {
+        const b = e.target.closest('button[data-word]');
+        if (!b) return;
+        const id = b.dataset.word;
+        decisions[id] = decisions[id] === 'keep' ? 'mask' : 'keep';
+        renderWordList();
+      });
+
+      /* ---- rules ---- */
+      let selected = 4,
+        colSel = 'amt',
+        failing = false;
+      function syncPanel() {
+        const r = ROWS[selected];
+        document.getElementById('sel-label').textContent = Array.isArray(r.label)
+          ? r.label[2]
+          : r.label;
+        document.getElementById('fig-type').value = r.fig || '';
+      }
+      document.getElementById('sheet-rules').addEventListener('click', (e) => {
+        const row = e.target.closest('[data-row]');
+        if (!row) return;
+        selected = +row.dataset.row;
+        syncPanel();
+        renderSheet(document.getElementById('sheet-rules'), 'rules');
+      });
+      document.getElementById('fig-type').addEventListener('change', (e) => {
+        ROWS[selected].fig = e.target.value;
+        renderSheet(document.getElementById('sheet-rules'), 'rules');
+      });
+      function seg(id, fn) {
+        document.getElementById(id).addEventListener('click', (e) => {
+          const b = e.target.closest('button');
+          if (!b) return;
+          document
+            .querySelectorAll(`#${id} button`)
+            .forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+          if (fn) fn(b);
+        });
+      }
+      seg('sign-seg');
+      seg('col-seg', (b) => {
+        colSel = b.dataset.col;
+        renderSheet(document.getElementById('sheet-rules'), 'rules');
+      });
+      document.getElementById('toggle-fail').addEventListener('click', () => {
+        failing = !failing;
+        document.getElementById('live-tag').className = 'tag ' + (failing ? 'tag--bad' : 'tag--ok');
+        document.getElementById('live-tag').textContent = failing
+          ? '1 check fails'
+          : 'All checks pass';
+        document.getElementById('calc-tax').textContent = failing ? '675,37 €' : '732,98 €';
+        document.getElementById('calc-tax').className = failing ? 'hl-bad' : '';
+        document.getElementById('live-lines').innerHTML = failing
+          ? `<div class="check-line check--bad"><svg class="ic"><use href="#i-x" /></svg><div><strong>Net check</strong> fails by 57,61 €: gross − taxes − social insurance is 3.182,63 €, the marked net line says 3.125,02 €. Taking part: <em>Church tax is not marked</em>. Mark the church tax line.</div></div>
+         <div class="check-line check--ok"><svg class="ic"><use href="#i-check" /></svg><div><strong>Payout check</strong> passes: payout equals net.</div></div>`
+          : `<div class="check-line check--ok"><svg class="ic"><use href="#i-check" /></svg><div><strong>Net check</strong> passes: gross − taxes − social insurance equals the marked net line.</div></div>
+         <div class="check-line check--ok"><svg class="ic"><use href="#i-check" /></svg><div><strong>Payout check</strong> passes: payout equals net.</div></div>`;
+        document.getElementById('toggle-fail').textContent = failing
+          ? 'Review only: show a passing mapping'
+          : 'Review only: show a failing mapping';
+      });
+
+      renderWordList();
+      syncPanel();
+      setScreen('import');
+    </script>
+  </body>
+</html>
