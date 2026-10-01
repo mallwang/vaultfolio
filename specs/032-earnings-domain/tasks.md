@@ -520,7 +520,7 @@ tasks; frontend work needs the contract tasks T145–T146 and a backend that acc
 - [x] T162 [US1] Verify with the `verify-ui` skill (quickstart §9): net-off synthetic PDF and a Bundesbank-style misread digit → grid with highlighted figures, wrong then right edit, restore, confirm, history tag, month-detail marker; EN/DE, light/dark, 400 px (no page scroll), keyboard-only flow and input labels; confirm in the network log that only JSON figures are sent
 - [x] T163 [P] [US1] Document the correction in `README.md`, `README.de.md`, `docs/user-guide.md` and `docs/user-guide.de.md` (when a payslip is rejected, which figures can be corrected, that corrections are re-checked and stay marked) and add the correction flow to the Imports section of `design.md` if the verified UI differs from the mockup
 - [x] T164 Run `npx nx run-many -t lint typecheck test` and `npx nx run backend:openapi:check`; fix all findings; then run the full [quickstart.md](quickstart.md) (§1–§5, §7–§9) end to end
-- [ ] T165 Run the `speckit-sonar-validate` skill for the branch and fix any new quality-gate findings introduced by Phase 14
+- [x] T165 Run the `speckit-sonar-validate` skill for the branch and fix any new quality-gate findings introduced by Phase 14
 
 ### Phase 14 dependencies
 
