@@ -165,6 +165,7 @@ export const earningsEn: TranslationDictionary = {
     ratiosSub: 'Per calendar year',
   },
   detail: {
+    corrected: 'corrected by you',
     title: 'Month detail',
     pick: 'Click a month in the chart or the table to see its payslips.',
     sections: '{{count}} payslip sections',
@@ -245,6 +246,8 @@ export const earningsEn: TranslationDictionary = {
     countOne: '1 import',
     expandAll: 'Expand all',
     collapseAll: 'Collapse all',
+    correctedTag: '{{count}} figures corrected by you',
+    correctedTagOne: '1 figure corrected by you',
     deleteImport: 'Delete import',
     deleteHeader: 'Delete import',
     deleteMessage:
@@ -315,6 +318,22 @@ export const earningsEn: TranslationDictionary = {
     done: '{{count}} files imported',
     doneOne: '1 file imported',
     year: 'Year {{year}}',
+    statusCORRECTED: 'Corrected by you',
+    checkFailedCorrectable: 'Check failed for {{period}}: {{check}} is off by {{difference}}.',
+    correctHint: 'Compare the figures below with your payslip and correct a misread figure.',
+    involved: 'Figures in the failing check: {{figures}}.',
+    passTitle: 'All checks pass again',
+    passBody:
+      'Corrected figures stay marked as “corrected by you” and are checked again when you import.',
+    inFailingCheck: 'In failing check',
+    onlyInvolved: 'Only figures that take part in the failing check can be edited.',
+    correctedByYou: 'corrected by you',
+    readValue: 'Read from document: {{value}}',
+    restore: 'Restore read value',
+    restoreAria: 'Restore read value of {{figure}}',
+    invalidAmount: 'Enter an amount, for example 1,234.56',
+    corrected: '{{count}} figures corrected by you',
+    correctedOne: '1 figure corrected by you',
     removeFile: 'Remove file',
   },
   widget: {
@@ -330,6 +349,7 @@ export const earningsEn: TranslationDictionary = {
     columnPeriod: 'Period',
     columnIssued: 'Issued',
     columnKind: 'Kind',
+    columnCorrected: 'Corrected figures',
     columnSource: 'Source file',
   },
 };

@@ -192,4 +192,163 @@ describe('ImportSessionStore', () => {
     expect(store.phase()).toBe('idle');
     http.verify();
   });
+
+  describe('correcting a misread figure (FR-012a)', () => {
+    /** The net-off payslip: printed net is 12.40 above gross − taxes − social, wage tax is 800.00. */
+    async function addNetOff(): Promise<void> {
+      await store.addFiles([pdf(SAP_AUG_2026_NET_OFF.fileName)]);
+      http.expectNone('/api/earnings/imports/preview'); // nothing to send yet
+    }
+
+    async function answerPreview(status: EarningsFilePreview['status'] = 'NEW'): Promise<void> {
+      http
+        .expectOne('/api/earnings/imports/preview')
+        .flush({ files: [preview('file-1', { status })] });
+      await settle();
+    }
+
+    it('turns a CHECK_FAILED payslip into a needs-correction row with its figures and no preview call', async () => {
+      await addNetOff();
+      const [row] = store.rows();
+      expect(row.state).toBe('needs-correction');
+      expect(row.preview).toBeNull();
+      expect(row.localRejection).toEqual({
+        code: 'CHECK_FAILED',
+        params: { check: 'NET', period: '2026-08', difference: '12.40' },
+      });
+      expect(row.draft?.[0].amounts.wageTax).toBe('800.00');
+      expect(row.failures).toHaveLength(1);
+      expect(row.editable.map((e) => e.key)).toEqual(
+        expect.arrayContaining(['gross', 'wageTax', 'net']),
+      );
+      expect(row.editable.map((e) => e.key)).not.toContain('taxGross');
+      expect(store.rejected()).toBe(1);
+      expect(store.ready()).toEqual([]);
+    });
+
+    it('keeps the row rejected on text that is no amount and records an input error', async () => {
+      await addNetOff();
+      store.editFigure('file-1', 0, 'wageTax', '78x');
+      const [row] = store.rows();
+      expect(row.state).toBe('needs-correction');
+      expect(row.inputErrors).toEqual({ '0:wageTax': true });
+      expect(row.inputs['0:wageTax']).toBe('78x');
+      expect(row.draft?.[0].amounts.wageTax).toBe('800.00');
+      expect(row.draft?.[0].corrected).toBeUndefined();
+    });
+
+    it('keeps the row rejected with the new difference after a wrong amount', async () => {
+      await addNetOff();
+      store.editFigure('file-1', 0, 'wageTax', '790,00');
+      const [row] = store.rows();
+      expect(row.state).toBe('needs-correction');
+      expect(row.draft?.[0].amounts.wageTax).toBe('790.00');
+      expect(row.draft?.[0].corrected).toEqual(['wageTax']);
+      expect(row.localRejection?.params?.['difference']).toBe('2.40');
+      expect(row.inputErrors).toEqual({});
+      http.expectNone('/api/earnings/imports/preview');
+    });
+
+    it('turns the row into a candidate after a right amount, previews and commits the corrected body', async () => {
+      await addNetOff();
+      store.editFigure('file-1', 0, 'wageTax', '787,60');
+      const [row] = store.rows();
+      expect(row.state).toBe('candidate');
+      expect(row.failures).toEqual([]);
+      expect(row.body?.records[0].corrected).toEqual(['wageTax']);
+      expect(row.body?.records[0].amounts.wageTax).toBe('787.60');
+
+      const request = http.expectOne('/api/earnings/imports/preview');
+      expect((request.request.body as EarningsImportBatch).files[0].records[0]).toMatchObject({
+        corrected: ['wageTax'],
+        amounts: { wageTax: '787.60', net: '3128.40' },
+      });
+      request.flush({ files: [preview('file-1')] });
+      await settle();
+      expect(store.ready()).toHaveLength(1);
+      expect(store.correctedFigures()).toBe(1);
+
+      const committing = store.commit();
+      const commit = http.expectOne('/api/earnings/imports');
+      expect((commit.request.body as EarningsImportBatch).files[0].records[0].corrected).toEqual([
+        'wageTax',
+      ]);
+      commit.flush({
+        files: [{ clientFileId: 'file-1', status: 'SAVED', importId: 'i1', recordCount: 1 }],
+      });
+      expect(await committing).toBe(true);
+    });
+
+    it('keeps the row rejected when a correction breaks another check', async () => {
+      await addNetOff();
+      store.editFigure('file-1', 0, 'net', '3116.00'); // NET passes, the printed payout no longer fits
+      const [row] = store.rows();
+      expect(row.state).toBe('needs-correction');
+      expect(row.localRejection).toEqual({
+        code: 'CHECK_FAILED',
+        params: { check: 'PAYOUT', period: '2026-08', difference: '12.40' },
+      });
+      expect(row.draft?.[0].corrected).toEqual(['net']);
+      http.expectNone('/api/earnings/imports/preview');
+    });
+
+    it('restores a figure: the failure comes back and the marker is removed', async () => {
+      await addNetOff();
+      store.editFigure('file-1', 0, 'wageTax', '787.60');
+      await answerPreview();
+      store.restoreFigure('file-1', 0, 'wageTax');
+      const [row] = store.rows();
+      expect(row.state).toBe('needs-correction');
+      expect(row.preview).toBeNull();
+      expect(row.draft?.[0].amounts.wageTax).toBe('800.00');
+      expect(row.draft?.[0].corrected).toBeUndefined();
+      expect(row.inputs).toEqual({});
+      expect(row.localRejection?.params?.['difference']).toBe('12.40');
+    });
+
+    it('stays editable after the checks pass', async () => {
+      await addNetOff();
+      store.editFigure('file-1', 0, 'wageTax', '787.60');
+      await answerPreview();
+      store.editFigure('file-1', 0, 'wageTax', '787.61');
+      expect(store.rows()[0].draft?.[0].amounts.wageTax).toBe('787.61');
+      expect(store.rows()[0].state).toBe('candidate'); // within one cent
+    });
+
+    it('ignores edits of figures that do not take part in the failing check', async () => {
+      await addNetOff();
+      store.editFigure('file-1', 0, 'payout', '1,00'); // involved only in PAYOUT, which passes
+      expect(store.rows()[0].draft?.[0].amounts.payout).not.toBe('1.00');
+      store.editFigure('file-1', 0, 'taxGross' as never, '1,00');
+      store.editFigure('file-1', 3, 'net', '1,00');
+      store.editFigure('unknown', 0, 'net', '1,00');
+      expect(store.rows()[0].draft?.[0].corrected).toBeUndefined();
+      expect(store.rows()[0].inputErrors).toEqual({});
+    });
+
+    it('discards edits when the same file is added again', async () => {
+      await addNetOff();
+      store.editFigure('file-1', 0, 'wageTax', '790,00');
+      await store.addFiles([pdf(SAP_AUG_2026_NET_OFF.fileName)]);
+      const [first, second] = store.rows();
+      expect(first.draft?.[0].corrected).toEqual(['wageTax']);
+      expect(second.clientFileId).toBe('file-2');
+      expect(second.draft?.[0].amounts.wageTax).toBe('800.00');
+      expect(second.draft?.[0].corrected).toBeUndefined();
+      expect(second.inputs).toEqual({});
+    });
+
+    it('never writes figures to the console', async () => {
+      const spies = (['log', 'info', 'warn', 'error', 'debug'] as const).map((m) =>
+        vi.spyOn(console, m).mockImplementation(() => undefined),
+      );
+      await addNetOff();
+      store.editFigure('file-1', 0, 'wageTax', '787,60');
+      store.restoreFigure('file-1', 0, 'wageTax');
+      for (const spy of spies) {
+        expect(spy).not.toHaveBeenCalled();
+        spy.mockRestore();
+      }
+    });
+  });
 });

@@ -268,3 +268,50 @@ Rejection _differences_ (e.g. "12.40 €") are computed and shown in the browser
 response for a failed check returns the difference to the caller but never logs it.
 
 **Rationale**: FR-043 and the constitution's log-hygiene rule, using existing infrastructure.
+
+## R15 — Correcting misread figures in the import preview (issue #63)
+
+**Decision**:
+
+- **Partial parse result.** `parseDocument` keeps rejecting a failing file with `CHECK_FAILED` but
+  now attaches the parsed `employer`, `records` and `certificates` as `partial` (only for
+  `CHECK_FAILED`; every other error stays figure-less). Parsers already return the records —
+  only `registry.ts` discards them today.
+- **All failures, not the first.** A new `collectCheckFailures(records)` in `checks.ts` returns
+  every failing check with its record indexes, period, signed difference and the figures taking
+  part (`involved`). `evaluateChecks` stays as is (server and registry keep their first-failure
+  behavior).
+- **Editable = involved in a failing check.** `NET`: `gross`, `wageTax`, `soli`, `churchTax`,
+  `health`, `care`, `pension`, `unemployment`, `net`. `PAYOUT`: `net`, `payout`. `other` is derived
+  by the parsers and is not editable; neither are bases, one-off or year-to-date figures.
+- **Edit state lives in the browser only** (`ImportSessionStore` row), not on the server and not
+  persisted; re-reading the file or leaving the page discards it.
+- **Marker = figure names, not values.** The request carries `corrected: PayAmountKey[]` per
+  record; it is stored inside the encrypted record payload (so existing rows and the schema are
+  untouched) and `earnings_imports` gets a plain `corrected_count` so the history needs no
+  decryption.
+- **Only payslip PDFs.** `corrected` is rejected for `CERTIFICATE_PDF` (no checks) and
+  `EXPORT_JSON` (the companion tool is the fix there).
+- **Server stays authoritative.** It re-runs all checks on the submitted figures and validates
+  `corrected` (known names from the editable set, no duplicates, only on `PAYSLIP_PDF`). It cannot
+  know which figure was misread — a "fix" of the wrong figure that still balances is not
+  detectable; the marker is the mitigation (spec edge case).
+
+**Rationale**: Reuses the existing checks and whitelist; no new endpoint; nothing but a list of
+known figure names is added to the payload, so data minimization and log hygiene stay intact.
+
+**Alternatives considered**: A dedicated "correct" endpoint — duplicates preview/commit and moves
+interpretation to the server. Persisting drafts server-side — stores unvalidated amounts. Letting
+any figure be edited — turns the preview into manual entry (FR-004). Modal editor — only if the
+grid becomes crowded (decided during UI work, see design.md addendum).
+
+## R16 — Money input in the preview
+
+**Decision**: `parseMoneyInput(text)` in `libs/earnings` accepts `1234.56`, `1.234,56`, `-45,00`
+(German and English notation, optional thousands separators), rounds nothing (more than two
+decimals → invalid) and returns the canonical money string or `null`. The input is a text field
+with `inputmode="decimal"` rather than a number input, so locale parsing and exact decimals are
+ours, not the browser's.
+
+**Rationale**: Exact decimal strings end to end (constitution money rule); `type=number` yields
+JS floats.

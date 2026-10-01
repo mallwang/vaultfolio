@@ -1,5 +1,6 @@
 export * from './lib/model.js';
 export * from './lib/checks.js';
+export * from './lib/corrections.js';
 export * from './lib/validation.js';
 export * from './lib/parsers/pdf-text.js';
 export * from './lib/parsers/registry.js';

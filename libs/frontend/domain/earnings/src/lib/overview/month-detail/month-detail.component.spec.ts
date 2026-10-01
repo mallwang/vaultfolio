@@ -113,6 +113,19 @@ describe('buildStatement', () => {
     expect(statement.lines.some((l) => l.label === 'Payout')).toBe(false);
   });
 
+  it('marks the figures the user corrected in the import preview', () => {
+    const statement = buildStatement(
+      { ...REGULAR, amounts: { ...REGULAR.amounts, corrected: ['wageTax', 'net'] } },
+      'en',
+      translate,
+    );
+    const labelled = statement.lines.filter((l) => l.corrected).map((l) => l.label);
+    expect(labelled).toEqual(['Taxes', 'Statutory net']);
+    const taxes = statement.lines.find((l) => l.group === 'taxes');
+    expect(taxes?.children?.filter((c) => c.corrected).map((c) => c.label)).toEqual(['Wage tax']);
+    expect(buildStatement(REGULAR, 'en', translate).lines.some((l) => l.corrected)).toBe(false);
+  });
+
   it('adds a line for any non-itemized difference', () => {
     const statement = buildStatement(
       { ...REGULAR, amounts: { ...REGULAR.amounts, net: '4775.76' } },

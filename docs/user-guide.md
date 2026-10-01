@@ -261,7 +261,16 @@ Every file gets a row with its outcome: **New**, **Replaces** (a newer version o
 figures you already imported), **Duplicate** (already imported — skipped) or
 **Rejected** with the reason, for example when gross − taxes − social insurance does
 not add up to net, or when a PDF is a scan without text. Rejected files are never
-saved. Expand **Figures that will be sent** on a row to see exactly what leaves your
+saved.
+
+If a payslip is rejected because a check does not add up, its figures open in the row
+so you can fix a misread one: the figures taking part in the failing check are
+highlighted (**In failing check**) and editable — both `1.234,56` and `1234.56` work.
+The checks re-run with every edit; once they pass, the row shows **Corrected by you**
+and can be imported. **Restore read value** puts the original back. Other figures cannot
+be edited, the server checks everything again on import, and corrected figures stay
+marked in the preview, the import history ("1 figure corrected by you") and the month
+detail. Expand **Figures that will be sent** on a row to see exactly what leaves your
 device. Nothing is saved until you click the import button at the bottom.
 
 ### 7.3 Overview, Tables and Month Detail

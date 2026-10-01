@@ -37,7 +37,8 @@ body:json {
               "health": "400.00", "care": "90.00", "pension": "465.00", "unemployment": "65.00",
               "net": "3116.00", "other": "-40.00", "payout": "3076.00",
               "oneOff": {}, "employerSubsidy": null, "ytd": null
-            }
+            },
+            "corrected": ["wageTax"]
           }
         ],
         "certificates": []
@@ -48,4 +49,6 @@ body:json {
 
 docs {
   Re-validates and saves each NEW/REPLACES file in its own transaction. Invented figures only.
+
+  The corrected record carries `corrected: ["wageTax"]` (names only, FR-012a); the history then reports `correctedCount: 1` and the month detail `amounts.corrected`. Tampered `corrected` values are rejected exactly as in Preview Import.
 }

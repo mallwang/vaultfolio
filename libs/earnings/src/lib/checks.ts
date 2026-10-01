@@ -1,6 +1,7 @@
 import Decimal from 'decimal.js';
 import {
   type CheckResult,
+  type EditableKey,
   type ParseError,
   type PayRecordInput,
   parseMoney,
@@ -99,4 +100,93 @@ export function evaluateChecks(records: readonly PayRecordInput[]): EvaluatedChe
     }
   }
   return { perRecord, failure };
+}
+
+/** A failing check of a file with the figures taking part in it (FR-012a, research R15). */
+export interface CheckFailure {
+  check: CheckResult['code'];
+  period: string;
+  /** Signed, as in `CheckResult`. */
+  difference: string;
+  /** Records the check covers (all sections of the payslip for PAYOUT). */
+  recordIndexes: number[];
+  /** Figures that take part in the check — exactly those the user may correct. */
+  involved: { recordIndex: number; key: EditableKey }[];
+}
+
+/** Every figure a user may correct: the ones taking part in a NET or PAYOUT check. */
+export const EDITABLE_KEYS: readonly EditableKey[] = [
+  'gross',
+  'wageTax',
+  'soli',
+  'churchTax',
+  'health',
+  'care',
+  'pension',
+  'unemployment',
+  'net',
+  'payout',
+];
+
+const NET_INVOLVED: readonly EditableKey[] = EDITABLE_KEYS.filter((k) => k !== 'payout');
+
+/**
+ * Every failing check of a file, not just the first (`evaluateChecks` keeps its first-failure
+ * behavior for server and registry). The preview uses it to highlight the figures that can be
+ * corrected and to re-validate after each edit.
+ */
+export function collectCheckFailures(records: readonly PayRecordInput[]): CheckFailure[] {
+  const failures: CheckFailure[] = [];
+  records.forEach((r, recordIndex) => {
+    for (const c of runRecordChecks(r)) {
+      if (!c.passed) {
+        failures.push({
+          check: c.code,
+          period: r.period,
+          difference: c.difference,
+          recordIndexes: [recordIndex],
+          involved: NET_INVOLVED.map((key) => ({ recordIndex, key })),
+        });
+      }
+    }
+  });
+  const payslips = new Map<string, number[]>();
+  records.forEach((r, i) => {
+    const key = `${r.employer}|${r.issued}`;
+    payslips.set(key, [...(payslips.get(key) ?? []), i]);
+  });
+  for (const indexes of payslips.values()) {
+    const check = runPayoutCheck(indexes.map((i) => records[i]));
+    if (check.passed) continue;
+    const carriers = indexes.filter((i) => records[i].amounts.payout !== null);
+    failures.push({
+      check: check.code,
+      period: records[carriers[0] ?? indexes[0]].period,
+      difference: check.difference,
+      recordIndexes: indexes,
+      involved: [
+        ...indexes.map((recordIndex) => ({ recordIndex, key: 'net' as const })),
+        ...carriers.map((recordIndex) => ({ recordIndex, key: 'payout' as const })),
+      ],
+    });
+  }
+  return failures;
+}
+
+/** Editable figures of a file = the involved figures of its failing checks, without duplicates. */
+export function editableKeys(
+  failures: readonly CheckFailure[],
+): { recordIndex: number; key: EditableKey }[] {
+  const seen = new Set<string>();
+  const out: { recordIndex: number; key: EditableKey }[] = [];
+  for (const f of failures) {
+    for (const item of f.involved) {
+      const id = `${item.recordIndex}|${item.key}`;
+      if (!seen.has(id)) {
+        seen.add(id);
+        out.push(item);
+      }
+    }
+  }
+  return out;
 }

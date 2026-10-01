@@ -13,6 +13,7 @@ interface ExportDoc {
   records: {
     source?: string;
     items?: unknown[];
+    corrected?: string[];
     kind?: string;
     ytd?: Record<string, number>;
     amounts: Record<string, number>;
@@ -106,6 +107,11 @@ describe('readEarningsExport', () => {
   it.each([
     ['top level', (d: ExportDoc) => (d.notes = 'x'), 'notes'],
     ['record', (d: ExportDoc) => (d.records[0].source = 'payslips/x.pdf'), 'records[0].source'],
+    [
+      'corrected (never part of the companion format)',
+      (d: ExportDoc) => (d.records[0].corrected = ['net']),
+      'records[0].corrected',
+    ],
     ['record items', (d: ExportDoc) => (d.records[0].items = []), 'records[0].items'],
     ['amounts', (d: ExportDoc) => (d.records[0].amounts.iban = 1), 'records[0].amounts.iban'],
     ['one_off', (d: ExportDoc) => (d.records[0].one_off.net = 1), 'records[0].one_off.net'],
@@ -118,6 +124,12 @@ describe('readEarningsExport', () => {
     const doc = doc_();
     mutate(doc);
     expect(errorOf(doc)).toEqual({ code: 'EXPORT_UNKNOWN_FIELD', params: { path } });
+  });
+
+  it('neither requires nor emits corrected figures', () => {
+    const out = readEarningsExport(validExport());
+    if (!out.ok) throw new Error('expected a valid export');
+    expect(out.records.some((r) => 'corrected' in r)).toBe(false);
   });
 
   it('rejects non-integer cents', () => {

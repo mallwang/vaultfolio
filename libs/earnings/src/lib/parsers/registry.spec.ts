@@ -1,6 +1,9 @@
 import type { ParseOutcome } from '../model';
 import { payRecord } from '../testing/builders';
 import { textDocument } from './pdf-text';
+import { collectCheckFailures, editableKeys } from '../checks';
+import { applyCorrection } from '../corrections';
+import { evaluateChecks } from '../checks';
 import { type EarningsParser, parseDocument } from './registry';
 
 function stub(id: string, marker: string, outcome: ParseOutcome): EarningsParser {
@@ -64,9 +67,41 @@ describe('parseDocument', () => {
         code: 'CHECK_FAILED',
         params: { check: 'NET', period: '2026-09', difference: '12.40' },
       },
+      partial: {
+        employer: off.ok ? off.employer : '',
+        records: off.ok ? off.records : [],
+        certificates: [],
+      },
       parserId: 'a',
       parserVersion: '1.0.0',
       documentType: 'PAYSLIP',
     });
+  });
+
+  it('carries no partial for any other error', () => {
+    const failing = stub('a', 'Payslip', { ok: false, error: { code: 'MISSING_FIELD' } });
+    expect(parseDocument(textDocument([['Payslip']]), [failing])).not.toHaveProperty('partial');
+    expect(parseDocument(textDocument([['x']]), [failing])).not.toHaveProperty('partial');
+  });
+
+  it('lets a corrected partial pass the checks', () => {
+    const off: ParseOutcome = {
+      ...good,
+      records: [payRecord({ amounts: { net: '3192.40', payout: '3192.40' } })],
+    };
+    const result = parseDocument(textDocument([['Payslip']]), [stub('a', 'Payslip', off)]);
+    if (result.ok || !result.partial) throw new Error('expected a partial result');
+    const editable = editableKeys(collectCheckFailures(result.partial.records));
+    let records = applyCorrection(
+      result.partial.records,
+      { recordIndex: 0, key: 'net', value: '3180.00' },
+      editable,
+    );
+    records = applyCorrection(
+      records ?? [],
+      { recordIndex: 0, key: 'payout', value: '3180.00' },
+      editable,
+    );
+    expect(evaluateChecks(records ?? []).failure).toBeNull();
   });
 });

@@ -2767,6 +2767,25 @@ components:
           minimum: 1
         amounts:
           $ref: '#/components/schemas/EarningsPayRecordAmountsDto'
+        corrected:
+          type: array
+          description: >-
+            Names of figures the user corrected in the preview; distinct, only
+            figures taking part in a check, only on PAYSLIP_PDF files. The
+            server re-runs every check on the submitted figures.
+          items:
+            type: string
+            enum: &ref_25
+              - gross
+              - wageTax
+              - soli
+              - churchTax
+              - health
+              - care
+              - pension
+              - unemployment
+              - net
+              - payout
       required:
         - employer
         - period
@@ -3124,6 +3143,11 @@ components:
           type: array
           items:
             type: number
+        correctedCount:
+          type: number
+          description: >-
+            Number of figures the user corrected in the preview before importing
+            (FR-012a).
       required:
         - id
         - fileName
@@ -3137,6 +3161,7 @@ components:
         - firstPeriod
         - lastPeriod
         - years
+        - correctedCount
     EarningsEmployerDto:
       type: object
       properties:
@@ -3521,6 +3546,15 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/EarningsCheckResultDto'
+        corrected:
+          type: array
+          description: >-
+            Names (never values) of figures the user corrected in the import
+            preview (FR-012a). Always present on read routes, `[]` for rows
+            saved before figure correction.
+          items:
+            type: string
+            enum: *ref_25
       required:
         - gross
         - taxGross
@@ -3594,40 +3628,40 @@ components:
       properties:
         gross:
           type: object
-          additionalProperties: &ref_25
+          additionalProperties: &ref_26
             type: string
-          example: &ref_26
+          example: &ref_27
             2026-09: '5200.00'
           description: period → amount
         regular:
           type: object
-          additionalProperties: *ref_25
-          example: *ref_26
+          additionalProperties: *ref_26
+          example: *ref_27
           description: period → amount
         bonus:
           type: object
-          additionalProperties: *ref_25
-          example: *ref_26
+          additionalProperties: *ref_26
+          example: *ref_27
           description: period → amount
         net:
           type: object
-          additionalProperties: *ref_25
-          example: *ref_26
+          additionalProperties: *ref_26
+          example: *ref_27
           description: period → amount
         taxes:
           type: object
-          additionalProperties: *ref_25
-          example: *ref_26
+          additionalProperties: *ref_26
+          example: *ref_27
           description: period → amount
         social:
           type: object
-          additionalProperties: *ref_25
-          example: *ref_26
+          additionalProperties: *ref_26
+          example: *ref_27
           description: period → amount
         payout:
           type: object
-          additionalProperties: *ref_25
-          example: *ref_26
+          additionalProperties: *ref_26
+          example: *ref_27
           description: period → amount
       required:
         - gross

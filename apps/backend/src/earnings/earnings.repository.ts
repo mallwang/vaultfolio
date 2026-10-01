@@ -162,14 +162,20 @@ export class EarningsRepository {
       issued: r.issued,
       kind: r.kind,
       seq: r.seq,
-      amounts: this.crypto.decrypt<StoredPayRecordAmounts>(
-        'earnings_records',
-        r.id,
-        r.owner_id,
-        r.amounts_enc,
-      ),
+      amounts: this.readAmounts(r),
       importFileName: r.file_name,
     }));
+  }
+
+  /** Decrypts a record payload; rows saved before figure correction read with `corrected: []`. */
+  private readAmounts(row: RecordRow): StoredPayRecordAmounts {
+    const amounts = this.crypto.decrypt<StoredPayRecordAmounts>(
+      'earnings_records',
+      row.id,
+      row.owner_id,
+      row.amounts_enc,
+    );
+    return { ...amounts, corrected: amounts.corrected ?? [] };
   }
 
   loadCertificates(ownerId: string, employerId?: string): StoredCertificateRow[] {
@@ -284,9 +290,11 @@ export class EarningsRepository {
   ): { importId: string } {
     return this.database.transaction(() => {
       const importId = randomUUID();
+      // names of figures the user corrected in the preview; counted per file, never logged (FR-012a)
+      const correctedCount = file.records.reduce((n, r) => n + (r.corrected?.length ?? 0), 0);
       this.database.querySync(
-        `INSERT INTO earnings_imports (id, owner_id, file_name, source_type, file_sha256, parser_id, parser_version, imported_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+        `INSERT INTO earnings_imports (id, owner_id, file_name, source_type, file_sha256, parser_id, parser_version, imported_at, corrected_count)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
         [
           importId,
           ownerId,
@@ -296,6 +304,7 @@ export class EarningsRepository {
           file.parserId,
           file.parserVersion,
           new Date().toISOString(),
+          correctedCount,
         ],
       );
       const now = new Date().toISOString();
@@ -306,7 +315,11 @@ export class EarningsRepository {
           [ownerId, employerId, r.period, r.kind, r.seq],
         );
         const id = randomUUID();
-        const amounts: StoredPayRecordAmounts = { ...r.amounts, checks: checks[i] ?? [] };
+        const amounts: StoredPayRecordAmounts = {
+          ...r.amounts,
+          checks: checks[i] ?? [],
+          ...(r.corrected && r.corrected.length > 0 ? { corrected: [...r.corrected] } : {}),
+        };
         this.database.querySync(
           `INSERT INTO earnings_records (id, owner_id, import_id, employer_id, period, issued, kind, seq, amounts_enc, key_version, created_at)
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 1, $10)`,
@@ -362,8 +375,9 @@ export class EarningsRepository {
       certificate_count: number;
       first_period: string | null;
       last_period: string | null;
+      corrected_count: number;
     }>(
-      `SELECT i.id, i.file_name, i.source_type, i.parser_id, i.parser_version, i.imported_at,
+      `SELECT i.id, i.file_name, i.source_type, i.parser_id, i.parser_version, i.imported_at, i.corrected_count,
               (SELECT COUNT(*) FROM earnings_records r WHERE r.import_id = i.id AND r.owner_id = i.owner_id) AS record_count,
               (SELECT COUNT(*) FROM earnings_certificates c WHERE c.import_id = i.id AND c.owner_id = i.owner_id) AS certificate_count,
               (SELECT MIN(period) FROM earnings_records r WHERE r.import_id = i.id AND r.owner_id = i.owner_id) AS first_period,
@@ -398,6 +412,7 @@ export class EarningsRepository {
       firstPeriod: i.first_period,
       lastPeriod: i.last_period,
       years: years.filter((y) => y.import_id === i.id).map((y) => y.year),
+      correctedCount: i.corrected_count,
     }));
   }
 

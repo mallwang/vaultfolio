@@ -20,6 +20,7 @@ const IMPORTS: EarningsImportSummary[] = [
     firstPeriod: null,
     lastPeriod: null,
     years: [2025],
+    correctedCount: 0,
   },
   {
     id: 'i1',
@@ -34,6 +35,7 @@ const IMPORTS: EarningsImportSummary[] = [
     firstPeriod: '2026-07',
     lastPeriod: '2026-09',
     years: [],
+    correctedCount: 1,
   },
   {
     id: 'i3',
@@ -48,6 +50,7 @@ const IMPORTS: EarningsImportSummary[] = [
     firstPeriod: '2013-10',
     lastPeriod: '2013-12',
     years: [2013],
+    correctedCount: 0,
   },
 ];
 
@@ -117,6 +120,10 @@ describe('EarningsImportsComponent', () => {
     expect(payslip).toContain('Payslip PDF');
     expect(payslip).toContain('Jul 2026 – Sep 2026');
     expect(payslip).toContain('SAP payslip (Entgeltnachweis) 1.0.0');
+    expect(byTestId(root, 'earnings-history-corrected')?.textContent).toContain(
+      '1 figure corrected by you',
+    );
+    expect(root.querySelectorAll('[data-testid="earnings-history-corrected"]')).toHaveLength(1);
     const certificate = byTestId(root, 'earnings-imports-row-i2')?.textContent ?? '';
     expect(certificate).toContain('2025');
     expect(certificate).toContain('1 certificate');

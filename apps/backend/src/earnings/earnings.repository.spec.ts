@@ -2,6 +2,7 @@ import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { randomBytes } from 'node:crypto';
+import Sqlite from 'better-sqlite3';
 import type { ImportFileInput } from '@vaultfolio/earnings';
 import { evaluateChecks } from '@vaultfolio/earnings';
 import { DatabaseService } from '../database/database.service';
@@ -274,6 +275,72 @@ describe('EarningsRepository (SQLite)', () => {
       expect(repository.listImports(OWNER)).toEqual([]);
       expect(repository.listEmployers(OWNER)).toEqual([]);
       expect(repository.hasData(OTHER)).toBe(true);
+    });
+  });
+
+  describe('corrected figures (FR-012a)', () => {
+    function correctedFile(): ImportFileInput {
+      const base = file(['2026-08']);
+      return {
+        ...base,
+        records: [
+          { ...base.records[0], corrected: ['wageTax', 'net'] },
+          { ...file(['2026-09']).records[0] },
+        ],
+      };
+    }
+
+    it('round-trips the names inside the encrypted payload and reads old rows as []', () => {
+      save(OWNER, correctedFile());
+      const raw = database.querySync<{ amounts_enc: string }>(
+        'SELECT amounts_enc FROM earnings_records',
+      );
+      expect(raw.every((r) => !r.amounts_enc.includes('wageTax'))).toBe(true);
+      const [aug, sep] = repository.loadRecords(OWNER);
+      expect(aug.amounts.corrected).toEqual(['wageTax', 'net']);
+      expect(sep.amounts.corrected).toEqual([]);
+    });
+
+    it('stores corrected_count per import and returns it in the history', () => {
+      save(OWNER, file(['2026-07']));
+      save(OWNER, correctedFile());
+      const history = repository.listImports(OWNER);
+      expect(history.map((h) => h.correctedCount)).toEqual([2, 0]);
+      expect(
+        database.querySync<{ corrected_count: number }>(
+          'SELECT corrected_count FROM earnings_imports ORDER BY corrected_count',
+        ),
+      ).toEqual([{ corrected_count: 0 }, { corrected_count: 2 }]);
+    });
+
+    it('adds the column to a database created without it, idempotently', async () => {
+      await database.onModuleDestroy();
+      const legacyPath = path.join(tempDir, 'legacy.db');
+      const legacy = new Sqlite(legacyPath);
+      legacy.exec(`CREATE TABLE earnings_imports (
+        id TEXT PRIMARY KEY, owner_id TEXT NOT NULL, file_name TEXT NOT NULL,
+        source_type TEXT NOT NULL, file_sha256 TEXT NOT NULL, parser_id TEXT NOT NULL,
+        parser_version TEXT NOT NULL, imported_at TEXT NOT NULL, UNIQUE (owner_id, file_sha256))`);
+      legacy
+        .prepare(
+          `INSERT INTO earnings_imports VALUES ('old', 'o', 'a.pdf', 'PAYSLIP_PDF', ?, 'p', '1', 'now')`,
+        )
+        .run('c'.repeat(64));
+      legacy.close();
+
+      process.env.DATABASE_PATH = legacyPath;
+      for (let round = 0; round < 2; round += 1) {
+        const migrated = new DatabaseService();
+        await migrated.onModuleInit();
+        expect(
+          migrated.querySync<{ corrected_count: number }>(
+            'SELECT corrected_count FROM earnings_imports',
+          ),
+        ).toEqual([{ corrected_count: 0 }]);
+        await migrated.onModuleDestroy();
+      }
+      database = new DatabaseService();
+      process.env.DATABASE_PATH = path.join(tempDir, 'test.db');
     });
   });
 });

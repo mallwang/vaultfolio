@@ -37,7 +37,8 @@ body:json {
               "health": "400.00", "care": "90.00", "pension": "465.00", "unemployment": "65.00",
               "net": "3116.00", "other": "-40.00", "payout": "3076.00",
               "oneOff": {}, "employerSubsidy": null, "ytd": null
-            }
+            },
+            "corrected": ["wageTax"]
           }
         ],
         "certificates": []
@@ -48,4 +49,7 @@ body:json {
 
 docs {
   Dry run: validates and classifies each file (NEW / REPLACES / DUPLICATE / REJECTED); writes nothing. Invented figures only.
+
+  `corrected` lists the names (never values) of figures the user corrected in the preview (FR-012a): payslip PDFs only, distinct, only figures taking part in a check (gross, wageTax, soli, churchTax, health, care, pension, unemployment, net, payout). The server re-runs every check on the submitted figures.
+  Tampered cases, all REJECTED: figures that still fail a check -> CHECK_FAILED; unknown or duplicate name, name outside the editable set (e.g. taxGross, other), non-array, or `corrected` on CERTIFICATE_PDF / EXPORT_JSON files -> INVALID_VALUE (params.path); any other extra field -> EARNINGS_UNKNOWN_FIELD.
 }

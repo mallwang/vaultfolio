@@ -284,9 +284,19 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
         parser_id      TEXT NOT NULL,
         parser_version TEXT NOT NULL,
         imported_at    TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ','now')),
+        corrected_count INTEGER NOT NULL DEFAULT 0 CHECK (corrected_count >= 0),
         UNIQUE (owner_id, file_sha256)
       )
     `);
+    // FR-012a: databases created before figure correction lack the column (guarded, idempotent)
+    const hasCorrectedCount = db
+      .prepare("SELECT 1 FROM pragma_table_info('earnings_imports') WHERE name = 'corrected_count'")
+      .get();
+    if (!hasCorrectedCount) {
+      db.exec(
+        'ALTER TABLE earnings_imports ADD COLUMN corrected_count INTEGER NOT NULL DEFAULT 0 CHECK (corrected_count >= 0)',
+      );
+    }
     db.exec('CREATE INDEX IF NOT EXISTS earnings_imports_owner_idx ON earnings_imports (owner_id)');
 
     db.exec(`

@@ -14,6 +14,8 @@ export interface StatementLine {
   /** Expandable group id and its members. */
   group?: 'taxes' | 'social';
   children?: StatementLine[];
+  /** The user corrected this figure in the import preview (FR-012a). */
+  corrected?: boolean;
 }
 
 export interface Statement {
@@ -95,6 +97,13 @@ const n = Number;
                         } @else {
                           {{ line.label }}
                         }
+                        @if (line.corrected) {
+                          <p-tag
+                            severity="success"
+                            [value]="'earnings.detail.corrected' | translate"
+                            [attr.data-testid]="'earnings-statement-corrected-' + statement.id"
+                          />
+                        }
                       </th>
                       <td class="num detail-col">{{ line.detail ?? '' }}</td>
                       <td class="num">{{ line.amount ?? '' }}</td>
@@ -102,7 +111,15 @@ const n = Number;
                     @if (line.group && isOpen(statement.id, line.group)) {
                       @for (child of line.children; track child.label) {
                         <tr class="line line--child">
-                          <th scope="row">{{ child.label }}</th>
+                          <th scope="row">
+                            {{ child.label }}
+                            @if (child.corrected) {
+                              <p-tag
+                                severity="success"
+                                [value]="'earnings.detail.corrected' | translate"
+                              />
+                            }
+                          </th>
                           <td class="num detail-col">{{ child.detail }}</td>
                           <td></td>
                         </tr>
@@ -278,6 +295,9 @@ export function buildStatement(
   const social = n(a.health) + n(a.care) + n(a.pension) + n(a.unemployment);
   const residual = Math.round((n(a.gross) - taxes - social - n(a.net)) * 100) / 100;
   const lines: StatementLine[] = [];
+  const edited = new Set<string>(a.corrected ?? []);
+  const mark = (...keys: string[]): { corrected?: true } =>
+    keys.some((k) => edited.has(k)) ? { corrected: true } : {};
 
   if (record.kind === 'CORRECTION') {
     lines.push({ label: t('backPay'), detail: money(a.gross), kind: 'item' });
@@ -287,16 +307,17 @@ export function buildStatement(
   }
   if (record.kind !== 'PAYOUT_ONLY') {
     lines.push(
-      { label: t('grossTotal'), amount: money(a.gross), kind: 'subtotal' },
+      { label: t('grossTotal'), amount: money(a.gross), kind: 'subtotal', ...mark('gross') },
       {
         label: t('taxes'),
         amount: money(-taxes),
         kind: 'group',
         group: 'taxes',
+        ...mark('wageTax', 'soli', 'churchTax'),
         children: [
-          { label: t('wageTax'), detail: neg(a.wageTax), kind: 'item' },
-          { label: t('soli'), detail: neg(a.soli), kind: 'item' },
-          { label: t('churchTax'), detail: neg(a.churchTax), kind: 'item' },
+          { label: t('wageTax'), detail: neg(a.wageTax), kind: 'item', ...mark('wageTax') },
+          { label: t('soli'), detail: neg(a.soli), kind: 'item', ...mark('soli') },
+          { label: t('churchTax'), detail: neg(a.churchTax), kind: 'item', ...mark('churchTax') },
         ],
       },
       {
@@ -304,11 +325,17 @@ export function buildStatement(
         amount: money(-social),
         kind: 'group',
         group: 'social',
+        ...mark('health', 'care', 'pension', 'unemployment'),
         children: [
-          { label: t('health'), detail: neg(a.health), kind: 'item' },
-          { label: t('care'), detail: neg(a.care), kind: 'item' },
-          { label: t('pension'), detail: neg(a.pension), kind: 'item' },
-          { label: t('unemployment'), detail: neg(a.unemployment), kind: 'item' },
+          { label: t('health'), detail: neg(a.health), kind: 'item', ...mark('health') },
+          { label: t('care'), detail: neg(a.care), kind: 'item', ...mark('care') },
+          { label: t('pension'), detail: neg(a.pension), kind: 'item', ...mark('pension') },
+          {
+            label: t('unemployment'),
+            detail: neg(a.unemployment),
+            kind: 'item',
+            ...mark('unemployment'),
+          },
         ],
       },
     );
@@ -325,7 +352,12 @@ export function buildStatement(
         amount: money(-residual),
         kind: 'item',
       });
-    lines.push({ label: t('statutoryNet'), amount: money(a.net), kind: 'subtotal' });
+    lines.push({
+      label: t('statutoryNet'),
+      amount: money(a.net),
+      kind: 'subtotal',
+      ...mark('net'),
+    });
   }
   lines.push({ label: t('other'), amount: money(a.other), kind: 'item' });
   if (record.kind === 'CORRECTION') {
@@ -336,7 +368,9 @@ export function buildStatement(
       kind: 'note',
     });
   }
-  if (a.payout !== null) lines.push({ label: t('payout'), amount: money(a.payout), kind: 'total' });
+  if (a.payout !== null) {
+    lines.push({ label: t('payout'), amount: money(a.payout), kind: 'total', ...mark('payout') });
+  }
 
   return {
     id: record.id,

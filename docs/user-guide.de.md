@@ -265,7 +265,16 @@ Jede Datei bekommt eine Zeile mit ihrem Ergebnis: **Neu**, **Ersetzt** (eine neu
 Fassung bereits importierter Werte), **Duplikat** (bereits importiert – übersprungen)
 oder **Abgelehnt** mit Begründung, etwa wenn Brutto − Steuern − Sozialversicherung nicht
 das Netto ergibt oder ein PDF ein Scan ohne Text ist. Abgelehnte Dateien werden nie
-gespeichert. Klappe **Werte, die gesendet werden** auf, um genau zu sehen, was dein
+gespeichert.
+
+Wird eine Abrechnung abgelehnt, weil eine Prüfung nicht aufgeht, öffnen sich ihre Werte in
+der Zeile, damit du einen falsch gelesenen Wert korrigieren kannst: Die an der fehlgeschlagenen
+Prüfung beteiligten Werte sind hervorgehoben (**In fehlgeschlagener Prüfung**) und editierbar –
+`1.234,56` und `1234.56` funktionieren. Die Prüfungen laufen bei jeder Änderung neu; sobald
+sie bestehen, zeigt die Zeile **Von Ihnen korrigiert** und kann importiert werden. **Gelesenen
+Wert wiederherstellen** setzt den Originalwert zurück. Andere Werte sind nicht editierbar, der
+Server prüft beim Import alles erneut, und korrigierte Werte bleiben in Vorschau,
+Importverlauf („1 Wert von Ihnen korrigiert“) und Monatsdetail markiert. Klappe **Werte, die gesendet werden** auf, um genau zu sehen, was dein
 Gerät verlässt. Gespeichert wird erst, wenn du unten auf die Import-Schaltfläche
 klickst.
 

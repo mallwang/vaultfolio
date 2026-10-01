@@ -4,12 +4,19 @@ import type {
   EarningsFilePreview,
   EarningsFileResult,
   EarningsImportFile,
+  EarningsPayAmountKey,
+  EarningsPayRecordInput,
   EarningsRejection,
   EarningsSourceType,
 } from '@vaultfolio/api-contract';
 import {
+  type CheckFailure,
   type ParseOutcome,
+  applyCorrection,
+  collectCheckFailures,
+  editableKeys,
   parseDocument,
+  parseMoneyInput,
   readEarningsExport,
   toImportFile,
 } from '@vaultfolio/earnings';
@@ -29,7 +36,22 @@ export const EARNINGS_FILE_READER = new InjectionToken<EarningsFileReader>('EARN
   factory: () => ({ extractPdfText, sha256Hex }),
 });
 
-export type ImportRowState = 'reading' | 'local-rejected' | 'candidate';
+/**
+ * `needs-correction`: a payslip that failed an arithmetic check on the device. Its figures are
+ * shown in the correction grid; it stays rejected (never sent) until every check passes (FR-012a).
+ */
+export type ImportRowState = 'reading' | 'local-rejected' | 'needs-correction' | 'candidate';
+
+/** One editable figure of a record: record index and figure name. */
+export interface FigureRef {
+  recordIndex: number;
+  key: EarningsPayAmountKey;
+}
+
+/** Key of a figure in `inputs` / `inputErrors`. */
+export function figureId(recordIndex: number, key: EarningsPayAmountKey): string {
+  return `${recordIndex}:${key}`;
+}
 
 export interface ImportRow {
   clientFileId: string;
@@ -44,6 +66,18 @@ export interface ImportRow {
   localRejection: EarningsRejection | null;
   preview: EarningsFilePreview | null;
   result: EarningsFileResult | null;
+  /**
+   * Correction state (browser only, FR-012a): the current records, the records as read, the
+   * failing checks, the figures that may be edited (fixed by the original failure), the text the
+   * user typed per figure and the figures whose text is not an amount. `null` for files that
+   * passed every check when read.
+   */
+  draft: EarningsPayRecordInput[] | null;
+  originalRecords: EarningsPayRecordInput[] | null;
+  failures: CheckFailure[];
+  editable: FigureRef[];
+  inputs: Record<string, string>;
+  inputErrors: Record<string, true>;
 }
 
 export type ImportPhase =
@@ -84,8 +118,16 @@ export class ImportSessionStore {
   );
   readonly rejected = computed(
     () =>
-      this.rows().filter((r) => r.state === 'local-rejected' || r.preview?.status === 'REJECTED')
-        .length,
+      this.rows().filter(
+        (r) =>
+          r.state === 'local-rejected' ||
+          r.state === 'needs-correction' ||
+          r.preview?.status === 'REJECTED',
+      ).length,
+  );
+  /** Figures the user corrected in the files that are ready to import. */
+  readonly correctedFigures = computed(() =>
+    this.ready().reduce((n, r) => n + correctedCount(r), 0),
   );
   readonly savedCount = computed(
     () => this.rows().filter((r) => r.result?.status === 'SAVED').length,
@@ -116,6 +158,53 @@ export class ImportSessionStore {
     void this.preview();
   }
 
+  /**
+   * The user typed `text` into a figure of a file that failed a check (FR-012a). Only figures
+   * taking part in the failing check can be edited; unparsable text is remembered as an input
+   * error and keeps the file out of the import; checks re-run on every edit.
+   */
+  editFigure(
+    clientFileId: string,
+    recordIndex: number,
+    key: EarningsPayAmountKey,
+    text: string,
+  ): void {
+    const row = this.rows().find((r) => r.clientFileId === clientFileId);
+    if (!row?.draft || !isEditable(row, recordIndex, key)) return;
+    const id = figureId(recordIndex, key);
+    const value = parseMoneyInput(text);
+    const inputs = { ...row.inputs, [id]: text };
+    if (value === null) {
+      this.update(row, row.draft, inputs, { ...row.inputErrors, [id]: true });
+      return;
+    }
+    const inputErrors = without(row.inputErrors, id);
+    const draft = applyCorrection(
+      row.draft,
+      { recordIndex, key, value },
+      row.editable,
+      row.originalRecords ?? undefined,
+    );
+    if (draft) this.update(row, draft, inputs, inputErrors);
+  }
+
+  /** Puts the read value of a corrected figure back; the marker disappears again. */
+  restoreFigure(clientFileId: string, recordIndex: number, key: EarningsPayAmountKey): void {
+    const row = this.rows().find((r) => r.clientFileId === clientFileId);
+    const original = row?.originalRecords?.[recordIndex]?.amounts[key];
+    if (!row?.draft || !isEditable(row, recordIndex, key) || original == null) return;
+    const id = figureId(recordIndex, key);
+    const inputs = without(row.inputs, id);
+    const inputErrors = without(row.inputErrors, id);
+    const draft = applyCorrection(
+      row.draft,
+      { recordIndex, key, value: original },
+      row.editable,
+      row.originalRecords ?? undefined,
+    );
+    if (draft) this.update(row, draft, inputs, inputErrors);
+  }
+
   reset(): void {
     this.rows.set([]);
     this.phase.set('idle');
@@ -141,7 +230,54 @@ export class ImportSessionStore {
     }
   }
 
+  private previewSeq = 0;
+
+  /**
+   * Re-derives a correctable row from its draft: failing checks, status, the body that would be
+   * sent. A file is a candidate only when every check passes and every typed amount parses.
+   */
+  private update(
+    row: ImportRow,
+    draft: EarningsPayRecordInput[],
+    inputs: Record<string, string>,
+    inputErrors: Record<string, true>,
+  ): void {
+    const failures = collectCheckFailures(draft);
+    const passes = failures.length === 0 && Object.keys(inputErrors).length === 0;
+    const body = row.body
+      ? (toImportFile(
+          { records: draft, certificates: row.body.certificates },
+          {
+            clientFileId: row.body.clientFileId,
+            fileName: row.body.fileName,
+            sourceType: row.body.sourceType,
+            fileSha256: row.body.fileSha256,
+            parserId: row.body.parserId,
+            parserVersion: row.body.parserVersion,
+          },
+        ) as EarningsImportFile)
+      : null;
+    const first = failures[0];
+    this.patch(row.clientFileId, {
+      draft,
+      inputs,
+      inputErrors,
+      failures,
+      body,
+      state: passes ? 'candidate' : 'needs-correction',
+      preview: null,
+      localRejection: first
+        ? {
+            code: 'CHECK_FAILED',
+            params: { check: first.check, period: first.period, difference: first.difference },
+          }
+        : null,
+    });
+    void this.preview();
+  }
+
   private async preview(): Promise<void> {
+    const seq = ++this.previewSeq;
     const candidates = this.rows().filter((r) => r.state === 'candidate');
     if (this.rows().some((r) => r.state === 'reading')) return;
     if (candidates.length === 0) {
@@ -154,6 +290,7 @@ export class ImportSessionStore {
       const preview = await firstValueFrom(
         this.api.preview({ files: candidates.map((r) => r.body as EarningsImportFile) }),
       );
+      if (seq !== this.previewSeq) return; // a newer edit superseded this answer
       const byId = new Map(preview.files.map((f) => [f.clientFileId, f]));
       this.rows.update((rows) =>
         rows.map((r) => ({ ...r, preview: byId.get(r.clientFileId) ?? null })),
@@ -161,7 +298,7 @@ export class ImportSessionStore {
       this.errorCode.set(null);
       this.phase.set('ready');
     } catch (error) {
-      this.fail(error);
+      if (seq === this.previewSeq) this.fail(error);
     }
   }
 
@@ -196,7 +333,32 @@ export class ImportSessionStore {
     sourceType: EarningsSourceType,
   ): Promise<Partial<ImportRow>> {
     if (!outcome.ok) {
-      return { ...rejected(outcome.error), parserId: outcome.parserId ?? null, sourceType };
+      const base = { ...rejected(outcome.error), parserId: outcome.parserId ?? null, sourceType };
+      const partial = outcome.partial;
+      if (outcome.error.code !== 'CHECK_FAILED' || !partial || sourceType !== 'PAYSLIP_PDF') {
+        return base;
+      }
+      // FR-012a: show the figures of a payslip that failed a check so they can be corrected
+      const failures = collectCheckFailures(partial.records);
+      const editable = editableKeys(failures);
+      if (editable.length === 0) return base;
+      return {
+        ...base,
+        state: 'needs-correction',
+        employer: partial.employer || null,
+        body: toImportFile(partial, {
+          clientFileId: row.clientFileId,
+          fileName: file.name,
+          sourceType,
+          fileSha256: await this.reader.sha256Hex(file),
+          parserId: outcome.parserId as string,
+          parserVersion: outcome.parserVersion as string,
+        }) as EarningsImportFile,
+        draft: partial.records,
+        originalRecords: partial.records,
+        failures,
+        editable,
+      };
     }
     const body = toImportFile(outcome, {
       clientFileId: row.clientFileId,
@@ -228,6 +390,12 @@ export class ImportSessionStore {
       localRejection: null,
       preview: null,
       result: null,
+      draft: null,
+      originalRecords: null,
+      failures: [],
+      editable: [],
+      inputs: {},
+      inputErrors: {},
     };
   }
 
@@ -245,6 +413,20 @@ export class ImportSessionStore {
     this.errorCode.set(code);
     this.phase.set('error');
   }
+}
+
+/** A copy of `record` without `key`. */
+function without<T>(record: Record<string, T>, key: string): Record<string, T> {
+  return Object.fromEntries(Object.entries(record).filter(([k]) => k !== key));
+}
+
+function isEditable(row: ImportRow, recordIndex: number, key: EarningsPayAmountKey): boolean {
+  return row.editable.some((e) => e.recordIndex === recordIndex && e.key === key);
+}
+
+/** Number of figures the user corrected in a row (names listed in the records' `corrected`). */
+export function correctedCount(row: Pick<ImportRow, 'draft'>): number {
+  return (row.draft ?? []).reduce((n, r) => n + (r.corrected?.length ?? 0), 0);
 }
 
 function rejected(rejection: EarningsRejection): Partial<ImportRow> {

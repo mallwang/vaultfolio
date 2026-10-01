@@ -1319,6 +1319,102 @@
         min-width: 0;
       }
 
+      /* Correction in the import preview (issue #63) */
+      .notice--ok {
+        background: var(--p-success-bg);
+        color: var(--p-text-color);
+      }
+      .notice--ok svg {
+        color: var(--p-success-color);
+      }
+      .notice ul {
+        margin: 0.3rem 0 0;
+        padding-left: 1.1rem;
+      }
+      .fig-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.7rem 1rem;
+        margin-top: 0.6rem;
+      }
+      .stage-frame[data-viewport='mobile'] .fig-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .fig {
+        border: 1px solid transparent;
+        border-radius: 8px;
+        padding: 0.4rem 0.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+      .fig label {
+        font-size: 0.74rem;
+        color: var(--p-text-muted-color);
+      }
+      .fig__input {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+      }
+      .fig__input svg {
+        width: 16px;
+        height: 16px;
+        flex: 0 0 auto;
+        color: var(--p-danger-color);
+      }
+      .fig__input .input {
+        text-align: right;
+        flex: 1 1 auto;
+      }
+      .fig--bad {
+        border-color: var(--p-danger-color);
+        background: var(--p-danger-bg);
+      }
+      .fig--bad .input {
+        border-color: var(--p-danger-color);
+      }
+      .fig--fixed {
+        border-color: var(--p-success-color);
+        background: var(--p-success-bg);
+      }
+      .fig--fixed .fig__input svg {
+        color: var(--p-success-color);
+      }
+      .fig--locked .input {
+        background: var(--p-surface-2);
+        color: var(--p-text-muted-color);
+      }
+      .fig__meta {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.74rem;
+      }
+      .fig__meta .btn--text {
+        font-size: 0.74rem;
+        padding: 0;
+      }
+      .fig__badge {
+        font-size: 0.72rem;
+        font-weight: 600;
+        color: var(--p-danger-color);
+      }
+      .fig__err {
+        font-size: 0.74rem;
+        color: var(--p-danger-color);
+      }
+      .btn[disabled] {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      .fig-note {
+        margin-top: 0.6rem;
+        font-size: 0.76rem;
+        color: var(--p-text-muted-color);
+      }
+
       /* Empty / unavailable */
       .empty {
         text-align: center;
@@ -1435,6 +1531,9 @@
             Imports &amp; privacy
           </button>
           <button type="button" data-screen="import" aria-pressed="false">Import preview</button>
+          <button type="button" data-screen="correct" aria-pressed="false">
+            Import: correct a figure
+          </button>
           <button type="button" data-screen="empty" aria-pressed="false">Empty</button>
           <button type="button" data-screen="unavailable" aria-pressed="false">
             Key unavailable
@@ -1488,6 +1587,15 @@
           The import preview lists every selected file with its own outcome. Rejected and duplicate
           files are skipped; the confirm button names how many files will be saved. One row can be
           expanded to show exactly which figures will be sent.
+        </li>
+        <li>
+          <b>Correcting a misread figure (issue #63)</b>: a file rejected by a check opens the same
+          "figures that will be sent" grid as a valid file. The figures in the failing check carry a
+          warning icon, a red outline and the label "In failing check" (not colour alone); only they
+          are editable. Typing a new amount re-runs the check immediately: the status flips from
+          Rejected to Corrected, the edited figure is marked "corrected by you" with a "restore read
+          value" action, and the import button unlocks. The Imports tab marks corrected files. Try
+          it: pick "Import: correct a figure", change Wage tax to 520.00 (or 520,00 in German).
         </li>
         <li>
           Series colors keep the five validated roles from earnings-evolution: net (blue), taxes
@@ -1674,6 +1782,28 @@
           readySummary: (a, r) => `${a} files ready (${r} records)`,
           skipped: (n) => `${n} skipped`,
           rejected: (n) => `${n} rejected`,
+          stCorrected: 'Corrected by you',
+          fixCrumb: 'Figures taking part in this check',
+          fixFailTitle: (p, d) => `Check failed for ${p}: net is off by ${d}`,
+          fixFailBody: (p) =>
+            `Gross − taxes − social insurance should equal the statutory net, but the figures read from the document for ${p} do not add up. Compare the highlighted figures with your document and correct the one that was misread. The file can only be imported once all checks pass.`,
+          fixOkTitle: 'All checks pass again',
+          fixOkBody: (n) =>
+            `${n} figure corrected by you. Corrected figures were not read from the document; they stay marked as corrected in the preview and in the import history. The server checks them again when you import.`,
+          fixOkNone:
+            'The figures match the values read from the document, but the check still fails — nothing was changed.',
+          fixInFailing: 'In failing check',
+          fixEdited: 'corrected by you',
+          fixRestore: 'Restore read value',
+          fixRestoreAria: (n, v) => `Restore ${n} to the value read from the document (${v})`,
+          fixInvalid: 'Enter an amount, for example 1,234.56',
+          fixLocked: 'Only figures that take part in the failing check can be edited.',
+          fixOneFile: 'Rejected file — figures that will be sent',
+          fixRead: (v) => `Read from document: ${v}`,
+          fixReadyOne: '1 file ready (1 record)',
+          fixBlocked: '1 file rejected',
+          fixImport: 'Import 1 file',
+          histCorrected: (n) => `${n} figure corrected by you`,
           cancel: 'Cancel',
           importN: (n) => `Import ${n} files`,
           emptyTitle: 'No earnings yet',
@@ -1864,6 +1994,30 @@
           readySummary: (a, r) => `${a} Dateien bereit (${r} Datensätze)`,
           skipped: (n) => `${n} übersprungen`,
           rejected: (n) => `${n} abgelehnt`,
+          stCorrected: 'Von dir korrigiert',
+          fixCrumb: 'Beträge dieser Prüfung',
+          fixFailTitle: (p, d) => `Prüfung für ${p} fehlgeschlagen: Netto weicht um ${d} ab`,
+          fixFailBody: (p) =>
+            `Brutto − Steuern − Sozialabgaben müsste dem gesetzlichen Netto entsprechen, aber die aus dem Dokument gelesenen Beträge für ${p} gehen nicht auf. Vergleiche die markierten Beträge mit deinem Dokument und korrigiere den falsch gelesenen. Die Datei kann erst importiert werden, wenn alle Prüfungen bestehen.`,
+          fixOkTitle: 'Alle Prüfungen bestehen wieder',
+          fixOkBody: (n) =>
+            `${n} Betrag von dir korrigiert. Korrigierte Beträge wurden nicht aus dem Dokument gelesen; sie bleiben in der Vorschau und im Importverlauf als korrigiert markiert. Der Server prüft sie beim Import erneut.`,
+          fixOkNone:
+            'Die Beträge entsprechen den aus dem Dokument gelesenen Werten, die Prüfung schlägt aber weiter fehl — es wurde nichts geändert.',
+          fixInFailing: 'In fehlgeschlagener Prüfung',
+          fixEdited: 'von dir korrigiert',
+          fixRestore: 'Gelesenen Wert wiederherstellen',
+          fixRestoreAria: (n, v) =>
+            `${n} auf den aus dem Dokument gelesenen Wert zurücksetzen (${v})`,
+          fixInvalid: 'Betrag eingeben, zum Beispiel 1.234,56',
+          fixLocked:
+            'Nur Beträge, die an der fehlgeschlagenen Prüfung beteiligt sind, können bearbeitet werden.',
+          fixOneFile: 'Abgelehnte Datei — Beträge, die gesendet werden',
+          fixRead: (v) => `Aus Dokument gelesen: ${v}`,
+          fixReadyOne: '1 Datei bereit (1 Datensatz)',
+          fixBlocked: '1 Datei abgelehnt',
+          fixImport: '1 Datei importieren',
+          histCorrected: (n) => `${n} Betrag von dir korrigiert`,
           cancel: 'Abbrechen',
           importN: (n) => `${n} Dateien importieren`,
           emptyTitle: 'Noch keine Einkommensdaten',
@@ -1915,6 +2069,9 @@
         month: '2026-07',
         range: '3y',
         expanded: 'f1',
+        fix: {},
+        focusKey: null,
+        caret: 0,
       };
       const t = (k, ...a) => {
         const v = T[S.lang][k];
@@ -2512,6 +2669,15 @@
             '03.09.2026',
           ],
           [
+            '2011-11.pdf',
+            'tPayslip',
+            mName('2011-11'),
+            1,
+            'Bundesbank Verdienstabrechnung 1.0',
+            '03.09.2026',
+            1,
+          ],
+          [
             '2026_08_Entgeltnachweis.pdf',
             'tPayslip',
             mName('2026-08'),
@@ -2540,7 +2706,7 @@
       ${privacyPanel()}
       <div class="panel"><div class="panel__head"><div><h2>${t('importsTitle')}</h2><p class="panel__sub">${t('importsSub')}</p></div></div>
         <div class="table-wrap"><table class="t"><thead><tr><th>${t('file')}</th><th class="l">${t('type')}</th><th class="l">${t('periods')}</th><th>${t('records')}</th><th class="l">${t('parser')}</th><th>${t('importedOn')}</th><th></th></tr></thead>
-        <tbody>${hist.map((h) => `<tr><td class="file">${h[0]}</td><td class="l">${t(h[1])}</td><td class="l">${h[2]}</td><td>${h[3]}</td><td class="l muted">${h[4]}</td><td>${h[5]}</td><td><button type="button" class="icon-btn" aria-label="${t('deleteImport')}">${svg('trash')}</button></td></tr>`).join('')}</tbody></table></div></div>
+        <tbody>${hist.map((h) => `<tr><td class="file">${h[0]}${h[6] ? ` <span class="tag tag--ok" data-testid="earnings-history-corrected">${svg('check')}${t('histCorrected', h[6])}</span>` : ''}</td><td class="l">${t(h[1])}</td><td class="l">${h[2]}</td><td>${h[3]}</td><td class="l muted">${h[4]}</td><td>${h[5]}</td><td><button type="button" class="icon-btn" aria-label="${t('deleteImport')}">${svg('trash')}</button></td></tr>`).join('')}</tbody></table></div></div>
       <div class="panel"><div class="panel__head"><div><h2>${t('employerNames')}</h2><p class="panel__sub">${t('employerNamesSub')}</p></div></div>
         ${Object.entries(EMP)
           .map(
@@ -2671,6 +2837,122 @@
         <div class="toolbar__actions"><button type="button" class="btn btn--outline" data-go="overview">${t('cancel')}</button><button type="button" class="btn btn--primary" data-testid="earnings-import-confirm">${svg('check')}${t('importN', 4)}</button></div>
       </div>`;
       }
+      function correctScreen() {
+        const BASE = {
+          gross: 320000,
+          wageTax: 50200,
+          soli: 3340,
+          church: 0,
+          health: 26000,
+          care: 4880,
+          pension: 29760,
+          unemployment: 3840,
+          net: 200180,
+        };
+        const keys = Object.keys(BASE);
+        const parseCents = (txt) => {
+          let x = String(txt).replace(/[\s€]/g, '');
+          if (!/^-?[\d.,]+$/.test(x)) return null;
+          const lastDot = x.lastIndexOf('.');
+          const lastComma = x.lastIndexOf(',');
+          const dec = Math.max(lastDot, lastComma);
+          let intPart = x;
+          let frac = '';
+          if (dec >= 0) {
+            const after = x.length - dec - 1;
+            const onlyOne = (x.match(/[.,]/g) || []).length === 1;
+            if (after <= 2 || (!onlyOne && after !== 3)) {
+              intPart = x.slice(0, dec);
+              frac = x.slice(dec + 1);
+            }
+          }
+          intPart = intPart.replace(/[.,]/g, '');
+          if (frac.length > 2 || !/^-?\d*$/.test(intPart) || intPart === '' || intPart === '-')
+            return null;
+          const neg = intPart.startsWith('-');
+          const cents = Math.abs(Number(intPart)) * 100 + Number(frac.padEnd(2, '0') || 0);
+          return neg ? -cents : cents;
+        };
+        const cur = (k) => (S.fix[k] === undefined ? BASE[k] : parseCents(S.fix[k]));
+        const vals = Object.fromEntries(keys.map((k) => [k, cur(k)]));
+        const invalid = keys.filter((k) => vals[k] === null);
+        const diff =
+          invalid.length > 0
+            ? null
+            : vals.net -
+              (vals.gross -
+                vals.wageTax -
+                vals.soli -
+                vals.church -
+                (vals.health + vals.care + vals.pension + vals.unemployment));
+        const failing = diff === null || Math.abs(diff) > 1;
+        const edited = keys.filter((k) => vals[k] !== null && vals[k] !== BASE[k]);
+        const fmt = (c) => eur2(c / 100);
+        const shownDiff = diff === null ? null : fmt(diff);
+        const plain = (c) =>
+          new Intl.NumberFormat(loc(), {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }).format(c / 100);
+        const period = mName('2011-11');
+        const status = failing
+          ? `<span class="tag tag--bad">${t('stRejected')}</span>`
+          : `<span class="tag tag--ok">${t('stCorrected')}</span>`;
+        const checksCol = failing
+          ? '<span class="bad">✗ Netto</span>'
+          : `<span class="ok">✓ ${t('allChecks')}</span>`;
+        const notice = failing
+          ? `<div class="notice notice--danger" role="alert" id="fix-msg" data-testid="earnings-import-check-message">${svg('warn')}<div><strong>${t('fixFailTitle', period, shownDiff ?? '—')}</strong> ${t('fixFailBody', period)}<div style="margin-top:0.35rem">${t('fixCrumb')}: <b>${keys.map((k) => t(k)).join(' · ')}</b></div></div></div>`
+          : `<div class="notice notice--ok" role="status" id="fix-msg" data-testid="earnings-import-check-message">${svg('check')}<div><strong>${t('fixOkTitle')}</strong> ${edited.length ? t('fixOkBody', edited.length) : t('fixOkNone')}</div></div>`;
+        const cells = keys
+          .map((k) => {
+            const isEdited = edited.includes(k);
+            const bad = failing;
+            const err = vals[k] === null;
+            const shown = S.fix[k] === undefined ? plain(BASE[k]) : S.fix[k];
+            return `<div class="fig ${bad ? 'fig--bad' : ''} ${isEdited && !bad ? 'fig--fixed' : ''}" data-testid="earnings-import-figure">
+              <label for="fix-${k}">${t(k)}</label>
+              <div class="fig__input">${bad ? svg('warn') : isEdited ? svg('check') : ''}<input class="input num" id="fix-${k}" data-fix="${k}" inputmode="decimal" autocomplete="off" value="${shown}" ${err ? 'aria-invalid="true"' : ''} aria-describedby="fix-msg" data-testid="earnings-import-figure-${k}" /><span class="muted">€</span></div>
+              ${bad ? `<span class="fig__badge">${t('fixInFailing')}</span>` : ''}
+              ${err ? `<span class="fig__err" role="alert">${t('fixInvalid')}</span>` : ''}
+              ${isEdited ? `<div class="fig__meta"><span class="tag tag--ok">${t('fixEdited')}</span><span class="muted">${t('fixRead', fmt(BASE[k]))}</span><button type="button" class="btn btn--text" data-restore="${k}" aria-label="${t('fixRestoreAria', t(k), fmt(BASE[k]))}" data-testid="earnings-import-figure-restore">${t('fixRestore')}</button></div>` : ''}
+            </div>`;
+          })
+          .join('');
+        const locked = [
+          ['other', 0],
+          ['payout', 200180],
+          ['ofWhichBonus', 0],
+        ]
+          .map(
+            ([k, v]) =>
+              `<div class="fig fig--locked"><label for="fix-${k}">${t(k)}</label><div class="fig__input"><input class="input num" id="fix-${k}" value="${plain(v)}" disabled /><span class="muted">€</span></div></div>`,
+          )
+          .join('');
+        return `
+      <div class="toolbar"><button type="button" class="btn btn--text" data-go="overview">${svg('back')}${t('importBack')}</button></div>
+      <div class="notice notice--info">${svg('device')}<div><strong>${t('pv1t')}.</strong> ${t('pv1')}</div></div>
+      <div class="file-list">
+        <div class="file-row" data-testid="earnings-import-file">
+          <span class="status-icon ${failing ? 'status-bad' : 'status-ok'}">${svg(failing ? 'x' : 'check')}</span>
+          <div><div class="file">2011-11.pdf</div><div class="sub">Bundesbank Verdienstabrechnung · Deutsche Bundesbank</div>
+            ${failing ? `<div class="reason">${t('fixFailTitle', period, shownDiff ?? '—')}</div>` : ''}${edited.length ? `<div class="sub"><span class="tag tag--ok" data-testid="earnings-import-corrected-count">${t('histCorrected', edited.length)}</span></div>` : ''}</div>
+          <div class="col-periods">${period}</div>
+          <div class="col-checks">${checksCol}</div>
+          <div>${status}</div>
+        </div>
+        <div class="file-detail" style="padding-left:0.9rem">
+          <b>${t('whatSent')} · ${period} · ${t('kindRegular')}</b>
+          ${notice}
+          <div class="fig-grid">${cells}${locked}</div>
+          <p class="fig-note">${t('fixLocked')}</p>
+        </div>
+      </div>
+      <div class="import-footer">
+        <div class="summary">${failing ? `<span class="tag tag--bad">${t('fixBlocked')}</span>` : `<span class="tag tag--ok">${t('fixReadyOne')}</span>`}</div>
+        <div class="toolbar__actions"><button type="button" class="btn btn--outline" data-go="overview">${t('cancel')}</button><button type="button" class="btn btn--primary" data-testid="earnings-import-confirm" ${failing ? 'disabled' : ''}>${svg('check')}${t('fixImport')}</button></div>
+      </div>`;
+      }
       function empty() {
         return `
       <div class="empty"><div class="empty__icon">${svg('payments')}</div><h2>${t('emptyTitle')}</h2><p>${t('emptySub')}</p>
@@ -2712,6 +2994,7 @@
           check: dataCheck,
           imports,
           import: importScreen,
+          correct: correctScreen,
           empty,
           unavailable,
           widget,
@@ -2719,7 +3002,7 @@
         const title =
           S.screen === 'widget'
             ? t('dashboard')
-            : S.screen === 'import'
+            : S.screen === 'import' || S.screen === 'correct'
               ? t('importTitle')
               : t('earnings');
         canvas.innerHTML = shell(
@@ -2736,12 +3019,28 @@
         sync('screen-toggle', 'data-screen', S.screen);
         sync('lang-toggle', 'data-lang', S.lang);
         sync('theme-toggle', 'data-theme-choice', S.theme);
+        if (S.focusKey) {
+          const el = canvas.querySelector('#fix-' + S.focusKey);
+          if (el) {
+            el.focus();
+            el.setSelectionRange(S.caret, S.caret);
+          }
+          S.focusKey = null;
+        }
       }
 
       canvas.addEventListener('click', (e) => {
         const go = e.target.closest('[data-go]');
         if (go) {
           S.screen = go.dataset.go;
+          render();
+          return;
+        }
+        const rs = e.target.closest('[data-restore]');
+        if (rs) {
+          delete S.fix[rs.dataset.restore];
+          S.focusKey = rs.dataset.restore;
+          S.caret = 0;
           render();
           return;
         }
@@ -2773,6 +3072,14 @@
           S.theme = S.theme === 'dark' ? 'light' : 'dark';
           render();
         }
+      });
+      canvas.addEventListener('input', (e) => {
+        const k = e.target.dataset && e.target.dataset.fix;
+        if (!k) return;
+        S.fix[k] = e.target.value;
+        S.focusKey = k;
+        S.caret = e.target.selectionStart;
+        render();
       });
       canvas.addEventListener('change', (e) => {
         if (e.target.id === 'employer-filter') {

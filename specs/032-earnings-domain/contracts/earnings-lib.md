@@ -38,7 +38,13 @@ interface EarningsParser {
 
 type ParseOutcome =
   | { ok: true; employer: string; records: PayRecordInput[]; certificates: CertificateInput[] }
-  | { ok: false; error: ParseError };
+  | { ok: false; error: ParseError; partial?: ParsedFigures }; // partial only for CHECK_FAILED (FR-012a)
+
+interface ParsedFigures {
+  employer: string;
+  records: PayRecordInput[];
+  certificates: CertificateInput[];
+}
 
 interface ParseError {
   code:
@@ -60,7 +66,8 @@ function parseDocument(
 
 `parseDocument` picks the first parser whose `detect` returns true, runs `parse`, then runs
 `runRecordChecks` on every record and `runPayoutCheck` per payslip; any failing check turns the
-outcome into `{ ok: false, error: CHECK_FAILED }` (FR-012).
+outcome into `{ ok: false, error: CHECK_FAILED, partial }` (FR-012); `partial` carries the parsed
+figures so the preview can show and correct them (FR-012a).
 
 ## Companion export reader
 
@@ -84,6 +91,7 @@ interface PayRecordInput {
   kind: RecordKind;
   seq: number;
   amounts: PayRecordAmounts; // see data-model.md (without `checks`)
+  corrected?: PayAmountKey[]; // names of user-corrected figures (FR-012a); never values
 }
 interface CertificateInput {
   employer: string;
@@ -99,6 +107,33 @@ function validateImportFile(
   file: unknown,
 ): { ok: true; value: ImportFileInput } | { ok: false; error: ParseError };
 // strict whitelist: unknown keys → EARNINGS_UNKNOWN_FIELD; format rules from data-model.md
+
+/** Every failing check of a file, with the figures taking part (FR-012a). */
+interface CheckFailure {
+  check: 'NET' | 'PAYOUT';
+  period: string;
+  difference: Money; // signed, as in CheckResult
+  recordIndexes: number[]; // records the check covers (payslip sections for PAYOUT)
+  involved: { recordIndex: number; key: PayAmountKey }[]; // figures that take part
+}
+function collectCheckFailures(records: readonly PayRecordInput[]): CheckFailure[];
+
+/** Editable figures of a file = the `involved` figures of its failing checks. */
+const EDITABLE_KEYS: readonly PayAmountKey[]; // gross, wageTax, soli, churchTax, health, care, pension, unemployment, net, payout
+function editableKeys(
+  failures: readonly CheckFailure[],
+): { recordIndex: number; key: PayAmountKey }[];
+
+/** Canonical money from user input (`"1.234,56"`, `"-45,00"`, `"1234.56"`) or `null`. */
+function parseMoneyInput(text: string): Money | null;
+
+/** Pure: new records with one figure replaced and `corrected` extended; `null` if the key is not editable. */
+function applyCorrection(
+  records: readonly PayRecordInput[],
+  edit: { recordIndex: number; key: PayAmountKey; value: Money },
+  editable: readonly { recordIndex: number; key: PayAmountKey }[],
+  original?: readonly PayRecordInput[], // with it, putting the read value back removes the name again
+): PayRecordInput[] | null;
 
 function runRecordChecks(r: PayRecordInput): CheckResult[]; // NET: gross − taxes − social = net (±0.01)
 function runPayoutCheck(sections: PayRecordInput[]): CheckResult; // PAYOUT: Σ(net + other) = payout (±0.01)

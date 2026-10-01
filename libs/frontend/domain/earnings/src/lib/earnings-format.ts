@@ -69,6 +69,7 @@ export function rejectionText(
   rejection: EarningsRejection,
   translate: (key: string) => string,
   lang: string,
+  templateKey?: string,
 ): string {
   const p = rejection.params ?? {};
   const params: Record<string, string> = { ...p };
@@ -78,7 +79,7 @@ export function rejectionText(
       : p['period'];
   if (p['difference']) params['difference'] = formatMoney(p['difference'], lang, { signed: true });
   if (p['check']) params['check'] = translate(`earnings.check.${p['check']}`);
-  const key = `earnings.errors.${rejection.code}`;
+  const key = templateKey ?? `earnings.errors.${rejection.code}`;
   const template = translate(key);
   return fill(template === key ? translate('earnings.errors.generic') : template, params);
 }

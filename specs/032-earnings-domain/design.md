@@ -2,7 +2,9 @@
 
 **Mockup**: [mockup.html](./mockup.html) (durable local copy) — originally reviewed at
 https://claude.ai/artifact/Y6aW3VKbc3ofeuHusRMkVE (this remote link may go stale; the local copy is
-the source of truth).
+the source of truth). The issue #63 addendum (correct a figure in the import preview) was reviewed at
+https://claude.ai/artifact/DdoVGeR8GyR2JoKZWYAg4c and is included in the local copy as the screen
+"Import: correct a figure".
 
 ## Summary
 
@@ -118,6 +120,42 @@ correction issued after the last payslip excluded (Apr 2022)").
 - **Footer**: summary chips ("4 files ready (57 records)", "1 skipped", "2 rejected") · Cancel ·
   primary "Import 4 files".
 
+### Import screen addendum: correct a misread figure (issue #63, FR-012a)
+
+A file rejected by an arithmetic check opens the same "Figures that will be sent" grid as a valid
+file instead of a one-line reason.
+
+```
+✕ 2011-11.pdf   Bundesbank Verdienstabrechnung · Deutsche Bundesbank   Nov 2011   ✗ Netto   [Rejected]
+  ⚠ Check failed for Nov 2011: net is off by −18.00 €  (message: what to compare, involved figures)
+  [Gross  ] [Wage tax ⚠] [Soli  ]      involved figures: icon + outline + "In failing check"
+  [Church ] [Health   ] [Care   ]      each an input with "€" suffix, right-aligned
+  [Pension] [Unempl.  ] [Net    ]
+  [Other  ] [Payout   ] [Bonus  ]      not part of the check: disabled
+  Only figures that take part in the failing check can be edited.
+                                                   [Cancel] [Import 1 file (disabled)]
+```
+
+- **Highlight**: all figures of the failing check get a warning icon, a danger outline and the label
+  "In failing check" (never colour alone). The reason line on the file row repeats check, month and
+  difference; the message above the grid explains what to compare and lists the involved figures
+  (FR-012).
+- **Edit inline**: text inputs with `inputmode="decimal"`, labelled by the figure name, linked to the
+  message through `aria-describedby`, `aria-invalid` plus an inline error for unparsable input
+  ("Enter an amount, for example 1,234.56"). Both `1.234,56` and `1234.56` are accepted (research
+  R16). The editable set is fixed from the original failure and stays editable after the checks pass.
+- **Live re-validation**: every keystroke re-runs the checks. Failing → danger message, "Rejected"
+  tag, confirm disabled. Passing → success message "All checks pass again", "Corrected by you" tag,
+  confirm enabled. An edit that changes nothing material leaves the file rejected.
+- **Corrected marker**: an edited figure gets a success outline, the tag "corrected by you", the
+  read value ("Read from document: 502,00 €") and a text button "Restore read value". The file row
+  shows "N figure corrected by you".
+- **Import history**: the file name carries the tag "N figure corrected by you" (also in month
+  detail next to the figure — mockup shows the history only).
+- **Mobile (~400px)**: the grid becomes one column, tags and status stay in their own lines.
+- **Decision**: inline grid, no modal; revisit only if real files with many involved figures make the
+  grid too crowded (issue #63).
+
 ### Empty state (FR-034)
 
 Centered icon, "No earnings yet", explanation that only supported formats are read and nothing can
@@ -143,31 +181,32 @@ file name.
 
 ## Requirement traceability
 
-| Spec item                            | Region                                                                    |
-| ------------------------------------ | ------------------------------------------------------------------------- |
-| FR-001, FR-002                       | Nav entry, app shell                                                      |
-| FR-004                               | Absence of any figure input anywhere; empty-state and employer-names copy |
-| FR-005–FR-007, FR-010, FR-014–FR-016 | Import screen dropzone, format chips, file rows, status tags              |
-| FR-008, FR-009, FR-017               | Device banner, "Figures that will be sent" expansion                      |
-| FR-011, FR-012                       | Checks column, rejection reason text                                      |
-| FR-020                               | Imports tab → Employer names                                              |
-| FR-021, FR-037                       | Imports tab → Import history + delete icon                                |
-| FR-022                               | Import progress line                                                      |
-| FR-023                               | Employer filter in toolbar                                                |
-| FR-024                               | Career summary accordion                                                  |
-| FR-025                               | Latest-year KPI tiles                                                     |
-| FR-026, FR-027, FR-028               | Gross per year, month-by-month, deduction ratio charts                    |
-| FR-029                               | Month detail statement                                                    |
-| FR-030, FR-031, FR-032               | Tables tab                                                                |
-| FR-033                               | Data check tab + Overview warning strip + tab badge                       |
-| FR-034                               | Empty state                                                               |
-| FR-035, FR-042                       | Privacy note (Imports tab, empty state), toolbar link, import banner      |
-| FR-036                               | Dashboard widget                                                          |
-| FR-038                               | Danger zone                                                               |
-| FR-040                               | Export button (029 capability)                                            |
-| FR-044                               | Key unavailable state                                                     |
-| FR-046, FR-047, FR-048               | EN/DE toggle; locale formatting (`€1,234` / `1.234 €`); glossary terms    |
-| FR-049                               | Light/dark toggle, mobile viewport                                        |
+| Spec item                            | Region                                                                  |
+| ------------------------------------ | ----------------------------------------------------------------------- |
+| FR-001, FR-002                       | Nav entry, app shell                                                    |
+| FR-004                               | No figure input except the check-involved inputs of the correction grid |
+| FR-005–FR-007, FR-010, FR-014–FR-016 | Import screen dropzone, format chips, file rows, status tags            |
+| FR-008, FR-009, FR-017               | Device banner, "Figures that will be sent" expansion                    |
+| FR-011, FR-012                       | Checks column, rejection reason text                                    |
+| FR-012a, FR-013, FR-021 (UI part)    | Import screen addendum (correct a figure), history marker               |
+| FR-020                               | Imports tab → Employer names                                            |
+| FR-021, FR-037                       | Imports tab → Import history + delete icon                              |
+| FR-022                               | Import progress line                                                    |
+| FR-023                               | Employer filter in toolbar                                              |
+| FR-024                               | Career summary accordion                                                |
+| FR-025                               | Latest-year KPI tiles                                                   |
+| FR-026, FR-027, FR-028               | Gross per year, month-by-month, deduction ratio charts                  |
+| FR-029                               | Month detail statement                                                  |
+| FR-030, FR-031, FR-032               | Tables tab                                                              |
+| FR-033                               | Data check tab + Overview warning strip + tab badge                     |
+| FR-034                               | Empty state                                                             |
+| FR-035, FR-042                       | Privacy note (Imports tab, empty state), toolbar link, import banner    |
+| FR-036                               | Dashboard widget                                                        |
+| FR-038                               | Danger zone                                                             |
+| FR-040                               | Export button (029 capability)                                          |
+| FR-044                               | Key unavailable state                                                   |
+| FR-046, FR-047, FR-048               | EN/DE toggle; locale formatting (`€1,234` / `1.234 €`); glossary terms  |
+| FR-049                               | Light/dark toggle, mobile viewport                                      |
 
 ## Out of scope for this mockup
 

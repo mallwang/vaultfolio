@@ -4,6 +4,7 @@ import {
   BBK_MAR_2025_NET_OFF,
 } from '../testing/bundesbank-verdienstabrechnung.fixtures';
 import { SAP_AUG_2026 } from '../testing/sap-entgeltnachweis.fixtures';
+import { collectCheckFailures } from '../checks';
 import { textDocument } from './pdf-text';
 import { parseDocument } from './registry';
 
@@ -29,8 +30,18 @@ describe('parseDocument with the Bundesbank parser', () => {
         code: 'CHECK_FAILED',
         params: { check: 'NET', period: '2025-03', difference: '12.40' },
       },
+      partial: expect.objectContaining({ employer: expect.any(String), certificates: [] }),
       ...IDENTITY,
     });
+  });
+
+  it('keeps the parsed records of the net-off statement as partial figures', () => {
+    const result = parseDocument(BBK_MAR_2025_NET_OFF.document);
+    if (result.ok || !result.partial) throw new Error('expected a partial result');
+    expect(result.partial.records.length).toBeGreaterThan(0);
+    expect(collectCheckFailures(result.partial.records)).toEqual([
+      expect.objectContaining({ check: 'NET', period: '2025-03', difference: '12.40' }),
+    ]);
   });
 
   it('still routes SAP statements to the SAP parser', () => {

@@ -68,6 +68,32 @@ export interface EarningsPayRecordAmounts {
 
 export type EarningsCheckCode = 'NET' | 'PAYOUT';
 
+/**
+ * Figures of a payslip record that take part in a check and can therefore be corrected by the user
+ * in the import preview (FR-012a, research R15). Bases, one-off and year-to-date figures never can.
+ */
+export type EarningsPayAmountKey =
+  | 'gross'
+  | 'wageTax'
+  | 'soli'
+  | 'churchTax'
+  | 'health'
+  | 'care'
+  | 'pension'
+  | 'unemployment'
+  | 'net'
+  | 'payout';
+
+/** A failing check of a file with the figures taking part in it (browser pre-check, R15). */
+export interface EarningsCheckFailure {
+  check: EarningsCheckCode;
+  period: string;
+  /** Signed difference, as in `EarningsCheckResult`. */
+  difference: EarningsMoney;
+  recordIndexes: number[];
+  involved: { recordIndex: number; key: EarningsPayAmountKey }[];
+}
+
 export interface EarningsCheckResult {
   code: EarningsCheckCode;
   passed: boolean;
@@ -78,6 +104,8 @@ export interface EarningsCheckResult {
 /** Amounts as stored and returned by read routes: the submitted figures plus check results. */
 export interface EarningsStoredPayRecordAmounts extends EarningsPayRecordAmounts {
   checks: EarningsCheckResult[];
+  /** Names of figures the user corrected in the import preview; absent on older rows (FR-012a). */
+  corrected?: EarningsPayAmountKey[];
 }
 
 /** Certified totals of a wage-tax certificate (official form lines); missing lines are `"0.00"`. */
@@ -125,6 +153,8 @@ export interface EarningsPayRecordInput {
   kind: EarningsRecordKind;
   seq: number;
   amounts: EarningsPayRecordAmounts;
+  /** Names (never values) of figures corrected by the user in the preview; payslip PDFs only. */
+  corrected?: EarningsPayAmountKey[];
 }
 
 export interface EarningsCertificateInput {
@@ -250,6 +280,8 @@ export interface EarningsImportSummary {
   firstPeriod: string | null;
   lastPeriod: string | null;
   years: number[];
+  /** Number of figures the user corrected in the preview before importing (FR-012a). */
+  correctedCount: number;
 }
 
 // ------------------------------------------------------------------ employers

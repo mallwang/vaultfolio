@@ -26,6 +26,7 @@ describe('parseDocument with the SAP parser', () => {
         code: 'CHECK_FAILED',
         params: { check: 'NET', period: '2026-08', difference: '12.40' },
       },
+      partial: expect.objectContaining({ certificates: [] }),
       parserId: 'sap-entgeltnachweis',
       parserVersion: '1.0.0',
       documentType: 'PAYSLIP',
