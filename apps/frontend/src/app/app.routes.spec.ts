@@ -1,6 +1,6 @@
 import { Location } from '@angular/common';
 import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import type { SessionUser } from '@vaultfolio/api-contract';
@@ -38,6 +38,14 @@ const klaroUser: SessionUser = {
   displayName: 'Klaro User',
   role: 'MEMBER',
   domainScopes: ['klaro'],
+};
+
+const earningsUser: SessionUser = {
+  id: 'user-6',
+  email: 'earnings@example.com',
+  displayName: 'Earnings User',
+  role: 'MEMBER',
+  domainScopes: ['earnings'],
 };
 
 const userWithAllNewDomains: SessionUser = {
@@ -189,6 +197,69 @@ describe('app.routes', () => {
       await router.navigateByUrl('/app/klaro');
       expect(location.path()).toBe('/app/dashboard');
     });
+  });
+
+  // 032-earnings-domain (T033): the area defaults to Overview, each tab is addressable, and the
+  // import screen is a sibling page that is blocked while the encryption key is unavailable.
+  describe('when authenticated and entitled to earnings', () => {
+    let http: HttpTestingController;
+
+    beforeEach(() => {
+      setup();
+      fakeCurrentUser.setAuthenticated(earningsUser);
+      http = TestBed.inject(HttpTestingController);
+    });
+
+    it('defaults /app/earnings to /app/earnings/overview', async () => {
+      await router.navigateByUrl('/app/earnings');
+      expect(location.path()).toBe('/app/earnings/overview');
+    });
+
+    it.each([
+      '/app/earnings/overview',
+      '/app/earnings/tables',
+      '/app/earnings/check',
+      '/app/earnings/imports',
+    ])('resolves %s directly to itself', async (path) => {
+      await router.navigateByUrl(path);
+      expect(location.path()).toBe(path);
+    });
+
+    it('opens /app/earnings/import when earnings are available', async () => {
+      const navigation = router.navigateByUrl('/app/earnings/import');
+      await vi.waitFor(() => http.expectOne('/api/earnings/employers').flush([]));
+      await navigation;
+      expect(location.path()).toBe('/app/earnings/import');
+    });
+
+    it('blocks /app/earnings/import on 503 EARNINGS_UNAVAILABLE', async () => {
+      const navigation = router.navigateByUrl('/app/earnings/import');
+      await vi.waitFor(() =>
+        http
+          .expectOne('/api/earnings/employers')
+          .flush(
+            { error: 'EARNINGS_UNAVAILABLE' },
+            { status: 503, statusText: 'Service Unavailable' },
+          ),
+      );
+      await navigation;
+      expect(location.path()).toBe('/app/earnings/overview');
+    });
+  });
+
+  describe('when authenticated but not entitled to earnings', () => {
+    beforeEach(() => {
+      setup();
+      fakeCurrentUser.setAuthenticated(userWithoutHoldings);
+    });
+
+    it.each(['/app/earnings', '/app/earnings/imports', '/app/earnings/import'])(
+      'redirects %s to /app/dashboard',
+      async (path) => {
+        await router.navigateByUrl(path);
+        expect(location.path()).toBe('/app/dashboard');
+      },
+    );
   });
 
   describe('when authenticated but not entitled to holdings', () => {

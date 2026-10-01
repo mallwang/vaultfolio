@@ -205,6 +205,49 @@ describe('UsersRepository', () => {
     expect(holdings).toHaveLength(0);
   });
 
+  it('032: deleteById purges all four earnings tables for the user only', async () => {
+    const user = await repository.create({
+      email: 'earnings-purge@example.com',
+      displayName: 'Earnings Purge',
+      passwordHash: 'hash-earnings',
+      role: 'MEMBER',
+    });
+    for (const owner of [user.id, 'someone-else']) {
+      await database.query(
+        `INSERT INTO earnings_imports (id, owner_id, file_name, source_type, file_sha256, parser_id, parser_version)
+         VALUES ($1, $2, 'a.pdf', 'PAYSLIP_PDF', $3, 'sap-entgeltnachweis', '1.0.0')`,
+        [`imp-${owner}`, owner, 'a'.repeat(64)],
+      );
+      await database.query(
+        `INSERT INTO earnings_employers (id, owner_id, detected_name) VALUES ($1, $2, 'Employer')`,
+        [`emp-${owner}`, owner],
+      );
+      await database.query(
+        `INSERT INTO earnings_records (id, owner_id, import_id, employer_id, period, issued, kind, seq, amounts_enc)
+         VALUES ($1, $2, $3, $4, '2026-09', '2026-09', 'REGULAR', 1, 'v1:x')`,
+        [`rec-${owner}`, owner, `imp-${owner}`, `emp-${owner}`],
+      );
+      await database.query(
+        `INSERT INTO earnings_certificates (id, owner_id, import_id, employer_id, year, amounts_enc)
+         VALUES ($1, $2, $3, $4, 2025, 'v1:x')`,
+        [`cert-${owner}`, owner, `imp-${owner}`, `emp-${owner}`],
+      );
+    }
+
+    await repository.deleteById(user.id);
+
+    for (const table of [
+      'earnings_records',
+      'earnings_certificates',
+      'earnings_imports',
+      'earnings_employers',
+    ]) {
+      expect(await database.query(`SELECT owner_id FROM ${table}`)).toEqual([
+        { owner_id: 'someone-else' },
+      ]);
+    }
+  });
+
   it('008: updateDisplayName updates the display name only', async () => {
     const user = await repository.create({
       email: 'display-name-update@example.com',

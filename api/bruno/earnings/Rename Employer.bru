@@ -1,0 +1,25 @@
+meta {
+  name: Rename Employer
+  type: http
+  seq: 10
+}
+
+put {
+  url: {{baseUrl}}/earnings/employers/{{employerId}}
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "displayName": "Brightline Software"
+  }
+}
+
+docs {
+  Sets the display name (empty → detected name). No figure is editable.
+}

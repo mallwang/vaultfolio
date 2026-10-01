@@ -22,6 +22,9 @@
       "path": "../../libs/domain/holdings/tsconfig.lib.json"
     },
     {
+      "path": "../../libs/earnings/tsconfig.lib.json"
+    },
+    {
       "path": "../../libs/observability/tsconfig.lib.json"
     },
     {

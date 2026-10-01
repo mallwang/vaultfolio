@@ -20,7 +20,15 @@ describe('DASHBOARD_WIDGET_CONTRIBUTIONS', () => {
     }
   });
 
-  it('only holdings contributes a Dashboard widget', () => {
-    expect(DASHBOARD_WIDGET_CONTRIBUTIONS.map((c) => c.domainId)).toEqual(['holdings']);
+  it('only holdings and earnings contribute a Dashboard widget', () => {
+    expect(DASHBOARD_WIDGET_CONTRIBUTIONS.map((c) => c.domainId)).toEqual(['holdings', 'earnings']);
+  });
+
+  // 032-earnings-domain (T118): the earnings widget is gated by its own domain id, so the
+  // dashboard's entitlement filter hides it from members without the Earnings domain.
+  it('registers the earnings widget under its own domain and title', () => {
+    expect(DASHBOARD_WIDGET_CONTRIBUTIONS.find((c) => c.domainId === 'earnings')?.titleKey).toBe(
+      'dashboard.earnings',
+    );
   });
 });

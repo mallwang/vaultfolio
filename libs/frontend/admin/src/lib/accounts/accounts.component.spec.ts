@@ -69,6 +69,7 @@ describe('AccountsComponent — domain-scope options', () => {
       'historic-wealth-development',
       'account-overview',
       'klaro',
+      'earnings',
     ]);
   });
 });

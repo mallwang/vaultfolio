@@ -86,6 +86,28 @@ describe('AppSidebarComponent', () => {
     expect(klaroIndex).toBeLessThan(settingsIndex);
   });
 
+  // 032-earnings-domain (FR-001/FR-002): the Earnings entry shows only to entitled members.
+  it('shows the Earnings entry only to a member entitled to earnings', async () => {
+    fakeCurrentUser.setAuthenticated({ ...memberUser, domainScopes: ['earnings'] });
+    const entitled = TestBed.createComponent(AppSidebarComponent);
+    await entitled.whenStable();
+    entitled.detectChanges();
+    const entry = (entitled.nativeElement as HTMLElement).querySelector(
+      '[data-testid="sidebar-nav-item-earnings"]',
+    );
+    expect(entry?.textContent).toContain('Earnings');
+
+    fakeCurrentUser.setAuthenticated(memberUser);
+    const other = TestBed.createComponent(AppSidebarComponent);
+    await other.whenStable();
+    other.detectChanges();
+    expect(
+      (other.nativeElement as HTMLElement).querySelector(
+        '[data-testid="sidebar-nav-item-earnings"]',
+      ),
+    ).toBeNull();
+  });
+
   // 028-klaro-nav-integration, Edge Case: a broken logo image falls back to
   // the Material Symbols glyph instead of hiding/disabling the entry.
   it('falls back to the app-icon glyph when the Klaro logo image fails to load', async () => {

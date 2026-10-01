@@ -9,6 +9,7 @@ const mockInstance = {
   hideLoading: vi.fn(),
   resize: vi.fn(),
   dispose: vi.fn(),
+  on: vi.fn(),
 };
 
 const mockInit = vi.fn(() => mockInstance);
@@ -76,6 +77,21 @@ describe('EchartComponent', () => {
     await flushEchartsInit();
 
     expect(mockInstance.setOption).toHaveBeenCalledWith(option, true);
+  });
+
+  it('emits chartClick with the clicked item', async () => {
+    fixture.componentInstance.option = { series: [] };
+    const clicks: unknown[] = [];
+    fixture.componentInstance.chartClick.subscribe((e) => clicks.push(e));
+
+    fixture.detectChanges();
+    await flushEchartsInit();
+
+    const handler = mockInstance.on.mock.calls.find((c) => c[0] === 'click')?.[1] as (
+      p: unknown,
+    ) => void;
+    handler({ dataIndex: 3, name: '2026-09', seriesName: 'Net', value: 1 });
+    expect(clicks).toEqual([{ dataIndex: 3, name: '2026-09', seriesName: 'Net' }]);
   });
 
   it('shows the loading overlay instead of applying option when loading=true', async () => {

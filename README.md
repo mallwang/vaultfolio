@@ -35,8 +35,63 @@ UI, theme switching, and a dashboard — with holdings as the first of several p
 (retirement, insurances, household planning, historic wealth development, account overview exist
 today as placeholders). Broader capabilities (live market data, valuation) are still to come.
 
+The **Earnings** domain (payslips and wage-tax certificates) is built as well — see
+[Earnings domain](#earnings-domain).
+
 For a full walkthrough of the UI, see [docs/user-guide.md](docs/user-guide.md)
 ([Deutsche Version](docs/user-guide.de.md)).
+
+## Earnings domain
+
+Earnings (032-earnings-domain) turns payslips into a career-long view of gross, net, taxes and
+social insurance: a career summary, the latest year against the same months of the previous year,
+monthly and yearly charts, tables, a month detail, and a **data check** that compares payslip sums
+with the year-to-date totals and the wage-tax certificate.
+
+**Supported documents**:
+
+| Document                                             | Read by                                             |
+| ---------------------------------------------------- | --------------------------------------------------- |
+| SAP payslip ("Entgeltnachweis")                      | `sap-entgeltnachweis` parser                        |
+| Deutsche Bundesbank payslip ("Verdienstabrechnung")  | `bundesbank-verdienstabrechnung` parser             |
+| Bundeswehr pay statement ("Wehrsoldabrechnung")      | `bundeswehr-wehrsoldabrechnung` parser              |
+| Wage-tax certificate ("Lohnsteuerbescheinigung")     | `lohnsteuerbescheinigung` parser (any employer)     |
+| Companion-tool export (`earnings-export`, version 1) | JSON reader — the route for other layouts and scans |
+
+Every other layout and scanned (image-only) PDFs are rejected with a clear reason; nothing from a
+rejected file is saved. Every figure passes arithmetic checks (gross − taxes − social insurance =
+net, net ± other = payout) before it can be imported.
+
+**Privacy and threat model**
+
+- PDFs are read **in the browser** (PDF.js). Neither the file nor its text is uploaded — only the
+  whitelisted figures shown in the import preview ("Figures that will be sent"), plus file name,
+  SHA-256 fingerprint and parser id/version. No tax ID, social-security number, IBAN, name or
+  address is read or sent.
+- Every amount is stored **encrypted at rest** (AES-256-GCM) with a key the instance operator
+  configures (`EARNINGS_ENCRYPTION_KEY`). A copy of the database file or a backup alone reveals no
+  amount; period, employer, kind and year stay in plain form for lookups.
+- Data is visible **only to its owner** — administrators included cannot see another user's
+  earnings. The operator runs the server and holds the key, so the operator is trusted; the
+  in-app privacy note says so.
+- Logs contain only import metadata (import id, hash, parser, counts, outcome) — never an amount
+  or document text.
+- Users can delete single imports or all earnings data at any time; earnings are part of the full
+  "Export my data" archive.
+
+**Entitlement** — Earnings is **not** granted to members by default. An administrator enables it
+per member in the Admin area (_Accounts_ tab, domain toggles). Administrators can use the domain
+for their own data.
+
+**Key management and loss** — see [Earnings encryption key](#earnings-encryption-key). If the key
+is missing or invalid, the domain shows "Earnings data is temporarily unavailable", the API
+answers `503 EARNINGS_UNAVAILABLE`, and no imports are accepted; all other domains keep working.
+**Losing or changing the key makes every stored earnings amount permanently unrecoverable** —
+back it up separately from the database. Key rotation is not supported yet.
+
+Parser parity against the companion tool can be checked locally (never in CI, real payslips never
+leave the machine) with `tools/earnings/parity-check.mjs` — see
+[specs/032-earnings-domain/quickstart.md](specs/032-earnings-domain/quickstart.md) §6.
 
 ## Tech stack
 
@@ -138,6 +193,21 @@ root: Docker Compose loads it automatically to fill the `${VAR}` references in
 every target it runs (`nx serve`, `nx build`, etc.), so `npm run dev` picks up the same file with
 no extra wiring. Add new variables to `.env.example` (documented, empty/placeholder values) as the
 app grows.
+
+### Earnings encryption key
+
+The Earnings domain encrypts every stored amount with `EARNINGS_ENCRYPTION_KEY` (Base64 of exactly
+32 random bytes). Generate one once and put it into `.env` (or the stack's environment in
+Portainer):
+
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+```
+
+Back the key up **separately** from `./data`: a database backup without its key cannot be
+decrypted, and a lost or changed key makes all stored earnings amounts permanently unrecoverable.
+Without a valid key the backend still starts; only the Earnings domain reports "temporarily
+unavailable".
 
 ### Hot-reload dev mode
 

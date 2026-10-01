@@ -1,3 +1,4 @@
+import { earningsDe } from './earnings.de';
 import type { TranslationDictionary } from './en';
 
 /**
@@ -32,6 +33,7 @@ export const de: TranslationDictionary = {
     historicWealthDevelopment: 'Vermögensentwicklung',
     accountOverview: 'Kontoübersicht',
     klaro: 'Klaro',
+    earnings: 'Einkommensentwicklung',
     settings: 'Einstellungen',
     admin: 'Verwaltung',
     accounts: 'Konten',
@@ -52,6 +54,7 @@ export const de: TranslationDictionary = {
     genericError: 'Anmeldung fehlgeschlagen. Bitte erneut versuchen.',
   },
   dashboard: {
+    earnings: 'Einkommen',
     totalValue: 'Gesamtwert',
     todaysChange: 'Heutige Veränderung',
     allocation: 'Verteilung',
@@ -507,6 +510,12 @@ export const de: TranslationDictionary = {
     wealthDevelopment: 'Vermögensentwicklung',
     accountOverview: 'Kontoübersicht',
     klaro: 'Klaro',
+    earnings: 'Einkommensentwicklung',
+    earningsOverview: 'Einkommensentwicklung · Überblick',
+    earningsTables: 'Einkommensentwicklung · Tabellen',
+    earningsCheck: 'Einkommensentwicklung · Datenprüfung',
+    earningsImports: 'Einkommensentwicklung · Importe',
+    earningsImport: 'Dokumente importieren',
     settings: 'Einstellungen',
     settingsProfile: 'Einstellungen · Profil',
     settingsPreferences: 'Einstellungen · Präferenzen',
@@ -612,4 +621,5 @@ export const de: TranslationDictionary = {
     infobox:
       'Über diesen Export — Vermögensentwicklung. Die historische Vermögensentwicklung ist in Vaultfolio noch nicht umgesetzt, daher enthält diese Datei heute keine Zeilen — sie wird automatisch Ihre Daten enthalten, sobald diese Funktion verfügbar ist.',
   },
+  earnings: earningsDe,
 };

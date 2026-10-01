@@ -115,6 +115,16 @@ export const APPLICATION_AREAS: ApplicationArea[] = [
     logoAsset: 'klaro-logo.png',
     domainId: 'klaro',
   },
+  // Earnings (032-earnings-domain, FR-001/FR-002): after Klaro, before Settings; shown only to
+  // members entitled to the domain (not granted by default).
+  {
+    id: 'earnings',
+    label: 'Earnings',
+    labelKey: 'nav.earnings',
+    path: 'earnings',
+    icon: 'payments',
+    domainId: 'earnings',
+  },
   { id: 'settings', label: 'Settings', labelKey: 'nav.settings', path: 'settings', icon: 'cog' },
   {
     id: 'admin',

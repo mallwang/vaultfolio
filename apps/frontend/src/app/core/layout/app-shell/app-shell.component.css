@@ -15,7 +15,8 @@
 
 @media (max-width: 768px) {
   :host {
-    grid-template-columns: 1fr;
+    /* minmax(0, …) so the horizontally scrolling nav bar can't widen the column past the viewport */
+    grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto 1fr;
   }
 

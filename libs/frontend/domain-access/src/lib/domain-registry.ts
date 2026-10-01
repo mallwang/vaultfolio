@@ -44,4 +44,6 @@ export const DOMAIN_REGISTRY: DomainDescriptor[] = [
   // Klaro (028-klaro-nav-integration): reuses the existing generic
   // entitlement mechanism — no new access-control logic (FR-010).
   { id: 'klaro', labelKey: 'nav.klaro', path: 'klaro', icon: 'handshake' },
+  // Earnings (032-earnings-domain): not granted to members by default (FR-002).
+  { id: 'earnings', labelKey: 'nav.earnings', path: 'earnings', icon: 'payments' },
 ];

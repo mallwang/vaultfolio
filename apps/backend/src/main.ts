@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import cookieParser from 'cookie-parser';
 import { AppModule } from './app/app.module';
+import { configureBodyParsers } from './app/body-parsers';
 import { JsonLoggerService } from './logger/json-logger.service';
 import { setupOpenApi } from './openapi/openapi.setup';
 
@@ -21,7 +22,8 @@ async function bootstrap() {
     logger.error('Uncaught exception', error.stack, 'Process');
   });
 
-  const app = await NestFactory.create(AppModule, { logger });
+  const app = await NestFactory.create(AppModule, { logger, bodyParser: false });
+  configureBodyParsers(app);
   app.use(cookieParser());
   setupOpenApi(app);
   const port = process.env.PORT || 3000;
@@ -29,4 +31,4 @@ async function bootstrap() {
   logger.log(`Application is running on: http://localhost:${port}`, 'Bootstrap');
 }
 
-bootstrap();
+void bootstrap();

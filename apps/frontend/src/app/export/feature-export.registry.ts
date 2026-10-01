@@ -17,7 +17,8 @@ import { FeatureExportRegistry } from '@vaultfolio/export';
  * already awaits this (mirrors the existing `AuthService.getSession()` initializer), so the
  * registry is fully populated before the app finishes bootstrapping.
  *
- * `createHoldingsExportDefinition`/`createAccountOverviewExportDefinition` both call `inject()`
+ * `createHoldingsExportDefinition`/`createAccountOverviewExportDefinition`/
+ * `createEarningsExportDefinition` all call `inject()`
  * internally, which only works synchronously inside an active injection context — lost across
  * the `await import(...)` boundary above, hence `runInInjectionContext` re-entering it with the
  * `EnvironmentInjector` captured (synchronously) by the caller before that `await`. The 4
@@ -35,6 +36,7 @@ export async function registerFeatureExports(
     insurancesExportDefinition,
     haushaltsplanerExportDefinition,
     historicWealthDevelopmentExportDefinition,
+    createEarningsExportDefinition,
   ] = await Promise.all([
     import('@vaultfolio/frontend-domain-holdings').then((m) => m.createHoldingsExportDefinition),
     import('@vaultfolio/frontend-domain-account-overview').then(
@@ -48,6 +50,7 @@ export async function registerFeatureExports(
     import('@vaultfolio/frontend-domain-historic-wealth-development').then(
       (m) => m.HISTORIC_WEALTH_DEVELOPMENT_EXPORT_DEFINITION,
     ),
+    import('@vaultfolio/frontend-domain-earnings').then((m) => m.createEarningsExportDefinition),
   ]);
   registry.register(runInInjectionContext(injector, createHoldingsExportDefinition));
   registry.register(runInInjectionContext(injector, createAccountOverviewExportDefinition));
@@ -55,4 +58,5 @@ export async function registerFeatureExports(
   registry.register(insurancesExportDefinition);
   registry.register(haushaltsplanerExportDefinition);
   registry.register(historicWealthDevelopmentExportDefinition);
+  registry.register(runInInjectionContext(injector, createEarningsExportDefinition));
 }
