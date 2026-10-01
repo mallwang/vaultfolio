@@ -40,6 +40,26 @@ separator, and the parser classifies numbers by column. `row()` reproduces both.
 
 The arithmetic for each fixture is written next to it in the source file.
 
+## `bundeswehr-wehrsoldabrechnung.fixtures.ts`
+
+Synthetic Bundeswehr "Wehrsoldabrechnungsbeleg" statements as page lines (letterhead with invented
+name, address, personnel number and account). Service pay is free of tax and contributions, so
+gross = net and every tax/social field is 0.00. A correction's net is paid with this statement:
+correction `other = −net`, the regular record's `other = payout − net`.
+
+| Fixture                       | What it covers                                                                         | Expected                                                                                               |
+| ----------------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `BWE_MAR_2011`                | Regular month + Feb corrections (Reisekosten, Verpflegungsgeld); attached travel page  | Mar: gross/net 325.50, other 145.00, payout 470.50. Feb (CORRECTION, seq 2): net 145.00, other −145.00 |
+| `BWE_JAN_2011_TWO_STATEMENTS` | Two statements of one issue month (unit change), negative line, OCR-garbled `-20,001E` | Merged: Jan gross 325.50, other 80.00, payout 405.50. Dec (CORRECTION, seq 2): net 80.00               |
+| `BWE_FEB_2011_SUPERSEDED`     | Earlier statement fully repeated in a later one of the same month                      | Earlier one ignored: Feb 294.00, payout 424.00; Jan correction 130.00                                  |
+| `BWE_APR_2011_BONUS`          | `Sonderzuwendung` line                                                                 | gross 415.00 of which one-off 100.00, payout 415.00                                                    |
+| `BWE_MAY_2011_PAYOUT_ONLY`    | Only a back payment                                                                    | PAYOUT_ONLY May (other 90.00, payout 90.00) + Apr correction net 90.00                                 |
+| `BWE_JUN_2011_PAYOUT_DERIVED` | `Auszahlungsbetrag` line unreadable                                                    | Payout derived from the two printed sums: 315.00                                                       |
+| `BWE_MAR_2011_PAYOUT_OFF`     | Printed payout 10.00 too high                                                          | `CHECK_FAILED` PAYOUT 2011-03 difference 10.00                                                         |
+| `BWE_MAR_2011_OCR_HEADER`     | Header month damaged by OCR (`Marz`)                                                   | As `BWE_MAR_2011`                                                                                      |
+
+The arithmetic for each fixture is written next to it in the source file.
+
 ## `builders.ts`
 
 `payRecord()` / `storedRecord()` / `certificate()` build balanced records with invented figures:

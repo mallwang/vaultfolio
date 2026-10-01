@@ -2,6 +2,7 @@ import { evaluateChecks } from '../checks';
 import type { ParseOutcome } from '../model';
 import type { PdfDocumentText } from './pdf-text';
 import { bundesbankVerdienstabrechnungParser } from './bundesbank-verdienstabrechnung';
+import { bundeswehrWehrsoldabrechnungParser } from './bundeswehr-wehrsoldabrechnung';
 import { lohnsteuerbescheinigungParser } from './lohnsteuerbescheinigung';
 import { sapEntgeltnachweisParser } from './sap-entgeltnachweis';
 
@@ -25,6 +26,7 @@ export const PARSER_REGISTRY: readonly EarningsParser[] = [
   lohnsteuerbescheinigungParser,
   sapEntgeltnachweisParser,
   bundesbankVerdienstabrechnungParser,
+  bundeswehrWehrsoldabrechnungParser,
 ];
 
 export type DocumentParseResult = ParseOutcome & {

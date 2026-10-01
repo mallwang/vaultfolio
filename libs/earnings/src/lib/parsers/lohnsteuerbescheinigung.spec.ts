@@ -54,6 +54,7 @@ describe('lohnsteuerbescheinigung parser', () => {
       'lohnsteuerbescheinigung',
       'sap-entgeltnachweis',
       'bundesbank-verdienstabrechnung',
+      'bundeswehr-wehrsoldabrechnung',
     ]);
     expect(parseDocument(textDocument(LSTB_2025_BRIGHTLINE.pages))).toMatchObject({
       ok: true,

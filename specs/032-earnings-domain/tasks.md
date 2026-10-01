@@ -351,6 +351,21 @@ numbers by the right edge of their column (Lohnart, rate, Betrag, formatted EBV/
 
 ---
 
+## Phase 12: Additional payslip format — Bundeswehr (Priority: P2)
+
+**Purpose**: Third employer format for the payslip parser registry, ported from earnings-evolution
+`extractor/parsers/bundeswehr.py`. The "Wehrsoldabrechnungsbeleg" is tax- and contribution-free
+(`gross = net`); every table line carries its own entitlement month, so lines of earlier months become
+`CORRECTION` records. The scans' OCR text layer sets label, amounts and header year a few points apart,
+so lines within 5.5 points are merged into one row before parsing.
+
+- [x] T131 [P] [US1] Create synthetic Bundeswehr fixtures with invented figures and hand-computed expected records (regular month with corrections and an attached travel-expense page, two statements of one month, superseded statement, one-off pay, payout-only month, derived payout, wrong payout, OCR-damaged header) in `libs/earnings/src/lib/testing/bundeswehr-wehrsoldabrechnung.fixtures.ts` and document them in `libs/earnings/src/lib/testing/README.md`
+- [x] T132 [P] [US1] Write parser tests in `libs/earnings/src/lib/parsers/bundeswehr-wehrsoldabrechnung.spec.ts` (every field exactly, merged statements, zero tax/social fields, no personal identifier in the outcome, `detect`, skewed-scan layout, header month taken from the file) and the end-to-end `registry.bundeswehr.spec.ts`
+- [x] T133 [US1] Implement the Bundeswehr parser (`id: 'bundeswehr-wehrsoldabrechnung'`, `version: '1.0.0'`, `documentType: 'PAYSLIP'`) in `libs/earnings/src/lib/parsers/bundeswehr-wehrsoldabrechnung.ts` and register it last in `libs/earnings/src/lib/parsers/registry.ts`
+- [x] T134 [US1] Run the local parity check against earnings-evolution's `payslips/bundeswehr` and `data/earnings.json`: all 10 monthly PDFs parse and every regular record matches; expected differences only: corrections carry `seq = 1 + months between period and issued` (earnings-evolution: 1), statements of one issue month are merged into one record (earnings-evolution keeps an extra `payout_only` record for 2011-01), and the `_scans` collection PDFs are image-only
+
+---
+
 ## Dependencies & Execution Order
 
 ### Phase Dependencies
