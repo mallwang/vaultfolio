@@ -194,7 +194,12 @@ function certificate(value: unknown, path: string): CertificateInput {
 function read(json: unknown): ParseOutcome {
   if (!isObject(json)) fail('INVALID_VALUE', { path: '' });
   if (json['schema'] !== 'earnings-export' || json['version'] !== 1) {
-    fail('EXPORT_UNSUPPORTED_VERSION', { version: String(json['version'] ?? '') });
+    fail('EXPORT_UNSUPPORTED_VERSION', {
+      version:
+        typeof json['version'] === 'string' || typeof json['version'] === 'number'
+          ? String(json['version'])
+          : '',
+    });
   }
   object(json, '', TOP_KEYS, TOP_KEYS);
   if (

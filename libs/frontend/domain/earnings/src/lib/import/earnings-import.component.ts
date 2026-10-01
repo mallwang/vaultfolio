@@ -539,7 +539,7 @@ export class EarningsImportComponent {
     const parts: string[] = [];
     if (periods.length > 0) {
       const first = formatMonth(periods[0], lang);
-      const last = formatMonth(periods[periods.length - 1], lang);
+      const last = formatMonth(periods.at(-1) ?? first, lang);
       parts.push(first === last ? first : `${first} – ${last}`);
     }
     for (const year of years) parts.push(fill(this.t('earnings.import.year'), { year }));

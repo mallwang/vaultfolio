@@ -171,10 +171,10 @@ function cents(token: string): number | null {
   if (t.includes(',')) {
     const m = /^(-?)(\d[\d.]*),(\d{2})$/.exec(t);
     if (!m) return null;
-    const value = Number(m[2].replaceAll(/\./g, '')) * 100 + Number(m[3]);
+    const value = Number(m[2].replaceAll('.', '')) * 100 + Number(m[3]);
     return negative || m[1] ? -value : value;
   }
-  const digits = t.replaceAll(/\./g, '');
+  const digits = t.replaceAll('.', '');
   if (!/^\d+$/.test(digits)) return null;
   return negative ? -Number(digits) : Number(digits);
 }
@@ -241,7 +241,7 @@ function codedLines(rows: Token[][]): CodedLine[] {
 
 /** OCR variants of the decimal comma in the formatted table: `60 ‚00`, `0;00`, `1.019,/76`. */
 function repairOcrAmounts(text: string): string {
-  return text.replaceAll(/,\//g, ',').replaceAll(/(\d) ?[‚;] ?(\d{2})(?!\d)/g, '$1,$2');
+  return text.replaceAll(',/', ',').replaceAll(/(\d) ?[‚;] ?(\d{2})(?!\d)/g, '$1,$2');
 }
 
 /** The KV/RV/AV/PV/ST-Brutto table at the bottom of the statement. */
@@ -250,7 +250,7 @@ function svGrossTable(rows: Token[][]): Partial<Record<TableRow, SvGrossRow>> {
   for (const row of rows) {
     const text = repairOcrAmounts(textOf(row));
     for (const [prefix, key] of TABLE_ROWS) {
-      if (!new RegExp(`^\\W{0,2}${prefix}`).test(text)) continue;
+      if (!new RegExp(String.raw`^\W{0,2}${prefix}`).test(text)) continue;
       const values = (text.match(FORMATTED) ?? []).map((v) => cents(v) as number);
       if (values.length === 5 && !table[key]) {
         table[key] = { kv: values[0], rv: values[1], av: values[2], pv: values[3], st: values[4] };
@@ -340,7 +340,7 @@ function applyLine(line: CodedLine, t: Totals): void {
 /** SV-Brutto table: Steuer-Brutto, SV-Brutto (KV/RV), the one-off part and the year-to-date Steuer-Brutto. */
 function applyTable(pages: Token[][][], t: Totals): void {
   const tables = pages.map(svGrossTable);
-  const row = (key: TableRow) => tables.map((tab) => tab[key]).find((r) => r);
+  const row = (key: TableRow) => tables.map((tab) => tab[key]).find(Boolean);
   const total = row('total');
   if (total) {
     const { kv, rv, st } = svGross(total);

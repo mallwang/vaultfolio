@@ -36,7 +36,7 @@ export function parseGermanAmount(text: string): Money | null {
   const m = GERMAN_AMOUNT.exec(text);
   if (!m) return null;
   const negative = m[1] === '-' || m[4] === '-';
-  const value = `${negative ? '-' : ''}${m[2].replaceAll(/\./g, '')}.${m[3]}`;
+  const value = `${negative ? '-' : ''}${m[2].replaceAll('.', '')}.${m[3]}`;
   return toMoney(value);
 }
 

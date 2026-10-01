@@ -117,7 +117,7 @@ const YTD_KEYS: [string, OneOffKey][] = [
 function cents(text: string): number {
   const negative = text.endsWith('-');
   const [euros, fraction] = text.replace(/-$/, '').split(',');
-  const value = Number(euros.replaceAll(/\./g, '')) * 100 + Number(fraction);
+  const value = Number(euros.replaceAll('.', '')) * 100 + Number(fraction);
   return negative ? -value : value;
 }
 
@@ -192,8 +192,8 @@ function ytdOf(lines: string[]): YtdAmounts | null {
   const block = lines.slice(idx, end < 0 ? undefined : end).join('\n');
   const out = new Map<OneOffKey, number>();
   for (const [label, key] of YTD_KEYS) {
-    const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const m = new RegExp(`${escaped}\\s*:?\\s*(\\d{1,3}(?:\\.\\d{3})*,\\d{2})`).exec(block);
+    const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
+    const m = new RegExp(String.raw`${escaped}\s*:?\s*(\d{1,3}(?:\.\d{3})*,\d{2})`).exec(block);
     if (m) out.set(key, (out.get(key) ?? 0) + cents(m[1]));
   }
   if (out.size === 0) return null;
@@ -207,7 +207,7 @@ function fail(field: string, period?: string): never {
 }
 
 function last(values: number[]): number | undefined {
-  return values.length > 0 ? values[values.length - 1] : undefined;
+  return values.at(-1);
 }
 
 /**
@@ -382,7 +382,7 @@ function toRecord(
 
 function parsePages(pages: string[][]): ParseOutcome {
   const lines = pages.flat();
-  const statement = lines.map((l) => STATEMENT.exec(l)).find((m) => m);
+  const statement = lines.map((l) => STATEMENT.exec(l)).find(Boolean);
   const issued = (statement ? month(statement[1], statement[2]) : null) ?? fail('statementMonth');
   const employer = detectEmployer(pages) ?? fail('employer');
 

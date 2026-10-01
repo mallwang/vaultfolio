@@ -89,7 +89,7 @@ function monthOf(name: string): number | null {
   const idx = MONTHS.indexOf(
     name
       .toLowerCase()
-      .replaceAll(/ä/g, 'a')
+      .replaceAll('ä', 'a')
       .replace(/[^a-z]/g, '')
       .slice(0, 3),
   );
@@ -138,7 +138,7 @@ function tableLine(text: string, amounts: readonly string[]): Line | null {
   return {
     period: toPeriod(Number(m[2]), month),
     label,
-    cents: toCents(amounts[amounts.length - 1]),
+    cents: toCents(amounts.at(-1) ?? '0'),
   };
 }
 
@@ -153,7 +153,7 @@ function readTotals(lines: readonly string[], st: Statement): void {
   for (const text of lines) {
     const amounts = amountsIn(text);
     if (amounts.length === 0) continue;
-    const last = toCents(amounts[amounts.length - 1]);
+    const last = toCents(amounts.at(-1) ?? '0');
     if (TOTAL_PAY.test(text)) st.sums.push(toCents(amounts[0]));
     else if (TOTAL_ADJUSTMENTS.test(text)) st.sums.push(last);
     else if (PAYOUT.test(text)) st.payout = last;

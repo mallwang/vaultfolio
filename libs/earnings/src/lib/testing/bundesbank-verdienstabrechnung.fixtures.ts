@@ -99,8 +99,10 @@ function page1(headerLine: string, entries: Entry[], tableRows: [string, string[
     y -= 12;
     lines.push(table(y, label, values));
   }
-  lines.push(free(y - 12, 46, 'Einzugsstelle 000 MUSTERKASSE'));
-  lines.push(free(y - 24, 46, 'Steueridentifikationsnummer: 00000000000'));
+  lines.push(
+    free(y - 12, 46, 'Einzugsstelle 000 MUSTERKASSE'),
+    free(y - 24, 46, 'Steueridentifikationsnummer: 00000000000'),
+  );
   return lines;
 }
 

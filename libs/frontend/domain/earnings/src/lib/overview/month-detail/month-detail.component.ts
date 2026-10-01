@@ -286,30 +286,32 @@ export function buildStatement(
     if (bonus !== 0) lines.push({ label: t('bonusOneOff'), detail: money(bonus), kind: 'item' });
   }
   if (record.kind !== 'PAYOUT_ONLY') {
-    lines.push({ label: t('grossTotal'), amount: money(a.gross), kind: 'subtotal' });
-    lines.push({
-      label: t('taxes'),
-      amount: money(-taxes),
-      kind: 'group',
-      group: 'taxes',
-      children: [
-        { label: t('wageTax'), detail: neg(a.wageTax), kind: 'item' },
-        { label: t('soli'), detail: neg(a.soli), kind: 'item' },
-        { label: t('churchTax'), detail: neg(a.churchTax), kind: 'item' },
-      ],
-    });
-    lines.push({
-      label: t('social'),
-      amount: money(-social),
-      kind: 'group',
-      group: 'social',
-      children: [
-        { label: t('health'), detail: neg(a.health), kind: 'item' },
-        { label: t('care'), detail: neg(a.care), kind: 'item' },
-        { label: t('pension'), detail: neg(a.pension), kind: 'item' },
-        { label: t('unemployment'), detail: neg(a.unemployment), kind: 'item' },
-      ],
-    });
+    lines.push(
+      { label: t('grossTotal'), amount: money(a.gross), kind: 'subtotal' },
+      {
+        label: t('taxes'),
+        amount: money(-taxes),
+        kind: 'group',
+        group: 'taxes',
+        children: [
+          { label: t('wageTax'), detail: neg(a.wageTax), kind: 'item' },
+          { label: t('soli'), detail: neg(a.soli), kind: 'item' },
+          { label: t('churchTax'), detail: neg(a.churchTax), kind: 'item' },
+        ],
+      },
+      {
+        label: t('social'),
+        amount: money(-social),
+        kind: 'group',
+        group: 'social',
+        children: [
+          { label: t('health'), detail: neg(a.health), kind: 'item' },
+          { label: t('care'), detail: neg(a.care), kind: 'item' },
+          { label: t('pension'), detail: neg(a.pension), kind: 'item' },
+          { label: t('unemployment'), detail: neg(a.unemployment), kind: 'item' },
+        ],
+      },
+    );
     if (a.employerSubsidy) {
       const subsidy = n(a.employerSubsidy.health) + n(a.employerSubsidy.care);
       lines.push({

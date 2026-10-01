@@ -12,7 +12,7 @@ import { employedPeriods, groupBy, money, ratioOf, totalsOf } from './totals';
 function gapsBetween(year: number, regular: ReadonlySet<string>): string[] {
   const months = [...regular].map(periodMonth).sort((a, b) => a - b);
   const gaps: string[] = [];
-  for (let m = months[0] ?? 1; m <= (months[months.length - 1] ?? 0); m++) {
+  for (let m = months[0] ?? 1; m <= (months.at(-1) ?? 0); m++) {
     if (!regular.has(toPeriod(year, m))) gaps.push(toPeriod(year, m));
   }
   return gaps;

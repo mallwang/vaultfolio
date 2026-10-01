@@ -145,7 +145,7 @@ export const BWE_JAN_2011_TWO_STATEMENTS: BundeswehrFixture = {
     page({
       date: '10.01.2011',
       statement: 'Januar 2011',
-      table: ['12.2010 | Verpflegungsgeld 40,00 | E \\ 40,00'],
+      table: [String.raw`12.2010 | Verpflegungsgeld 40,00 | E \ 40,00`],
       sums: ['0,00', '40,00'],
       payout: '40,00',
     }),

@@ -53,8 +53,8 @@ function parse(doc: PdfDocumentText): ParseOutcome {
   const amounts = emptyCertificateAmounts();
   for (const [key, pattern] of LINES) {
     // the amount is the last number on the (possibly two-line) label; empty fields have none
-    const m = new RegExp(pattern.source + '([^\\n]*)').exec(text);
-    const value = m ? EUR.exec(m[m.length - 1].trim()) : null;
+    const m = new RegExp(pattern.source + String.raw`([^\n]*)`).exec(text);
+    const value = m ? EUR.exec(m.at(-1)?.trim() ?? '') : null;
     if (value) amounts[key] = parseGermanAmount(value[1]) as string;
   }
   return {

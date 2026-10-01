@@ -33,7 +33,7 @@ function entry(key: string, label: string, records: readonly StoredRecord[]): Ca
     key,
     label,
     firstPeriod: periods[0],
-    lastPeriod: periods[periods.length - 1],
+    lastPeriod: periods.at(-1) ?? '',
     monthsEmployed: months,
     employerCount: new Set(records.map((r) => r.employerId)).size,
     totals: totalsView(t),

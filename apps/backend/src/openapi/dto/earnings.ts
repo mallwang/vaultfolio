@@ -14,7 +14,7 @@ const MONEY = {
 };
 const MONEY_NULLABLE = { ...MONEY, nullable: true };
 const RATIO = { type: String, example: '0.6160', description: 'Decimal string, 4 decimal places.' };
-const PERIOD = { type: String, example: '2026-09', pattern: '^\\d{4}-(0[1-9]|1[0-2])$' };
+const PERIOD = { type: String, example: '2026-09', pattern: String.raw`^\d{4}-(0[1-9]|1[0-2])$` };
 const RECORD_KINDS = ['REGULAR', 'CORRECTION', 'PAYOUT_ONLY'] as const;
 const SOURCE_TYPES = ['PAYSLIP_PDF', 'CERTIFICATE_PDF', 'EXPORT_JSON'] as const;
 

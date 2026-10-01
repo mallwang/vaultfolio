@@ -36,7 +36,7 @@ const MONTHS_IN_RANGE: Record<MonthRange, number> = {
 const TOP_RADIUS: [number, number, number, number] = [4, 4, 0, 0];
 const GAP = { borderColor: 'transparent', borderWidth: 1 };
 
-const n = (value: string) => Number(value);
+const n = Number;
 
 /** `YYYY-MM` that lies `count` months before `period`; '' (sorts first) for an unbounded range. */
 function monthsBefore(period: string, count: number): string {
@@ -141,12 +141,12 @@ export function monthlyOption(
 ): MonthlyChart {
   const all = monthlyTotals(monthly);
   // The range counts calendar months back from the latest one, not data points — gaps stay gaps.
-  const from =
-    all.length > 0 ? monthsBefore(all[all.length - 1].period, MONTHS_IN_RANGE[range] - 1) : '';
+  const latest = all.at(-1);
+  const from = latest ? monthsBefore(latest.period, MONTHS_IN_RANGE[range] - 1) : '';
   const inRange = all.filter((p) => p.period >= from);
   const byPeriod = new Map(inRange.map((p) => [p.period, p]));
-  const periods =
-    inRange.length > 0 ? monthsBetween(inRange[0].period, inRange[inRange.length - 1].period) : [];
+  const lastInRange = inRange.at(-1);
+  const periods = lastInRange ? monthsBetween(inRange[0].period, lastInRange.period) : [];
   const points = periods.map((p) => byPeriod.get(p) ?? null);
   const outline = (index: number, color: string, top = false) => ({
     color,
