@@ -28,7 +28,7 @@ import { PrivacyNoteComponent } from '../privacy-note/privacy-note.component';
  * Imports tab (design.md "Imports tab"): privacy note (anchor `#privacy`, FR-035/FR-042), import
  * history with delete (FR-021, FR-037), employer display names (FR-020 — figures are never
  * editable) and the danger zone to delete all earnings data (FR-038). The history is grouped by
- * the year its data belongs to — newest year open, older years collapsed — so it stays short.
+ * the year its data belongs to — all years collapsed until opened — so it stays short.
  */
 @Component({
   selector: 'app-earnings-imports',
@@ -308,11 +308,8 @@ export class EarningsImportsComponent implements OnInit, AfterViewInit {
   protected readonly years = computed(() =>
     [...new Set(this.rows().map((r) => r.year))].sort((a, b) => b - a),
   );
-  /** Years the user opened or closed; `null` until then, which shows only the newest year. */
-  private readonly openYears = signal<ReadonlySet<number> | null>(null);
-  private readonly shownYears = computed(
-    () => this.openYears() ?? new Set(this.years().slice(0, 1)),
-  );
+  /** Years the user opened; none until then. */
+  private readonly shownYears = signal<ReadonlySet<number>>(new Set());
   protected readonly allOpen = computed(() =>
     this.years().every((year) => this.shownYears().has(year)),
   );
@@ -341,11 +338,11 @@ export class EarningsImportsComponent implements OnInit, AfterViewInit {
   protected toggle(year: number): void {
     const open = new Set(this.shownYears());
     if (!open.delete(year)) open.add(year);
-    this.openYears.set(open);
+    this.shownYears.set(open);
   }
 
   protected toggleAll(): void {
-    this.openYears.set(new Set(this.allOpen() ? [] : this.years()));
+    this.shownYears.set(new Set(this.allOpen() ? [] : this.years()));
   }
 
   protected countLabel(year: number): string {

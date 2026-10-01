@@ -78,7 +78,7 @@ describe('EarningsImportsComponent', () => {
     return root.querySelector(`[data-testid="${id}"]`);
   }
 
-  it('groups the history by year, newest first, with only the newest year open', async () => {
+  it('groups the history by year, newest first, all collapsed initially', async () => {
     const fixture = await create();
     const root = fixture.nativeElement as HTMLElement;
 
@@ -89,8 +89,12 @@ describe('EarningsImportsComponent', () => {
       'earnings-imports-year-2013',
     ]);
     expect(headers[0].textContent).toContain('1 import');
-    expect(byTestId(root, 'earnings-imports-row-i1')).not.toBeNull();
+    expect(byTestId(root, 'earnings-imports-row-i1')).toBeNull();
     expect(byTestId(root, 'earnings-imports-row-i2')).toBeNull();
+
+    byTestId(root, 'earnings-imports-year-2026')?.click();
+    fixture.detectChanges();
+    expect(byTestId(root, 'earnings-imports-row-i1')).not.toBeNull();
 
     byTestId(root, 'earnings-imports-year-2025')?.click();
     fixture.detectChanges();
@@ -126,6 +130,8 @@ describe('EarningsImportsComponent', () => {
     const confirmation = fixture.debugElement.injector.get(ConfirmationService);
     const confirm = vi.spyOn(confirmation, 'confirm');
 
+    byTestId(fixture.nativeElement, 'earnings-imports-year-2026')?.click();
+    fixture.detectChanges();
     (byTestId(fixture.nativeElement, 'earnings-import-delete-i1') as HTMLButtonElement).click();
     const options = confirm.mock.calls[0][0];
     expect(options.message).toContain('2026_09_Entgeltnachweis.pdf');
