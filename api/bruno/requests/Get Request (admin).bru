@@ -1,0 +1,15 @@
+meta {
+  name: Get Request (admin)
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/requests/{{requestId}}
+  body: none
+  auth: none
+}
+
+docs {
+  Admin-only request — requires the `vaultfolio_session` cookie of an ADMIN account, captured by `auth/Login`. Set the `requestId` variable to a request id from the list.
+}

@@ -136,6 +136,56 @@ describe('EarningsNewParserHandler', () => {
     });
   });
 
+  describe('rule draft', () => {
+    const withDraft = (draft: unknown): unknown => ({ ...submission(), ruleDraft: draft });
+
+    it('stores the draft with server-derived labels and no figure value', () => {
+      const valid = handler.validate(
+        withDraft({
+          lines: [
+            {
+              page: 0,
+              line: 1,
+              figure: 'WAGE_TAX',
+              deduction: true,
+              column: { x0: 390, x1: 450 },
+              format: 'DE_DECIMAL',
+            },
+          ],
+          period: { page: 0, line: 0, x0: 390, x1: 450 },
+        }),
+      );
+      const stored = handler.toStoredPayload(valid);
+      expect(stored).toEqual({
+        schemaVersion: 1,
+        pages: 1,
+        lines: [
+          {
+            page: 0,
+            line: 1,
+            label: 'Lohnsteuer',
+            figure: 'WAGE_TAX',
+            deduction: true,
+            column: { x0: 390, x1: 450 },
+            format: 'DE_DECIMAL',
+          },
+        ],
+        period: { page: 0, line: 0, x0: 390, x1: 450 },
+      });
+      expect(JSON.stringify(stored)).not.toMatch(/4\.521|612,03/);
+    });
+
+    it('rejects an invalid draft with INVALID_RULE_DRAFT', () => {
+      expect(
+        rejection(withDraft({ lines: [{ page: 0, line: 9, figure: 'NET', deduction: false }] }))
+          .code,
+      ).toBe('INVALID_RULE_DRAFT');
+      expect(
+        rejection(withDraft({ lines: [{ page: 0, line: 0, figure: 'NET', deduction: 1 }] })).code,
+      ).toBe('INVALID_RULE_DRAFT');
+    });
+  });
+
   describe('fingerprint', () => {
     it('is a stable SHA-256 hex that ignores values', () => {
       const first = handler.fingerprint(submission());

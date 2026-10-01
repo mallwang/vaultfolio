@@ -281,6 +281,9 @@ export const earningsEn: TranslationDictionary = {
     onlyYouTitle: 'Only you can see it',
     onlyYou:
       'Nobody else in Vaultfolio can see your earnings, administrators included. The operator of this Vaultfolio instance runs the server and holds the encryption key.',
+    requestTitle: 'Optional: request a parser',
+    request:
+      'If a document is not recognized you may request a parser. Only an anonymized, rebuilt copy is sent — personal data is removed, every number is replaced and unknown words are masked unless you keep them — after you review it and consent. Administrators of this instance can see it; it is deleted 30 days after the request is closed. The original file and your real figures never leave your device.',
     deleteHint:
       'You can delete single imports or all earnings data at any time on the Imports tab.',
   },

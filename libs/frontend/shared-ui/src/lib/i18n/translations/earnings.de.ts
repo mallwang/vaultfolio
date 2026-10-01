@@ -282,6 +282,9 @@ export const earningsDe: TranslationDictionary = {
     onlyYouTitle: 'Nur Sie sehen sie',
     onlyYou:
       'Niemand sonst in Vaultfolio sieht Ihre Einkommensdaten, auch keine Administratoren. Der Betreiber dieser Vaultfolio-Instanz betreibt den Server und verwaltet den Schlüssel.',
+    requestTitle: 'Optional: Parser anfragen',
+    request:
+      'Wird ein Dokument nicht erkannt, können Sie einen Parser anfragen. Gesendet wird nur eine anonymisierte, neu aufgebaute Kopie – personenbezogene Daten werden entfernt, jede Zahl wird ersetzt und unbekannte Wörter werden maskiert, sofern Sie sie nicht behalten – nach Ihrer Prüfung und Einwilligung. Administratoren dieser Instanz können sie sehen; sie wird 30 Tage nach Abschluss der Anfrage gelöscht. Die Originaldatei und Ihre echten Beträge verlassen Ihr Gerät nie.',
     deleteHint:
       'Einzelne Importe oder alle Einkommensdaten können Sie jederzeit auf dem Reiter „Importe“ löschen.',
   },

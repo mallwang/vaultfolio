@@ -4,7 +4,12 @@ import type { SubmitRequestResponse } from '@vaultfolio/api-contract';
 import {
   type AnalyzedLayout,
   type AnonymizedLayout,
+  type FigureType,
+  type LiveCheckResult,
+  type RuleFormat,
   type SubmittedRuleDraft,
+  type SubmittedRuleLine,
+  liveCheck,
   type WordDecision,
   anonymizeLayout,
   pendingDecisions,
@@ -15,6 +20,17 @@ import {
 import { firstValueFrom } from 'rxjs';
 import { type LayoutRefusal, extractLayout } from './layout-extractor';
 import { ParserRequestService } from './parser-request.service';
+
+/** Format guessed from a number's printed shape; the user can change it. */
+export function guessFormat(text: string): RuleFormat {
+  if (text.endsWith('-')) return 'TRAILING_MINUS';
+  return text.includes(',') ? 'DE_DECIMAL' : 'CENTS';
+}
+
+export interface LineRef {
+  page: number;
+  line: number;
+}
 
 export type WizardStep = 'consent' | 'review' | 'rules' | 'preview' | 'sent';
 
@@ -55,6 +71,9 @@ export class ParserRequestStore {
   readonly decisions = signal<ReadonlyMap<string, WordDecision>>(new Map());
   readonly ruleDraft = signal<SubmittedRuleDraft | undefined>(undefined);
   readonly consent = signal(false);
+  /** The line being marked in step 3 and whether the next click sets the period. */
+  readonly selectedLine = signal<LineRef | null>(null);
+  readonly pickingPeriod = signal(false);
   readonly step = signal<WizardStep>('consent');
   readonly sending = signal(false);
   readonly errorCode = signal<string | null>(null);
@@ -111,6 +130,20 @@ export class ParserRequestStore {
   );
   readonly keptCount = computed(() => this.countMarks('KEPT') + this.countMarks('LABEL'));
 
+  /** On-device arithmetic check of the markings against the original amounts; never sent. */
+  readonly liveCheck = computed<LiveCheckResult | null>(() => {
+    const analysis = this.analysis();
+    const draft = this.ruleDraft();
+    return analysis && draft && draft.lines.length > 0 ? liveCheck(analysis, draft) : null;
+  });
+
+  readonly ruleLines = computed(() => this.ruleDraft()?.lines ?? []);
+
+  readonly selectedRule = computed(() => {
+    const selected = this.selectedLine();
+    return selected ? this.ruleAt(selected.page, selected.line) : undefined;
+  });
+
   readonly preview = computed(() => {
     const anon = this.anon();
     return anon ? toSubmission(anon, this.ruleDraft()) : null;
@@ -155,6 +188,69 @@ export class ParserRequestStore {
     else if (word.mark === 'KEPT') this.decide(wordKey(page, line, index), 'MASK');
   }
 
+  selectLine(page: number, line: number): void {
+    this.pickingPeriod.set(false);
+    this.selectedLine.set({ page, line });
+  }
+
+  ruleAt(page: number, line: number): SubmittedRuleLine | undefined {
+    return this.ruleLines().find((rule) => rule.page === page && rule.line === line);
+  }
+
+  /** Assigns (or, with `null`, removes) the figure type of the selected line. */
+  setFigure(figure: FigureType | null): void {
+    const selected = this.selectedLine();
+    if (!selected) return;
+    const others = this.ruleLines().filter(
+      (rule) => rule.page !== selected.page || rule.line !== selected.line,
+    );
+    const current = this.selectedRule();
+    const lines = figure
+      ? [...others, { ...(current ?? { ...selected, deduction: false }), figure }]
+      : others;
+    this.writeDraft(lines);
+  }
+
+  /** Changes the sign flag or format of the selected line's rule. */
+  patchSelectedRule(change: Partial<Pick<SubmittedRuleLine, 'deduction' | 'format'>>): void {
+    const current = this.selectedRule();
+    if (current) this.replaceRule({ ...current, ...change });
+  }
+
+  /** Records the number column (and a guessed format) of the selected line from a word of the original. */
+  pickColumn(page: number, line: number, index: number): void {
+    const word = this.analysis()?.pages[page]?.lines[line]?.words[index];
+    const rule = this.ruleAt(page, line);
+    if (!word || !rule) return;
+    this.replaceRule({
+      ...rule,
+      column: { x0: word.x, x1: word.x + word.width },
+      format: guessFormat(word.text),
+    });
+  }
+
+  pickPeriod(page: number, line: number, index: number): void {
+    const word = this.analysis()?.pages[page]?.lines[line]?.words[index];
+    if (!word) return;
+    this.pickingPeriod.set(false);
+    this.ruleDraft.set({
+      lines: this.ruleLines(),
+      period: { page, line, x0: word.x, x1: word.x + word.width },
+    });
+  }
+
+  clearPeriod(): void {
+    const lines = this.ruleLines();
+    this.ruleDraft.set(lines.length > 0 ? { lines } : undefined);
+  }
+
+  /** "Skip markings": drops every marking (FR-010: the step is optional). */
+  clearRules(): void {
+    this.selectedLine.set(null);
+    this.pickingPeriod.set(false);
+    this.ruleDraft.set(undefined);
+  }
+
   async submit(): Promise<void> {
     const preview = this.preview();
     if (!preview || !this.canSend()) return;
@@ -180,11 +276,31 @@ export class ParserRequestStore {
     this.refusal.set(null);
     this.decisions.set(new Map());
     this.ruleDraft.set(undefined);
+    this.selectedLine.set(null);
+    this.pickingPeriod.set(false);
     this.consent.set(false);
     this.step.set('consent');
     this.sending.set(false);
     this.errorCode.set(null);
     this.sent.set(null);
+  }
+
+  private replaceRule(rule: SubmittedRuleLine): void {
+    this.writeDraft(
+      this.ruleLines().map((r) => (r.page === rule.page && r.line === rule.line ? rule : r)),
+      true,
+    );
+  }
+
+  /** Keeps the period while the lines change; an empty draft is `undefined`. */
+  private writeDraft(lines: SubmittedRuleLine[], keepOrder = false): void {
+    const sorted = keepOrder
+      ? lines
+      : [...lines].sort((a, b) => a.page - b.page || a.line - b.line);
+    const period = this.ruleDraft()?.period;
+    this.ruleDraft.set(
+      sorted.length > 0 || period ? { lines: sorted, ...(period ? { period } : {}) } : undefined,
+    );
   }
 
   private countMarks(mark: string): number {

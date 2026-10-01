@@ -284,6 +284,12 @@ export const routes: Routes = [
               import('@vaultfolio/frontend-admin').then((m) => m.InvitationsComponent),
           },
           {
+            path: 'requests',
+            title: 'pageTitle.adminRequests',
+            loadComponent: () =>
+              import('@vaultfolio/frontend-admin').then((m) => m.RequestsComponent),
+          },
+          {
             path: 'general',
             title: 'pageTitle.adminGeneral',
             loadComponent: () =>

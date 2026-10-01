@@ -20,13 +20,21 @@ import {
 import { AppModule } from '../app/app.module';
 import { configureBodyParsers } from '../app/body-parsers';
 import { DatabaseService } from '../database/database.service';
+import { MailerService } from '../mail/mailer.service';
 
 export const ADMIN_EMAIL = 'admin@example.com';
 // eslint-disable-next-line sonarjs/no-hardcoded-passwords -- synthetic credential of a throw-away e2e database
 export const PASSWORD = 'a-valid-8-char-password';
 
+/** Recording stand-in for the SMTP mailer: tests assert on `sent`, `failNext` simulates a delivery failure. */
+export interface MailCatcher {
+  sent: { to: string; subject: string; html: string; text: string }[];
+  failNext: boolean;
+}
+
 export interface EarningsTestApp {
   app: INestApplication;
+  mail: MailCatcher;
   database: DatabaseService;
   tempDir: string;
   close(): Promise<void>;
@@ -44,7 +52,20 @@ export async function bootEarningsApp(
   if (options.key === null) delete process.env.EARNINGS_ENCRYPTION_KEY;
   else process.env.EARNINGS_ENCRYPTION_KEY = options.key ?? randomBytes(32).toString('base64');
 
-  const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
+  const mail: MailCatcher = { sent: [], failNext: false };
+  const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
+    .overrideProvider(MailerService)
+    .useValue({
+      send: (request: MailCatcher['sent'][number]) => {
+        if (mail.failNext) {
+          mail.failNext = false;
+          return Promise.reject(new Error('simulated delivery failure'));
+        }
+        mail.sent.push(request);
+        return Promise.resolve();
+      },
+    })
+    .compile();
   const app = moduleRef.createNestApplication({ bodyParser: false });
   configureBodyParsers(app);
   app.use(cookieParser());
@@ -52,6 +73,7 @@ export async function bootEarningsApp(
   const database = moduleRef.get(DatabaseService);
   return {
     app,
+    mail,
     database,
     tempDir,
     close: async () => {
@@ -91,6 +113,7 @@ export function client(app: INestApplication, cookie: string) {
     get: (url: string) => agent().get(url).set('Cookie', cookie),
     post: (url: string) => agent().post(url).set('Cookie', cookie),
     put: (url: string) => agent().put(url).set('Cookie', cookie),
+    patch: (url: string) => agent().patch(url).set('Cookie', cookie),
     del: (url: string) => agent().delete(url).set('Cookie', cookie),
   };
 }

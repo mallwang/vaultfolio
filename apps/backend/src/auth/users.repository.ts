@@ -349,6 +349,23 @@ export class UsersRepository {
     ]) {
       await this.database.query(`DELETE FROM ${table} WHERE owner_id = $1`, [id]);
     }
+    // 033-parser-requests: the user's own requests go with the account (FR-042), including the
+    // samples and download audit rows; where the user was an administrator only the reference
+    // is cleared so other users' requests keep their history.
+    await this.database.query(
+      'DELETE FROM request_attachments WHERE request_id IN (SELECT id FROM requests WHERE requester_id = $1)',
+      [id],
+    );
+    await this.database.query(
+      'DELETE FROM request_download_audit WHERE request_id IN (SELECT id FROM requests WHERE requester_id = $1)',
+      [id],
+    );
+    await this.database.query('DELETE FROM requests WHERE requester_id = $1', [id]);
+    await this.database.query('UPDATE requests SET handled_by = NULL WHERE handled_by = $1', [id]);
+    await this.database.query(
+      'UPDATE request_download_audit SET admin_id = NULL WHERE admin_id = $1',
+      [id],
+    );
     // account_action_tokens (password reset / email change tokens) are
     // short-lived and hold no audit value once the account is gone.
     await this.database.query('DELETE FROM account_action_tokens WHERE user_id = $1', [id]);

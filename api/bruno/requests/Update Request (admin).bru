@@ -1,0 +1,23 @@
+meta {
+  name: Update Request (admin)
+  type: http
+  seq: 5
+}
+
+patch {
+  url: {{baseUrl}}/requests/{{requestId}}
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  { "status": "IN_PROGRESS", "note": "Looking into it" }
+}
+
+docs {
+  Admin-only request — requires the `vaultfolio_session` cookie of an ADMIN account, captured by `auth/Login`. Set the `requestId` variable to a request id from the list.
+}

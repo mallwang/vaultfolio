@@ -28,6 +28,8 @@ import { wizardText } from './wizard-text';
           <dd>{{ store.removedCount() }}</dd>
           <dt>{{ 'requests.wizard.preview.values' | translate }}</dt>
           <dd>{{ store.valueCount() }}</dd>
+          <dt>{{ 'requests.wizard.preview.rulesMarked' | translate }}</dt>
+          <dd data-testid="request-summary-rules">{{ store.ruleLines().length }}</dd>
           <dt>{{ 'requests.wizard.preview.consentGiven' | translate }}</dt>
           <dd>{{ store.consent() ? '✓' : '–' }}</dd>
         </dl>

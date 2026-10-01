@@ -15,3 +15,4 @@ export * from './lib/parser-request/anonymize.js';
 export * from './lib/parser-request/sheet.js';
 export * from './lib/parser-request/sample-pdf.js';
 export * from './lib/parser-request/layout-fingerprint.js';
+export * from './lib/parser-request/live-check.js';

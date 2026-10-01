@@ -1,8 +1,15 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { RequestErrorCode, type SubmitRequestResponse, UserRole } from '@vaultfolio/api-contract';
+import {
+  RequestErrorCode,
+  type RequestDetail,
+  type RequestListResponse,
+  type RequestStatusDto,
+  type SubmitRequestResponse,
+  UserRole,
+} from '@vaultfolio/api-contract';
 import { BusinessException } from '@vaultfolio/observability';
-import { findRequestType, REQUEST_LIMITS } from '@vaultfolio/requests';
+import { findRequestType, REQUEST_LIMITS, REQUEST_STATUSES } from '@vaultfolio/requests';
 import type { RequestUser } from '../auth/current-user.decorator';
 import { REQUEST_TYPE_HANDLERS, type RequestTypeHandler } from './request-type-handler';
 import {
@@ -10,14 +17,37 @@ import {
   RequestForbiddenException,
   RequestLimitDailyException,
   RequestLimitOpenException,
+  RequestNotFoundException,
+  SampleDeletedException,
 } from './requests.exceptions';
-import { RequestsRepository } from './requests.repository';
+import { RequestsEmailService } from './requests-email.service';
+import { RequestsRepository, type StoredRequest } from './requests.repository';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const ENVELOPE_KEYS = ['feature', 'type', 'payload'];
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+const NOTE_MAX = 2000;
+
+function deletesAt(closedAt: string | null): string | null {
+  if (!closedAt) return null;
+  return new Date(Date.parse(closedAt) + REQUEST_LIMITS.retentionDays * DAY_MS).toISOString();
+}
+
+function parseUpdate(body: unknown): { status?: RequestStatusDto; note?: string } {
+  const invalid = () => invalidSubmission(RequestErrorCode.INVALID_REQUEST_UPDATE);
+  if (!isRecord(body)) throw invalid();
+  const { status, note } = body;
+  if (Object.keys(body).some((key) => key !== 'status' && key !== 'note')) throw invalid();
+  if (status === undefined && note === undefined) throw invalid();
+  if (status !== undefined && !(REQUEST_STATUSES as readonly unknown[]).includes(status)) {
+    throw invalid();
+  }
+  if (note !== undefined && (typeof note !== 'string' || note.length > NOTE_MAX)) throw invalid();
+  return { status: status as RequestStatusDto | undefined, note: note as string | undefined };
 }
 
 /**
@@ -32,6 +62,7 @@ export class RequestsService {
   constructor(
     private readonly repository: RequestsRepository,
     @Inject(REQUEST_TYPE_HANDLERS) private readonly handlers: RequestTypeHandler[],
+    private readonly mail: RequestsEmailService,
   ) {}
 
   submit(user: RequestUser, body: unknown): SubmitRequestResponse {
@@ -91,7 +122,83 @@ export class RequestsService {
       sha256,
       possibleDuplicate,
     });
+    // After commit; best effort, the mail service never rejects (FR-036).
+    void this.mail.notifyAdmins({ id, feature: envelope.feature, type: envelope.type });
     return { id, submittedAt, possibleDuplicate };
+  }
+
+  list(statuses: readonly RequestStatusDto[]): RequestListResponse {
+    return {
+      openCount: this.repository.openCount(),
+      items: this.repository.list(statuses).map((row) => ({
+        ...row,
+        sampleDeletesAt: row.hasSample ? deletesAt(row.closedAt) : null,
+      })),
+    };
+  }
+
+  detail(id: string): RequestDetail {
+    return this.toDetail(this.requireRequest(id));
+  }
+
+  update(adminId: string, id: string, body: unknown): RequestDetail {
+    const change = parseUpdate(body);
+    const result = this.repository.update(id, change, adminId, new Date().toISOString());
+    if (!result) throw new RequestNotFoundException();
+    this.logger.log({
+      event: 'RequestUpdated',
+      requestId: id,
+      feature: result.request.feature,
+      type: result.request.type,
+      status: result.request.status,
+    });
+    if (result.previousStatus !== 'DONE' && result.request.status === 'DONE') {
+      void this.mail.notifyDone(result.request.requesterId, result.request);
+    }
+    return this.toDetail(result.request);
+  }
+
+  /** Returns the sample bytes and writes one audit row (FR-021). */
+  downloadAttachment(adminId: string, id: string): { id: string; bytes: Buffer } {
+    const request = this.requireRequest(id);
+    const bytes = request.attachment ? this.repository.findAttachmentContent(id) : null;
+    if (!bytes) throw new SampleDeletedException();
+    this.repository.recordDownload(id, adminId, new Date().toISOString());
+    this.logger.log({
+      event: 'RequestSampleDownloaded',
+      requestId: id,
+      feature: request.feature,
+      type: request.type,
+      sizeBytes: bytes.byteLength,
+      sha256: request.attachment?.sha256,
+    });
+    return { id, bytes };
+  }
+
+  private requireRequest(id: string): StoredRequest {
+    const request = this.repository.findById(id);
+    if (!request) throw new RequestNotFoundException();
+    return request;
+  }
+
+  private toDetail(request: StoredRequest): RequestDetail {
+    return {
+      id: request.id,
+      feature: request.feature,
+      type: request.type,
+      requesterEmail: request.requesterEmail,
+      status: request.status,
+      note: request.note,
+      createdAt: request.createdAt,
+      handledByEmail: request.handledByEmail,
+      handledAt: request.handledAt,
+      closedAt: request.closedAt,
+      sampleDeletesAt: request.attachment ? deletesAt(request.closedAt) : null,
+      possibleDuplicate: request.possibleDuplicate,
+      payload: request.payload === null ? null : JSON.parse(request.payload),
+      attachment: request.attachment,
+      sampleDeleted: request.payloadPurgedAt !== null,
+    };
   }
 
   private parseEnvelope(body: unknown): { feature: string; type: string; payload: unknown } {

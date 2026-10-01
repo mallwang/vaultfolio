@@ -1,6 +1,10 @@
 import { Module } from '@nestjs/common';
+import { AuthModule } from '../auth/auth.module';
+import { MailerModule } from '../mail/mailer.module';
 import { EarningsNewParserHandler } from './handlers/earnings-new-parser.handler';
 import { REQUEST_TYPE_HANDLERS, type RequestTypeHandler } from './request-type-handler';
+import { RequestsRetentionService } from './requests-retention.service';
+import { RequestsEmailService } from './requests-email.service';
 import { RequestsController } from './requests.controller';
 import { RequestsRepository } from './requests.repository';
 import { RequestsService } from './requests.service';
@@ -11,10 +15,13 @@ import { RequestsService } from './requests.service';
  * `@vaultfolio/requests` registry.
  */
 @Module({
+  imports: [AuthModule, MailerModule],
   controllers: [RequestsController],
   providers: [
     RequestsRepository,
     RequestsService,
+    RequestsEmailService,
+    RequestsRetentionService,
     EarningsNewParserHandler,
     {
       provide: REQUEST_TYPE_HANDLERS,

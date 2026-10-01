@@ -54,3 +54,71 @@ export class SubmitRequestResponseDto {
   })
   possibleDuplicate!: boolean;
 }
+
+const STATUSES = ['OPEN', 'IN_PROGRESS', 'DONE', 'REJECTED'];
+
+export class RequestListItemDto {
+  @ApiProperty({ format: 'uuid' }) id!: string;
+  @ApiProperty() feature!: string;
+  @ApiProperty() type!: string;
+  @ApiProperty() requesterEmail!: string;
+  @ApiProperty({ enum: STATUSES }) status!: string;
+  @ApiProperty({ format: 'date-time' }) createdAt!: string;
+  @ApiProperty() possibleDuplicate!: boolean;
+  @ApiProperty({ type: String, format: 'date-time', nullable: true }) closedAt!: string | null;
+  @ApiProperty({
+    type: String,
+    format: 'date-time',
+    nullable: true,
+    description: 'closedAt + 30 days while a sample exists.',
+  })
+  sampleDeletesAt!: string | null;
+  @ApiProperty() hasSample!: boolean;
+}
+
+export class RequestListResponseDto {
+  @ApiProperty({ description: 'OPEN + IN_PROGRESS regardless of the status filter.' })
+  openCount!: number;
+  @ApiProperty({ type: [RequestListItemDto] }) items!: RequestListItemDto[];
+}
+
+export class RequestAttachmentMetaDto {
+  @ApiProperty() contentType!: string;
+  @ApiProperty() sizeBytes!: number;
+  @ApiProperty() pageCount!: number;
+  @ApiProperty() sha256!: string;
+  @ApiProperty() downloadCount!: number;
+  @ApiProperty({ type: String, format: 'date-time', nullable: true }) lastDownloadedAt!:
+    string | null;
+}
+
+export class RequestDetailDto {
+  @ApiProperty({ format: 'uuid' }) id!: string;
+  @ApiProperty() feature!: string;
+  @ApiProperty() type!: string;
+  @ApiProperty() requesterEmail!: string;
+  @ApiProperty({ enum: STATUSES }) status!: string;
+  @ApiProperty({ type: String, nullable: true }) note!: string | null;
+  @ApiProperty({ format: 'date-time' }) createdAt!: string;
+  @ApiProperty({ type: String, nullable: true }) handledByEmail!: string | null;
+  @ApiProperty({ type: String, format: 'date-time', nullable: true }) handledAt!: string | null;
+  @ApiProperty({ type: String, format: 'date-time', nullable: true }) closedAt!: string | null;
+  @ApiProperty({ type: String, format: 'date-time', nullable: true }) sampleDeletesAt!:
+    string | null;
+  @ApiProperty() possibleDuplicate!: boolean;
+  @ApiProperty({
+    type: 'object',
+    additionalProperties: true,
+    nullable: true,
+    description: 'Type-specific stored payload; null once the retention sweep removed it.',
+  })
+  payload!: unknown;
+  @ApiProperty({ type: RequestAttachmentMetaDto, nullable: true })
+  attachment!: RequestAttachmentMetaDto | null;
+  @ApiProperty() sampleDeleted!: boolean;
+}
+
+export class UpdateRequestDto {
+  @ApiProperty({ enum: STATUSES, required: false }) status?: string;
+  @ApiProperty({ required: false, maxLength: 2000 }) note?: string;
+}

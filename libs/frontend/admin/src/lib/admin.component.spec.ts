@@ -1,3 +1,5 @@
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { Subject } from 'rxjs';
@@ -25,6 +27,8 @@ function buildFixture(firstChildPath: string | undefined): {
   TestBed.configureTestingModule({
     imports: [AdminComponent],
     providers: [
+      provideHttpClient(),
+      provideHttpClientTesting(),
       {
         provide: Router,
         useValue: { events, navigate },
@@ -98,5 +102,34 @@ describe('AdminComponent', () => {
     fixture.componentInstance['onTabChange'](undefined);
 
     expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it('shows the Requests tab with the open-request count, loaded on init', () => {
+    const { fixture } = buildFixture('accounts');
+    fixture.detectChanges();
+    TestBed.inject(HttpTestingController)
+      .expectOne((r) => r.url === '/api/requests')
+      .flush({ openCount: 3, items: [] });
+    fixture.detectChanges();
+
+    const tab = fixture.nativeElement.querySelector('[data-testid="admin-tab-requests"]');
+    expect(tab).not.toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="admin-tab-requests-count"]').textContent,
+    ).toContain('3');
+  });
+
+  it('hides the count when nothing is open and treats "requests" as a tab', () => {
+    const { fixture } = buildFixture('requests');
+    fixture.detectChanges();
+    TestBed.inject(HttpTestingController)
+      .expectOne((r) => r.url === '/api/requests')
+      .flush({ openCount: 0, items: [] });
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance['activeTab']()).toBe('requests');
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="admin-tab-requests-count"]'),
+    ).toBeNull();
   });
 });

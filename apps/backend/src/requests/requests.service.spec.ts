@@ -7,6 +7,7 @@ import { DatabaseService } from '../database/database.service';
 import type { RequestUser } from '../auth/current-user.decorator';
 import { EarningsNewParserHandler } from './handlers/earnings-new-parser.handler';
 import { PLANTED, plantedLayout, validSubmission } from './requests.test-support';
+import { RequestsEmailService } from './requests-email.service';
 import { RequestsRepository } from './requests.repository';
 import { RequestsService } from './requests.service';
 
@@ -20,6 +21,7 @@ describe('RequestsService — submit', () => {
   let database: DatabaseService;
   let repository: RequestsRepository;
   let service: RequestsService;
+  let mail: { notifyAdmins: jest.Mock; notifyDone: jest.Mock };
   let tempDir: string;
   let seq = 0;
 
@@ -31,7 +33,12 @@ describe('RequestsService — submit', () => {
     database = new DatabaseService();
     await database.onModuleInit();
     repository = new RequestsRepository(database);
-    service = new RequestsService(repository, [new EarningsNewParserHandler()]);
+    mail = { notifyAdmins: jest.fn(), notifyDone: jest.fn() };
+    service = new RequestsService(
+      repository,
+      [new EarningsNewParserHandler()],
+      mail as unknown as RequestsEmailService,
+    );
   });
 
   afterEach(async () => {
@@ -203,5 +210,122 @@ describe('RequestsService — submit', () => {
     );
     expect(repository.list()).toEqual([]);
     expect(repository.countSince(member.id, '2000-01-01T00:00:00.000Z')).toBe(0);
+  });
+  describe('admin handling', () => {
+    it('lists newest first with a status filter and an openCount that ignores the filter', async () => {
+      jest.useFakeTimers({ now: new Date('2026-10-01T10:00:00.000Z') });
+      const member = await user();
+      const admin = await user('ADMIN', []);
+      const a = service.submit(member, BODY(validSubmission(1)));
+      jest.setSystemTime(new Date('2026-10-01T11:00:00.000Z'));
+      const b = service.submit(member, BODY(validSubmission(2, undefined)));
+      service.update(admin.id, a.id, { status: 'DONE' });
+
+      const all = service.list([]);
+      expect(all.items.map((item) => item.id)).toEqual([b.id, a.id]);
+      expect(all.openCount).toBe(1);
+      const done = service.list(['DONE']);
+      expect(done.items.map((item) => item.id)).toEqual([a.id]);
+      expect(done.openCount).toBe(1);
+      expect(done.items[0].sampleDeletesAt).toBe('2026-10-31T11:00:00.000Z');
+      expect(all.items[0].sampleDeletesAt).toBeNull();
+    });
+
+    it('returns the detail with attachment meta and download statistics', async () => {
+      const member = await user();
+      const admin = await user('ADMIN', []);
+      const { id } = service.submit(member, BODY());
+      service.downloadAttachment(admin.id, id);
+      service.downloadAttachment(admin.id, id);
+      const detail = service.detail(id);
+      expect(detail).toMatchObject({
+        id,
+        status: 'OPEN',
+        note: null,
+        handledByEmail: null,
+        sampleDeleted: false,
+        sampleDeletesAt: null,
+        attachment: { contentType: 'application/pdf', pageCount: 1, downloadCount: 2 },
+      });
+      expect(detail.attachment?.sha256).toMatch(/^[0-9a-f]{64}$/);
+      expect(detail.attachment?.lastDownloadedAt).not.toBeNull();
+      expect(detail.payload).toMatchObject({ schemaVersion: 1 });
+    });
+
+    it('applies the patch rules', async () => {
+      const member = await user();
+      const admin = await user('ADMIN', []);
+      const { id } = service.submit(member, BODY());
+      const code = (body: unknown) => reject(() => service.update(admin.id, id, body)).error;
+      expect(code({})).toBe('INVALID_REQUEST_UPDATE');
+      expect(code({ status: 'NOPE' })).toBe('INVALID_REQUEST_UPDATE');
+      expect(code({ note: 'x'.repeat(2001) })).toBe('INVALID_REQUEST_UPDATE');
+      expect(code({ note: 5 })).toBe('INVALID_REQUEST_UPDATE');
+      expect(code({ status: 'DONE', extra: 1 })).toBe('INVALID_REQUEST_UPDATE');
+
+      const progress = service.update(admin.id, id, { status: 'IN_PROGRESS', note: 'looking' });
+      expect(progress).toMatchObject({ status: 'IN_PROGRESS', note: 'looking', closedAt: null });
+      expect(progress.handledByEmail).toMatch(/^user\d+@example\.com$/);
+      const done = service.update(admin.id, id, { status: 'DONE' });
+      expect(done.closedAt).not.toBeNull();
+      expect(done.note).toBe('looking');
+      expect(done.sampleDeletesAt).not.toBeNull();
+      expect(service.update(admin.id, id, { status: 'IN_PROGRESS' }).closedAt).toBeNull();
+      expect(() => service.update(admin.id, id, { note: 'x'.repeat(2000) })).not.toThrow();
+    });
+
+    it('writes one audit row per download and reports unknown ids and deleted samples', async () => {
+      const member = await user();
+      const admin = await user('ADMIN', []);
+      const { id } = service.submit(member, BODY());
+      const { bytes } = service.downloadAttachment(admin.id, id);
+      expect(bytes.toString('latin1')).toMatch(/^%PDF-/);
+      expect(repository.downloadStats(id).downloadCount).toBe(1);
+
+      expect(reject(() => service.detail('nope')).error).toBe('REQUEST_NOT_FOUND');
+      expect(reject(() => service.downloadAttachment(admin.id, 'nope')).error).toBe(
+        'REQUEST_NOT_FOUND',
+      );
+      service.update(admin.id, id, { status: 'DONE' });
+      repository.purgeClosedBefore('2100-01-01T00:00:00.000Z', new Date().toISOString());
+      expect(reject(() => service.downloadAttachment(admin.id, id)).error).toBe('SAMPLE_DELETED');
+      expect(repository.downloadStats(id).downloadCount).toBe(1);
+      expect(service.detail(id)).toMatchObject({
+        payload: null,
+        attachment: null,
+        sampleDeleted: true,
+      });
+    });
+  });
+  describe('mails', () => {
+    it('alerts the admins exactly once per stored request and never for a rejected one', async () => {
+      const member = await user();
+      const { id } = service.submit(member, BODY());
+      expect(mail.notifyAdmins).toHaveBeenCalledTimes(1);
+      expect(mail.notifyAdmins).toHaveBeenCalledWith({
+        id,
+        feature: 'earnings',
+        type: 'new-parser',
+      });
+      reject(() => service.submit(member, BODY({ schemaVersion: 2 })));
+      expect(mail.notifyAdmins).toHaveBeenCalledTimes(1);
+    });
+
+    it('sends the done mail only on a transition into DONE', async () => {
+      const member = await user();
+      const admin = await user('ADMIN', []);
+      const { id } = service.submit(member, BODY());
+      service.update(admin.id, id, { status: 'IN_PROGRESS' });
+      service.update(admin.id, id, { status: 'REJECTED' });
+      service.update(admin.id, id, { status: 'OPEN', note: 'again' });
+      expect(mail.notifyDone).not.toHaveBeenCalled();
+
+      service.update(admin.id, id, { status: 'DONE' });
+      expect(mail.notifyDone).toHaveBeenCalledTimes(1);
+      expect(mail.notifyDone.mock.calls[0][0]).toBe(member.id);
+      service.update(admin.id, id, { status: 'DONE', note: 'repeat' });
+      service.update(admin.id, id, { note: 'only a note' });
+      expect(mail.notifyDone).toHaveBeenCalledTimes(1);
+    });
   });
 });

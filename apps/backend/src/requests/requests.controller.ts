@@ -1,11 +1,37 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, Req } from '@nestjs/common';
-import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import type { SubmitRequestResponse } from '@vaultfolio/api-contract';
-import type { Request } from 'express';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Patch,
+  Post,
+  Query,
+  Req,
+  Res,
+} from '@nestjs/common';
+import { ApiBody, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  type RequestDetail,
+  type RequestListResponse,
+  type RequestStatusDto,
+  type SubmitRequestResponse,
+  UserRole,
+} from '@vaultfolio/api-contract';
+import type { Request, Response } from 'express';
+import { Roles } from '../auth/roles.decorator';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { RequestUser } from '../auth/current-user.decorator';
 import { ApiVaultfolioSessionAuth } from '../openapi/api-vaultfolio-auth.decorator';
-import { ErrorResponseDto, SubmitRequestDto, SubmitRequestResponseDto } from '../openapi/dto';
+import {
+  ErrorResponseDto,
+  RequestDetailDto,
+  RequestListResponseDto,
+  SubmitRequestDto,
+  SubmitRequestResponseDto,
+  UpdateRequestDto,
+} from '../openapi/dto';
 import { UnsupportedMediaTypeBodyException } from './requests.exceptions';
 import { RequestsService } from './requests.service';
 
@@ -57,5 +83,65 @@ export class RequestsController {
   ): SubmitRequestResponse {
     if (!req.is('application/json')) throw new UnsupportedMediaTypeBodyException();
     return this.requests.submit(user, body);
+  }
+
+  @Get()
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'List requests, newest first (admin only).' })
+  @ApiQuery({ name: 'status', required: false, isArray: true, type: String })
+  @ApiResponse({ status: 200, type: RequestListResponseDto })
+  @ApiResponse({ status: 403, type: ErrorResponseDto, description: 'Not an administrator.' })
+  list(@Query('status') status?: string | string[]): RequestListResponse {
+    return this.requests.list([status ?? []].flat() as RequestStatusDto[]);
+  }
+
+  @Get(':id')
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Request detail (admin only).' })
+  @ApiResponse({ status: 200, type: RequestDetailDto })
+  @ApiResponse({ status: 403, type: ErrorResponseDto, description: 'Not an administrator.' })
+  @ApiResponse({ status: 404, type: ErrorResponseDto, description: 'REQUEST_NOT_FOUND.' })
+  detail(@Param('id') id: string): RequestDetail {
+    return this.requests.detail(id);
+  }
+
+  @Patch(':id')
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Set the status and/or the note of a request (admin only).' })
+  @ApiBody({ type: UpdateRequestDto })
+  @ApiResponse({ status: 200, type: RequestDetailDto })
+  @ApiResponse({ status: 400, type: ErrorResponseDto, description: 'INVALID_REQUEST_UPDATE.' })
+  @ApiResponse({ status: 403, type: ErrorResponseDto, description: 'Not an administrator.' })
+  @ApiResponse({ status: 404, type: ErrorResponseDto, description: 'REQUEST_NOT_FOUND.' })
+  update(
+    @CurrentUser() user: RequestUser,
+    @Param('id') id: string,
+    @Body() body: unknown,
+  ): RequestDetail {
+    return this.requests.update(user.id, id, body);
+  }
+
+  @Get(':id/attachment')
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Download the anonymized sample PDF; audited (admin only).' })
+  @ApiResponse({ status: 200, description: 'application/pdf attachment.' })
+  @ApiResponse({ status: 403, type: ErrorResponseDto, description: 'Not an administrator.' })
+  @ApiResponse({ status: 404, type: ErrorResponseDto, description: 'REQUEST_NOT_FOUND.' })
+  @ApiResponse({ status: 410, type: ErrorResponseDto, description: 'SAMPLE_DELETED.' })
+  attachment(
+    @CurrentUser() user: RequestUser,
+    @Param('id') id: string,
+    @Res() res: Response,
+  ): void {
+    const { bytes } = this.requests.downloadAttachment(user.id, id);
+    res
+      .status(HttpStatus.OK)
+      .set({
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename="request-${id.slice(0, 8)}-sample.pdf"`,
+        'X-Content-Type-Options': 'nosniff',
+        'Cache-Control': 'no-store',
+      })
+      .send(bytes);
   }
 }
