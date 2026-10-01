@@ -10,13 +10,17 @@ export const DEFAULT_BODY_LIMIT = '100kb';
 /** Import batches of the Earnings domain (≈170-record exports, 13-file years) exceed the default (research R7). */
 export const EARNINGS_IMPORT_BODY_LIMIT = '5mb';
 
+/** Parser-request submissions (anonymized layout data, research R5) exceed the default. */
+export const REQUESTS_BODY_LIMIT = '512kb';
+
 /**
  * Explicit body parsers replacing Nest's defaults (bootstrap with `bodyParser: false`): the raised
- * limit applies only to `/earnings/imports*`, every other route keeps 100 kB. The first parser that
+ * limits apply only to `/earnings/imports*` and `/requests`, every other route keeps 100 kB. The first parser that
  * reads a body marks it parsed, so the global parser skips requests the import parser handled.
  */
 export function configureBodyParsers(app: INestApplication): void {
   app.use('/earnings/imports', json({ limit: EARNINGS_IMPORT_BODY_LIMIT }));
+  app.use('/requests', json({ limit: REQUESTS_BODY_LIMIT }));
   app.use(json({ limit: DEFAULT_BODY_LIMIT }));
   app.use(urlencoded({ extended: true, limit: DEFAULT_BODY_LIMIT }));
   app.use(mapBodyParserErrors);

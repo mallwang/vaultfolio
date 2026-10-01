@@ -1,3 +1,4 @@
+import { requestsEn } from './requests.en';
 import { earningsEn } from './earnings.en';
 
 /**
@@ -514,6 +515,7 @@ export const en: TranslationDictionary = {
     earningsCheck: 'Earnings · Data check',
     earningsImports: 'Earnings · Imports',
     earningsImport: 'Import documents',
+    earningsRequest: 'Request a parser',
     settings: 'Settings',
     settingsProfile: 'Settings · Profile',
     settingsPreferences: 'Settings · Preferences',
@@ -618,4 +620,5 @@ export const en: TranslationDictionary = {
       'About this export — Wealth Development. Historic wealth development tracking is not built yet in Vaultfolio, so this file contains no rows today — it will automatically start including your data once that feature ships.',
   },
   earnings: earningsEn,
+  requests: requestsEn,
 };

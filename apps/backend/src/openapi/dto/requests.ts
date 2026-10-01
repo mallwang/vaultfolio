@@ -1,0 +1,56 @@
+import { ApiProperty } from '@nestjs/swagger';
+
+/**
+ * Mirrors `libs/api-contract/src/lib/requests.ts` (specs/033-parser-requests/contracts/
+ * requests-api.md). Presentation-layer mirror only: the `earnings/new-parser` handler validates
+ * the `payload` with the strict hand-written schema of `@vaultfolio/earnings` (Layout Submission
+ * v1, contracts/layout-submission-v1.md), which rejects any unknown key.
+ */
+
+export class SubmitRequestDto {
+  @ApiProperty({ example: 'earnings', description: 'Registry feature key.' })
+  feature!: string;
+
+  @ApiProperty({ example: 'new-parser', description: 'Registry request-type key.' })
+  type!: string;
+
+  @ApiProperty({
+    type: 'object',
+    additionalProperties: true,
+    description:
+      'Type-specific payload. For earnings/new-parser: a Layout Submission v1 — anonymized, structured layout data only (never a file, never original values).',
+    example: {
+      schemaVersion: 1,
+      pages: [
+        {
+          width: 595.3,
+          height: 841.9,
+          lines: [
+            {
+              y: 96,
+              size: 9,
+              words: [
+                { text: 'Brutto', x: 56.7 },
+                { text: '3.842,17', x: 391.4 },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  })
+  payload!: Record<string, unknown>;
+}
+
+export class SubmitRequestResponseDto {
+  @ApiProperty({ format: 'uuid' })
+  id!: string;
+
+  @ApiProperty({ format: 'date-time' })
+  submittedAt!: string;
+
+  @ApiProperty({
+    description: 'Another open request has the same layout (non-blocking hint).',
+  })
+  possibleDuplicate!: boolean;
+}

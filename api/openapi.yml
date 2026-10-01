@@ -1603,6 +1603,62 @@ paths:
         Per employer and year: year-to-date, certificate and completeness
         checks.
       tags: *ref_14
+  /requests:
+    post:
+      operationId: RequestsController_submit
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmitRequestDto'
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmitRequestResponseDto'
+        '400':
+          description: >-
+            UNKNOWN_REQUEST_TYPE / INVALID_LAYOUT / LAYOUT_UNKNOWN_FIELD /
+            LIMIT_EXCEEDED / PERSONAL_DATA_DETECTED / INVALID_RULE_DRAFT.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '403':
+          description: Domain not entitled.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '413':
+          description: payload_too_large (> 512 kB).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '415':
+          description: UNSUPPORTED_MEDIA_TYPE (not JSON).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '429':
+          description: REQUEST_LIMIT_OPEN / REQUEST_LIMIT_DAILY.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+      security:
+        - sessionCookie: []
+      summary: >-
+        Submit a request (e.g. earnings/new-parser: an anonymized layout; the
+        server generates the sample PDF).
+      tags:
+        - requests
 info:
   title: Vaultfolio API
   description: >-
@@ -3911,3 +3967,54 @@ components:
         - certificate
         - completeness
         - lateCorrections
+    SubmitRequestDto:
+      type: object
+      properties:
+        feature:
+          type: string
+          example: earnings
+          description: Registry feature key.
+        type:
+          type: string
+          example: new-parser
+          description: Registry request-type key.
+        payload:
+          type: object
+          additionalProperties: true
+          description: >-
+            Type-specific payload. For earnings/new-parser: a Layout Submission
+            v1 — anonymized, structured layout data only (never a file, never
+            original values).
+          example:
+            schemaVersion: 1
+            pages:
+              - width: 595.3
+                height: 841.9
+                lines:
+                  - 'y': 96
+                    size: 9
+                    words:
+                      - text: Brutto
+                        x: 56.7
+                      - text: 3.842,17
+                        x: 391.4
+      required:
+        - feature
+        - type
+        - payload
+    SubmitRequestResponseDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        submittedAt:
+          type: string
+          format: date-time
+        possibleDuplicate:
+          type: boolean
+          description: Another open request has the same layout (non-blocking hint).
+      required:
+        - id
+        - submittedAt
+        - possibleDuplicate

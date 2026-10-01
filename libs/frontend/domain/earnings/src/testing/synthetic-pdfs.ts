@@ -81,3 +81,42 @@ export function corruptPdf(): Uint8Array {
 export function asFile(bytes: Uint8Array, name: string): File {
   return new File([bytes as BlobPart], name, { type: 'application/pdf' });
 }
+
+/** One word at an absolute position (top-left origin, points) with an optional black box drawn over it. */
+export interface PlacedWord {
+  text: string;
+  x: number;
+  y: number;
+  size?: number;
+  coveredByBlackBox?: boolean;
+}
+
+/** A single page with words at exact positions; used to test layout reading incl. hidden text. */
+export function placedWordsPdf(words: PlacedWord[]): Promise<Uint8Array> {
+  const content: Content[] = words.flatMap((word): Content[] => {
+    const size = word.size ?? 10;
+    const text: Content = {
+      text: word.text,
+      absolutePosition: { x: word.x, y: word.y },
+      fontSize: size,
+    };
+    if (!word.coveredByBlackBox) return [text];
+    return [
+      text,
+      {
+        canvas: [
+          {
+            type: 'rect',
+            x: 0,
+            y: 0,
+            w: word.text.length * size * 0.65 + 4,
+            h: size + 4,
+            color: '#000000',
+          },
+        ],
+        absolutePosition: { x: word.x - 2, y: word.y - 2 },
+      },
+    ];
+  });
+  return render({ content, pageSize: 'A4', pageMargins: [0, 0, 0, 0] });
+}

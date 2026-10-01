@@ -8,3 +8,5 @@ export { EarningsImportsComponent } from './lib/imports/earnings-imports.compone
 export { EarningsImportComponent } from './lib/import/earnings-import.component';
 export { EarningsDashboardWidgetComponent } from './lib/earnings-dashboard-widget/earnings-dashboard-widget.component';
 export { createEarningsExportDefinition } from './lib/earnings-export.definition';
+export { ParserRequestComponent } from './lib/parser-request/parser-request.component';
+export { parserRequestGuard } from './lib/parser-request/parser-request.guard';

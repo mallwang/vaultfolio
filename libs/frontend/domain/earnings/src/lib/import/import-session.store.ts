@@ -97,6 +97,8 @@ export class ImportSessionStore {
   private readonly api = inject(EarningsService);
   private readonly reader = inject(EARNINGS_FILE_READER);
   private counter = 0;
+  /** Files of rows rejected as an unknown layout of a text PDF — the only ones a parser can be requested for (033 FR-001). */
+  private readonly requestable = new Map<string, File>();
 
   readonly rows = signal<ImportRow[]>([]);
   readonly phase = signal<ImportPhase>('idle');
@@ -276,6 +278,11 @@ export class ImportSessionStore {
     void this.preview();
   }
 
+  /** The file of a row a parser can be requested for, or `null` (failed check, scan, password, other formats). */
+  requestableFile(clientFileId: string): File | null {
+    return this.requestable.get(clientFileId) ?? null;
+  }
+
   private async preview(): Promise<void> {
     const seq = ++this.previewSeq;
     const candidates = this.rows().filter((r) => r.state === 'candidate');
@@ -319,6 +326,9 @@ export class ImportSessionStore {
       const extracted = await this.reader.extractPdfText(file);
       if ('error' in extracted) return rejected({ code: extracted.error });
       const outcome = parseDocument(extracted.text);
+      if (!outcome.ok && outcome.error.code === 'UNSUPPORTED_FORMAT') {
+        this.requestable.set(row.clientFileId, file);
+      }
       const sourceType = outcome.documentType === 'CERTIFICATE' ? 'CERTIFICATE_PDF' : 'PAYSLIP_PDF';
       return this.toCandidate(file, row, outcome, sourceType);
     } catch {

@@ -9,3 +9,4 @@ export * from './lib/profile.js';
 export * from './lib/i18n.js';
 export * from './lib/error-response.js';
 export * from './lib/earnings.js';
+export * from './lib/requests.js';

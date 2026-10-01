@@ -7,6 +7,8 @@ export type PdfExtractResult = { text: PdfDocumentText } | { error: PdfExtractEr
 /** The subset of the `pdfjs-dist` module the adapter uses (the real module in the app, a test build in specs). */
 export interface PdfJsModule {
   GlobalWorkerOptions: { workerSrc: string };
+  /** Operator codes of `getOperatorList()` (used to find shapes drawn over text). */
+  OPS?: Record<string, number>;
   getDocument(src: { data: Uint8Array; isEvalSupported?: boolean; disableFontFace?: boolean }): {
     promise: Promise<PdfJsDocument>;
     destroy(): Promise<void>;
@@ -38,6 +40,11 @@ let loader: () => Promise<PdfJsModule> = async () => {
   ).href;
   return pdfjs;
 };
+
+/** The PDF.js module as loaded for this app (or the test build). */
+export function loadPdfJs(): Promise<PdfJsModule> {
+  return loader();
+}
 
 /** Replaces how PDF.js is loaded — for specs running the Node build of `pdfjs-dist`. */
 export function setPdfJsLoader(load: () => Promise<PdfJsModule>): void {

@@ -1,0 +1,127 @@
+import { createHash, randomUUID } from 'node:crypto';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { RequestErrorCode, type SubmitRequestResponse, UserRole } from '@vaultfolio/api-contract';
+import { BusinessException } from '@vaultfolio/observability';
+import { findRequestType, REQUEST_LIMITS } from '@vaultfolio/requests';
+import type { RequestUser } from '../auth/current-user.decorator';
+import { REQUEST_TYPE_HANDLERS, type RequestTypeHandler } from './request-type-handler';
+import {
+  invalidSubmission,
+  RequestForbiddenException,
+  RequestLimitDailyException,
+  RequestLimitOpenException,
+} from './requests.exceptions';
+import { RequestsRepository } from './requests.repository';
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+const ENVELOPE_KEYS = ['feature', 'type', 'payload'];
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+/**
+ * Generic request handling (033): registry lookup, entitlement and abuse limits, then the type's
+ * handler validates the payload and builds the attachment; request and attachment are stored in
+ * one transaction. Log lines carry ids, sizes, hashes and codes only (FR-023).
+ */
+@Injectable()
+export class RequestsService {
+  private readonly logger = new Logger(RequestsService.name);
+
+  constructor(
+    private readonly repository: RequestsRepository,
+    @Inject(REQUEST_TYPE_HANDLERS) private readonly handlers: RequestTypeHandler[],
+  ) {}
+
+  submit(user: RequestUser, body: unknown): SubmitRequestResponse {
+    try {
+      return this.doSubmit(user, body);
+    } catch (error) {
+      if (error instanceof BusinessException) this.logRejection(error);
+      throw error;
+    }
+  }
+
+  private doSubmit(user: RequestUser, body: unknown): SubmitRequestResponse {
+    const envelope = this.parseEnvelope(body);
+    const definition = findRequestType(envelope.feature, envelope.type);
+    const handler = this.handlers.find(
+      (candidate) => candidate.feature === envelope.feature && candidate.type === envelope.type,
+    );
+    if (!definition || !handler) {
+      throw invalidSubmission(RequestErrorCode.UNKNOWN_REQUEST_TYPE);
+    }
+    if (user.role !== UserRole.ADMIN && !user.domainScopes.includes(definition.requiredDomain)) {
+      throw new RequestForbiddenException();
+    }
+    this.enforceLimits(user.id);
+
+    const valid = handler.validate(envelope.payload);
+    const attachment = handler.buildAttachment(valid);
+    const fingerprint = handler.fingerprint(valid);
+    const id = randomUUID();
+    const submittedAt = new Date().toISOString();
+    const sha256 = createHash('sha256').update(attachment.bytes).digest('hex');
+    const possibleDuplicate = this.repository.hasOpenWithFingerprint(fingerprint);
+
+    this.repository.insert({
+      id,
+      feature: envelope.feature,
+      type: envelope.type,
+      requesterId: user.id,
+      payload: JSON.stringify(handler.toStoredPayload(valid)),
+      layoutFingerprint: fingerprint,
+      possibleDuplicate,
+      createdAt: submittedAt,
+      attachment: {
+        contentType: attachment.contentType,
+        bytes: attachment.bytes,
+        sha256,
+        pageCount: attachment.pageCount,
+      },
+    });
+
+    this.logger.log({
+      event: 'RequestSubmitted',
+      requestId: id,
+      feature: envelope.feature,
+      type: envelope.type,
+      sizeBytes: attachment.bytes.byteLength,
+      sha256,
+      possibleDuplicate,
+    });
+    return { id, submittedAt, possibleDuplicate };
+  }
+
+  private parseEnvelope(body: unknown): { feature: string; type: string; payload: unknown } {
+    if (!isRecord(body)) throw invalidSubmission(RequestErrorCode.UNKNOWN_REQUEST_TYPE);
+    if (Object.keys(body).some((key) => !ENVELOPE_KEYS.includes(key))) {
+      throw invalidSubmission(RequestErrorCode.LAYOUT_UNKNOWN_FIELD, '$');
+    }
+    if (typeof body['feature'] !== 'string' || typeof body['type'] !== 'string') {
+      throw invalidSubmission(RequestErrorCode.UNKNOWN_REQUEST_TYPE);
+    }
+    return { feature: body['feature'], type: body['type'], payload: body['payload'] };
+  }
+
+  /** Open and daily limits (FR-040), checked before any validation work. */
+  private enforceLimits(requesterId: string): void {
+    if (this.repository.countOpenByRequester(requesterId) >= REQUEST_LIMITS.open) {
+      throw new RequestLimitOpenException();
+    }
+    const since = new Date(Date.now() - DAY_MS).toISOString();
+    if (this.repository.countSince(requesterId, since) >= REQUEST_LIMITS.perDay) {
+      throw new RequestLimitDailyException();
+    }
+  }
+
+  private logRejection(error: BusinessException): void {
+    const response = error.getResponse() as { error: string };
+    const kinds =
+      response.error === RequestErrorCode.PERSONAL_DATA_DETECTED
+        ? [...new Set((error.details ?? []).map((detail) => detail.message))]
+        : undefined;
+    this.logger.warn({ event: 'RequestRejected', errorCode: response.error, kinds });
+  }
+}

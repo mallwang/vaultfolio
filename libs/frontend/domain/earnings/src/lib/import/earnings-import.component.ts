@@ -1,11 +1,12 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import type { EarningsPreviewStatus } from '@vaultfolio/api-contract';
 import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { TagModule } from 'primeng/tag';
 import { I18nService, IconComponent, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
+import { ParserRequestStore } from '../parser-request/parser-request.store';
 import { fill, formatDate, formatMonth, formatMoney, rejectionText } from '../earnings-format';
 import { CorrectionGridComponent } from './correction-grid/correction-grid.component';
 import { RECORD_FIGURES } from './figures';
@@ -161,6 +162,20 @@ interface FigureGroup {
             </div>
             @for (line of notesOf(row); track $index) {
               <p class="row__note" [class.row__note--error]="line.error">{{ line.text }}</p>
+            }
+            @if (store.requestableFile(row.clientFileId)) {
+              <div class="row__request">
+                <button
+                  pButton
+                  type="button"
+                  size="small"
+                  [attr.data-testid]="'request-parser-button-' + row.clientFileId"
+                  (click)="requestParser(row)"
+                >
+                  {{ 'requests.requestParser.button' | translate }}
+                </button>
+                <span class="muted">{{ 'requests.requestParser.note' | translate }}</span>
+              </div>
             }
             @if (row.draft) {
               @if (correctedCount(row) > 0) {
@@ -327,6 +342,13 @@ interface FigureGroup {
       border-radius: var(--p-content-border-radius);
       background: var(--p-content-background);
     }
+    .row__request {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      padding: 0 1rem 0.75rem;
+    }
     .row {
       padding: 0.75rem 1rem;
       border-top: 1px solid var(--p-content-border-color);
@@ -439,6 +461,8 @@ interface FigureGroup {
 export class EarningsImportComponent {
   protected readonly store = inject(ImportSessionStore);
   private readonly i18n = inject(I18nService);
+  private readonly router = inject(Router);
+  private readonly parserRequest = inject(ParserRequestStore);
 
   protected readonly dragging = signal(false);
   protected readonly expanded = signal<string | null>(null);
@@ -525,6 +549,14 @@ export class EarningsImportComponent {
   }
 
   /** "format · employer" */
+  /** Hands the rejected file to the wizard (in memory only) and opens it. */
+  protected requestParser(row: ImportRow): void {
+    const file = this.store.requestableFile(row.clientFileId);
+    if (!file) return;
+    void this.parserRequest.open(file);
+    void this.router.navigate(['/app/earnings/import/request']);
+  }
+
   protected describe(row: ImportRow): string {
     let format = '';
     if (row.parserId) format = this.t(`earnings.format.${row.parserId}`);

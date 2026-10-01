@@ -1,30 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { renderNotification } from '@vaultfolio/notifications';
+import { requireAbsoluteUrl } from '../mail/absolute-url';
 import { MailerService } from '../mail/mailer.service';
-
-function requireAbsoluteUrl(path: string): string {
-  const url = `${process.env.APP_BASE_URL ?? ''}${path}`;
-
-  // APP_BASE_URL must be an absolute http(s) URL — see
-  // `invitations/email.service.ts` for the full rationale (a missing/
-  // relative/schemeless value renders as a dead "about:blank#blocked" link
-  // in most email clients).
-  let parsedUrl: URL;
-  try {
-    parsedUrl = new URL(url);
-  } catch {
-    throw new Error(
-      `APP_BASE_URL is not a valid absolute URL (got "${process.env.APP_BASE_URL ?? ''}"). ` +
-        'Set it to e.g. "https://vaultfolio.example.com" (must include the protocol).',
-    );
-  }
-  if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
-    throw new Error(
-      `APP_BASE_URL must use http:// or https:// (got "${process.env.APP_BASE_URL ?? ''}").`,
-    );
-  }
-  return url;
-}
 
 /**
  * Outbound email for the sign-up flow (research.md #2) — a new instance

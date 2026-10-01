@@ -18,6 +18,14 @@ const lazyEarningsAvailableGuard: CanActivateFn = () => {
   );
 };
 
+/** The parser-request wizard needs a file handed over from the import page (033 FR-009). */
+const lazyParserRequestGuard: CanActivateFn = () => {
+  const injector = inject(EnvironmentInjector);
+  return import('@vaultfolio/frontend-domain-earnings').then((m) =>
+    runInInjectionContext(injector, () => m.parserRequestGuard()),
+  );
+};
+
 /**
  * Route table: public pages live directly under the base URL with no shell
  * of their own beyond the always-on root header (app.ts); authenticated pages
@@ -116,6 +124,13 @@ export const routes: Routes = [
       },
       // Declared before `earnings` so the literal segment wins: the import screen is a sibling
       // page of the area (own header title, no toolbar/tabs), blocked while the key is unavailable.
+      {
+        path: 'earnings/import/request',
+        title: 'pageTitle.earningsRequest',
+        canActivate: [domainGuard('earnings'), lazyEarningsAvailableGuard, lazyParserRequestGuard],
+        loadComponent: () =>
+          import('@vaultfolio/frontend-domain-earnings').then((m) => m.ParserRequestComponent),
+      },
       {
         path: 'earnings/import',
         title: 'pageTitle.earningsImport',
