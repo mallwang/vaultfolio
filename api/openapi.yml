@@ -3786,6 +3786,7 @@ components:
             - MATCH
             - DIFFERS
             - NOT_AVAILABLE
+            - NOT_COMPARABLE
         compared:
           type: number
         differing:
@@ -3805,6 +3806,7 @@ components:
           enum:
             - COMPLETE
             - MISSING
+            - NO_PAYSLIPS
         missingPeriods:
           type: array
           items:
