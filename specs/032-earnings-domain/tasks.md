@@ -450,6 +450,6 @@ Task: "T070 chart option builders"   Task: "T071 MonthDetailComponent"
 
 ## Phase 13: Convergence
 
-- [ ] T135 Document the Bundesbank and Bundeswehr payslip formats in the supported-formats sections of `README.md`, `README.de.md`, `docs/user-guide.md` and `docs/user-guide.de.md` (currently only the SAP payslip and the wage-tax certificate are named) per T121 (partial)
-- [ ] T136 Reconcile the spec's "Iteration scope" assumption (SAP + wage-tax certificate only) with the shipped Bundesbank and Bundeswehr parsers of Phases 11–12 — update `spec.md` Assumptions and the parser mentions in `plan.md`/`design.md` (unrequested)
-- [ ] T137 Record the imports-history behaviour (grouped by data year, all years collapsed on load, "Expand all"/"Collapse all" toggle) in `design.md` "Imports tab" and `spec.md` (FR-021 history), then verify it with the `verify-ui` skill (EN/DE, light/dark) per FR-021 (unrequested)
+- [x] T135 Document the Bundesbank and Bundeswehr payslip formats in the supported-formats sections of `README.md`, `README.de.md`, `docs/user-guide.md` and `docs/user-guide.de.md` (currently only the SAP payslip and the wage-tax certificate are named) per T121 (partial)
+- [x] T136 Reconcile the spec's "Iteration scope" assumption (SAP + wage-tax certificate only) with the shipped Bundesbank and Bundeswehr parsers of Phases 11–12 — update `spec.md` Assumptions and the parser mentions in `plan.md`/`design.md` (unrequested)
+- [x] T137 Record the imports-history behaviour (grouped by data year, all years collapsed on load, "Expand all"/"Collapse all" toggle) in `design.md` "Imports tab" and `spec.md` (FR-021 history), then verify it with the `verify-ui` skill (EN/DE, light/dark) per FR-021 (unrequested)

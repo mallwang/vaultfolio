@@ -45,11 +45,13 @@ aktuelle Jahr im Vergleich zu denselben Monaten des Vorjahres, Monats- und Jahre
 Tabellen, ein Monatsdetail und eine **Datenprüfung**, die die Summen der Abrechnungen mit den
 Jahressummen und der Lohnsteuerbescheinigung vergleicht.
 
-**Unterstützte Dokumente** (Iteration 1):
+**Unterstützte Dokumente**:
 
 | Dokument                                              | Gelesen von                                         |
 | ----------------------------------------------------- | --------------------------------------------------- |
 | SAP-Entgeltnachweis                                   | Parser `sap-entgeltnachweis`                        |
+| Verdienstabrechnung der Deutschen Bundesbank          | Parser `bundesbank-verdienstabrechnung`             |
+| Wehrsoldabrechnung der Bundeswehr                     | Parser `bundeswehr-wehrsoldabrechnung`              |
 | Lohnsteuerbescheinigung                               | Parser `lohnsteuerbescheinigung` (alle Arbeitgeber) |
 | Export des Begleit-Tools (`earnings-export`, Vers. 1) | JSON-Leser – der Weg für andere Layouts und Scans   |
 

@@ -48,11 +48,13 @@ social insurance: a career summary, the latest year against the same months of t
 monthly and yearly charts, tables, a month detail, and a **data check** that compares payslip sums
 with the year-to-date totals and the wage-tax certificate.
 
-**Supported documents** (iteration 1):
+**Supported documents**:
 
 | Document                                             | Read by                                             |
 | ---------------------------------------------------- | --------------------------------------------------- |
 | SAP payslip ("Entgeltnachweis")                      | `sap-entgeltnachweis` parser                        |
+| Deutsche Bundesbank payslip ("Verdienstabrechnung")  | `bundesbank-verdienstabrechnung` parser             |
+| Bundeswehr pay statement ("Wehrsoldabrechnung")      | `bundeswehr-wehrsoldabrechnung` parser              |
 | Wage-tax certificate ("Lohnsteuerbescheinigung")     | `lohnsteuerbescheinigung` parser (any employer)     |
 | Companion-tool export (`earnings-export`, version 1) | JSON reader — the route for other layouts and scans |
 

@@ -251,6 +251,8 @@ Click **Import documents** and drop files onto the page (or use **Choose files**
 Supported are:
 
 - **SAP payslips** ("Entgeltnachweis"), including corrections for earlier months,
+- **Deutsche Bundesbank payslips** ("Verdienstabrechnung"), including corrections,
+- **Bundeswehr pay statements** ("Wehrsoldabrechnung"), including corrections for earlier months,
 - **wage-tax certificates** ("Lohnsteuerbescheinigung") from any employer,
 - **companion-tool export files** (`earnings-export`, version 1) — the way to bring in
   other payslip layouts and scans.
@@ -289,7 +291,8 @@ payslips to import.
 ### 7.5 Imports, Renaming and Deleting
 
 The **Imports** tab lists every imported file with its periods, number of records and
-the parser (with version) that read it.
+the parser (with version) that read it. The history is grouped by the year the data
+belongs to; all years start collapsed — click a year to open it, or use **Expand all**.
 
 - **Rename an employer** — give an employer a display name of your choice; the name
   detected from the documents is kept.

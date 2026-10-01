@@ -255,6 +255,8 @@ Klicke auf **Dokumente importieren** und lege Dateien auf der Seite ab (oder nut
 **Dateien auswählen**). Unterstützt werden:
 
 - **SAP-Entgeltnachweise**, einschließlich Korrekturen für frühere Monate,
+- **Verdienstabrechnungen der Deutschen Bundesbank**, einschließlich Korrekturen,
+- **Wehrsoldabrechnungen der Bundeswehr**, einschließlich Korrekturen für frühere Monate,
 - **Lohnsteuerbescheinigungen** aller Arbeitgeber,
 - **Exportdateien des Begleit-Tools** (`earnings-export`, Version 1) – der Weg für
   andere Abrechnungslayouts und Scans.
@@ -296,7 +298,9 @@ Hinweis, etwa welche Abrechnungen noch fehlen.
 ### 7.5 Importe, Umbenennen und Löschen
 
 Der Reiter **Importe** listet jede importierte Datei mit ihren Zeiträumen, der Anzahl
-der Datensätze und dem Parser (mit Version), der sie gelesen hat.
+der Datensätze und dem Parser (mit Version), der sie gelesen hat. Der Verlauf ist nach dem
+Jahr gruppiert, zu dem die Daten gehören; alle Jahre sind beim Öffnen zugeklappt – klicke
+auf ein Jahr, um es zu öffnen, oder nutze **Alle aufklappen**.
 
 - **Arbeitgeber umbenennen** – gib einem Arbeitgeber einen Anzeigenamen deiner Wahl;
   der aus den Dokumenten erkannte Name bleibt erhalten.

@@ -92,7 +92,8 @@ correction issued after the last payslip excluded (Apr 2022)").
 1. **Privacy note** — three cards: "Documents stay on your device", "Only figures, no
    identifiers" (mentions encryption), "Only you can see it" (admins included; operator runs the
    server and holds the key).
-2. **Import history** table: file, type (Payslip PDF / Wage-tax certificate PDF / Companion-tool
+2. **Import history** table, grouped by the year the data belongs to (one collapsible header per
+   year with the import count, all years collapsed on load, "Expand all"/"Collapse all" toggle): file, type (Payslip PDF / Wage-tax certificate PDF / Companion-tool
    export), periods, records, "Read with" (parser + version), imported date, delete icon.
 3. **Employer names**: per detected employer, "Detected as <full name>" + display-name input +
    Save. Copy states figures cannot be edited.

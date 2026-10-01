@@ -12,7 +12,7 @@ A new Earnings domain that shows a user's employment income history (payslips, b
 social insurance, wage-tax certificates) with the overview known from the standalone
 earnings-evolution app. Data enters **only by document import**: payslip and wage-tax certificate
 PDFs are read **in the browser** with PDF.js and turned into figures by deterministic parsers
-(first: SAP "Entgeltnachweis"; wage-tax certificate for any employer), and historic data comes
+(SAP "Entgeltnachweis", Deutsche Bundesbank "Verdienstabrechnung", Bundeswehr "Wehrsoldabrechnung"; wage-tax certificate for any employer), and historic data comes
 from the companion tool's versioned `earnings-export` JSON. Only whitelisted figures reach the
 server, which re-runs the arithmetic checks, rejects any failing file as a whole, stores amounts
 **AES-256-GCM-encrypted** per row, and serves owner-only read models (overview, tables, data
@@ -51,7 +51,7 @@ respond in < 300 ms.
 import routes accept up to 5 MB JSON, all other routes keep the 100 kB default (research R7).
 
 **Scale/Scope**: 1 new shared library, 1 new frontend domain library, 1 backend module (~11
-endpoints), 4 tables, 2 PDF parsers + 1 JSON reader, 5 screens + widget, EN/DE.
+endpoints), 4 tables, 4 PDF parsers + 1 JSON reader, 5 screens + widget, EN/DE.
 
 ## Constitution Check
 
@@ -120,6 +120,8 @@ libs/
 │       │   ├── pdf-text.ts                    # PdfDocumentText types + line helpers
 │       │   ├── registry.ts                    # PARSER_REGISTRY, parseDocument()
 │       │   ├── sap-entgeltnachweis.ts         # port of earnings-evolution evosoft.py
+│       │   ├── bundesbank-verdienstabrechnung.ts  # Phase 11
+│       │   ├── bundeswehr-wehrsoldabrechnung.ts   # Phase 12
 │       │   └── lohnsteuerbescheinigung.ts     # official form, any employer
 │       ├── export-v1.ts                       # readEarningsExport()
 │       ├── aggregations/                      # monthly, yearly, career, latest-year, grid, taxes, data-check
