@@ -117,7 +117,7 @@ const YTD_KEYS: [string, OneOffKey][] = [
 function cents(text: string): number {
   const negative = text.endsWith('-');
   const [euros, fraction] = text.replace(/-$/, '').split(',');
-  const value = Number(euros.replace(/\./g, '')) * 100 + Number(fraction);
+  const value = Number(euros.replaceAll(/\./g, '')) * 100 + Number(fraction);
   return negative ? -value : value;
 }
 

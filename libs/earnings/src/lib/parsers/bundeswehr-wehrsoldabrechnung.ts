@@ -89,7 +89,7 @@ function monthOf(name: string): number | null {
   const idx = MONTHS.indexOf(
     name
       .toLowerCase()
-      .replace(/ä/g, 'a')
+      .replaceAll(/ä/g, 'a')
       .replace(/[^a-z]/g, '')
       .slice(0, 3),
   );

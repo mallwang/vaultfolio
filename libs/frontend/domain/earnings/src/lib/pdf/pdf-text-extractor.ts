@@ -103,7 +103,8 @@ function toLines(items: TextItem[]): PdfLine[] {
 
   return groups.map((group) => {
     const words: PdfWord[] = [];
-    for (const run of group.runs.sort((a, b) => a.x - b.x)) {
+    group.runs.sort((a, b) => a.x - b.x);
+    for (const run of group.runs) {
       const charWidth = run.str.length > 0 ? run.width / run.str.length : 0;
       for (const m of run.str.matchAll(/\S+/g)) {
         const x = run.x + (m.index ?? 0) * charWidth;

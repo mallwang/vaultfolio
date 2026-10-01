@@ -171,10 +171,10 @@ function cents(token: string): number | null {
   if (t.includes(',')) {
     const m = /^(-?)(\d[\d.]*),(\d{2})$/.exec(t);
     if (!m) return null;
-    const value = Number(m[2].replace(/\./g, '')) * 100 + Number(m[3]);
+    const value = Number(m[2].replaceAll(/\./g, '')) * 100 + Number(m[3]);
     return negative || m[1] ? -value : value;
   }
-  const digits = t.replace(/\./g, '');
+  const digits = t.replaceAll(/\./g, '');
   if (!/^\d+$/.test(digits)) return null;
   return negative ? -Number(digits) : Number(digits);
 }
@@ -241,7 +241,7 @@ function codedLines(rows: Token[][]): CodedLine[] {
 
 /** OCR variants of the decimal comma in the formatted table: `60 ‚00`, `0;00`, `1.019,/76`. */
 function repairOcrAmounts(text: string): string {
-  return text.replace(/,\//g, ',').replace(/(\d) ?[‚;] ?(\d{2})(?!\d)/g, '$1,$2');
+  return text.replaceAll(/,\//g, ',').replaceAll(/(\d) ?[‚;] ?(\d{2})(?!\d)/g, '$1,$2');
 }
 
 /** The KV/RV/AV/PV/ST-Brutto table at the bottom of the statement. */
