@@ -1,6 +1,8 @@
 <!--
 Sync Impact Report
-- Version change: 3.4.0 → 3.5.0 (MINOR: new domain added to Product Scope, a new Sensitive
+- Version change: 3.5.0 → 3.6.0 (MINOR: Earnings out-of-scope rule gains a narrow exception for
+  correcting a misread figure in the import preview, issue #63; details below the 3.5.0 report)
+- Previous: 3.4.0 → 3.5.0 (MINOR: new domain added to Product Scope, a new Sensitive
   Personal Data section added, and Principles IV/V plus the Money/decimal Stack Decision
   materially expanded with scoped carve-outs — no principle removed or redefined)
 - Modified principles:
@@ -190,8 +192,11 @@ stated.
   across accounts, but MUST NOT itself integrate with a bank/brokerage API to fetch them live. The
   one exception to the "manual UI entry or CSV/JSON import" origin rule is the Earnings domain's
   document import (see In Scope), which is still an explicit, user-initiated upload.
-- Manual entry or editing of monetary figures in the Earnings domain. Payroll and tax figures
-  MUST come from the documents that printed them; users MAY only rename display labels (e.g., an
+- Manual entry of monetary figures in the Earnings domain. Payroll and tax figures MUST come from
+  the documents that printed them. The one exception is the correction of a figure that a parser
+  misread, in the import preview only: the figure MUST take part in a failing arithmetic check,
+  the checks MUST pass again on the device and on the server before anything is saved, and the
+  saved figure MUST stay marked as user-corrected. Users MAY also rename display labels (e.g., an
   employer's display name).
 
 ### External Market Data (Permitted)
@@ -232,6 +237,10 @@ constitution:
   Non-monetary lookup fields (e.g., period, employer, kind) MAY remain in plain form. If the key is
   missing or invalid, the domain MUST fail closed (report unavailability; never show wrong/partial
   figures or accept new data).
+- **User corrections stay traceable**: a figure the user corrected in the import preview MUST be
+  validated again by the server, MUST be stored and shown marked as user-corrected (the figure's
+  name only, never a second copy of the value), and MUST NOT be accepted for a figure outside a
+  failing check.
 - **Log hygiene**: logs, error reports, and diagnostics MUST NOT contain amounts, document
   content, or personal identifiers (see Principle V's exception).
 - **User control and transparency**: users MUST be able to delete a single import and all of
@@ -339,4 +348,4 @@ alignment with the Core Principles; unresolved violations MUST be justified in t
 Complexity Tracking section or the plan MUST be revised to comply. Reviewers MUST treat this
 constitution as authoritative over informal team conventions.
 
-**Version**: 3.5.0 | **Ratified**: 2026-08-13 | **Last Amended**: 2026-09-29
+**Version**: 3.6.0 | **Ratified**: 2026-08-13 | **Last Amended**: 2026-10-01
