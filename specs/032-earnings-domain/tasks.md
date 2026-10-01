@@ -336,6 +336,21 @@ non-entitled user is offered no widget.
 
 ---
 
+## Phase 11: Additional payslip format — Deutsche Bundesbank (Priority: P2)
+
+**Purpose**: Second employer format for the payslip parser registry, ported from earnings-evolution
+`extractor/parsers/bundesbank.py`. The "Verdienstabrechnung" text layer prints every character as its
+own text run (`L o h n s t e u e r`) and the Betrag/year-to-date columns as cents without decimal
+separator (`1375-` = 13,75), so the parser regroups the spaced characters into words and classifies
+numbers by the right edge of their column (Lohnart, rate, Betrag, formatted EBV/EBR, year-to-date).
+
+- [x] T127 [P] [US1] Create synthetic Bundesbank "Verdienstabrechnung" fixtures with invented figures and hand-computed expected records (regular month with Arbg. shares and year-to-date column, bonus month with one-off lines `441`/`643`/`644` and `EGA` table row, correction statement `MM.YY/N MM.YY` with `period` ≠ `issued`, net-off-by-12.40 variant, personal data in the letterhead that must never reach the output) as positioned, character-spaced words in `libs/earnings/src/lib/testing/bundesbank-verdienstabrechnung.fixtures.ts` and document them in `libs/earnings/src/lib/testing/README.md`
+- [x] T128 [P] [US1] Write parser tests asserting every field of every expected record exactly (`gross` = Gesamtbrutto EBV/EBR, `net` = Netto EBV/EBR, `other` derived from Zahlnetto, Übertrag and deductions so the PAYOUT check is meaningful, `ytd` only on the regular record, correction → `payout: null`, `other` = −net, `CHECK_FAILED` for the net-off file, `detect` false for SAP/certificate/unrelated text, no personal identifier in the serialized outcome) in `libs/earnings/src/lib/parsers/bundesbank-verdienstabrechnung.spec.ts`
+- [x] T129 [US1] Implement the Bundesbank parser (`id: 'bundesbank-verdienstabrechnung'`, `version: '1.0.0'`, `documentType: 'PAYSLIP'`) in `libs/earnings/src/lib/parsers/bundesbank-verdienstabrechnung.ts`, register it after the SAP parser in `libs/earnings/src/lib/parsers/registry.ts` and add an end-to-end `parseDocument` case to `libs/earnings/src/lib/parsers/registry.sap.spec.ts`'s sibling `registry.bundesbank.spec.ts`
+- [x] T130 [US1] Run the local parity check (`tools/earnings/parity-check.mjs`, counts only) against earnings-evolution's `payslips/bundesbank` and `data/earnings.json`; expected differences only: `ytd` of correction files (Vaultfolio keeps year-to-date on regular records only) and the five 2011 scans that earnings-evolution corrects with manual OCR overrides (rejected or read with a wrong Steuer-Brutto; the companion export covers them) (research R9, quickstart §6)
+
+---
+
 ## Dependencies & Execution Order
 
 ### Phase Dependencies

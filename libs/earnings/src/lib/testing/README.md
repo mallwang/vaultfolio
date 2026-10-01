@@ -24,6 +24,22 @@ The frontend adapter tests render the same lines into PDFs (`libs/frontend/domai
 
 The arithmetic for each fixture is written next to it in the source file.
 
+## `bundesbank-verdienstabrechnung.fixtures.ts`
+
+Synthetic Deutsche Bundesbank "Verdienstabrechnung" statements (letterhead with invented name,
+address and IBAN). Unlike the SAP fixtures they are positioned words, not plain text lines: the real
+text layer prints one glyph per run and the Betrag/year-to-date columns as cents without decimal
+separator, and the parser classifies numbers by column. `row()` reproduces both.
+
+| Fixture                   | What it covers                                                                          | Expected                                                                                                                                                        |
+| ------------------------- | --------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `BBK_MAR_2025`            | Regular month; Arbg. shares; year-to-date column; VL, VBL-AN-Umlage and Übertrag        | gross 3170.00, taxes 327.00, social 688.00, net 2155.00, payout 1965.00, other −190.00, ytd taxGross 9450.00                                                    |
+| `BBK_MAR_2025_NET_OFF`    | Printed Netto EBV 12.40 too high                                                        | `CHECK_FAILED` NET 2025-03 difference 12.40                                                                                                                     |
+| `BBK_DEC_2025_BONUS`      | Bonus (`441`), one-off tax lines `643`/`644`, `EGA` table row                           | gross 4170.00 of which one-off 1000.00; wage tax 520.00 of which 220.00; church tax 46.80 of which 19.80; one-off taxGross 1000.00; net 2798.20; payout 2708.20 |
+| `BBK_FEB_2025_CORRECTION` | Header `02.25/2 03.25`: February recalculated in March; printed payout belongs to March | period 2025-02, issued 2025-03, CORRECTION seq 2, net 2144.10, payout `null`, other −2144.10, ytd `null`                                                        |
+
+The arithmetic for each fixture is written next to it in the source file.
+
 ## `builders.ts`
 
 `payRecord()` / `storedRecord()` / `certificate()` build balanced records with invented figures:

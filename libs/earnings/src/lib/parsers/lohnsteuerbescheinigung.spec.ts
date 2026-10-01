@@ -53,6 +53,7 @@ describe('lohnsteuerbescheinigung parser', () => {
     expect(PARSER_REGISTRY.map((p) => p.id)).toEqual([
       'lohnsteuerbescheinigung',
       'sap-entgeltnachweis',
+      'bundesbank-verdienstabrechnung',
     ]);
     expect(parseDocument(textDocument(LSTB_2025_BRIGHTLINE.pages))).toMatchObject({
       ok: true,
