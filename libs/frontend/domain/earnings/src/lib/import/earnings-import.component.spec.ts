@@ -160,7 +160,9 @@ describe('EarningsImportComponent', () => {
     expect(byTestId(root, 'earnings-import-row-file-3')?.textContent).toContain(
       'Check failed for Aug 2026: Gross − taxes − social insurance = net is off by +€12.40.',
     );
-    expect(byTestId(root, 'earnings-import-row-file-4')?.textContent).toContain('scanned document');
+    expect(byTestId(root, 'earnings-import-row-file-4')?.textContent).toContain(
+      'no text that can be read automatically',
+    );
     expect(byTestId(root, 'earnings-import-row-file-5')?.textContent).toContain(
       'Wage-tax certificate (Lohnsteuerbescheinigung)',
     );

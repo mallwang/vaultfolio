@@ -259,13 +259,12 @@ Supported are:
 - **Deutsche Bundesbank payslips** ("Verdienstabrechnung"), including corrections,
 - **Bundeswehr pay statements** ("Wehrsoldabrechnung"), including corrections for earlier months,
 - **wage-tax certificates** ("Lohnsteuerbescheinigung") from any employer,
-- **companion-tool export files** (`earnings-export`, version 1) — the way to bring in
-  other payslip layouts and scans.
+- **export files** (`earnings-export`, version 1).
 
 Every file gets a row with its outcome: **New**, **Replaces** (a newer version of
 figures you already imported), **Duplicate** (already imported — skipped) or
 **Rejected** with the reason, for example when gross − taxes − social insurance does
-not add up to net, or when a PDF is a scan without text. Rejected files are never
+not add up to net, or when a PDF contains no automatically readable text (a scan, for example). Rejected files are never
 saved.
 
 If a payslip is rejected because a check does not add up, its figures open in the row

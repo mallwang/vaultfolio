@@ -55,12 +55,12 @@ export const earningsDe: TranslationDictionary = {
   sourceType: {
     PAYSLIP_PDF: 'Gehaltsabrechnung (PDF)',
     CERTIFICATE_PDF: 'Lohnsteuerbescheinigung (PDF)',
-    EXPORT_JSON: 'Export des Begleit-Tools',
+    EXPORT_JSON: 'Exportdatei (earnings-export)',
   },
   format: {
     'sap-entgeltnachweis': 'SAP-Entgeltnachweis',
     lohnsteuerbescheinigung: 'Lohnsteuerbescheinigung',
-    'earnings-export': 'Export des Begleit-Tools',
+    'earnings-export': 'Exportdatei (earnings-export)',
   },
   formatChips: {
     sap: 'SAP-Entgeltnachweis',
@@ -102,7 +102,7 @@ export const earningsDe: TranslationDictionary = {
     UNSUPPORTED_FORMAT:
       'Abgelehnt: Format wird noch nicht unterstützt. Aus dieser Datei wird nichts gespeichert.',
     IMAGE_ONLY:
-      'Abgelehnt: Format wird noch nicht unterstützt. Das scheint ein Scan ohne Text zu sein. Scans lassen sich mit dem Begleit-Tool verarbeiten und über dessen Exportdatei importieren.',
+      'Abgelehnt: Die Datei wurde als PDF erkannt, enthält aber keinen automatisch auswertbaren Text (z. B. ein Scan oder ein PDF mit in Grafik umgewandelter Schrift). Aus dieser Datei wird nichts gespeichert.',
     PASSWORD_PROTECTED:
       'Abgelehnt: Das PDF ist passwortgeschützt. Entfernen Sie das Passwort und versuchen Sie es erneut.',
     UNREADABLE:

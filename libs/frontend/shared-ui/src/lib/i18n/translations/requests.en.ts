@@ -229,7 +229,7 @@ export const requestsEn: TranslationDictionary = {
       title: 'This document cannot be requested',
       chooseAnother: 'Choose another file',
       IMAGE_ONLY:
-        'The file has no text layer (a scan). Use the companion tool to convert it first.',
+        'The file was recognised as a PDF but contains no text that can be read automatically (e.g. a scan or text converted to graphics). A parser cannot be requested for it.',
       PASSWORD_PROTECTED: 'The file is password-protected.',
       UNREADABLE: 'The file could not be read.',
       TOO_MANY_PAGES: 'The document has more than 3 pages.',

@@ -264,13 +264,12 @@ Klicke auf **Dokumente importieren** und lege Dateien auf der Seite ab (oder nut
 - **Verdienstabrechnungen der Deutschen Bundesbank**, einschließlich Korrekturen,
 - **Wehrsoldabrechnungen der Bundeswehr**, einschließlich Korrekturen für frühere Monate,
 - **Lohnsteuerbescheinigungen** aller Arbeitgeber,
-- **Exportdateien des Begleit-Tools** (`earnings-export`, Version 1) – der Weg für
-  andere Abrechnungslayouts und Scans.
+- **Exportdateien** (`earnings-export`, Version 1).
 
 Jede Datei bekommt eine Zeile mit ihrem Ergebnis: **Neu**, **Ersetzt** (eine neuere
 Fassung bereits importierter Werte), **Duplikat** (bereits importiert – übersprungen)
 oder **Abgelehnt** mit Begründung, etwa wenn Brutto − Steuern − Sozialversicherung nicht
-das Netto ergibt oder ein PDF ein Scan ohne Text ist. Abgelehnte Dateien werden nie
+das Netto ergibt oder ein PDF keinen automatisch auswertbaren Text enthält (z. B. ein Scan). Abgelehnte Dateien werden nie
 gespeichert.
 
 Wird eine Abrechnung abgelehnt, weil eine Prüfung nicht aufgeht, öffnen sich ihre Werte in

@@ -133,7 +133,7 @@ describe('ParserRequestComponent', () => {
   });
 
   it.each([
-    ['IMAGE_ONLY', 'no text layer'],
+    ['IMAGE_ONLY', 'no text that can be read automatically'],
     ['PASSWORD_PROTECTED', 'password-protected'],
     ['UNREADABLE', 'could not be read'],
     ['TOO_MANY_PAGES', 'more than 3 pages'],

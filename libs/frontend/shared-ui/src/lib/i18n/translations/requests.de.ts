@@ -233,7 +233,7 @@ export const requestsDe: TranslationDictionary = {
       title: 'Dieses Dokument kann nicht angefragt werden',
       chooseAnother: 'Andere Datei wählen',
       IMAGE_ONLY:
-        'Die Datei hat keine Textebene (ein Scan). Konvertiere sie zuerst mit dem Begleit-Tool.',
+        'Die Datei wurde als PDF erkannt, enthält aber keinen automatisch auswertbaren Text (z. B. ein Scan oder in Grafik umgewandelte Schrift). Dafür kann kein Parser angefragt werden.',
       PASSWORD_PROTECTED: 'Die Datei ist passwortgeschützt.',
       UNREADABLE: 'Die Datei konnte nicht gelesen werden.',
       TOO_MANY_PAGES: 'Das Dokument hat mehr als 3 Seiten.',

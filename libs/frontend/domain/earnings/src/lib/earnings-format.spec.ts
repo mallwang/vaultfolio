@@ -48,6 +48,8 @@ describe('earnings formatting', () => {
     ).toBe(
       'Rejected: Gross − taxes − social insurance = net does not add up for Aug 2026 (difference +€12.40). Nothing from this file will be saved.',
     );
-    expect(rejectionText({ code: 'IMAGE_ONLY' }, translate, 'en')).toContain('companion tool');
+    expect(rejectionText({ code: 'IMAGE_ONLY' }, translate, 'en')).toContain(
+      'no text that can be read automatically',
+    );
   });
 });

@@ -50,13 +50,13 @@ with the year-to-date totals and the wage-tax certificate.
 
 **Supported documents**:
 
-| Document                                             | Read by                                             |
-| ---------------------------------------------------- | --------------------------------------------------- |
-| SAP payslip ("Entgeltnachweis")                      | `sap-entgeltnachweis` parser                        |
-| Deutsche Bundesbank payslip ("Verdienstabrechnung")  | `bundesbank-verdienstabrechnung` parser             |
-| Bundeswehr pay statement ("Wehrsoldabrechnung")      | `bundeswehr-wehrsoldabrechnung` parser              |
-| Wage-tax certificate ("Lohnsteuerbescheinigung")     | `lohnsteuerbescheinigung` parser (any employer)     |
-| Companion-tool export (`earnings-export`, version 1) | JSON reader — the route for other layouts and scans |
+| Document                                            | Read by                                         |
+| --------------------------------------------------- | ----------------------------------------------- |
+| SAP payslip ("Entgeltnachweis")                     | `sap-entgeltnachweis` parser                    |
+| Deutsche Bundesbank payslip ("Verdienstabrechnung") | `bundesbank-verdienstabrechnung` parser         |
+| Bundeswehr pay statement ("Wehrsoldabrechnung")     | `bundeswehr-wehrsoldabrechnung` parser          |
+| Wage-tax certificate ("Lohnsteuerbescheinigung")    | `lohnsteuerbescheinigung` parser (any employer) |
+| Export file (`earnings-export`, version 1)          | JSON reader                                     |
 
 Every other layout and scanned (image-only) PDFs are rejected with a clear reason; nothing from a
 rejected file is saved. Every figure passes arithmetic checks (gross − taxes − social insurance =
@@ -93,7 +93,7 @@ answers `503 EARNINGS_UNAVAILABLE`, and no imports are accepted; all other domai
 **Losing or changing the key makes every stored earnings amount permanently unrecoverable** —
 back it up separately from the database. Key rotation is not supported yet.
 
-Parser parity against the companion tool can be checked locally (never in CI, real payslips never
+Parser parity against the reference extractor (earnings-evolution) can be checked locally (never in CI, real payslips never
 leave the machine) with `tools/earnings/parity-check.mjs` — see
 [specs/032-earnings-domain/quickstart.md](specs/032-earnings-domain/quickstart.md) §6.
 

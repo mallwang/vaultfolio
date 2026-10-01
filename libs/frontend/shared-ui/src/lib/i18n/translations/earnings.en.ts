@@ -61,12 +61,12 @@ export const earningsEn: TranslationDictionary = {
   sourceType: {
     PAYSLIP_PDF: 'Payslip PDF',
     CERTIFICATE_PDF: 'Wage-tax certificate PDF',
-    EXPORT_JSON: 'Companion-tool export',
+    EXPORT_JSON: 'Export file (earnings-export)',
   },
   format: {
     'sap-entgeltnachweis': 'SAP payslip (Entgeltnachweis)',
     lohnsteuerbescheinigung: 'Wage-tax certificate (Lohnsteuerbescheinigung)',
-    'earnings-export': 'Companion-tool export',
+    'earnings-export': 'Export file (earnings-export)',
   },
   formatChips: {
     sap: 'SAP payslip (Entgeltnachweis)',
@@ -107,7 +107,7 @@ export const earningsEn: TranslationDictionary = {
   errors: {
     UNSUPPORTED_FORMAT: 'Rejected: format not supported yet. Nothing from this file will be saved.',
     IMAGE_ONLY:
-      'Rejected: format not supported yet. This looks like a scanned document without text. Scans can be processed with the companion tool and imported through its export file.',
+      'Rejected: the file was recognised as a PDF but contains no text that can be read automatically (e.g. a scan, or a PDF whose text was converted to graphics). Nothing from this file will be saved.',
     PASSWORD_PROTECTED:
       'Rejected: the PDF is password-protected. Remove the password and try again.',
     UNREADABLE: 'Rejected: the file could not be read. It may be damaged.',
