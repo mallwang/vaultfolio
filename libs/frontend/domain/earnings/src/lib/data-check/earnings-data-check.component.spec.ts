@@ -11,8 +11,15 @@ const ROWS: DataCheckRow[] = [
     year: 2019,
     employerId: 'e1',
     employerLabel: 'Brightline Software GmbH',
-    ytd: { status: 'DIFFERS', compared: 9, differing: ['wageTax', 'health'] },
-    certificate: { status: 'NOT_AVAILABLE', compared: 0, differing: [] },
+    ytd: {
+      status: 'DIFFERS',
+      compared: 9,
+      differences: [
+        { field: 'wageTax', expected: '1200.00', actual: '1150.00', difference: '-50.00' },
+        { field: 'health', expected: '800.00', actual: '812.50', difference: '12.50' },
+      ],
+    },
+    certificate: { status: 'NOT_AVAILABLE', compared: 0, differences: [] },
     completeness: { status: 'MISSING', missingPeriods: ['2019-03'] },
     lateCorrections: [],
   },
@@ -20,8 +27,8 @@ const ROWS: DataCheckRow[] = [
     year: 2022,
     employerId: 'e1',
     employerLabel: 'Brightline Software GmbH',
-    ytd: { status: 'MATCH', compared: 9, differing: [] },
-    certificate: { status: 'MATCH', compared: 8, differing: [] },
+    ytd: { status: 'MATCH', compared: 9, differences: [] },
+    certificate: { status: 'MATCH', compared: 8, differences: [] },
     completeness: { status: 'COMPLETE', missingPeriods: [] },
     lateCorrections: [{ period: '2022-04', issued: '2023-02' }],
   },
@@ -56,6 +63,9 @@ describe('EarningsDataCheckComponent', () => {
     const bad =
       root.querySelector('[data-testid="earnings-data-check-row-e1-2019"]')?.textContent ?? '';
     expect(bad).toContain('2 values differ');
+    expect(bad).toContain('Wage tax: expected');
+    expect(bad).toContain('difference -€50.00');
+    expect(bad).toContain('+€12.50');
     expect(bad).toContain('not available');
     expect(bad).toContain('Mar 2019 missing');
 
@@ -75,8 +85,8 @@ describe('EarningsDataCheckComponent', () => {
         year: 2025,
         employerId: 'e1',
         employerLabel: 'Brightline Software GmbH',
-        ytd: { status: 'NOT_AVAILABLE', compared: 0, differing: [] },
-        certificate: { status: 'NOT_COMPARABLE', compared: 0, differing: [] },
+        ytd: { status: 'NOT_AVAILABLE', compared: 0, differences: [] },
+        certificate: { status: 'NOT_COMPARABLE', compared: 0, differences: [] },
         completeness: { status: 'NO_PAYSLIPS', missingPeriods: [] },
         lateCorrections: [],
       } satisfies DataCheckRow,

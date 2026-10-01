@@ -4,12 +4,14 @@ import { MessageModule } from 'primeng/message';
 import { I18nService, IconComponent, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
 import { EarningsFilterStore } from '../earnings-area/earnings-filter.store';
 import { EarningsService } from '../earnings.service';
-import { fill, formatMonth } from '../earnings-format';
+import { fill, formatMonth, formatMoney } from '../earnings-format';
 
 interface CheckCell {
   ok: boolean | null;
   text: string;
   note?: string;
+  /** Differing values, one line each (field, expected, actual, difference). */
+  details?: string[];
 }
 
 interface EmployerGroup {
@@ -86,6 +88,13 @@ interface EmployerGroup {
                         />
                         {{ cell.text }}
                       </span>
+                      @if (cell.details) {
+                        <ul class="details" [attr.data-testid]="'earnings-data-check-differences'">
+                          @for (detail of cell.details; track detail) {
+                            <li>{{ detail }}</li>
+                          }
+                        </ul>
+                      }
                       @if (cell.note) {
                         <span class="note">{{ cell.note }}</span>
                       }
@@ -143,6 +152,12 @@ interface EmployerGroup {
       align-items: center;
       gap: 0.25rem;
     }
+    .details {
+      margin: 0.25rem 0 0;
+      padding-left: 1.25rem;
+      color: var(--p-text-muted-color);
+      font-size: 0.8125rem;
+    }
     .note {
       display: block;
       margin-top: 0.25rem;
@@ -187,10 +202,10 @@ export class EarningsDataCheckComponent {
       group.rows.push({
         year: row.year,
         ytd: {
-          ...this.comparison(row.ytd),
+          ...this.comparison(row.ytd, lang),
           note: row.lateCorrections.length > 0 ? this.lateNote(row, lang) : undefined,
         },
-        certificate: this.comparison(row.certificate),
+        certificate: this.comparison(row.certificate, lang),
         complete: this.completeness(row, lang),
       });
     }
@@ -216,7 +231,12 @@ export class EarningsDataCheckComponent {
           }),
         );
       }
-      const differing = [...new Set([...row.ytd.differing, ...row.certificate.differing])];
+      const differing = [
+        ...new Set([
+          ...row.ytd.differences.map((d) => d.field),
+          ...row.certificate.differences.map((d) => d.field),
+        ]),
+      ];
       if (differing.length > 0) {
         hints.push(
           fill(this.t('earnings.dataCheck.differHint'), {
@@ -260,7 +280,7 @@ export class EarningsDataCheckComponent {
     }
   }
 
-  private comparison(c: DataCheckComparison): CheckCell {
+  private comparison(c: DataCheckComparison, lang: string): CheckCell {
     if (c.status === 'NOT_AVAILABLE')
       return { ok: null, text: this.t('earnings.dataCheck.notAvailable') };
     if (c.status === 'NOT_COMPARABLE')
@@ -269,7 +289,15 @@ export class EarningsDataCheckComponent {
       ? { ok: true, text: fill(this.t('earnings.dataCheck.valuesMatch'), { count: c.compared }) }
       : {
           ok: false,
-          text: fill(this.t('earnings.dataCheck.valuesDiffer'), { count: c.differing.length }),
+          text: fill(this.t('earnings.dataCheck.valuesDiffer'), { count: c.differences.length }),
+          details: c.differences.map((d) =>
+            fill(this.t('earnings.dataCheck.differenceLine'), {
+              field: this.fieldLabel(d.field),
+              expected: formatMoney(d.expected, lang),
+              actual: formatMoney(d.actual, lang),
+              difference: formatMoney(d.difference, lang, { signed: true }),
+            }),
+          ),
         };
   }
 

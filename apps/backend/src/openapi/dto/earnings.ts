@@ -365,11 +365,22 @@ export class EarningsTablesDto {
   @ApiProperty({ type: [CertificateRowDto] }) certificates!: CertificateRowDto[];
 }
 
+export class DataCheckDifferenceDto {
+  @ApiProperty() field!: string;
+  @ApiProperty({
+    example: '1200.00',
+    description: 'Reference value (printed total / certificate).',
+  })
+  expected!: string;
+  @ApiProperty({ example: '1150.00', description: 'Sum of the imported payslips.' })
+  actual!: string;
+  @ApiProperty({ example: '-50.00', description: 'actual − expected.' }) difference!: string;
+}
+
 export class DataCheckComparisonDto {
   @ApiProperty({ enum: ['MATCH', 'DIFFERS', 'NOT_AVAILABLE', 'NOT_COMPARABLE'] }) status!: string;
   @ApiProperty() compared!: number;
-  @ApiProperty({ type: [String], description: 'Field names only — never amounts.' })
-  differing!: string[];
+  @ApiProperty({ type: [DataCheckDifferenceDto] }) differences!: DataCheckDifferenceDto[];
 }
 
 export class DataCheckCompletenessDto {

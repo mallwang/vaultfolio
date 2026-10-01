@@ -19,24 +19,28 @@ describe('dataCheck (aggregation fixture)', () => {
       year: 2024,
       employerId: 'emp-a',
       employerLabel: 'Northwind Instruments AG',
-      ytd: { status: 'NOT_AVAILABLE', compared: 0, differing: [] },
-      certificate: { status: 'NOT_AVAILABLE', compared: 0, differing: [] },
+      ytd: { status: 'NOT_AVAILABLE', compared: 0, differences: [] },
+      certificate: { status: 'NOT_AVAILABLE', compared: 0, differences: [] },
       completeness: { status: 'COMPLETE', missingPeriods: [] },
       lateCorrections: [],
     });
   });
 
-  it('names differing fields (never amounts), certificate matches, gap reported', () => {
+  it('reports differing fields with expected, actual and difference, certificate matches, gap reported', () => {
     expect(rows[1]).toMatchObject({
-      ytd: { status: 'DIFFERS', compared: 8, differing: ['wageTax'] },
-      certificate: { status: 'MATCH', compared: 8, differing: [] },
+      ytd: {
+        status: 'DIFFERS',
+        compared: 8,
+        differences: [expect.objectContaining({ field: 'wageTax' })],
+      },
+      certificate: { status: 'MATCH', compared: 8, differences: [] },
       completeness: { status: 'MISSING', missingPeriods: ['2025-03'] },
     });
   });
 
   it('includes a correction issued with the last payslip', () => {
     expect(rows[2]).toMatchObject({
-      ytd: { status: 'MATCH', compared: 8, differing: [] },
+      ytd: { status: 'MATCH', compared: 8, differences: [] },
       certificate: { status: 'NOT_AVAILABLE' },
       completeness: { status: 'COMPLETE', missingPeriods: [] },
       lateCorrections: [],
@@ -98,8 +102,8 @@ describe('dataCheck rules', () => {
       },
     };
     const [row] = dataCheck(records, [cert], [{ id: 'emp-1', label: 'X' }]);
-    expect(row.ytd).toEqual({ status: 'MATCH', compared: 8, differing: [] });
-    expect(row.certificate).toEqual({ status: 'MATCH', compared: 8, differing: [] });
+    expect(row.ytd).toEqual({ status: 'MATCH', compared: 8, differences: [] });
+    expect(row.certificate).toEqual({ status: 'MATCH', compared: 8, differences: [] });
     expect(row.lateCorrections).toEqual([{ period: '2025-12', issued: '2026-04' }]);
   });
 
@@ -144,7 +148,7 @@ describe('dataCheck rules', () => {
     };
     const [row] = dataCheck(records, [cert], [{ id: 'emp-1', label: 'X' }]);
     expect(row.ytd.status).toBe('MATCH');
-    expect(row.certificate).toEqual({ status: 'MATCH', compared: 8, differing: [] });
+    expect(row.certificate).toEqual({ status: 'MATCH', compared: 8, differences: [] });
   });
 
   it('reports a certificate year without payslips as not comparable, not as an issue', () => {
@@ -158,7 +162,7 @@ describe('dataCheck rules', () => {
     const rows = dataCheck([], [cert], [{ id: 'emp-1', label: 'X' }]);
     expect(rows[0]).toMatchObject({
       year: 2019,
-      certificate: { status: 'NOT_COMPARABLE', compared: 0, differing: [] },
+      certificate: { status: 'NOT_COMPARABLE', compared: 0, differences: [] },
       ytd: { status: 'NOT_AVAILABLE' },
       completeness: { status: 'NO_PAYSLIPS', missingPeriods: [] },
     });

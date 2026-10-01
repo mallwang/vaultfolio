@@ -3777,6 +3777,28 @@ components:
         - monthGrid
         - taxesPerYear
         - certificates
+    DataCheckDifferenceDto:
+      type: object
+      properties:
+        field:
+          type: string
+        expected:
+          type: string
+          example: '1200.00'
+          description: Reference value (printed total / certificate).
+        actual:
+          type: string
+          example: '1150.00'
+          description: Sum of the imported payslips.
+        difference:
+          type: string
+          example: '-50.00'
+          description: actual − expected.
+      required:
+        - field
+        - expected
+        - actual
+        - difference
     DataCheckComparisonDto:
       type: object
       properties:
@@ -3789,15 +3811,14 @@ components:
             - NOT_COMPARABLE
         compared:
           type: number
-        differing:
-          description: Field names only — never amounts.
+        differences:
           type: array
           items:
-            type: string
+            $ref: '#/components/schemas/DataCheckDifferenceDto'
       required:
         - status
         - compared
-        - differing
+        - differences
     DataCheckCompletenessDto:
       type: object
       properties:

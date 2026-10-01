@@ -212,6 +212,8 @@ export const earningsEn: TranslationDictionary = {
     complete: 'Months',
     valuesMatch: '{{count}} values match',
     valuesDiffer: '{{count}} values differ',
+    differenceLine:
+      '{{field}}: expected {{expected}}, payslips {{actual}} (difference {{difference}})',
     notAvailable: 'not available',
     notComparable: 'available, nothing to compare',
     completeOk: 'complete',

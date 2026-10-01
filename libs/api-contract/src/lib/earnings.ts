@@ -411,12 +411,21 @@ export interface EarningsTables {
 /** `NOT_COMPARABLE`: the reference exists, but the year has no regular payslip to compare with. */
 export type DataCheckComparisonStatus = 'MATCH' | 'DIFFERS' | 'NOT_AVAILABLE' | 'NOT_COMPARABLE';
 
+/** One differing value: `expected` is the reference (printed total / certificate), `actual` the sum of the payslips. */
+export interface DataCheckDifference {
+  field: string;
+  expected: string;
+  actual: string;
+  /** `actual − expected`. */
+  difference: string;
+}
+
 export interface DataCheckComparison {
   status: DataCheckComparisonStatus;
   /** Number of values compared. */
   compared: number;
-  /** Field names of the differing values — never amounts. */
-  differing: string[];
+  /** The differing values with both amounts and their difference. */
+  differences: DataCheckDifference[];
 }
 
 export interface DataCheckRow {

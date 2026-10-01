@@ -527,7 +527,7 @@ describe('/earnings', () => {
       expect(check).toEqual([
         expect.objectContaining({
           year: 2025,
-          ytd: { status: 'NOT_AVAILABLE', compared: 0, differing: [] },
+          ytd: { status: 'NOT_AVAILABLE', compared: 0, differences: [] },
           certificate: expect.objectContaining({ status: 'DIFFERS', compared: 8 }),
           completeness: { status: 'COMPLETE', missingPeriods: [] },
         }),

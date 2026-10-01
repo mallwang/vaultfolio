@@ -1,5 +1,9 @@
 import Decimal from 'decimal.js';
-import type { DataCheckComparison, DataCheckRow } from '@vaultfolio/api-contract';
+import type {
+  DataCheckComparison,
+  DataCheckDifference,
+  DataCheckRow,
+} from '@vaultfolio/api-contract';
 import {
   type CertificateAmounts,
   type EmployerRef,
@@ -8,6 +12,7 @@ import {
   type StoredCertificate,
   type StoredRecord,
   TOLERANCE,
+  toMoney,
   type YtdAmounts,
 } from '../model';
 import { missingRegularPeriods } from './tables';
@@ -59,17 +64,26 @@ function compare(
   actual: Record<YearKey, Decimal>,
 ): DataCheckComparison {
   const keys = YEAR_KEYS.filter((k) => expected[k] !== undefined);
-  const differing = keys.filter((k) =>
-    (expected[k] as Decimal).minus(actual[k]).abs().greaterThan(TOLERANCE),
-  );
-  return { status: differing.length ? 'DIFFERS' : 'MATCH', compared: keys.length, differing };
+  const differences: DataCheckDifference[] = keys
+    .filter((k) => (expected[k] as Decimal).minus(actual[k]).abs().greaterThan(TOLERANCE))
+    .map((k) => ({
+      field: k,
+      expected: toMoney(expected[k] as Decimal),
+      actual: toMoney(actual[k]),
+      difference: toMoney(actual[k].minus(expected[k] as Decimal)),
+    }));
+  return { status: differences.length ? 'DIFFERS' : 'MATCH', compared: keys.length, differences };
 }
 
-const NOT_AVAILABLE: DataCheckComparison = { status: 'NOT_AVAILABLE', compared: 0, differing: [] };
+const NOT_AVAILABLE: DataCheckComparison = {
+  status: 'NOT_AVAILABLE',
+  compared: 0,
+  differences: [],
+};
 const NOT_COMPARABLE: DataCheckComparison = {
   status: 'NOT_COMPARABLE',
   compared: 0,
-  differing: [],
+  differences: [],
 };
 
 /** Last regular record of the year with printed year-to-date totals (highest issued, period, seq). */
@@ -148,7 +162,6 @@ function completenessCheck(
  * payslip can be in neither printed value: they are excluded from both comparisons and listed.
  * A year without any regular payslip (e.g. only a certificate) is `NO_PAYSLIPS` and its
  * certificate `NOT_COMPARABLE` — comparing against zero sums says nothing.
- * Only field names are reported, never amounts.
  */
 export function dataCheck(
   records: readonly StoredRecord[],
