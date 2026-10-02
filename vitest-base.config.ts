@@ -17,6 +17,17 @@ export default defineConfig({
         '**/app.routes.ts',
         '**/*-placeholder.component.ts',
         '**/application-areas.ts',
+        // Framework-agnostic libs are covered by their own Jest runs. The frontend
+        // specs merely import them, so Vitest would otherwise emit near-0%-hit
+        // entries for the same files and drag down the merged Sonar coverage.
+        'libs/account-fields/**',
+        'libs/api-contract/**',
+        'libs/earnings/**',
+        'libs/export/**',
+        'libs/market-data/**',
+        'libs/notifications/**',
+        'libs/observability/**',
+        'libs/requests/**',
       ],
     },
   },
