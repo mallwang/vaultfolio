@@ -195,6 +195,14 @@ hooks:
       prompt: Run local coverage audit before pushing?
       description: Run all tests with coverage and report projects below 80% — catches missing specs before SonarCloud sees them
       condition: null
+    - extension: sonar-local
+      command: speckit.sonar.local
+      enabled: true
+      optional: true
+      priority: 18
+      prompt: Run the local Sonar scan (Docker, no cloud upload) before pushing?
+      description: Catch Sonar findings locally with SonarQube Community Build before CI's cloud scan — early filter, not identical to the cloud rule set
+      condition: null
     - extension: sonar
       command: speckit.sonar.validate
       enabled: true

@@ -29,6 +29,9 @@
     "lint:fix": "nx run-many -t lint --fix",
     "typecheck": "nx run-many -t typecheck",
     "knip": "knip",
+    "sonar:local": "bash scripts/sonar-local.sh",
+    "sonar:local:up": "docker compose -f docker-compose.sonar.yml up -d",
+    "sonar:local:down": "docker compose -f docker-compose.sonar.yml down",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "prepare": "husky && node tools/ensure-frontend-env.mjs"
