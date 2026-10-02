@@ -136,7 +136,7 @@ description: 'Task list for OCR Fallback for PDFs Without a Text Layer'
 - [x] T041 [US3] Update `libs/frontend/domain/earnings/src/lib/import/earnings-import.component.ts` (no-parser-matches row): add the recognition tag, extend the explanatory text ("read via text recognition"), keep the existing **Request a parser** button and hand over the recognised text
 - [x] T042 [US3] Update `libs/frontend/domain/earnings/src/lib/parser-request/steps/preview-send.step.ts` (and `review-words.step.ts` / sheet components as needed): warning callout "recognised automatically and may contain errors" (`request-ocr-notice`), success callout listing removed kinds only (never the data) incl. the "look-alike values removed even if a digit was misread" statement, legend and low-confidence word underline per design.md screen 6; steps 1–3 unchanged
 - [x] T043 [P] [US3] Add DE + EN strings in `libs/frontend/shared-ui/src/lib/i18n/translations/requests.de.ts` / `requests.en.ts` (`requests-translations.spec.ts` must pass)
-- [ ] T044 [US3] Verify via `verify-ui` with `tmp/2025_01.pdf` (manual validation only, never committed): accept recognition → "Request a parser" → recognised content with notice; IBAN/tax-ID areas removed despite misreads; send blocked until the rescan is clean
+- [x] T044 [US3] Verify via `verify-ui` with `tmp/2025_01.pdf` (manual validation only, never committed): accept recognition → "Request a parser" → recognised content with notice; IBAN/tax-ID areas removed despite misreads; send blocked until the rescan is clean
 
 **Checkpoint**: US1–US3 work independently.
 
@@ -148,10 +148,10 @@ description: 'Task list for OCR Fallback for PDFs Without a Text Layer'
 
 **Independent Test**: Full flow with network inspection shows no file/text content in any request and no third-party host; DE/EN texts and guide reviewed.
 
-- [ ] T045 [P] [US4] Update the Earnings privacy note component under `libs/frontend/domain/earnings/src/lib/privacy-note/` (+ its spec) and its DE/EN strings in `earnings.de.ts` / `earnings.en.ts` to describe on-device text recognition (nothing leaves the device; recognised text is raw text under the same rules)
-- [ ] T046 [P] [US4] Update `docs/user-guide.md` and `docs/user-guide.de.md` (recognition offer, double-check marker, limits: German only, ≤ 5 pages, digits can be misread) and `docs/development.md` / `docs/development.de.md` (engine port, assets in `assets/tesseract/`, opt-in integration spec)
-- [ ] T047 [P] [US4] Update affected spec docs beyond T002/T003 (e.g. 032/033 `plan.md`/`data-model.md` cross-references) so they no longer state "OCR out of scope" / "text-based only" without the 034 amendment note
-- [ ] T048 [US4] Verify via `verify-ui`: toggle DE/EN across the whole flow (no missing keys); DevTools/Playwright network capture shows zero requests carrying file or text content and tesseract assets served only from `/assets/tesseract/` (SC-004)
+- [x] T045 [P] [US4] Update the Earnings privacy note component under `libs/frontend/domain/earnings/src/lib/privacy-note/` (+ its spec) and its DE/EN strings in `earnings.de.ts` / `earnings.en.ts` to describe on-device text recognition (nothing leaves the device; recognised text is raw text under the same rules)
+- [x] T046 [P] [US4] Update `docs/user-guide.md` and `docs/user-guide.de.md` (recognition offer, double-check marker, limits: German only, ≤ 5 pages, digits can be misread) and `docs/development.md` / `docs/development.de.md` (engine port, assets in `assets/tesseract/`, opt-in integration spec)
+- [x] T047 [P] [US4] Update affected spec docs beyond T002/T003 (e.g. 032/033 `plan.md`/`data-model.md` cross-references) so they no longer state "OCR out of scope" / "text-based only" without the 034 amendment note
+- [x] T048 [US4] Verify via `verify-ui`: toggle DE/EN across the whole flow (no missing keys); DevTools/Playwright network capture shows zero requests carrying file or text content and tesseract assets served only from `/assets/tesseract/` (SC-004)
 
 **Checkpoint**: All user stories complete.
 
@@ -159,10 +159,10 @@ description: 'Task list for OCR Fallback for PDFs Without a Text Layer'
 
 ## Phase 7: Polish & Cross-Cutting Concerns
 
-- [ ] T049 Run `npx nx run-many -t test -p earnings frontend-domain-earnings backend api-contract` and `npx nx run-many -t lint -p earnings frontend-domain-earnings backend`; fix findings
-- [ ] T050 Run `npx nx build frontend` (production): initial bundle budget unaffected, tesseract assets emitted, WASM/worker lazy-loaded only on consent
-- [ ] T051 Run `npx nx run backend:openapi:check` (drift detection) and the backend e2e suite
-- [ ] T052 Run the full quickstart.md validation (sections 1–4), including the manual DATEV flow; record any digit-accuracy findings in research.md as follow-up input (per-field digit-whitelist re-recognition idea)
+- [x] T049 Run `npx nx run-many -t test -p earnings frontend-domain-earnings backend api-contract` and `npx nx run-many -t lint -p earnings frontend-domain-earnings backend`; fix findings
+- [x] T050 Run `npx nx build frontend` (production): initial bundle budget unaffected, tesseract assets emitted, WASM/worker lazy-loaded only on consent
+- [x] T051 Run `npx nx run backend:openapi:check` (drift detection) and the backend e2e suite
+- [x] T052 Run the full quickstart.md validation (sections 1–4), including the manual DATEV flow; record any digit-accuracy findings in research.md as follow-up input (per-field digit-whitelist re-recognition idea)
 - [ ] T053 Run `/speckit-sonar-validate` for the branch and fix issues / coverage gaps
 
 ---

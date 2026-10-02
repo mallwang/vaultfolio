@@ -127,6 +127,30 @@ Läuft nicht lokal, gehört aber zum selben Wartbarkeits-/Sicherheitsnetz:
   `speckit-sonar-validate`-Claude-Code-Skill, um den Quality Gate für den aktuellen Branch/PR zu
   prüfen, bevor eine Änderung als fertig gilt.
 
+## Texterkennung auf dem Gerät (Scans)
+
+PDFs ohne Textebene werden im Browser gelesen (specs/034). Die Engine liegt hinter dem Port
+`TextRecogniser` (`libs/frontend/domain/earnings/src/lib/pdf/text-recogniser.ts`, injiziert über
+`TEXT_RECOGNISER`; Specs nutzen `FakeTextRecogniser`). Der einzige Adapter,
+`tesseract-recogniser.ts`, rendert Seiten mit PDF.js und liest sie mit `tesseract.js` (Deutsch,
+LSTM) in einem Worker pro Datei; `ocr-layout.ts` wandelt die Wortboxen in das Zeilenmodell der
+Parser um (`origin: 'RECOGNISED'`).
+
+- **Assets:** Worker, WASM-Kern (`tesseract-core-*-lstm.wasm.js`), `deu.traineddata.gz` und
+  Lizenzdateien werden per Asset-Globs in `apps/frontend/project.json` aus `node_modules` nach
+  `assets/tesseract/` kopiert; es wird nichts von einem CDN geladen, nichts zwischengespeichert
+  (`cacheMethod: 'none'`), und alles wird erst nach der Zustimmung nachgeladen. `tesseract.js`,
+  `tesseract.js-core` und `@tesseract.js-data/deu` stehen in beiden `package.json`-Dateien.
+- **Gespeicherte Markierung:** `recognisedText` (API) ⇄ `ocr_read` (Spalte von
+  `earnings_imports`); ohne Wirkung auf Prüfungen oder Fingerabdruck.
+- **Personenbezogene Daten:** erkannter Text wird großzügig geprüft
+  (`scanDocument(doc, { lenient: true })`, nur formbasiert für IBAN/Steuer-ID/SV-Nummer); die
+  Server-Prüfung bleibt streng und unverändert.
+- **Echte Engine (optional):** `ocr.integration.spec.ts` rendert eine synthetische Abrechnung und
+  liest sie mit der echten Engine; ohne Engine, Sprachdaten oder `@napi-rs/canvas` wird sie
+  übersprungen. Aufruf:
+  `npx nx test @vaultfolio/frontend-domain-earnings --include='**/pdf/ocr.integration.spec.ts'`.
+
 ## Parser-Anfragen (Datenschutz-Ausnahme)
 
 Einkommens-Abrechnungen verlassen das Gerät nie (specs/032, FR-008/FR-009) – mit einer

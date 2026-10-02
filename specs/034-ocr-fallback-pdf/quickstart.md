@@ -5,8 +5,8 @@ Prerequisites: `npm install`; the test user from the `vaultfolio-test-login` mem
 ## 1. Unit and component tests
 
 ```bash
-npx nx run-many -t test -p earnings frontend-domain-earnings backend api-contract
-npx nx run-many -t lint -p earnings frontend-domain-earnings backend
+npx nx run-many -t test -p @vaultfolio/earnings @vaultfolio/frontend-domain-earnings backend @vaultfolio/api-contract
+npx nx run-many -t lint -p @vaultfolio/earnings @vaultfolio/frontend-domain-earnings backend
 ```
 
 Expect: lenient personal-data scan tests (misread-digit property tests), recogniser-port fakes, consent/progress/cancel store tests, persistence of `recognisedText`.
@@ -14,7 +14,7 @@ Expect: lenient personal-data scan tests (misread-digit property tests), recogni
 ## 2. Real-engine integration spec (optional, needs assets)
 
 ```bash
-npx nx run frontend-domain-earnings:test --testPathPattern=ocr.integration
+npx nx test @vaultfolio/frontend-domain-earnings --include='**/pdf/ocr.integration.spec.ts'
 ```
 
 Skipped automatically when the tesseract assets are not present. Renders a synthetic image-only payslip fixture and checks that a supported parser accepts the recognised text.
@@ -30,4 +30,4 @@ Skipped automatically when the tesseract assets are not present. Renders a synth
 ## 4. Governance checks
 
 - Constitution version 3.8.0; 032 FR-014 and 033 FR-004 amended; user guide + privacy note mention on-device recognition.
-- `npx nx run backend:openapi-check` (drift detection) passes.
+- `npx nx run backend:openapi:check` (drift detection) passes.

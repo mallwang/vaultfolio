@@ -35,7 +35,7 @@ route is lazy-loaded so PDF.js never ships in the main bundle.
 Line reconstruction: group `TextItem`s by baseline `y` (tolerance ≈ 2pt), sort by `x`, join with
 single spaces where the gap exceeds a small threshold; keep each word's `x` so column-sensitive
 parsers can use positions. `PasswordException` → `PASSWORD_PROTECTED`; a document whose pages
-yield no text items → `IMAGE_ONLY` (scanned); other load errors → `UNREADABLE`.
+yield no text items → `IMAGE_ONLY` (scanned); other load errors → `UNREADABLE`. _(Amended by 034-ocr-fallback-pdf: an image-only PDF first leads to an offer of on-device text recognition after the user's consent; this applies when the user declines, cancels, or nothing is recognised.)_
 
 **Rationale**: FR-008 requires parsing on the user's device; PDF.js is the de-facto standard,
 Apache-2.0, maintained, works in all evergreen browsers, and exposes positioned text needed for

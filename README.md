@@ -58,8 +58,9 @@ with the year-to-date totals and the wage-tax certificate.
 | Wage-tax certificate ("Lohnsteuerbescheinigung")    | `lohnsteuerbescheinigung` parser (any employer) |
 | Export file (`earnings-export`, version 1)          | JSON reader                                     |
 
-Every other layout and scanned (image-only) PDFs are rejected with a clear reason; nothing from a
-rejected file is saved. Every figure passes arithmetic checks (gross − taxes − social insurance =
+Every other layout is rejected with a clear reason; nothing from a rejected file is saved. PDFs
+without a text layer (scans) are read by on-device text recognition (German, ≤ 5 pages) only after
+you agree per file; the figures are then marked "read via text recognition" and must be double-checked. Every figure passes arithmetic checks (gross − taxes − social insurance =
 net, net ± other = payout) before it can be imported. When a payslip fails a check, its figures
 stay visible in the import preview: the figures taking part in the failing check can be corrected
 there (misread digit), the checks re-run on every edit, and the server re-checks on import. Only

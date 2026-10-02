@@ -204,6 +204,21 @@ describe('lenient scan for recognised text (034)', () => {
       expect(scanLine(words(iban), lenient)).toEqual([{ kind: 'BANK_ACCOUNT', wordIndexes: [0] }]);
     });
 
+    it('flags a German IBAN whose digits were misread as arbitrary letters', () => {
+      expect(
+        scanLine(
+          words('Konto', 'DE0O3', '7601', '0085', '0004', '0XXX', 'XX', '94478', '9.999,99'),
+          lenient,
+        ),
+      ).toEqual([{ kind: 'BANK_ACCOUNT', wordIndexes: [1, 2, 3, 4, 5, 6, 7] }]);
+    });
+
+    it('does not swallow the label after the IBAN', () => {
+      expect(
+        scanLine(words('DE89', '3704', '0044', '0532', '0130', '00', 'Summe', 'Betrag'), lenient),
+      ).toEqual([{ kind: 'BANK_ACCOUNT', wordIndexes: [0, 1, 2, 3, 4, 5] }]);
+    });
+
     it('does not flag the wrong length or words without digits', () => {
       expect(scanLine(words('DE0O37601008500040'), lenient)).toEqual([]);
       expect(scanLine(words('DEOOSOOOOOOOOOOOOOOOOO'), lenient)).toEqual([]);

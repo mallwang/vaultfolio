@@ -274,7 +274,7 @@ export const earningsEn: TranslationDictionary = {
     sub: 'Payslips contain some of your most sensitive data. This is what happens to it.',
     deviceTitle: 'Documents stay on your device',
     device:
-      'PDFs are read in your browser. The file and its text are never uploaded; only the figures listed in the import preview are sent.',
+      'PDFs are read in your browser. The file and its text are never uploaded; only the figures listed in the import preview are sent. A scan without text is read by text recognition on your device only if you agree: the recognised text is raw text under the same rules, never uploaded, stored or cached.',
     figuresTitle: 'Only figures, no identifiers',
     figures:
       'No tax ID, social-security number, IBAN, name or address is sent or stored. Amounts are stored encrypted.',

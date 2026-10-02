@@ -114,7 +114,7 @@ correction issued after the last payslip excluded (Apr 2022)").
   tag (New / Replaces / Duplicate / Rejected). Sub-lines explain replace ("Replaces the Aug 2026
   figures imported on 2 Sep 2026"), duplicate ("Already imported on … Skipped."), and rejection
   reasons in red — failing check with month and difference (FR-012) or "format not supported yet"
-  with the companion-tool hint for scans (FR-014).
+  with the companion-tool hint for scans (FR-014). _(Amended by 034: a scan first gets the offer of on-device text recognition; this message remains for the declined / no-text case.)_
 - One row can expand "Figures that will be sent" — a label/value grid of exactly the whitelisted
   figures for a record (FR-008, FR-017).
 - **Footer**: summary chips ("4 files ready (57 records)", "1 skipped", "2 rejected") · Cancel ·

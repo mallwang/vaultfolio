@@ -275,7 +275,7 @@ export const earningsDe: TranslationDictionary = {
     sub: 'Gehaltsabrechnungen enthalten einige Ihrer sensibelsten Daten. Das passiert mit ihnen.',
     deviceTitle: 'Dokumente bleiben auf Ihrem Gerät',
     device:
-      'PDFs werden in Ihrem Browser gelesen. Die Datei und ihr Text werden nie hochgeladen; gesendet werden nur die Werte aus der Importvorschau.',
+      'PDFs werden in Ihrem Browser gelesen. Die Datei und ihr Text werden nie hochgeladen; gesendet werden nur die Werte aus der Importvorschau. Ein Scan ohne Text wird nur mit Ihrer Zustimmung per Texterkennung auf Ihrem Gerät gelesen: Der erkannte Text ist Rohtext unter denselben Regeln und wird nie hochgeladen, gespeichert oder zwischengespeichert.',
     figuresTitle: 'Nur Beträge, keine Kennungen',
     figures:
       'Steuer-ID, Sozialversicherungsnummer, IBAN, Name und Adresse werden weder gesendet noch gespeichert. Beträge werden verschlüsselt gespeichert.',

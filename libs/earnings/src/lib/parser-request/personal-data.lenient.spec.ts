@@ -97,6 +97,16 @@ describe('lenient scan: misread-digit property', () => {
     expect(surviving([read.slice(0, 2), read.slice(2, 8), read[8], read.slice(9)])).toBe(0);
   });
 
+  it.each(cases)('removes an IBAN with digits misread as arbitrary letters, case %i', () => {
+    const chars = [...iban(rng)];
+    for (let n = 0; n < 1 + Math.floor(rng() * 3); n += 1) {
+      chars[4 + Math.floor(rng() * 18)] = String.fromCodePoint(65 + Math.floor(rng() * 26));
+    }
+    const value = chars.join('');
+    expect(surviving([value])).toBe(0);
+    expect(surviving(grouped(value, 4))).toBe(0);
+  });
+
   it('removes the observed DATEV account number pattern', () => {
     expect(surviving(['DE0O3', '7601', '0085', '0004', '0O94', '45'])).toBe(0);
   });

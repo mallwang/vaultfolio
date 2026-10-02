@@ -85,3 +85,11 @@
 
 - `tesseract.js` 7 requires `tesseract.js-core` ^7 (not 6.x). The core is loaded from the `*-lstm.wasm.js` variants (WASM embedded in JS; plain, SIMD and relaxed-SIMD, ≈ 3.9 MB each — only one is fetched per device).
 - `@tesseract.js-data/deu` ships only gzipped data, so the adapter uses `gzip: true` (decompressed in the worker) instead of `gzip: false`, and the `4.0.0_best_int` model (`deu.traineddata.gz`, ≈ 1.3 MB) is copied — smaller than the "fast" file assumed above. Language data licence: MIT (package), engine: Apache-2.0 (licence files copied to `assets/tesseract/licenses/`).
+
+## Implementation findings (T044/T052 — manual validation on the DATEV sample, never committed)
+
+- Run end to end in the real app: the scan is offered, recognised after consent, "Request a parser" opens with the recognised text (no second consent, no second recognition), the sample is rebuilt and the notice is shown; nothing is sent without the user's decision.
+- The recognised **IBAN had digits misread as arbitrary letters** (`DE0O3 7601 0085 0004 0XXX XX 94478` pattern), not only O/l/I/S look-alikes. The first lenient rule (look-alike letters only) missed it; the IBAN rule now accepts any letters in later groups when ≥ 10 genuine digits remain and the length is 18–28 characters after `DE` (a property test with arbitrary-letter misreads covers it). After the change the sample reports bank account, tax ID, social-security number, phone and postcode/city as removed.
+- Tax IDs and social-security numbers are still matched only with digit look-alikes (`O o l I S`) and other digits; a digit misread as an arbitrary letter inside those (11 contiguous characters) is not covered. Follow-up candidate: the same "any letter if enough genuine digits remain" rule for the SV number, or per-field digit-whitelist re-recognition (R5).
+- Small-print amounts lose their decimal comma as in the spike; nothing heals them, the check fails and the grid opens (unchanged by design).
+- The initial bundle exceeds the 1 MB **warning** budget by ≈ 6.7 kB because the DE/EN translation catalogues are part of the initial chunk; the engine, worker, WASM and language data are lazy-loaded (not in the initial bundle). Making the earnings catalogue lazy would be the structural fix.

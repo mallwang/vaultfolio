@@ -343,13 +343,60 @@ function takeDigitLike(
   return compact.length >= min ? { compact, end } : null;
 }
 
-/** German IBAN shape: `DE` + about 20 digit-like characters in groups (18–22 to allow dropped or inserted characters). */
+/** An IBAN group: letters and digits only — up to 6 characters, or the rest of the first word. */
+const IBAN_GROUP = /^[A-Za-z0-9]{1,6}$/;
+const IBAN_FIRST_GROUP = /^[A-Za-z0-9]{2,26}$/;
+/** Characters after `DE` (check digits plus account number): 20 in a German IBAN; recognition may drop or add some. */
+const IBAN_MIN = 18;
+const IBAN_MAX = 28;
+const IBAN_FULL = 22;
+const IBAN_MIN_DIGITS = 10;
+
+const isIbanGroup = (group: string, first: boolean): boolean =>
+  first
+    ? IBAN_FIRST_GROUP.test(group)
+    : IBAN_GROUP.test(group) && (/\d/.test(group) || /^[A-Z]{1,4}$/.test(group));
+
+/**
+ * The groups of a possible IBAN after `DE` at `afterPrefix`: the rest of the first word, then
+ * following words (single spaces) until about 20 characters are reached.
+ */
+function ibanGroups(
+  text: string,
+  afterPrefix: number,
+): { end: number; count: number; digits: number } {
+  let end = afterPrefix;
+  let count = 0;
+  let digits = 0;
+  let spanEnd = afterPrefix;
+  let first = true;
+  while (end <= text.length && count < IBAN_FULL) {
+    const wordEnd = text.indexOf(' ', end);
+    const group = text.slice(end, wordEnd < 0 ? undefined : wordEnd);
+    if (!isIbanGroup(group, first)) break;
+    count += group.length;
+    digits += realDigits(group);
+    spanEnd = end + group.length;
+    first = false;
+    if (wordEnd < 0) break;
+    end = wordEnd + 1;
+  }
+  return { end: spanEnd, count, digits };
+}
+
+/**
+ * German IBAN shape: `DE`, two digit-like characters, then groups of letters/digits until about 20
+ * characters are reached. Unlike for the other identifiers a digit may be misread as any letter
+ * (`DE03 7601 0085 0004 0123 45` read as `DE0O3 7601 0085 0004 0XXX XX`), so later groups accept
+ * any letter if enough genuine digits remain; a group after the first needs a digit or at most four
+ * capitals, so a following label is not swallowed.
+ */
 function findLenientIbans(line: JoinedLine): Span[] {
   const found: Span[] = [];
   for (const match of line.text.matchAll(/(?<![A-Za-z0-9])[Dd][Ee](?=[0-9OolIS]{2})/g)) {
-    const taken = takeDigitLike(line.text, match.index + 2, 18, 22);
-    if (taken && !isAlnum(line.text[taken.end]) && realDigits(taken.compact) >= MIN_REAL_DIGITS) {
-      found.push({ start: match.index, end: taken.end });
+    const { end, count, digits } = ibanGroups(line.text, match.index + 2);
+    if (count >= IBAN_MIN && count <= IBAN_MAX && digits >= IBAN_MIN_DIGITS) {
+      found.push({ start: match.index, end });
     }
   }
   return found;
