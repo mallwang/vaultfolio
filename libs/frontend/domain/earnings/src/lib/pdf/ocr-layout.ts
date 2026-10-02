@@ -53,24 +53,23 @@ export function recognisedWordsToPage(
     }
   }
 
-  const lines: PdfLine[] = rows
-    .sort((a, b) => a.centre - b.centre)
-    .map((row) => {
-      const ordered = [...row.words].sort((a, b) => a.bbox.x0 - b.bbox.x0);
-      const pdfWords: PdfWord[] = ordered.map((w) => ({
-        text: normaliseRecognisedWord(w.text),
-        x: w.bbox.x0 / scale,
-        width: (w.bbox.x1 - w.bbox.x0) / scale,
-        height: (w.bbox.y1 - w.bbox.y0) / scale,
-        ...(w.confidence < LOW_CONFIDENCE ? { lowConfidence: true } : {}),
-      }));
-      const baseline = row.words.reduce((sum, w) => sum + w.bbox.y1, 0) / row.words.length;
-      return {
-        text: pdfWords.map((w) => w.text).join(' '),
-        words: pdfWords,
-        y: (heightPx - baseline) / scale,
-      };
-    });
+  rows.sort((a, b) => a.centre - b.centre);
+  const lines: PdfLine[] = rows.map((row) => {
+    const ordered = [...row.words].sort((a, b) => a.bbox.x0 - b.bbox.x0);
+    const pdfWords: PdfWord[] = ordered.map((w) => ({
+      text: normaliseRecognisedWord(w.text),
+      x: w.bbox.x0 / scale,
+      width: (w.bbox.x1 - w.bbox.x0) / scale,
+      height: (w.bbox.y1 - w.bbox.y0) / scale,
+      ...(w.confidence < LOW_CONFIDENCE ? { lowConfidence: true } : {}),
+    }));
+    const baseline = row.words.reduce((sum, w) => sum + w.bbox.y1, 0) / row.words.length;
+    return {
+      text: pdfWords.map((w) => w.text).join(' '),
+      words: pdfWords,
+      y: (heightPx - baseline) / scale,
+    };
+  });
   return { lines, ...size };
 }
 

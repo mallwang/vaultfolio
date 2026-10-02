@@ -315,7 +315,9 @@ const realDigits = (text: string): number => text.replaceAll(/\D/g, '').length;
 function isDigitLikeToken(text: string, start: number): boolean {
   let end = start;
   while (end < text.length && text[end] !== ' ') end += 1;
-  return end > start && [...text.slice(start, end)].every((char) => DIGIT_LIKE.test(char));
+  if (end === start) return false;
+  for (const char of text.slice(start, end)) if (!DIGIT_LIKE.test(char)) return false;
+  return true;
 }
 
 /**
