@@ -1812,7 +1812,7 @@ info:
     cookie is httpOnly, so it rides along automatically on every "Try it out"
     call once you are signed in; there is nothing to enter in the "Authorize"
     dialog below, which exists only to mark which endpoints require it.
-  version: 0.0.9
+  version: 0.0.10
   contact: {}
 tags: []
 servers:
