@@ -235,6 +235,15 @@ export const requestsEn: TranslationDictionary = {
       TOO_MANY_PAGES: 'The document has more than 3 pages.',
       TOO_LARGE: 'The document is too large to send.',
     },
+    ocr: {
+      noticeTitle: 'Recognised automatically',
+      notice:
+        'This text was recognised automatically and may contain errors. Check the sample before you send it.',
+      lookalike:
+        'Values that look like an IBAN, tax ID or social-security number are removed even if a digit was misread.',
+      removedKinds: 'Removed: {{kinds}}.',
+      legendLowConfidence: 'Recognised with low confidence',
+    },
     errorGeneric: 'The request could not be sent. Please try again.',
   },
 };

@@ -6,6 +6,8 @@ import { textDocument } from '@vaultfolio/earnings';
 import { SAP_AUG_2026, SAP_AUG_2026_NET_OFF, UNRELATED_PAGES } from '@vaultfolio/earnings/testing';
 import { ParserRequestStore } from '../parser-request/parser-request.store';
 import { EarningsImportComponent } from './earnings-import.component';
+import { FakeTextRecogniser } from '../pdf/text-recogniser.testing';
+import { TEXT_RECOGNISER } from '../pdf/text-recogniser.token';
 import { EARNINGS_FILE_READER } from './import-session.store';
 
 const PAGES: Record<string, string[][]> = {
@@ -15,12 +17,16 @@ const PAGES: Record<string, string[][]> = {
 };
 
 describe('Request a parser button on the import page (033 FR-001)', () => {
+  let recogniser: FakeTextRecogniser;
+
   beforeEach(() => {
+    recogniser = new FakeTextRecogniser();
     TestBed.configureTestingModule({
       providers: [
         provideRouter([]),
         provideHttpClient(),
         provideHttpClientTesting(),
+        { provide: TEXT_RECOGNISER, useValue: recogniser },
         {
           provide: EARNINGS_FILE_READER,
           useValue: {
@@ -77,5 +83,28 @@ describe('Request a parser button on the import page (033 FR-001)', () => {
     (buttons(root)[0] as HTMLButtonElement).click();
     expect(open).toHaveBeenCalledWith(expect.objectContaining({ name: 'unknown.pdf' }));
     expect(navigate).toHaveBeenCalledWith(['/app/earnings/import/request']);
+  });
+
+  it('is offered for a recognised scan of an unknown layout, with the tag, the note and the recognised text handed over (034 FR-009)', async () => {
+    recogniser.script = { text: UNRELATED_PAGES };
+    const { fixture, root } = await drop(['scan.pdf']);
+    (root.querySelector('[data-testid="ocr-accept"]') as HTMLButtonElement).click();
+    for (let i = 0; i < 20; i++) await new Promise((r) => setTimeout(r, 0));
+    fixture.detectChanges();
+
+    expect(buttons(root)).toHaveLength(1);
+    const row = buttons(root)[0].closest('[data-testid^="earnings-import-row-"]') as HTMLElement;
+    expect(row.querySelector('[data-testid="ocr-badge"]')).not.toBeNull();
+    expect(row.textContent).toContain('read via text recognition');
+    expect(row.textContent).toContain('format not supported yet');
+
+    const store = TestBed.inject(ParserRequestStore);
+    const open = vi.spyOn(store, 'open').mockResolvedValue();
+    vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    (buttons(root)[0] as HTMLButtonElement).click();
+    expect(open).toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'scan.pdf' }),
+      expect.objectContaining({ origin: 'RECOGNISED' }),
+    );
   });
 });

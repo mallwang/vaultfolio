@@ -172,7 +172,7 @@ class TesseractRecogniser implements TextRecogniser {
           const words = (result.data.blocks ?? []).flatMap((b) =>
             b.paragraphs.flatMap((p) => p.lines.flatMap((l) => l.words)),
           );
-          pages.push(recognisedWordsToPage(words, scale, canvas.height));
+          pages.push(recognisedWordsToPage(words, scale, canvas.height, canvas.width));
           emit({ fraction: 1 });
         } finally {
           canvas.width = 0;

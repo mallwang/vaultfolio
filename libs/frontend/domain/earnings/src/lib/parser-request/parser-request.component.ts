@@ -5,6 +5,7 @@ import { ParserRequestStore } from './parser-request.store';
 import { ConsentStepComponent } from './steps/consent.step';
 import { MarkRulesStepComponent } from './steps/mark-rules.step';
 import { PreviewSendStepComponent } from './steps/preview-send.step';
+import { RecognitionStepComponent } from './steps/recognition.step';
 import { RefusedStepComponent } from './steps/refused.step';
 import { ReviewWordsStepComponent } from './steps/review-words.step';
 import { SentStepComponent } from './steps/sent.step';
@@ -31,12 +32,15 @@ const STEPS = [
     PreviewSendStepComponent,
     SentStepComponent,
     RefusedStepComponent,
+    RecognitionStepComponent,
   ],
   template: `
     <h1>{{ 'requests.wizard.title' | translate }}</h1>
 
     @if (store.loading()) {
       <p data-testid="request-loading">{{ 'requests.wizard.loading' | translate }}</p>
+    } @else if (store.recognitionState() !== 'none') {
+      <app-request-recognition-step />
     } @else if (store.refusal()) {
       <app-request-refused-step />
     } @else {

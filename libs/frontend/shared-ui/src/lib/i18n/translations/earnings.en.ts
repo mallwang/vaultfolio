@@ -358,6 +358,8 @@ export const earningsEn: TranslationDictionary = {
     notice:
       'The text of the marked files was read by text recognition and may contain errors, especially in digits. Please double-check every figure against your document before importing.',
     instead: 'Read text on this device instead',
+    noParserNote:
+      'The text of this file was read via text recognition. You can request a parser for this layout; the recognised text is not read again.',
     hintTooManyPages:
       'Text recognition is limited to {{max}} pages per document; this document has more.',
     hintEngineUnavailable: 'Text recognition could not be started on this device.',

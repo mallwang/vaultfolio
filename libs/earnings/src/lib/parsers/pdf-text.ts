@@ -14,12 +14,19 @@ export interface PdfDocumentText {
 export interface PdfPageText {
   /** Top to bottom. */
   lines: PdfLine[];
+  /** Page size in points; set for recognised pages (the request sample needs it). */
+  width?: number;
+  height?: number;
 }
 
 export interface PdfWord {
   text: string;
   x: number;
   width: number;
+  /** Glyph height in points; set for recognised words. */
+  height?: number;
+  /** Recognised with low confidence (034): shown underlined in the request preview. */
+  lowConfidence?: boolean;
 }
 
 export interface PdfLine {

@@ -365,6 +365,8 @@ export const earningsDe: TranslationDictionary = {
     notice:
       'Der Text der markierten Dateien wurde per Texterkennung gelesen und kann Fehler enthalten, besonders bei Ziffern. Bitte prüfen Sie vor dem Import jeden Betrag anhand Ihres Dokuments.',
     instead: 'Text stattdessen auf diesem Gerät lesen',
+    noParserNote:
+      'Der Text dieser Datei wurde per Texterkennung gelesen. Sie können einen Parser für dieses Layout anfragen; der erkannte Text wird nicht erneut gelesen.',
     hintTooManyPages:
       'Die Texterkennung ist auf {{max}} Seiten pro Dokument begrenzt; dieses Dokument hat mehr.',
     hintEngineUnavailable: 'Die Texterkennung konnte auf diesem Gerät nicht gestartet werden.',

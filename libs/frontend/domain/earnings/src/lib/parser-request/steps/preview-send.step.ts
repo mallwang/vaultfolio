@@ -12,7 +12,26 @@ import { wizardText } from './wizard-text';
   selector: 'app-request-preview-send-step',
   imports: [ButtonModule, MessageModule, TranslatePipe, SheetComponent],
   template: `
+    @if (store.recognised()) {
+      <p-message severity="warn" data-testid="request-ocr-notice">
+        <strong>{{ 'requests.wizard.ocr.noticeTitle' | translate }}</strong>
+        {{ 'requests.wizard.ocr.notice' | translate }}
+      </p-message>
+    }
     <p-message severity="success">{{ 'requests.wizard.preview.callout' | translate }}</p-message>
+    @if (store.recognised()) {
+      <p-message severity="success" data-testid="request-ocr-removed">
+        @if (store.removedKinds().length > 0) {
+          {{ t('requests.wizard.ocr.removedKinds', { kinds: kinds() }) }}
+        }
+        {{ 'requests.wizard.ocr.lookalike' | translate }}
+      </p-message>
+      <p class="legend" data-testid="request-ocr-legend">
+        <span class="legend__lowconf">{{
+          'requests.wizard.ocr.legendLowConfidence' | translate
+        }}</span>
+      </p>
+    }
     <div class="split">
       <app-request-sheet [pages]="store.anon()?.pages ?? []" />
       <section class="summary" data-testid="request-summary">
@@ -121,6 +140,14 @@ import { wizardText } from './wizard-text';
       margin: 0;
       text-align: right;
     }
+    .legend {
+      margin: 0;
+      font-size: 0.875rem;
+    }
+    .legend__lowconf {
+      text-decoration: underline wavy var(--p-orange-500);
+      text-underline-offset: 2px;
+    }
     .blocked {
       color: var(--p-text-muted-color);
       font-size: 0.875rem;
@@ -135,12 +162,19 @@ import { wizardText } from './wizard-text';
 export class PreviewSendStepComponent {
   protected readonly store = inject(ParserRequestStore);
   private readonly router = inject(Router);
-  private readonly t = wizardText();
+  protected readonly t = wizardText();
 
   protected errorText(code: string): string {
     const specific = `requests.errors.${code}`;
     const text = this.t(specific);
     return text === specific ? this.t('requests.wizard.errorGeneric') : text;
+  }
+
+  protected kinds(): string {
+    return this.store
+      .removedKinds()
+      .map((kind) => this.t(`requests.wizard.kinds.${kind}`))
+      .join(', ');
   }
 
   protected discard(): void {

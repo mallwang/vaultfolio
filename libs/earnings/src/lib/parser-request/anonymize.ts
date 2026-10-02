@@ -5,7 +5,12 @@ import {
   type SubmissionPage,
   sanitizeWordText,
 } from './layout-submission.js';
-import { type PersonalDataKind, scanDocument, scanLine } from './personal-data.js';
+import {
+  type PersonalDataKind,
+  type ScanOptions,
+  scanDocument,
+  scanLine,
+} from './personal-data.js';
 import type { SubmittedRuleDraft } from './rule-draft.js';
 
 /** The document as read on the device (R4): positions per word and whether a shape covers it. */
@@ -18,6 +23,8 @@ export interface AnalyzedWord {
   height: number;
   /** Drawn over by a dark filled shape — probably hidden on purpose (FR-007). */
   covered: boolean;
+  /** Recognised with low confidence by text recognition (034); never sent. */
+  lowConfidence?: boolean;
 }
 
 export interface AnalyzedLine {
@@ -48,6 +55,8 @@ export interface AnonWord {
   mark: WordMark;
   /** Removed words cannot be switched back. */
   locked: boolean;
+  /** The word was recognised with low confidence (034): shown underlined; never sent. */
+  lowConfidence?: boolean;
 }
 
 export interface AnonLine {
@@ -152,12 +161,14 @@ interface ValueRef {
  * Builds the anonymized layout (R8, FR-005–FR-007): personal data is removed and locked, every
  * digit sequence is replaced by a random one of the same shape (re-rolled until the personal-data
  * scan finds nothing in the result, so browser and server verdicts agree), known labels are kept,
- * every other word needs the user's decision (covered words start masked).
+ * every other word needs the user's decision (covered words start masked). For text read by text
+ * recognition pass `{ lenient: true }` so identifiers with misread digits are removed too (034).
  */
 export function anonymizeLayout(
   layout: AnalyzedLayout,
   decisions: ReadonlyMap<string, WordDecision>,
   rng: () => number,
+  scanOptions: ScanOptions = {},
 ): AnonymizedLayout {
   const removedKinds = new Set<PersonalDataKind>();
   const valueRefs: ValueRef[] = [];
@@ -167,7 +178,7 @@ export function anonymizeLayout(
     height: page.height,
     lines: page.lines.map((line, lineIndex) => {
       const size = lineSize(line);
-      const hits = scanLine(line.words);
+      const hits = scanLine(line.words, scanOptions);
       const removed = new Set<number>();
       for (const hit of hits) {
         removedKinds.add(hit.kind);
@@ -186,7 +197,13 @@ export function anonymizeLayout(
             original: word.text,
           });
           const text = replaceDigitsSameShape(word.text, rng);
-          return { text, x: valueX(word, text, size), mark: 'VALUE', locked: false };
+          return {
+            text,
+            x: valueX(word, text, size),
+            mark: 'VALUE',
+            locked: false,
+            ...(word.lowConfidence ? { lowConfidence: true } : {}),
+          };
         }
         const decision = decisions.get(wordKey(pageIndex, lineIndex, wordIndex));
         if (word.covered) {
@@ -210,7 +227,7 @@ export function anonymizeLayout(
     pages,
     removedKinds: [...removedKinds].sort((x, y) => x.localeCompare(y)),
   };
-  const ctx: RerollContext = { anon, original: layout, rng };
+  const ctx: RerollContext = { anon, original: layout, rng, scanOptions };
   rerollUnchanged(ctx, valueRefs);
   rerollUntilClean(ctx, valueRefs);
   return anon;
@@ -226,6 +243,7 @@ interface RerollContext {
   anon: AnonymizedLayout;
   original: AnalyzedLayout;
   rng: () => number;
+  scanOptions: ScanOptions;
 }
 
 function wordAt(ctx: RerollContext, ref: ValueRef): AnonWord {
@@ -266,7 +284,7 @@ function valueRefsByLine(refs: ValueRef[]): Map<string, ValueRef[]> {
 function rerollUntilClean(ctx: RerollContext, refs: ValueRef[]): void {
   const byLine = valueRefsByLine(refs);
   for (let attempt = 0; attempt <= MAX_REROLLS; attempt += 1) {
-    const hits = scanDocument(ctx.anon);
+    const hits = scanDocument(ctx.anon, ctx.scanOptions);
     if (hits.length === 0) return;
     const make =
       attempt < MAX_REROLLS

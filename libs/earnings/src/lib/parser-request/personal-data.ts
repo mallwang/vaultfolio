@@ -297,27 +297,135 @@ function findPostcodeCities(words: readonly { text: string }[]): number[][] {
   return hits;
 }
 
+// ----------------------------------------------------------------------- lenient (OCR) mode
+
+/**
+ * Characters text recognition may return in place of a digit: the digits themselves and their
+ * look-alike letters (`O`/`o`→0, `l`/`I`→1, `S`→5). Lenient matching accepts any of them anywhere
+ * in an identifier and never checks a check digit, because a misread digit — letter or other
+ * digit — must not let an identifier through (034 FR-011, research R6).
+ */
+const DIGIT_LIKE = /[0-9OolIS]/;
+/** An identifier needs at least this many genuine digits, so words made of look-alike letters alone never match. */
+const MIN_REAL_DIGITS = 6;
+
+const realDigits = (text: string): number => text.replaceAll(/\D/g, '').length;
+
+/** Whether the word starting at `start` consists of digit-like characters only (so `Summe` never continues a group). */
+function isDigitLikeToken(text: string, start: number): boolean {
+  let end = start;
+  while (end < text.length && text[end] !== ' ') end += 1;
+  return end > start && [...text.slice(start, end)].every((char) => DIGIT_LIKE.test(char));
+}
+
+/**
+ * Between `min` and `max` digit-like characters from `start`, groups separated by single spaces,
+ * with the end offset. Recognition also drops or inserts characters (`DE03` read as `DE0O3`), so an
+ * IBAN is accepted within a small tolerance of its length.
+ */
+function takeDigitLike(
+  text: string,
+  start: number,
+  min: number,
+  max = min,
+): { compact: string; end: number } | null {
+  let compact = '';
+  let end = start;
+  let i = start;
+  while (i < text.length && compact.length < max) {
+    const char = text[i];
+    if (DIGIT_LIKE.test(char)) {
+      compact += char;
+      end = i + 1;
+    } else if (char !== ' ' || compact === '' || !isDigitLikeToken(text, i + 1)) break;
+    i += 1;
+  }
+  return compact.length >= min ? { compact, end } : null;
+}
+
+/** German IBAN shape: `DE` + about 20 digit-like characters in groups (18–22 to allow dropped or inserted characters). */
+function findLenientIbans(line: JoinedLine): Span[] {
+  const found: Span[] = [];
+  for (const match of line.text.matchAll(/(?<![A-Za-z0-9])[Dd][Ee](?=[0-9OolIS]{2})/g)) {
+    const taken = takeDigitLike(line.text, match.index + 2, 18, 22);
+    if (taken && !isAlnum(line.text[taken.end]) && realDigits(taken.compact) >= MIN_REAL_DIGITS) {
+      found.push({ start: match.index, end: taken.end });
+    }
+  }
+  return found;
+}
+
+/** 11 digit-like characters at a group boundary, first not 0, not part of an amount (`,`/`.` next to it). */
+function findLenientTaxIds(line: JoinedLine): Span[] {
+  const found: Span[] = [];
+  for (let start = 0; start < line.text.length; start += 1) {
+    if (start > 0 && line.text[start - 1] !== ' ') continue;
+    if (!DIGIT_LIKE.test(line.text[start]) || /[0Oo]/.test(line.text[start])) continue;
+    const taken = takeDigitLike(line.text, start, 11);
+    if (!taken || isAlnum(line.text[taken.end]) || /[.,]/.test(line.text[taken.end] ?? ''))
+      continue;
+    if (realDigits(taken.compact) >= MIN_REAL_DIGITS) found.push({ start, end: taken.end });
+  }
+  return found;
+}
+
+/** Social-security number shape `12 345678 A 901` (check digit not required, digits may be look-alikes). */
+function findLenientSocialSecurity(line: JoinedLine): Span[] {
+  const found: Span[] = [];
+  for (let start = 0; start < line.text.length; start += 1) {
+    if (!DIGIT_LIKE.test(line.text[start]) || isAlnum(line.text[start - 1])) continue;
+    const taken = takeAlnum(line.text, start, 12);
+    if (!taken || isAlnum(line.text[taken.end])) continue;
+    if (/^[0-9OolIS]{8}[A-Z][0-9OolIS]{3}$/.test(taken.compact) && realDigits(taken.compact) >= 5) {
+      found.push({ start, end: taken.end });
+    }
+  }
+  return found;
+}
+
 // ------------------------------------------------------------------------------------- scan
+
+export interface ScanOptions {
+  /**
+   * Shape-only matching for IBAN, tax ID and social-security number, for text read by text
+   * recognition (034). It over-matches on purpose (an 11-digit amount-like run counts as a tax ID):
+   * for recognised text, removing too much is acceptable, letting a misread identifier through is
+   * not. Strict matching, with check digits, stays the default and the only mode on the server.
+   */
+  lenient?: boolean;
+}
 
 /**
  * Personal-data detectors for one line (R3). A match may span several words (an IBAN or tax ID
  * printed in groups); it is mapped back to the word indexes it touches.
  */
-export function scanLine(words: readonly { text: string }[]): LineHit[] {
+export function scanLine(words: readonly { text: string }[], options: ScanOptions = {}): LineHit[] {
   const line = joinWords(words);
   const spans = (kind: PersonalDataKind, found: Span[]): LineHit[] =>
     found.map(({ start, end }) => ({ kind, wordIndexes: wordsInRange(line, start, end) }));
   const wordHits = (kind: PersonalDataKind, found: number[][]): LineHit[] =>
     found.map((wordIndexes) => ({ kind, wordIndexes }));
 
-  const hits = [
-    ...spans('BANK_ACCOUNT', findIbans(line)),
-    ...spans('TAX_ID', findTaxIds(line)),
-    ...spans('SOCIAL_SECURITY', findSocialSecurity(line)),
+  const lenient = options.lenient === true;
+  const found = [
+    ...spans('BANK_ACCOUNT', [...findIbans(line), ...(lenient ? findLenientIbans(line) : [])]),
+    ...spans('TAX_ID', [...findTaxIds(line), ...(lenient ? findLenientTaxIds(line) : [])]),
+    ...spans('SOCIAL_SECURITY', [
+      ...findSocialSecurity(line),
+      ...(lenient ? findLenientSocialSecurity(line) : []),
+    ]),
     ...wordHits('EMAIL', findEmails(words)),
     ...spans('PHONE', findPhones(line)),
     ...wordHits('POSTCODE_CITY', findPostcodeCities(words)),
   ];
+  // strict and lenient rules may find the same identifier: one finding
+  const seen = new Set<string>();
+  const hits = found.filter((hit) => {
+    const key = `${hit.kind}:${hit.wordIndexes.join(',')}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 
   // a phone-shaped tail of an IBAN/tax ID/... is the same finding, not a second one
   return hits.filter(
@@ -331,12 +439,13 @@ export function scanLine(words: readonly { text: string }[]): LineHit[] {
 }
 
 /** Runs {@link scanLine} over every line of every page. */
-export function scanDocument(doc: {
-  pages: { lines: { words: { text: string }[] }[] }[];
-}): PersonalDataHit[] {
+export function scanDocument(
+  doc: { pages: { lines: { words: { text: string }[] }[] }[] },
+  options: ScanOptions = {},
+): PersonalDataHit[] {
   return doc.pages.flatMap((page, pageIndex) =>
     page.lines.flatMap((line, lineIndex) =>
-      scanLine(line.words).map((hit) => ({ ...hit, page: pageIndex, line: lineIndex })),
+      scanLine(line.words, options).map((hit) => ({ ...hit, page: pageIndex, line: lineIndex })),
     ),
   );
 }

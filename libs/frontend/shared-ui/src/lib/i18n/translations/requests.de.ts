@@ -239,6 +239,15 @@ export const requestsDe: TranslationDictionary = {
       TOO_MANY_PAGES: 'Das Dokument hat mehr als 3 Seiten.',
       TOO_LARGE: 'Das Dokument ist zu groß zum Senden.',
     },
+    ocr: {
+      noticeTitle: 'Automatisch erkannt',
+      notice:
+        'Dieser Text wurde automatisch erkannt und kann Fehler enthalten. Prüfen Sie das Muster, bevor Sie es senden.',
+      lookalike:
+        'Werte, die wie eine IBAN, Steuer-ID oder Sozialversicherungsnummer aussehen, werden entfernt, auch wenn eine Ziffer falsch gelesen wurde.',
+      removedKinds: 'Entfernt: {{kinds}}.',
+      legendLowConfidence: 'Mit geringer Sicherheit erkannt',
+    },
     errorGeneric: 'Die Anfrage konnte nicht gesendet werden. Bitte versuche es erneut.',
   },
 };

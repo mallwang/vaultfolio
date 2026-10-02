@@ -48,6 +48,7 @@ export interface WordClick {
               class="word"
               [class]="'word word--' + word.mark.toLowerCase()"
               [class.word--picked]="picked().has(p + '-' + l + '-' + i)"
+              [class.word--lowconf]="word.lowConfidence === true"
               [disabled]="word.locked"
               [style.left]="(word.x / page.width) * 100 + '%'"
               [style.top]="((line.y - line.size) / page.height) * 100 + '%'"
@@ -130,6 +131,10 @@ export interface WordClick {
     }
     .word--value {
       border-bottom: 1px dotted var(--p-text-muted-color);
+    }
+    .word--lowconf {
+      text-decoration: underline wavy var(--p-orange-500);
+      text-underline-offset: 2px;
     }
     .word--removed {
       background: var(--p-surface-300);

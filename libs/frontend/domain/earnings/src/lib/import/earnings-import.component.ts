@@ -1,6 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import type { EarningsPreviewStatus } from '@vaultfolio/api-contract';
+import type { EarningsPreviewStatus, EarningsRejection } from '@vaultfolio/api-contract';
 import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
 import { ProgressBarModule } from 'primeng/progressbar';
@@ -686,7 +686,9 @@ export class EarningsImportComponent {
   protected requestParser(row: ImportRow): void {
     const file = this.store.requestableFile(row.clientFileId);
     if (!file) return;
-    void this.parserRequest.open(file);
+    const recognised = this.store.requestableRecognisedText(row.clientFileId);
+    if (recognised) void this.parserRequest.open(file, recognised);
+    else void this.parserRequest.open(file);
     void this.router.navigate(['/app/earnings/import/request']);
   }
 
@@ -749,20 +751,30 @@ export class EarningsImportComponent {
       : this.t('earnings.ocr.hintEngineUnavailable');
   }
 
+  private rejectionNotes(
+    row: ImportRow,
+    rejection: EarningsRejection,
+    lang: string,
+  ): { text: string; error: boolean; testId?: string }[] {
+    const template =
+      row.state === 'needs-correction' ? 'earnings.import.checkFailedCorrectable' : undefined;
+    const lines: { text: string; error: boolean; testId?: string }[] = [
+      {
+        text: rejectionText(rejection, (k) => this.t(k), lang, template),
+        error: true,
+        testId: rejection.code === 'IMAGE_ONLY' ? 'image-only-message' : undefined,
+      },
+    ];
+    if (row.recognised && rejection.code === 'UNSUPPORTED_FORMAT') {
+      lines.push({ text: this.t('earnings.ocr.noParserNote'), error: false });
+    }
+    return lines;
+  }
+
   protected notesOf(row: ImportRow): { text: string; error: boolean; testId?: string }[] {
     const lang = this.i18n.language();
     const rejection = row.localRejection ?? row.preview?.rejection;
-    if (rejection) {
-      const template =
-        row.state === 'needs-correction' ? 'earnings.import.checkFailedCorrectable' : undefined;
-      return [
-        {
-          text: rejectionText(rejection, (k) => this.t(k), lang, template),
-          error: true,
-          testId: rejection.code === 'IMAGE_ONLY' ? 'image-only-message' : undefined,
-        },
-      ];
-    }
+    if (rejection) return this.rejectionNotes(row, rejection, lang);
     if (row.state === 'needs-correction') {
       return [{ text: this.t('earnings.import.invalidAmount'), error: true }];
     }

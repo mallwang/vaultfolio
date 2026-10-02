@@ -1,11 +1,12 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Injectable, computed, inject, signal } from '@angular/core';
+import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core';
 import type { SubmitRequestResponse } from '@vaultfolio/api-contract';
 import {
   type AnalyzedLayout,
   type AnonymizedLayout,
   type FigureType,
   type LiveCheckResult,
+  type PdfDocumentText,
   type RuleFormat,
   type SubmittedRuleDraft,
   type SubmittedRuleLine,
@@ -18,7 +19,9 @@ import {
   wordKey,
 } from '@vaultfolio/earnings';
 import { firstValueFrom } from 'rxjs';
-import { type LayoutRefusal, extractLayout } from './layout-extractor';
+import type { RecognitionError, RecognitionProgress } from '../pdf/text-recogniser';
+import { TEXT_RECOGNISER } from '../pdf/text-recogniser.token';
+import { type LayoutRefusal, extractLayout, layoutFromRecognised } from './layout-extractor';
 import { ParserRequestService } from './parser-request.service';
 
 /** Format guessed from a number's printed shape; the user can change it. */
@@ -33,6 +36,9 @@ export interface LineRef {
 }
 
 export type WizardStep = 'consent' | 'review' | 'rules' | 'preview' | 'sent';
+
+/** `offer`: a scan waiting for the user's decision; `running`: on-device recognition in progress (034). */
+export type RecognitionState = 'none' | 'offer' | 'running';
 
 export interface DecisionWord {
   key: string;
@@ -63,7 +69,13 @@ function randomSeed(): number {
 @Injectable({ providedIn: 'root' })
 export class ParserRequestStore {
   private readonly api = inject(ParserRequestService);
+  private readonly recogniser = inject(TEXT_RECOGNISER);
   private seed = randomSeed();
+  private recognition: AbortController | null = null;
+
+  constructor() {
+    inject(DestroyRef).onDestroy(() => this.recognition?.abort());
+  }
 
   readonly file = signal<File | null>(null);
   readonly analysis = signal<AnalyzedLayout | null>(null);
@@ -78,13 +90,31 @@ export class ParserRequestStore {
   readonly sending = signal(false);
   readonly errorCode = signal<string | null>(null);
   readonly sent = signal<SubmitRequestResponse | null>(null);
+  /** Consent/progress of on-device text recognition for a scan (034). */
+  readonly recognitionState = signal<RecognitionState>('none');
+  readonly recognitionProgress = signal<RecognitionProgress | null>(null);
+  /** Why recognition ended without text, beyond the generic refusal (page limit, engine). */
+  readonly recognitionHint = signal<'TOO_MANY_PAGES' | 'ENGINE_UNAVAILABLE' | null>(null);
+  /** The analysed text was read via text recognition and may contain errors (034 FR-010). */
+  readonly recognised = signal(false);
 
-  readonly loading = computed(() => this.file() !== null && !this.analysis() && !this.refusal());
+  readonly loading = computed(
+    () =>
+      this.file() !== null &&
+      !this.analysis() &&
+      !this.refusal() &&
+      this.recognitionState() === 'none',
+  );
+
+  /** Recognised text is scanned leniently (shape only), so misread identifiers cannot slip through (034 FR-011). */
+  private readonly scanOptions = computed(() => ({ lenient: this.recognised() }));
 
   /** The sheet as it would be sent right now. */
   readonly anon = computed<AnonymizedLayout | null>(() => {
     const analysis = this.analysis();
-    return analysis ? anonymizeLayout(analysis, this.decisions(), seeded(this.seed)) : null;
+    return analysis
+      ? anonymizeLayout(analysis, this.decisions(), seeded(this.seed), this.scanOptions())
+      : null;
   });
 
   readonly pendingDecisions = computed(() => {
@@ -152,7 +182,7 @@ export class ParserRequestStore {
   /** Anything the personal-data scan still finds blocks sending (R3). */
   readonly remainingHits = computed(() => {
     const preview = this.preview();
-    return preview ? scanDocument(preview).length : 0;
+    return preview ? scanDocument(preview, this.scanOptions()).length : 0;
   });
 
   readonly canSend = computed(
@@ -163,14 +193,85 @@ export class ParserRequestStore {
       !this.sending(),
   );
 
-  /** Starts a request for `file`: reads it on the device; the result is analysis or a refusal. */
-  async open(file: File): Promise<void> {
+  /**
+   * Starts a request for `file`: reads it on the device; the result is analysis, a refusal, or — for
+   * a scan — an offer to recognise the text. Text already recognised in the import flow is passed
+   * in `recognisedText`, so no second consent or recognition is needed (034 FR-010).
+   */
+  async open(file: File, recognisedText?: PdfDocumentText): Promise<void> {
     this.reset();
     this.file.set(file);
     this.seed = randomSeed();
+    if (recognisedText) {
+      this.adopt(file, layoutFromRecognised(recognisedText), true);
+      return;
+    }
     const result = await extractLayout(file);
     // the wizard may have been left while the file was read
     if (this.file() !== file) return;
+    if ('error' in result && result.error === 'IMAGE_ONLY') this.recognitionState.set('offer');
+    else this.adopt(file, result, false);
+  }
+
+  /** The user agrees to read the scan on this device (034 FR-002). */
+  async acceptRecognition(): Promise<void> {
+    const file = this.file();
+    if (!file || this.recognitionState() === 'running') return;
+    const controller = new AbortController();
+    this.recognition = controller;
+    this.recognitionState.set('running');
+    this.recognitionProgress.set(null);
+    const result = await this.recogniser.recognise(file, {
+      signal: controller.signal,
+      onProgress: (progress) => {
+        if (!controller.signal.aborted) this.recognitionProgress.set(progress);
+      },
+    });
+    if (this.recognition !== controller || this.file() !== file) return; // left or replaced meanwhile
+    this.recognition = null;
+    if ('error' in result) {
+      this.endRecognition(result.error);
+      return;
+    }
+    this.recognitionState.set('none');
+    this.recognitionProgress.set(null);
+    this.adopt(file, layoutFromRecognised(result.text), true);
+  }
+
+  /** The user does not want recognition: the request is refused like any scan before 034. */
+  declineRecognition(): void {
+    this.endRecognition('CANCELLED');
+  }
+
+  /** "Read text on this device instead": offers recognition again, with a new consent. */
+  reofferRecognition(): void {
+    if (!this.file()) return;
+    this.refusal.set(null);
+    this.recognitionHint.set(null);
+    this.recognitionState.set('offer');
+  }
+
+  cancelRecognition(): void {
+    this.recognition?.abort();
+  }
+
+  private endRecognition(error: RecognitionError): void {
+    this.recognition = null;
+    this.recognitionState.set('none');
+    this.recognitionProgress.set(null);
+    this.recognitionHint.set(
+      error === 'TOO_MANY_PAGES' || error === 'ENGINE_UNAVAILABLE' ? error : null,
+    );
+    this.refusal.set('IMAGE_ONLY');
+  }
+
+  private adopt(
+    file: File,
+    result: ReturnType<typeof layoutFromRecognised>,
+    recognised: boolean,
+  ): void {
+    if (this.file() !== file) return;
+    this.recognised.set(recognised);
     if ('error' in result) this.refusal.set(result.error);
     else this.analysis.set(result.layout);
   }
@@ -271,6 +372,12 @@ export class ParserRequestStore {
   }
 
   reset(): void {
+    this.recognition?.abort();
+    this.recognition = null;
+    this.recognitionState.set('none');
+    this.recognitionProgress.set(null);
+    this.recognitionHint.set(null);
+    this.recognised.set(false);
     this.file.set(null);
     this.analysis.set(null);
     this.refusal.set(null);

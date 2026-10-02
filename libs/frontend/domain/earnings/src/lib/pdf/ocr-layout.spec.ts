@@ -1,4 +1,9 @@
-import { CONFIDENCE_FLOOR, recognisedWordsToPage, type RecognisedWord } from './ocr-layout';
+import {
+  CONFIDENCE_FLOOR,
+  LOW_CONFIDENCE,
+  recognisedWordsToPage,
+  type RecognisedWord,
+} from './ocr-layout';
 
 function word(
   text: string,
@@ -15,7 +20,7 @@ describe('recognisedWordsToPage', () => {
   it('converts pixel boxes to PDF points with y growing upwards', () => {
     const page = recognisedWordsToPage([word('Brutto', 30, 60, 90, 90)], 3, 300);
     expect(page.lines).toEqual([
-      { text: 'Brutto', y: 70, words: [{ text: 'Brutto', x: 10, width: 20 }] },
+      { text: 'Brutto', y: 70, words: [{ text: 'Brutto', x: 10, width: 20, height: 10 }] },
     ]);
   });
 
@@ -72,5 +77,17 @@ describe('recognisedWordsToPage', () => {
 
   it('returns no lines for a page without usable words', () => {
     expect(recognisedWordsToPage([], 3, 600).lines).toEqual([]);
+  });
+
+  it('keeps the page size in points and marks low-confidence words', () => {
+    const page = recognisedWordsToPage(
+      [word('Brutto', 30, 60, 90, 90), word('5.0O0,00', 120, 60, 240, 90, LOW_CONFIDENCE - 1)],
+      3,
+      2526,
+      1785,
+    );
+    expect(page.width).toBeCloseTo(595);
+    expect(page.height).toBeCloseTo(842);
+    expect(page.lines[0].words.map((w) => w.lowConfidence)).toEqual([undefined, true]);
   });
 });

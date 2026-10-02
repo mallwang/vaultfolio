@@ -14,6 +14,8 @@ export interface RecognisedWord {
 
 /** Words below this confidence are dropped as noise (034 research R4). */
 export const CONFIDENCE_FLOOR = 30;
+/** Words below this confidence are kept but marked, so the request preview can underline them. */
+export const LOW_CONFIDENCE = 70;
 
 /**
  * Converts the recognised words of one rendered page into the parsers' line model, in PDF points
@@ -23,16 +25,19 @@ export const CONFIDENCE_FLOOR = 30;
  *
  * @param scale     render scale (pixels per PDF point)
  * @param heightPx  rendered page height in pixels
+ * @param widthPx   rendered page width in pixels (page size in points is kept for the layout)
  */
 export function recognisedWordsToPage(
   words: readonly RecognisedWord[],
   scale: number,
   heightPx: number,
+  widthPx = 0,
 ): PdfPageText {
+  const size = widthPx > 0 ? { width: widthPx / scale, height: heightPx / scale } : {};
   const kept = words
     .map((w) => ({ ...w, text: w.text.trim() }))
     .filter((w) => w.text.length > 0 && w.confidence >= CONFIDENCE_FLOOR);
-  if (kept.length === 0) return { lines: [] };
+  if (kept.length === 0) return { lines: [], ...size };
 
   const tolerance = median(kept.map((w) => w.bbox.y1 - w.bbox.y0)) / 2;
   const centre = (w: (typeof kept)[number]) => (w.bbox.y0 + w.bbox.y1) / 2;
@@ -56,6 +61,8 @@ export function recognisedWordsToPage(
         text: normaliseRecognisedWord(w.text),
         x: w.bbox.x0 / scale,
         width: (w.bbox.x1 - w.bbox.x0) / scale,
+        height: (w.bbox.y1 - w.bbox.y0) / scale,
+        ...(w.confidence < LOW_CONFIDENCE ? { lowConfidence: true } : {}),
       }));
       const baseline = row.words.reduce((sum, w) => sum + w.bbox.y1, 0) / row.words.length;
       return {
@@ -64,7 +71,7 @@ export function recognisedWordsToPage(
         y: (heightPx - baseline) / scale,
       };
     });
-  return { lines };
+  return { lines, ...size };
 }
 
 function median(values: number[]): number {
