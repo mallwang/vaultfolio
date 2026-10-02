@@ -145,7 +145,33 @@ If any check fails, report the discrepancy clearly and stop:
 > "Release verification failed: `<specific issue>`. Please investigate — the tag/push/GitHub
 > Release may be in a partial state."
 
-### Step 8 — Done
+### Step 8 — Refresh the OpenAPI spec
+
+`api/openapi.yml` embeds `info.version` (read from the app's `package.json`), so the version bump
+from Step 6 makes it stale, and the `backend:openapi:check` CI job fails on `main` until it is
+regenerated. Nx Release has already committed, tagged and pushed by now, so this has to be a
+follow-up commit:
+
+```bash
+npx nx run backend:openapi
+git status --porcelain api/openapi.yml
+```
+
+- If `api/openapi.yml` is unchanged, nothing to do — continue to Step 9.
+- If it changed, the diff should be exactly the one `version:` line, bumped to the new release
+  version. If anything else differs, stop and show the diff to the developer instead of
+  committing. Otherwise commit and push:
+
+```bash
+git add api/openapi.yml
+git commit -m "chore(openapi): regenerate spec for v<version>"
+git push
+```
+
+Then confirm `npx nx run backend:openapi:check` passes. (The release commit itself will show a
+failing `openapi:check` in CI for the few minutes until this commit lands — that is expected.)
+
+### Step 9 — Done
 
 Report the new version number and the GitHub Release URL to the developer. No further action is
-needed — the push and the GitHub Release were already handled in Step 6.
+needed — the push and the GitHub Release were handled in Step 6, the spec refresh in Step 8.
