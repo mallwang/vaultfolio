@@ -119,6 +119,7 @@ describe('OpenAPI document completeness (US1)', () => {
       'post /profile/reset-password/token/{token}/confirm',
     ]);
 
+    const operationsMissingCookieRequirement: string[] = [];
     for (const [path, pathItem] of Object.entries(document.paths)) {
       for (const [method, operation] of Object.entries(pathItem ?? {})) {
         if (publicOperations.has(`${method} ${path}`)) {
@@ -132,11 +133,11 @@ describe('OpenAPI document completeness (US1)', () => {
           (requirement) => SESSION_COOKIE_SECURITY_SCHEME_NAME in requirement,
         );
         if (!hasSessionCookieRequirement) {
-          throw new Error(
-            `${method.toUpperCase()} ${path} is missing the ${SESSION_COOKIE_SECURITY_SCHEME_NAME} security requirement`,
-          );
+          operationsMissingCookieRequirement.push(`${method.toUpperCase()} ${path}`);
         }
       }
     }
+
+    expect(operationsMissingCookieRequirement).toEqual([]);
   });
 });
