@@ -1,3 +1,10 @@
+## 0.0.11 (2026-10-02)
+
+### 🩹 Fixes
+
+- **docker:** serve .mjs as text/javascript for PDF.js worker ([#70](https://github.com/mallwang/vaultfolio/pull/70))
+- **openapi:** regenerate stale spec and refresh it on release ([#71](https://github.com/mallwang/vaultfolio/pull/71))
+
 ## 0.0.10 (2026-10-02)
 
 ### 🚀 Features
