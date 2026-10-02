@@ -141,21 +141,20 @@ function buildDocDefinition(resolved: ResolvedFeatureExport): TDocumentDefinitio
 
   const body = sumRow ? [...dataRows, sumRow] : dataRows;
 
-  content.push(
-    {
-      table: {
-        headerRows: 1,
-        widths: resolved.columns.map(() => '*'),
-        body: [header, ...body],
-      },
-      layout: 'lightHorizontalLines',
+  content.push({
+    table: {
+      headerRows: 1,
+      widths: resolved.columns.map(() => '*'),
+      body: [header, ...body],
     },
-    {
-      text: resolved.footer ?? 'This export is scoped to your own account data only.',
-      style: 'footer',
-      margin: [0, 16, 0, 0],
-    },
-  );
+    layout: 'lightHorizontalLines',
+  });
+
+  content.push({
+    text: resolved.footer ?? 'This export is scoped to your own account data only.',
+    style: 'footer',
+    margin: [0, 16, 0, 0],
+  });
 
   return {
     content,

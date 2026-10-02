@@ -1,10 +1,8 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
-import { filter, map, startWith } from 'rxjs';
+import { RouterOutlet } from '@angular/router';
 import { TabsModule } from 'primeng/tabs';
 import { TagModule } from 'primeng/tag';
-import { TranslatePipe } from '@vaultfolio/frontend-shared-ui';
+import { TranslatePipe, routeTabs } from '@vaultfolio/frontend-shared-ui';
 import { RequestsService } from './requests/requests.service';
 
 /**
@@ -73,26 +71,14 @@ import { RequestsService } from './requests/requests.service';
   `,
 })
 export class AdminComponent implements OnInit {
-  private readonly router = inject(Router);
   private readonly requests = inject(RequestsService);
   protected readonly openRequests = this.requests.openCount;
-  private readonly route = inject(ActivatedRoute);
 
-  protected readonly activeTab = toSignal(
-    this.router.events.pipe(
-      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
-      map(() => this.route.snapshot.firstChild?.url[0]?.path ?? 'accounts'),
-      startWith(this.route.snapshot.firstChild?.url[0]?.path ?? 'accounts'),
-    ),
-    { initialValue: 'accounts' },
-  );
+  private readonly tabs = routeTabs('accounts');
+  protected readonly activeTab = this.tabs.activeTab;
+  protected readonly onTabChange = this.tabs.onTabChange;
 
   ngOnInit(): void {
     this.requests.refreshOpenCount();
-  }
-
-  protected onTabChange(value: string | number | undefined): void {
-    if (value === undefined) return;
-    void this.router.navigate([String(value)], { relativeTo: this.route });
   }
 }

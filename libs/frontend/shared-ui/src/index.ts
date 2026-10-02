@@ -23,3 +23,4 @@ export type { ChartPalette } from './lib/chart/chart-palette';
 export { ExportControlComponent } from './lib/export-control/export-control.component';
 export { FEATURE_EXPORT_REGISTRY } from './lib/export-control/feature-export-registry.token';
 export { captureChartImage, CHART_IMAGE_CAPTURE } from './lib/export-control/chart-image-capture';
+export { routeTabs } from './lib/route-tabs/route-tabs';

@@ -1,9 +1,7 @@
-import { Component, inject } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
-import { filter, map, startWith } from 'rxjs';
+import { Component } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
 import { TabsModule } from 'primeng/tabs';
-import { TranslatePipe } from '@vaultfolio/frontend-shared-ui';
+import { TranslatePipe, routeTabs } from '@vaultfolio/frontend-shared-ui';
 
 /**
  * Holdings area (021-frontend-extension-points, US3): a "List" sub-tab (the
@@ -57,20 +55,7 @@ import { TranslatePipe } from '@vaultfolio/frontend-shared-ui';
   `,
 })
 export class HoldingsAreaComponent {
-  private readonly router = inject(Router);
-  private readonly route = inject(ActivatedRoute);
-
-  protected readonly activeTab = toSignal(
-    this.router.events.pipe(
-      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
-      map(() => this.route.snapshot.firstChild?.url[0]?.path ?? 'list'),
-      startWith(this.route.snapshot.firstChild?.url[0]?.path ?? 'list'),
-    ),
-    { initialValue: 'list' },
-  );
-
-  protected onTabChange(value: string | number | undefined): void {
-    if (value === undefined) return;
-    void this.router.navigate([String(value)], { relativeTo: this.route });
-  }
+  private readonly tabs = routeTabs('list');
+  protected readonly activeTab = this.tabs.activeTab;
+  protected readonly onTabChange = this.tabs.onTabChange;
 }
