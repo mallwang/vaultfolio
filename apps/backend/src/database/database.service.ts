@@ -63,7 +63,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  async onModuleDestroy(): Promise<void> {
+  onModuleDestroy(): void {
     this.db?.close();
   }
 
