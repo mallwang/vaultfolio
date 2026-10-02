@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
@@ -14,6 +14,7 @@ import {
   TranslatePipe,
 } from '@vaultfolio/frontend-shared-ui';
 import { ALL_EMPLOYERS, EarningsFilterStore } from './earnings-filter.store';
+import { PrivacyDialogComponent } from '../privacy-note/privacy-dialog.component';
 import { EarningsUnavailableComponent } from './earnings-unavailable.component';
 
 /**
@@ -40,65 +41,71 @@ import { EarningsUnavailableComponent } from './earnings-unavailable.component';
     IconComponent,
     TranslatePipe,
     EarningsUnavailableComponent,
+    PrivacyDialogComponent,
   ],
   providers: [EarningsFilterStore],
   template: `
     @if (store.unavailable()) {
       <app-earnings-unavailable />
     } @else {
-      <div class="toolbar">
-        <div class="toolbar__filters">
-          <label class="filter-label" for="earnings-employer-filter">{{
-            'earnings.toolbar.employer' | translate
-          }}</label>
-          <p-select
-            inputId="earnings-employer-filter"
-            data-testid="earnings-employer-filter"
-            [options]="employerOptions()"
-            optionLabel="label"
-            optionValue="value"
-            [ngModel]="store.selection()"
-            (ngModelChange)="store.select($event)"
-          />
-          <a
-            class="privacy-link"
-            routerLink="imports"
-            fragment="privacy"
-            data-testid="earnings-privacy-link"
-          >
-            <app-icon name="lock" /> {{ 'earnings.toolbar.howProtected' | translate }}
-          </a>
+      @if (hasContent()) {
+        <div class="toolbar">
+          <div class="toolbar__filters">
+            <label class="filter-label" for="earnings-employer-filter">{{
+              'earnings.toolbar.employer' | translate
+            }}</label>
+            <p-select
+              inputId="earnings-employer-filter"
+              data-testid="earnings-employer-filter"
+              [options]="employerOptions()"
+              optionLabel="label"
+              optionValue="value"
+              [ngModel]="store.selection()"
+              (ngModelChange)="store.select($event)"
+            />
+            <button
+              type="button"
+              class="privacy-link"
+              data-testid="earnings-privacy-link"
+              (click)="privacyOpen.set(true)"
+            >
+              <app-icon name="lock" /> {{ 'earnings.toolbar.howProtected' | translate }}
+            </button>
+            <app-earnings-privacy-dialog [(visible)]="privacyOpen" />
+          </div>
+          <div class="toolbar__actions">
+            <app-export-control featureId="earnings" severity="info" />
+            <a pButton routerLink="import" data-testid="earnings-import-button">
+              <app-icon name="upload" /> {{ 'earnings.toolbar.importDocuments' | translate }}
+            </a>
+          </div>
         </div>
-        <div class="toolbar__actions">
-          <app-export-control featureId="earnings" severity="info" />
-          <a pButton routerLink="import" data-testid="earnings-import-button">
-            <app-icon name="upload" /> {{ 'earnings.toolbar.importDocuments' | translate }}
-          </a>
-        </div>
-      </div>
+      }
 
       <p-tabs [value]="activeTab()" (valueChange)="onTabChange($event)" scrollable>
-        <p-tablist>
-          <p-tab value="overview" data-testid="earnings-tab-overview">{{
-            'earnings.tabs.overview' | translate
-          }}</p-tab>
-          <p-tab value="tables" data-testid="earnings-tab-tables">{{
-            'earnings.tabs.tables' | translate
-          }}</p-tab>
-          <p-tab value="check" data-testid="earnings-tab-check">
-            {{ 'earnings.tabs.check' | translate }}
-            @if (store.dataCheckIssues() > 0) {
-              <p-badge
-                [value]="store.dataCheckIssues()"
-                severity="warn"
-                data-testid="earnings-check-badge"
-              />
-            }
-          </p-tab>
-          <p-tab value="imports" data-testid="earnings-tab-imports">{{
-            'earnings.tabs.imports' | translate
-          }}</p-tab>
-        </p-tablist>
+        @if (hasContent()) {
+          <p-tablist>
+            <p-tab value="overview" data-testid="earnings-tab-overview">{{
+              'earnings.tabs.overview' | translate
+            }}</p-tab>
+            <p-tab value="tables" data-testid="earnings-tab-tables">{{
+              'earnings.tabs.tables' | translate
+            }}</p-tab>
+            <p-tab value="check" data-testid="earnings-tab-check">
+              {{ 'earnings.tabs.check' | translate }}
+              @if (store.dataCheckIssues() > 0) {
+                <p-badge
+                  [value]="store.dataCheckIssues()"
+                  severity="warn"
+                  data-testid="earnings-check-badge"
+                />
+              }
+            </p-tab>
+            <p-tab value="imports" data-testid="earnings-tab-imports">{{
+              'earnings.tabs.imports' | translate
+            }}</p-tab>
+          </p-tablist>
+        }
         <p-tabpanels>
           <router-outlet />
         </p-tabpanels>
@@ -130,6 +137,11 @@ import { EarningsUnavailableComponent } from './earnings-unavailable.component';
       color: var(--p-text-muted-color);
     }
     .privacy-link {
+      border: 0;
+      padding: 0;
+      background: none;
+      cursor: pointer;
+      font-family: inherit;
       display: inline-flex;
       align-items: center;
       gap: 0.25rem;
@@ -162,6 +174,8 @@ export class EarningsAreaComponent {
     ];
   });
 
+  protected readonly privacyOpen = signal(false);
+
   protected readonly activeTab = toSignal(
     this.router.events.pipe(
       filter((event): event is NavigationEnd => event instanceof NavigationEnd),
@@ -170,6 +184,24 @@ export class EarningsAreaComponent {
     ),
     { initialValue: 'overview' },
   );
+
+  /**
+   * Without data only the Overview (empty state, with its own import button) is useful: the toolbar
+   * and the other tabs would all be empty. While the first overview loads they stay hidden; on a load
+   * error they stay available so Imports (and its delete controls) remain reachable.
+   */
+  protected readonly hasContent = computed(
+    () => this.store.hasData() === true || this.store.loadError(),
+  );
+
+  constructor() {
+    // E.g. after "delete all data" on Imports: the tab disappears, so leave it.
+    effect(() => {
+      if (this.store.hasData() === false && this.activeTab() !== 'overview') {
+        void this.router.navigate(['overview'], { relativeTo: this.route, replaceUrl: true });
+      }
+    });
+  }
 
   protected onTabChange(value: string | number | undefined): void {
     if (value === undefined) return;

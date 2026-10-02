@@ -425,6 +425,9 @@ interface FigureGroup {
       justify-content: center;
       gap: 0.5rem;
     }
+    .dropzone .chips {
+      margin-top: 0.75rem;
+    }
     .progress {
       display: grid;
       grid-template-columns: auto 1fr;

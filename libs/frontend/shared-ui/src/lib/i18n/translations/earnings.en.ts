@@ -365,9 +365,14 @@ export const earningsEn: TranslationDictionary = {
     hintEngineUnavailable: 'Text recognition could not be started on this device.',
   },
   widget: {
-    title: 'Earnings {{year}}',
+    title: '{{year}} · {{months}}',
     open: 'Open',
     months: 'Jan–{{month}}',
+    chart: 'Gross per year',
+    growth: 'Growth {{from}}→{{to}}',
+    perMonth: 'Avg. per month',
+    readout: '{{year}} · Gross {{value}}',
+    issues: '{{count}} to review in Data check',
   },
   export: {
     title: 'Earnings',

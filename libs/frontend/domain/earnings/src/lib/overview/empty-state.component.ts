@@ -3,7 +3,7 @@ import { RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { IconComponent, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
-import { PrivacyNoteComponent } from '../privacy-note/privacy-note.component';
+import { PrivacyInfoComponent } from '../privacy-note/privacy-info.component';
 
 /** Empty state (FR-034): values are only ever read from documents — nothing can be typed in. */
 @Component({
@@ -14,7 +14,7 @@ import { PrivacyNoteComponent } from '../privacy-note/privacy-note.component';
     TagModule,
     IconComponent,
     TranslatePipe,
-    PrivacyNoteComponent,
+    PrivacyInfoComponent,
   ],
   template: `
     <div class="empty" data-testid="earnings-empty-state">
@@ -25,12 +25,13 @@ import { PrivacyNoteComponent } from '../privacy-note/privacy-note.component';
         <app-icon name="upload" /> {{ 'earnings.toolbar.importDocuments' | translate }}
       </a>
       <div class="chips">
+        <span class="supported">{{ 'earnings.import.supported' | translate }}:</span>
         <p-tag severity="secondary" [value]="'earnings.formatChips.sap' | translate" />
         <p-tag severity="secondary" [value]="'earnings.formatChips.certificate' | translate" />
         <p-tag severity="secondary" [value]="'earnings.formatChips.export' | translate" />
       </div>
     </div>
-    <app-earnings-privacy-note />
+    <app-earnings-privacy-info />
   `,
   styles: `
     :host {
@@ -69,8 +70,15 @@ import { PrivacyNoteComponent } from '../privacy-note/privacy-note.component';
     .chips {
       display: flex;
       flex-wrap: wrap;
+      align-items: center;
       justify-content: center;
       gap: 0.5rem;
+      margin-top: 0.75rem;
+      width: max-content;
+      max-width: 100vw;
+    }
+    .supported {
+      color: var(--p-text-muted-color);
     }
   `,
 })

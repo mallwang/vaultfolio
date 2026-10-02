@@ -10,15 +10,15 @@ interface PrivacyCard {
 /**
  * The privacy note (FR-035, FR-042): what happens to the documents and figures, who can see them
  * (administrators included), that the operator holds the key, the optional anonymized parser
- * request (033, FR-044), and how to delete. Shown on the
- * Imports tab (anchor `#privacy`) and in the empty state.
+ * request (033, FR-044), and how to delete. Content only: shown inside `PrivacyDialogComponent`,
+ * which the Imports tab and the empty state open from a compact `PrivacyInfoComponent` teaser and
+ * the toolbar opens from its "How your data is protected" link.
  */
 @Component({
   selector: 'app-earnings-privacy-note',
   imports: [IconComponent, TranslatePipe],
   template: `
     <section class="privacy" data-testid="earnings-privacy-note">
-      <h2>{{ 'earnings.privacy.title' | translate }}</h2>
       <p class="sub">{{ 'earnings.privacy.sub' | translate }}</p>
       <div class="cards">
         @for (card of cards; track card.titleKey) {
@@ -35,19 +35,15 @@ interface PrivacyCard {
     </section>
   `,
   styles: `
-    h2 {
-      margin: 0;
-      font-size: 1.1rem;
-    }
     .sub,
     .hint {
-      margin: 0.25rem 0 0;
+      margin: 0;
       color: var(--p-text-muted-color);
       font-size: 0.875rem;
     }
     .cards {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
       gap: 0.75rem;
       margin: 0.75rem 0;
     }

@@ -1,16 +1,5 @@
-import {
-  AfterViewInit,
-  Component,
-  DestroyRef,
-  ElementRef,
-  OnInit,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
 import type { EarningsEmployer, EarningsImportSummary } from '@vaultfolio/api-contract';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -23,10 +12,10 @@ import { I18nService, IconComponent, TranslatePipe } from '@vaultfolio/frontend-
 import { EarningsFilterStore } from '../earnings-area/earnings-filter.store';
 import { EarningsService } from '../earnings.service';
 import { fill, formatDate, formatMonth } from '../earnings-format';
-import { PrivacyNoteComponent } from '../privacy-note/privacy-note.component';
+import { PrivacyInfoComponent } from '../privacy-note/privacy-info.component';
 
 /**
- * Imports tab (design.md "Imports tab"): privacy note (anchor `#privacy`, FR-035/FR-042), import
+ * Imports tab (design.md "Imports tab"): privacy teaser opening the note as a modal (FR-035/FR-042), import
  * history with delete (FR-021, FR-037), employer display names (FR-020 — figures are never
  * editable) and the danger zone to delete all earnings data (FR-038). The history is grouped by
  * the year its data belongs to — all years collapsed until opened — so it stays short.
@@ -43,7 +32,7 @@ import { PrivacyNoteComponent } from '../privacy-note/privacy-note.component';
     ToastModule,
     IconComponent,
     TranslatePipe,
-    PrivacyNoteComponent,
+    PrivacyInfoComponent,
   ],
   providers: [ConfirmationService, MessageService],
   template: `
@@ -57,7 +46,7 @@ import { PrivacyNoteComponent } from '../privacy-note/privacy-note.component';
       <ng-template #icon><app-icon name="warning" /></ng-template>
     </p-confirmdialog>
 
-    <app-earnings-privacy-note id="privacy" />
+    <app-earnings-privacy-info />
 
     <section class="panel">
       <div class="panel__head">
@@ -305,15 +294,12 @@ import { PrivacyNoteComponent } from '../privacy-note/privacy-note.component';
     }
   `,
 })
-export class EarningsImportsComponent implements OnInit, AfterViewInit {
+export class EarningsImportsComponent implements OnInit {
   private readonly api = inject(EarningsService);
   private readonly filter = inject(EarningsFilterStore, { optional: true });
   private readonly i18n = inject(I18nService);
   private readonly confirmation = inject(ConfirmationService);
   private readonly messages = inject(MessageService);
-  private readonly route = inject(ActivatedRoute);
-  private readonly host = inject(ElementRef<HTMLElement>);
-  private readonly destroyRef = inject(DestroyRef);
 
   protected readonly imports = signal<EarningsImportSummary[]>([]);
   /** Imports with the year they are grouped under; within a year newest period, then newest import first. */
@@ -339,16 +325,6 @@ export class EarningsImportsComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.load();
-  }
-
-  ngAfterViewInit(): void {
-    this.route.fragment.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((fragment) => {
-      if (fragment === 'privacy') {
-        (this.host.nativeElement as HTMLElement)
-          .querySelector('#privacy')
-          ?.scrollIntoView?.({ block: 'start' });
-      }
-    });
   }
 
   protected isOpen(year: number): boolean {
