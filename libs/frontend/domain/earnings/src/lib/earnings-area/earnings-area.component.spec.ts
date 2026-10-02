@@ -3,7 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import type { Routes } from '@angular/router';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import type { EarningsOverview } from '@vaultfolio/api-contract';
 import { EarningsAreaComponent } from './earnings-area.component';
@@ -88,9 +88,7 @@ describe('EarningsAreaComponent', () => {
     expect(root.querySelector('[data-testid="earnings-import-button"]')?.getAttribute('href')).toBe(
       '/earnings/import',
     );
-    expect(root.querySelector('[data-testid="earnings-privacy-link"]')?.getAttribute('href')).toBe(
-      '/earnings/imports#privacy',
-    );
+    expect(root.querySelector('[data-testid="earnings-privacy-link"]')).not.toBeNull();
     expect(root.querySelector('[data-testid="earnings-check-badge"]')).toBeNull();
   });
 
@@ -102,6 +100,25 @@ describe('EarningsAreaComponent', () => {
       '2',
     );
     expect(root.textContent).toContain('check content');
+  });
+
+  it('shows only the Overview content without data — no toolbar, export or other tabs', async () => {
+    const harness = await open('/earnings', overview({ hasData: false }));
+    const root = harness.routeNativeElement as HTMLElement;
+
+    expect(root.textContent).toContain('overview content');
+    expect(root.querySelector('[data-testid="earnings-employer-filter"]')).toBeNull();
+    expect(root.querySelector('[data-testid="earnings-import-button"]')).toBeNull();
+    expect(root.querySelector('[data-testid="earnings-privacy-link"]')).toBeNull();
+    expect(root.querySelector('[data-testid="earnings-tab-tables"]')).toBeNull();
+    expect(root.querySelector('[data-testid="earnings-tab-imports"]')).toBeNull();
+  });
+
+  it('leaves a hidden tab for the Overview when the data is gone', async () => {
+    const harness = await open('/earnings/imports', overview({ hasData: false }));
+    await harness.fixture.whenStable();
+
+    expect(TestBed.inject(Router).url).toBe('/earnings/overview');
   });
 
   it('passes the selected employer to the overview request', async () => {

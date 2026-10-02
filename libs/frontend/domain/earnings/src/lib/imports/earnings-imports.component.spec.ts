@@ -118,7 +118,7 @@ describe('EarningsImportsComponent', () => {
     byTestId(root, 'earnings-imports-toggle-all')?.click();
     fixture.detectChanges();
 
-    expect(root.querySelector('#privacy')).not.toBeNull();
+    expect(byTestId(root, 'earnings-privacy-open')).not.toBeNull();
     const payslip = byTestId(root, 'earnings-imports-row-i1')?.textContent ?? '';
     expect(payslip).toContain('Payslip PDF');
     expect(payslip).toContain('Jul 2026 – Sep 2026');

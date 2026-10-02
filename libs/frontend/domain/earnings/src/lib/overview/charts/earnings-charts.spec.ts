@@ -15,6 +15,7 @@ const COLORS = {
   social: '#0d9488',
   regular: '#6366f1',
   bonus: '#dc2626',
+  text: '#1e293b',
 };
 const LABELS: ChartLabels = {
   regular: 'Regular pay',

@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
-import type { EarningsOverview, LatestYearFigures } from '@vaultfolio/api-contract';
+import type { EarningsOverview, LatestYearFigures, YearlyPoint } from '@vaultfolio/api-contract';
 import { EarningsDashboardWidgetComponent } from './earnings-dashboard-widget.component';
 
 function figures(partial: Partial<LatestYearFigures> = {}): LatestYearFigures {
@@ -14,6 +14,21 @@ function figures(partial: Partial<LatestYearFigures> = {}): LatestYearFigures {
     bonus: '0.00',
     netRatio: '0.6160',
     ...partial,
+  };
+}
+
+function yearly(year: number, gross: string): YearlyPoint {
+  return {
+    year,
+    monthsEmployed: 12,
+    gross,
+    regular: gross,
+    bonus: '0.00',
+    net: '0.00',
+    taxes: '0.00',
+    social: '0.00',
+    taxRatio: '0',
+    socialRatio: '0',
   };
 }
 
@@ -56,7 +71,7 @@ describe('EarningsDashboardWidgetComponent', () => {
   it('shows gross, net with its change and the net ratio of the latest year', () => {
     const root = render((req) => req.flush(OVERVIEW));
 
-    expect(root.textContent).toContain('Earnings 2026');
+    expect(root.textContent).toContain('2026 · Jan–Sep');
     expect(root.querySelector('[data-testid="earnings-widget-gross"]')?.textContent).toContain(
       '€45,000',
     );
@@ -64,10 +79,56 @@ describe('EarningsDashboardWidgetComponent', () => {
       '+€1,000',
     );
     expect(root.querySelector('[data-testid="earnings-widget-netRatio"]')?.textContent).toContain(
-      'Jan–Sep',
+      '61.6%',
     );
     expect(root.querySelector('[data-testid="earnings-widget-open"]')?.getAttribute('href')).toBe(
       '/app/earnings',
+    );
+  });
+
+  it('shows the yearly gross bars, the growth between complete years and the monthly average', () => {
+    const root = render((req) =>
+      req.flush({
+        ...OVERVIEW,
+        yearly: [yearly(2024, '80000.00'), yearly(2025, '86400.00'), yearly(2026, '45000.00')],
+        dataCheckIssues: 2,
+      }),
+    );
+
+    expect(root.querySelectorAll('[data-testid^="earnings-widget-bar-"]')).toHaveLength(3);
+    // The running year is the default readout and flagged as partial.
+    expect(root.querySelector('[data-testid="earnings-widget-readout"]')?.textContent).toContain(
+      '2026 · Gross €45,000 (Jan–Sep)',
+    );
+    expect(root.querySelector('[data-testid="earnings-widget-growth"]')?.textContent).toContain(
+      'Growth 2024→2025',
+    );
+    expect(root.querySelector('[data-testid="earnings-widget-growth"]')?.textContent).toContain(
+      '+8.0%',
+    );
+    expect(root.querySelector('[data-testid="earnings-widget-permonth"]')?.textContent).toContain(
+      '€5,000',
+    );
+    expect(root.querySelector('[data-testid="earnings-widget-issues"]')?.getAttribute('href')).toBe(
+      '/app/earnings/check',
+    );
+  });
+
+  it('updates the readout for the hovered bar', () => {
+    const fixture = TestBed.createComponent(EarningsDashboardWidgetComponent);
+    fixture.detectChanges();
+    http
+      .expectOne('/api/earnings/overview')
+      .flush({ ...OVERVIEW, yearly: [yearly(2025, '86400.00'), yearly(2026, '45000.00')] });
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+
+    root
+      .querySelector('[data-testid="earnings-widget-bar-2025"]')
+      ?.dispatchEvent(new Event('mouseenter'));
+    fixture.detectChanges();
+    expect(root.querySelector('[data-testid="earnings-widget-readout"]')?.textContent).toContain(
+      '2025 · Gross €86,400',
     );
   });
 

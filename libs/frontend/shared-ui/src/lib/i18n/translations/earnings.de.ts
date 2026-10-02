@@ -372,9 +372,14 @@ export const earningsDe: TranslationDictionary = {
     hintEngineUnavailable: 'Die Texterkennung konnte auf diesem Gerät nicht gestartet werden.',
   },
   widget: {
-    title: 'Einkommen {{year}}',
+    title: '{{year}} · {{months}}',
     open: 'Öffnen',
     months: 'Jan–{{month}}',
+    chart: 'Brutto je Jahr',
+    growth: 'Wachstum {{from}}→{{to}}',
+    perMonth: 'Ø pro Monat',
+    readout: '{{year}} · Brutto {{value}}',
+    issues: '{{count}} in der Datenprüfung zu prüfen',
   },
   export: {
     title: 'Einkommensentwicklung',

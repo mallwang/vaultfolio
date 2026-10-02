@@ -36,6 +36,9 @@ export interface EchartClickEvent {
   seriesName?: string;
 }
 
+/** Translucent slate: a recessive grid that reads on both the light and the dark card. */
+const GRID_COLOR = 'rgba(148, 163, 184, 0.25)';
+
 let echartsModulePromise: Promise<typeof EChartsNamespace> | undefined;
 
 function loadEcharts(): Promise<typeof EChartsNamespace> {
@@ -175,6 +178,12 @@ export class EchartComponent implements AfterViewInit, OnChanges, OnDestroy {
       // explicitly here — same reason the pie's pointer labels needed
       // their own color (holdings-distribution.component.ts).
       legend: { textStyle: { color: palette.textColor } },
+      // Axis labels likewise default to a fixed gray (#6E7079) that is unreadable on the dark card.
+      xAxis: { axisLabel: { color: palette.textColor } },
+      yAxis: {
+        axisLabel: { color: palette.textColor },
+        splitLine: { lineStyle: { color: GRID_COLOR } },
+      },
       tooltip: {
         backgroundColor: palette.backgroundColor,
         textStyle: { color: palette.textColor },

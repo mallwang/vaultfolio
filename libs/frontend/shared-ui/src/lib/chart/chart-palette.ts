@@ -68,25 +68,27 @@ export type EarningsSeriesRole = 'net' | 'taxes' | 'social' | 'regular' | 'bonus
  * (lightness band, chroma, CVD and normal-vision separation, >= 3:1 against the chart surface)
  * for the groups that share a chart — net/taxes/social (month-by-month stack, deduction ratios)
  * and regular/bonus (gross per year) — against `#ffffff` (light) and `#1e293b` (dark). Net
- * (blue) and regular (indigo = app primary) never share a chart. Dark mode uses its own steps
- * for net and bonus to stay inside the dark lightness band.
+ * and regular are both teal-600 (the closest step to the app primary that clears the chroma
+ * floor; teal-700 reads gray) and never share a chart. Bonus shares taxes' orange: within the
+ * month-by-month chart it is only a dot above the stack, and the legend names it. Dark mode uses
+ * its own step for social to stay inside the dark lightness band.
  */
 const EARNINGS_SERIES_COLORS: Readonly<
   Record<Theme, Readonly<Record<EarningsSeriesRole, string>>>
 > = {
   light: {
-    net: '#2563eb',
+    net: '#0d9488',
     taxes: '#ea580c',
-    social: '#0d9488',
-    regular: '#6366f1',
-    bonus: '#dc2626',
+    social: '#7c3aed',
+    regular: '#0d9488',
+    bonus: '#ea580c',
   },
   dark: {
-    net: '#3b82f6',
+    net: '#0d9488',
     taxes: '#ea580c',
-    social: '#0d9488',
-    regular: '#6366f1',
-    bonus: '#ef4444',
+    social: '#8b5cf6',
+    regular: '#0d9488',
+    bonus: '#ea580c',
   },
 };
 

@@ -1,8 +1,9 @@
 import type { EChartsOption } from 'echarts';
 import type { MonthlyPoint, YearlyPoint } from '@vaultfolio/api-contract';
 
+/** Series colors per role, plus the theme's text color for in-chart value labels. */
 export type EarningsColors = Readonly<
-  Record<'net' | 'taxes' | 'social' | 'regular' | 'bonus', string>
+  Record<'net' | 'taxes' | 'social' | 'regular' | 'bonus' | 'text', string>
 >;
 
 /** Translated series names. */
@@ -95,6 +96,11 @@ export function grossPerYearOption(
         label: {
           show: true,
           position: 'top',
+          // Labels don't pick up the theme text color, and ECharts outlines them by default,
+          // which reads as a shadow in dark mode.
+          color: colors.text,
+          textBorderWidth: 0,
+          textShadowBlur: 0,
           formatter: (p) => format.moneyWhole(regular[p.dataIndex] + bonus[p.dataIndex]),
         },
       },
@@ -185,14 +191,24 @@ export function monthlyOption(
         data: periods.map((p) => format.month(p)),
         axisLabel: { hideOverlap: true },
       },
-      yAxis: { type: 'value', axisLabel: { formatter: (v: number) => format.moneyWhole(v) } },
+      yAxis: {
+        type: 'value',
+        min: 0,
+        axisLabel: { formatter: (v: number) => format.moneyWhole(v) },
+      },
       series: [
         {
           ...bar('net', labels.net, colors.net),
           markLine: {
             symbol: 'none',
             silent: true,
-            label: { formatter: labels.employerChange, position: 'insideEndTop' },
+            label: {
+              formatter: labels.employerChange,
+              position: 'insideEndTop',
+              color: colors.text,
+              textBorderWidth: 0,
+              textShadowBlur: 0,
+            },
             lineStyle: { type: 'dashed', color: '#64748b' },
             data: changes.map((c) => ({ xAxis: format.month(c) })),
           },
@@ -262,6 +278,8 @@ export function ratiosOption(
       show: true,
       formatter: (p: { value: unknown }) => format.percent(Number(p.value)),
       color: 'inherit',
+      textBorderWidth: 0,
+      textShadowBlur: 0,
     },
   });
   return {
