@@ -111,7 +111,8 @@
       "pattern": "v{version}"
     },
     "version": {
-      "conventionalCommits": true
+      "conventionalCommits": true,
+      "versionActions": "./tools/release/version-actions.js"
     },
     "changelog": {
       "workspaceChangelog": {

@@ -136,7 +136,10 @@ After the release command completes:
 2. Read `CHANGELOG.md` at the workspace root and confirm a new section header exists for that
    version (e.g. `## 0.2.0 (2026-08-28)`).
 3. Run `git tag -l "v<version>"` and confirm the tag exists.
-4. Confirm the GitHub Release exists — the release command's own output includes the
+4. Confirm the release commit also contains `api/openapi.yml` (`git show --stat HEAD`) with
+   `info.version` bumped to the new version — `tools/release/version-actions.js` does this as part
+   of the release, so no follow-up commit is needed.
+5. Confirm the GitHub Release exists — the release command's own output includes the
    `CREATE https://github.com/<org>/<repo>/releases/tag/v<version>` line without a `[dry-run]`
    suffix; report that URL back to the developer.
 
@@ -145,33 +148,7 @@ If any check fails, report the discrepancy clearly and stop:
 > "Release verification failed: `<specific issue>`. Please investigate — the tag/push/GitHub
 > Release may be in a partial state."
 
-### Step 8 — Refresh the OpenAPI spec
-
-`api/openapi.yml` embeds `info.version` (read from the app's `package.json`), so the version bump
-from Step 6 makes it stale, and the `backend:openapi:check` CI job fails on `main` until it is
-regenerated. Nx Release has already committed, tagged and pushed by now, so this has to be a
-follow-up commit:
-
-```bash
-npx nx run backend:openapi
-git status --porcelain api/openapi.yml
-```
-
-- If `api/openapi.yml` is unchanged, nothing to do — continue to Step 9.
-- If it changed, the diff should be exactly the one `version:` line, bumped to the new release
-  version. If anything else differs, stop and show the diff to the developer instead of
-  committing. Otherwise commit and push:
-
-```bash
-git add api/openapi.yml
-git commit -m "chore(openapi): regenerate spec for v<version>"
-git push
-```
-
-Then confirm `npx nx run backend:openapi:check` passes. (The release commit itself will show a
-failing `openapi:check` in CI for the few minutes until this commit lands — that is expected.)
-
-### Step 9 — Done
+### Step 8 — Done
 
 Report the new version number and the GitHub Release URL to the developer. No further action is
-needed — the push and the GitHub Release were handled in Step 6, the spec refresh in Step 8.
+needed — the push and the GitHub Release were already handled in Step 6.
