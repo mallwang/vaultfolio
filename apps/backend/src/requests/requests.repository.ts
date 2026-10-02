@@ -85,7 +85,7 @@ interface RequestRow {
   last_downloaded_at: string | null;
 }
 
-const CLOSED: readonly RequestStatusDto[] = ['DONE', 'REJECTED'];
+const CLOSED: ReadonlySet<RequestStatusDto> = new Set(['DONE', 'REJECTED']);
 
 const DETAIL_SELECT = `
   SELECT r.*,
@@ -252,7 +252,7 @@ export class RequestsRepository {
       const status = change.status ?? current.status;
       const note = change.note ?? current.note;
       let closedAt = current.closedAt;
-      if (CLOSED.includes(status)) closedAt = closedAt ?? nowIso;
+      if (CLOSED.has(status)) closedAt = closedAt ?? nowIso;
       else closedAt = null;
       this.database.querySync(
         `UPDATE requests SET status = $1, note = $2, handled_by = $3, handled_at = $4, closed_at = $5 WHERE id = $6`,

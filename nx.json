@@ -80,7 +80,12 @@
     "@angular/build:unit-test": {
       "cache": true,
       "outputs": ["{workspaceRoot}/coverage/{projectName}"],
-      "inputs": ["default", "^production"],
+      "inputs": [
+        "default",
+        "^production",
+        "{workspaceRoot}/vitest-base.config.ts",
+        "{workspaceRoot}/tools/vitest-global-setup.ts"
+      ],
       "options": {
         "coverageReporters": ["lcov", "text-summary"],
         "runnerConfig": true

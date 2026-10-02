@@ -125,7 +125,14 @@ Läuft nicht lokal, gehört aber zum selben Wartbarkeits-/Sicherheitsnetz:
   Quality Gate des Projekts geprüft (Badges in der [README](../README.md)); siehe
   [sonar-project.properties](../sonar-project.properties) für die Scan-Konfiguration. Nutze den
   `speckit-sonar-validate`-Claude-Code-Skill, um den Quality Gate für den aktuellen Branch/PR zu
-  prüfen, bevor eine Änderung als fertig gilt.
+  prüfen, bevor eine Änderung als fertig gilt. Um Findings _vor_ dem Push zu finden, führt
+  `npm run sonar:local` (`-- --cov` aktualisiert vorher die Coverage) die Analyse gegen einen
+  lokalen SonarQube Community Build in Docker aus (siehe
+  [docker-compose.sonar.yml](../docker-compose.sonar.yml)); dafür wird einmalig ein
+  `SONAR_LOCAL_TOKEN` benötigt, und es wird nichts in die Cloud hochgeladen. Der Community Build
+  hinkt der Cloud bei neu veröffentlichten Regeln hinterher – er ist also ein Vorfilter, kein
+  Ersatz. Zusätzlich gibt es ihn als optionalen `after_implement`-Speckit-Hook
+  (`speckit-sonar-local`).
 
 ## Texterkennung auf dem Gerät (Scans)
 

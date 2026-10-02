@@ -36,7 +36,7 @@ function joinWords(words: readonly { text: string }[]): JoinedLine {
       wordOf.push(-1);
     }
     text += word.text;
-    for (let i = 0; i < word.text.length; i += 1) wordOf.push(index);
+    wordOf.push(...Array.from({ length: word.text.length }, () => index));
   });
   return { text, wordOf };
 }
@@ -107,8 +107,8 @@ function taxIdCheckDigit(first10: number[]): number {
 }
 
 function validTaxId(digits: string): boolean {
-  if (digits.length !== 11 || digits[0] === '0') return false;
-  const first10 = [...digits.slice(0, 10)].map(Number);
+  if (digits.length !== 11 || digits.startsWith('0')) return false;
+  const first10 = Array.from(digits.slice(0, 10), Number);
   const counts = new Map<number, number>();
   for (const digit of first10) counts.set(digit, (counts.get(digit) ?? 0) + 1);
   const repeated = [...counts.values()].filter((count) => count > 1);

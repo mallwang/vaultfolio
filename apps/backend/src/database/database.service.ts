@@ -63,7 +63,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  async onModuleDestroy(): Promise<void> {
+  onModuleDestroy(): void {
     this.db?.close();
   }
 
@@ -532,7 +532,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     const table = db
       .prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'holdings'")
       .get() as { sql: string } | undefined;
-    if (!table || !table.sql.includes("'GOLD'")) {
+    if (!table?.sql.includes("'GOLD'")) {
       return;
     }
     db.exec('BEGIN');
@@ -711,7 +711,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     return db.transaction(() => {
       const result = fn();
       if (result instanceof Promise) {
-        throw new Error('DatabaseService.transaction() needs a synchronous function');
+        throw new TypeError('DatabaseService.transaction() needs a synchronous function');
       }
       return result;
     })();

@@ -6,7 +6,7 @@ import type { ResolvedFeatureExport } from './feature-export-definition.js';
  */
 function escapeCsvField(value: string): string {
   if (/[",\r\n]/.test(value)) {
-    return `"${value.replace(/"/g, '""')}"`;
+    return `"${value.replaceAll('"', '""')}"`;
   }
   return value;
 }

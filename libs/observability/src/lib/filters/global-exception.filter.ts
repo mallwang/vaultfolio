@@ -29,12 +29,9 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     let response: Response;
     try {
       response = host.switchToHttp().getResponse<Response>();
-    } catch (unrecoverable) {
+    } catch (error_) {
       // Nothing left to respond with — log and give up; this should never happen in practice.
-      this.logger.error(
-        'GlobalExceptionFilter could not obtain the response object',
-        unrecoverable,
-      );
+      this.logger.error('GlobalExceptionFilter could not obtain the response object', error_);
       return;
     }
 

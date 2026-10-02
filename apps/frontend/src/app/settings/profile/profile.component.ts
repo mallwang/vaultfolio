@@ -328,7 +328,7 @@ export class ProfileComponent implements OnInit {
     this.profileService.deleteAccount().subscribe({
       next: () => {
         this.currentUser.setUnauthenticated();
-        this.router.navigateByUrl('/sign-in');
+        void this.router.navigateByUrl('/sign-in');
       },
       error: (error: unknown) => {
         this.deleting.set(false);

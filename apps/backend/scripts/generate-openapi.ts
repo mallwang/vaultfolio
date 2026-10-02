@@ -32,7 +32,7 @@ const OUTPUT_PATH = join(__dirname, '..', '..', '..', 'api', 'openapi.yml');
 async function buildApp(): Promise<INestApplication> {
   const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
     .overrideProvider(DatabaseService)
-    .useValue({ ping: async () => true })
+    .useValue({ ping: () => Promise.resolve(true) })
     .compile();
 
   const app = moduleRef.createNestApplication();

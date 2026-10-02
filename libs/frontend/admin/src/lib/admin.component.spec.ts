@@ -91,7 +91,7 @@ describe('AdminComponent', () => {
     fixture.componentInstance['onTabChange']('invitations');
 
     expect(navigate).toHaveBeenCalledWith(['invitations'], {
-      relativeTo: fixture.componentInstance['route'],
+      relativeTo: TestBed.inject(ActivatedRoute),
     });
   });
 

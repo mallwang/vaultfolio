@@ -66,7 +66,7 @@ export class ResetPasswordComponent implements OnInit {
   }
 
   private goToInvalid(): void {
-    this.router.navigateByUrl('/account/link-invalid');
+    void this.router.navigateByUrl('/account/link-invalid');
   }
 
   protected submit(): void {
@@ -91,7 +91,7 @@ export class ResetPasswordComponent implements OnInit {
       .subscribe({
         next: (user) => {
           this.currentUser.setAuthenticated(user);
-          this.router.navigateByUrl('/app/dashboard');
+          void this.router.navigateByUrl('/app/dashboard');
         },
         error: (error: unknown) => {
           this.submitting.set(false);

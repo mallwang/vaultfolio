@@ -1,9 +1,7 @@
 import { Component, computed, inject } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
-import { filter, map, startWith } from 'rxjs';
+import { RouterOutlet } from '@angular/router';
 import { TabsModule } from 'primeng/tabs';
-import { TranslatePipe } from '@vaultfolio/frontend-shared-ui';
+import { TranslatePipe, routeTabs } from '@vaultfolio/frontend-shared-ui';
 import { isDomainEntitled } from '@vaultfolio/frontend-domain-access';
 import { CurrentUserStore } from '../auth/current-user.store';
 import { SETTINGS_TAB_CONTRIBUTIONS } from './settings-tabs.registry';
@@ -35,8 +33,6 @@ import { SETTINGS_TAB_CONTRIBUTIONS } from './settings-tabs.registry';
   styleUrl: './settings.component.css',
 })
 export class SettingsComponent {
-  private readonly router = inject(Router);
-  private readonly route = inject(ActivatedRoute);
   private readonly currentUserStore = inject(CurrentUserStore);
 
   protected readonly visibleTabs = computed(() => {
@@ -44,17 +40,7 @@ export class SettingsComponent {
     return SETTINGS_TAB_CONTRIBUTIONS.filter((tab) => isDomainEntitled(user, tab.domainId));
   });
 
-  protected readonly activeTab = toSignal(
-    this.router.events.pipe(
-      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
-      map(() => this.route.snapshot.firstChild?.url[0]?.path ?? 'profile'),
-      startWith(this.route.snapshot.firstChild?.url[0]?.path ?? 'profile'),
-    ),
-    { initialValue: 'profile' },
-  );
-
-  protected onTabChange(value: string | number | undefined): void {
-    if (value === undefined) return;
-    this.router.navigate([String(value)], { relativeTo: this.route });
-  }
+  private readonly tabs = routeTabs('profile');
+  protected readonly activeTab = this.tabs.activeTab;
+  protected readonly onTabChange = this.tabs.onTabChange;
 }
