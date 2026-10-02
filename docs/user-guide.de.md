@@ -269,8 +269,22 @@ Klicke auf **Dokumente importieren** und lege Dateien auf der Seite ab (oder nut
 Jede Datei bekommt eine Zeile mit ihrem Ergebnis: **Neu**, **Ersetzt** (eine neuere
 Fassung bereits importierter Werte), **Duplikat** (bereits importiert – übersprungen)
 oder **Abgelehnt** mit Begründung, etwa wenn Brutto − Steuern − Sozialversicherung nicht
-das Netto ergibt oder ein PDF keinen automatisch auswertbaren Text enthält (z. B. ein Scan). Abgelehnte Dateien werden nie
-gespeichert.
+das Netto ergibt oder ein PDF keinen automatisch auswertbaren Text enthält und du die Erkennung
+ablehnst (siehe unten). Abgelehnte Dateien werden nie gespeichert.
+
+**Scans und PDFs ohne Text.** Enthält ein PDF keinen automatisch lesbaren Text (ein Scan oder ein
+PDF, dessen Text in Grafiken umgewandelt wurde), zeigt seine Zeile **Entscheidung nötig**. Mit
+**Text auf diesem Gerät lesen** startest du die Texterkennung: Datei und Text bleiben in deinem
+Browser, sie funktioniert offline, nichts wird hochgeladen, gespeichert oder zwischengespeichert,
+und ohne deine Zustimmung (pro Datei) startet nichts. Ein Fortschrittsbalken zeigt die gerade
+gelesene Seite, du kannst jederzeit abbrechen. Grenzen: nur deutsche Dokumente, bis zu 5 Seiten.
+Der erkannte Text durchläuft dieselben Leser und dieselben Rechenprüfungen wie jedes andere PDF,
+aber **Ziffern können falsch gelesen werden** (etwa ein verlorenes Dezimalkomma): So gelesene
+Dateien tragen das Kennzeichen **Texterkennung** und einen Hinweis, jeden Betrag zu prüfen; eine
+fehlgeschlagene Prüfung öffnet wie gewohnt die Korrekturansicht, und das Kennzeichen bleibt in der
+Importliste sichtbar. Wählst du **Jetzt nicht**, brichst ab, wird nichts erkannt oder läuft die
+Erkennung nicht, wird die Datei wie bisher abgelehnt; du kannst weiterhin **Text stattdessen auf
+diesem Gerät lesen** wählen.
 
 Wird eine Abrechnung abgelehnt, weil eine Prüfung nicht aufgeht, öffnen sich ihre Werte in
 der Zeile, damit du einen falsch gelesenen Wert korrigieren kannst: Die an der fehlgeschlagenen
@@ -326,8 +340,9 @@ auf ein Jahr, um es zu öffnen, oder nutze **Alle aufklappen**.
 ### 7.6 Parser anfragen
 
 Wird ein PDF mit Text als **Format noch nicht unterstützt** abgelehnt, bietet seine Zeile
-**Parser anfragen** an (nicht bei Scans, passwortgeschützten Dateien oder Dateien, die eine
-Prüfung nicht bestanden haben). Ein Assistent mit vier Schritten führt dich:
+**Parser anfragen** an (nicht bei passwortgeschützten Dateien oder Dateien, die eine Prüfung
+nicht bestanden haben; ein Scan erst, nachdem sein Text per Texterkennung gelesen wurde – ohne
+zweite Einwilligung). Ein Assistent mit vier Schritten führt dich:
 
 1. **Einwilligung** – was auf deinem Gerät bleibt (das PDF, sein Text, alle echten Beträge),
    was gesendet wird (nur eine neu aufgebaute Kopie) und wer es sieht: die Administratoren

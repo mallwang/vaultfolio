@@ -293,8 +293,8 @@ export class EarningsRepository {
       // names of figures the user corrected in the preview; counted per file, never logged (FR-012a)
       const correctedCount = file.records.reduce((n, r) => n + (r.corrected?.length ?? 0), 0);
       this.database.querySync(
-        `INSERT INTO earnings_imports (id, owner_id, file_name, source_type, file_sha256, parser_id, parser_version, imported_at, corrected_count)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+        `INSERT INTO earnings_imports (id, owner_id, file_name, source_type, file_sha256, parser_id, parser_version, imported_at, corrected_count, ocr_read)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
         [
           importId,
           ownerId,
@@ -305,6 +305,7 @@ export class EarningsRepository {
           file.parserVersion,
           new Date().toISOString(),
           correctedCount,
+          file.recognisedText ? 1 : 0,
         ],
       );
       const now = new Date().toISOString();
@@ -376,8 +377,9 @@ export class EarningsRepository {
       first_period: string | null;
       last_period: string | null;
       corrected_count: number;
+      ocr_read: number;
     }>(
-      `SELECT i.id, i.file_name, i.source_type, i.parser_id, i.parser_version, i.imported_at, i.corrected_count,
+      `SELECT i.id, i.file_name, i.source_type, i.parser_id, i.parser_version, i.imported_at, i.corrected_count, i.ocr_read,
               (SELECT COUNT(*) FROM earnings_records r WHERE r.import_id = i.id AND r.owner_id = i.owner_id) AS record_count,
               (SELECT COUNT(*) FROM earnings_certificates c WHERE c.import_id = i.id AND c.owner_id = i.owner_id) AS certificate_count,
               (SELECT MIN(period) FROM earnings_records r WHERE r.import_id = i.id AND r.owner_id = i.owner_id) AS first_period,
@@ -413,6 +415,7 @@ export class EarningsRepository {
       lastPeriod: i.last_period,
       years: years.filter((y) => y.import_id === i.id).map((y) => y.year),
       correctedCount: i.corrected_count,
+      recognisedText: i.ocr_read === 1,
     }));
   }
 

@@ -3,16 +3,25 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { ParserRequestComponent } from './parser-request.component';
+import { FakeTextRecogniser } from '../pdf/text-recogniser.testing';
+import { TEXT_RECOGNISER } from '../pdf/text-recogniser.token';
 import { ParserRequestStore } from './parser-request.store';
 import { PLANTED, plantedLayout } from './parser-request.testing';
 
 describe('ParserRequestComponent', () => {
   let store: ParserRequestStore;
   let http: HttpTestingController;
+  let recogniser: FakeTextRecogniser;
 
   beforeEach(() => {
+    recogniser = new FakeTextRecogniser();
     TestBed.configureTestingModule({
-      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: TEXT_RECOGNISER, useValue: recogniser },
+      ],
     });
     store = TestBed.inject(ParserRequestStore);
     http = TestBed.inject(HttpTestingController);
@@ -52,24 +61,25 @@ describe('ParserRequestComponent', () => {
     expect(button(fixture, 'request-continue').disabled).toBe(false);
   });
 
-  it('disables Continue on the review step until every word is decided', () => {
+  it('masks unknown words by default and groups repeated ones; Continue stays enabled', () => {
     const fixture = open();
     store.consent.set(true);
     store.step.set('review');
     fixture.detectChanges();
     expect(el(fixture, 'request-removed-callout')?.textContent).toContain('bank account');
-    expect(el(fixture, 'request-progress')?.textContent).toContain('0 of 3 decided');
-    expect(button(fixture, 'request-continue').disabled).toBe(true);
+    expect(el(fixture, 'request-progress')?.textContent).toContain('0 of 3 words kept');
+    expect(button(fixture, 'request-continue').disabled).toBe(false);
 
     button(fixture, 'request-decision-0-0-0-keep').click();
-    button(fixture, 'request-decision-0-0-1-mask').click();
     fixture.detectChanges();
-    expect(el(fixture, 'request-progress')?.textContent).toContain('2 of 3 decided');
-    expect(button(fixture, 'request-continue').disabled).toBe(true);
+    expect(el(fixture, 'request-progress')?.textContent).toContain('1 of 3 words kept');
 
-    button(fixture, 'request-decision-0-1-0-mask').click();
+    button(fixture, 'request-keep-all').click();
     fixture.detectChanges();
-    expect(button(fixture, 'request-continue').disabled).toBe(false);
+    expect(el(fixture, 'request-progress')?.textContent).toContain('3 of 3 words kept');
+    button(fixture, 'request-mask-all').click();
+    fixture.detectChanges();
+    expect(el(fixture, 'request-progress')?.textContent).toContain('0 of 3 words kept');
     expect(el(fixture, 'request-removed-row')?.textContent).toContain('3');
   });
 
@@ -93,15 +103,14 @@ describe('ParserRequestComponent', () => {
     expect(store.step()).toBe('preview');
   });
 
-  it('keeps Send disabled until all words are decided, then sends once and shows the confirmation', async () => {
+  it('keeps Send disabled until consent is given, then sends once and shows the confirmation', async () => {
     const fixture = open();
-    store.consent.set(true);
     store.step.set('preview');
     fixture.detectChanges();
     expect(button(fixture, 'request-send').disabled).toBe(true);
     expect(el(fixture, 'request-blocked')).not.toBeNull();
 
-    for (const w of store.decisionWords()) store.decide(w.key, 'MASK');
+    store.consent.set(true);
     fixture.detectChanges();
     expect(button(fixture, 'request-send').disabled).toBe(false);
 
@@ -159,5 +168,72 @@ describe('ParserRequestComponent', () => {
     expect(store.file()).toBeNull();
     expect(store.analysis()).toBeNull();
     expect(store.consent()).toBe(false);
+  });
+
+  describe('text recognition (034)', () => {
+    function openScan(state: 'offer' | 'running' = 'offer') {
+      store.file.set(new File(['x'], 'scan.pdf'));
+      store.recognitionState.set(state);
+      const fixture = TestBed.createComponent(ParserRequestComponent);
+      fixture.detectChanges();
+      return fixture;
+    }
+
+    it('shows the consent offer for a scan instead of the stepper, and starts nothing', () => {
+      const fixture = openScan();
+      expect(el(fixture, 'ocr-offer')?.textContent).toContain('stay in your browser');
+      expect(el(fixture, 'request-stepper')).toBeNull();
+      expect(recogniser.calls).toHaveLength(0);
+    });
+
+    it('shows progress with a cancel button while recognising', () => {
+      store.recognitionProgress.set({ phase: 'RECOGNISING', page: 1, pageCount: 2, fraction: 0.5 });
+      const fixture = openScan('running');
+      expect(el(fixture, 'ocr-progress')?.getAttribute('role')).toBe('status');
+      expect(el(fixture, 'ocr-progress')?.textContent).toContain('Reading page 1 of 2');
+      expect(el(fixture, 'ocr-cancel')).not.toBeNull();
+    });
+
+    it('declining ends in the refusal with a link to read the text instead', () => {
+      const fixture = openScan();
+      button(fixture, 'ocr-decline').click();
+      fixture.detectChanges();
+      expect(el(fixture, 'request-refused')?.textContent).toContain('contains no text');
+      expect(el(fixture, 'ocr-instead')).not.toBeNull();
+      button(fixture, 'ocr-instead').click();
+      fixture.detectChanges();
+      expect(el(fixture, 'ocr-offer')).not.toBeNull();
+    });
+
+    it('names the page limit and drops the retry link when the document is too long', () => {
+      store.file.set(new File(['x'], 'scan.pdf'));
+      store.recognitionHint.set('TOO_MANY_PAGES');
+      store.refusal.set('IMAGE_ONLY');
+      const fixture = TestBed.createComponent(ParserRequestComponent);
+      fixture.detectChanges();
+      expect(el(fixture, 'ocr-hint')?.textContent).toContain('limited to 5 pages');
+      expect(el(fixture, 'ocr-instead')).toBeNull();
+    });
+
+    it('shows the recognised-automatically notice and the look-alike statement in step 4, and not for text PDFs', () => {
+      store.recognised.set(true);
+      const fixture = open();
+      store.step.set('preview');
+      fixture.detectChanges();
+      expect(el(fixture, 'request-ocr-notice')?.textContent).toContain(
+        'recognised automatically and may contain errors',
+      );
+      expect(el(fixture, 'request-ocr-removed')?.textContent).toContain(
+        'even if a digit was misread',
+      );
+      expect(el(fixture, 'request-ocr-legend')).not.toBeNull();
+    });
+
+    it('does not show the notice for a text PDF', () => {
+      const fixture = open();
+      store.step.set('preview');
+      fixture.detectChanges();
+      expect(el(fixture, 'request-ocr-notice')).toBeNull();
+    });
   });
 });

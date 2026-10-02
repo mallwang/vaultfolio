@@ -1,4 +1,5 @@
 import {
+  type PdfDocumentText,
   type AnalyzedLayout,
   type AnalyzedLine,
   type AnalyzedWord,
@@ -219,4 +220,84 @@ export async function extractLayout(file: Blob): Promise<LayoutExtractResult> {
   } finally {
     await task.destroy().catch(() => undefined);
   }
+}
+
+/** A4 in points, for recognised pages whose size was not reported. */
+const A4 = { width: 595.3, height: 841.9 };
+const DEFAULT_WORD_HEIGHT = 9;
+
+/** Share of a recognised word's box another word may cover before it counts as a duplicate. */
+const DUPLICATE_SHARE = 0.6;
+
+interface PlacedWord {
+  x0: number;
+  x1: number;
+  y0: number;
+  y1: number;
+}
+
+function coveredShare(word: PlacedWord, other: PlacedWord): number {
+  const w = Math.min(word.x1, other.x1) - Math.max(word.x0, other.x0);
+  const h = Math.min(word.y1, other.y1) - Math.max(word.y0, other.y0);
+  const area = (word.x1 - word.x0) * (word.y1 - word.y0);
+  return w > 0 && h > 0 && area > 0 ? (w * h) / area : 0;
+}
+
+/**
+ * Text recognition sometimes reads the same print twice (a line and a re-read of its small-print
+ * neighbour); the second word, mostly covered by an earlier one, is dropped so the preview shows
+ * one word per place.
+ */
+function dropDuplicateWords(lines: AnalyzedLine[]): AnalyzedLine[] {
+  const kept: PlacedWord[] = [];
+  return lines
+    .map((line) => ({
+      ...line,
+      words: line.words.filter((word) => {
+        const box = {
+          x0: word.x,
+          x1: word.x + word.width,
+          y0: line.y - word.height,
+          y1: line.y,
+        };
+        if (kept.some((other) => coveredShare(box, other) >= DUPLICATE_SHARE)) return false;
+        kept.push(box);
+        return true;
+      }),
+    }))
+    .filter((line) => line.words.length > 0);
+}
+
+/**
+ * Builds the analysis of a document read by text recognition (034): the same structure the PDF text
+ * layer yields — positions, sizes — without "covered" hints (a scan has no shapes drawn over text);
+ * low-confidence words are carried so the preview can underline them. Everything stays in memory.
+ */
+export function layoutFromRecognised(text: PdfDocumentText): LayoutExtractResult {
+  const pages: AnalyzedLayout['pages'] = text.pages
+    .filter((page) => page.lines.length > 0)
+    .map((page) => {
+      const height = page.height ?? A4.height;
+      return {
+        width: page.width ?? A4.width,
+        height,
+        lines: dropDuplicateWords(
+          page.lines.map((line) => ({
+            y: height - line.y,
+            words: line.words.map((word) => ({
+              text: word.text,
+              x: word.x,
+              width: word.width,
+              height: word.height ?? DEFAULT_WORD_HEIGHT,
+              covered: false,
+              ...(word.lowConfidence ? { lowConfidence: true } : {}),
+            })),
+          })),
+        ),
+      };
+    });
+  const layout: AnalyzedLayout = { pages };
+  const problem = layoutLimitProblem(layout);
+  if (problem === 'NO_TEXT') return { error: 'IMAGE_ONLY' };
+  return problem ? { error: problem } : { layout };
 }

@@ -274,7 +274,7 @@ export const earningsEn: TranslationDictionary = {
     sub: 'Payslips contain some of your most sensitive data. This is what happens to it.',
     deviceTitle: 'Documents stay on your device',
     device:
-      'PDFs are read in your browser. The file and its text are never uploaded; only the figures listed in the import preview are sent.',
+      'PDFs are read in your browser. The file and its text are never uploaded; only the figures listed in the import preview are sent. A scan without text is read by text recognition on your device only if you agree: the recognised text is raw text under the same rules, never uploaded, stored or cached.',
     figuresTitle: 'Only figures, no identifiers',
     figures:
       'No tax ID, social-security number, IBAN, name or address is sent or stored. Amounts are stored encrypted.',
@@ -338,6 +338,31 @@ export const earningsEn: TranslationDictionary = {
     corrected: '{{count}} figures corrected by you',
     correctedOne: '1 figure corrected by you',
     removeFile: 'Remove file',
+  },
+  ocr: {
+    badge: 'Text recognition',
+    statusDECISION: 'Needs your decision',
+    statusRECOGNISING: 'Reading…',
+    noText: 'No automatically readable text found in this PDF.',
+    offerInfo:
+      'This looks like a scan, or a PDF whose text was converted to graphics. Text recognition can read it on this device: the file and its text stay in your browser and are not stored. Digits can be misread, so you will need to check the figures.',
+    accept: 'Read text on this device',
+    decline: 'Not now',
+    lock: 'Works offline, nothing leaves your device',
+    cancel: 'Cancel',
+    waiting: 'Waiting for the previous file…',
+    loading: 'Preparing text recognition…',
+    rendering: 'Preparing page {{page}} of {{total}}…',
+    page: 'Reading page {{page}} of {{total}}',
+    noticeTitle: 'Read via text recognition',
+    notice:
+      'The text of the marked files was read by text recognition and may contain errors, especially in digits. Please double-check every figure against your document before importing.',
+    instead: 'Read text on this device instead',
+    noParserNote:
+      'The text of this file was read via text recognition. You can request a parser for this layout; the recognised text is not read again.',
+    hintTooManyPages:
+      'Text recognition is limited to {{max}} pages per document; this document has more.',
+    hintEngineUnavailable: 'Text recognition could not be started on this device.',
   },
   widget: {
     title: 'Earnings {{year}}',

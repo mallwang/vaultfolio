@@ -174,3 +174,94 @@ describe('scanDocument', () => {
     );
   });
 });
+
+describe('lenient scan for recognised text (034)', () => {
+  const lenient = { lenient: true };
+
+  it('keeps strict as the default: shape-only values with invalid check digits are not flagged', () => {
+    expect(scanLine(words('DE0O37601008500040XXX94478'))).toEqual([]);
+    expect(scanLine(words('Steuer-ID', '12345678901'))).toEqual([]);
+    expect(
+      scanDocument({ pages: [{ lines: [{ words: words('DE00000000000000000000') }] }] }),
+    ).toEqual([]);
+  });
+
+  describe('IBAN', () => {
+    it('flags a German IBAN shape with invalid check digits and look-alike letters', () => {
+      expect(scanLine(words('IBAN', 'DE0O376010085000400944'), lenient)).toEqual([
+        { kind: 'BANK_ACCOUNT', wordIndexes: [1] },
+      ]);
+    });
+
+    it('flags it printed in groups and whitespace-tolerant', () => {
+      expect(
+        scanLine(words('DE0O3', '7601', '0085', '0004', '0O94', '45', 'Summe'), lenient),
+      ).toEqual([{ kind: 'BANK_ACCOUNT', wordIndexes: [0, 1, 2, 3, 4, 5] }]);
+    });
+
+    it('reports a valid IBAN once, not twice', () => {
+      const iban = ibanWithCheck('DE', '100200304005006007');
+      expect(scanLine(words(iban), lenient)).toEqual([{ kind: 'BANK_ACCOUNT', wordIndexes: [0] }]);
+    });
+
+    it('flags a German IBAN whose digits were misread as arbitrary letters', () => {
+      expect(
+        scanLine(
+          words('Konto', 'DE0O3', '7601', '0085', '0004', '0XXX', 'XX', '94478', '9.999,99'),
+          lenient,
+        ),
+      ).toEqual([{ kind: 'BANK_ACCOUNT', wordIndexes: [1, 2, 3, 4, 5, 6, 7] }]);
+    });
+
+    it('does not swallow the label after the IBAN', () => {
+      expect(
+        scanLine(words('DE89', '3704', '0044', '0532', '0130', '00', 'Summe', 'Betrag'), lenient),
+      ).toEqual([{ kind: 'BANK_ACCOUNT', wordIndexes: [0, 1, 2, 3, 4, 5] }]);
+    });
+
+    it('does not flag the wrong length or words without digits', () => {
+      expect(scanLine(words('DE0O37601008500040'), lenient)).toEqual([]);
+      expect(scanLine(words('DEOOSOOOOOOOOOOOOOOOOO'), lenient)).toEqual([]);
+    });
+  });
+
+  describe('tax ID', () => {
+    it('flags 11 digit-like characters with an invalid check digit, also in groups', () => {
+      expect(scanLine(words('Steuer-ID', '12345678901'), lenient)).toEqual([
+        { kind: 'TAX_ID', wordIndexes: [1] },
+      ]);
+      expect(scanLine(words('Steuer-ID', '12', '345', '678', '9O1'), lenient)).toEqual([
+        { kind: 'TAX_ID', wordIndexes: [1, 2, 3, 4] },
+      ]);
+      expect(scanLine(words('l2345S78901'), lenient)).toEqual([
+        { kind: 'TAX_ID', wordIndexes: [0] },
+      ]);
+    });
+
+    it('does not flag a leading zero, decimal separators or shorter runs', () => {
+      expect(scanLine(words('02345678901'), lenient).filter((h) => h.kind === 'TAX_ID')).toEqual(
+        [],
+      );
+      expect(scanLine(words('1.234.567,89'), lenient)).toEqual([]);
+      expect(scanLine(words('Summe', '12345678901,50'), lenient)).toEqual([]);
+      expect(scanLine(words('1234567890'), lenient)).toEqual([]);
+    });
+  });
+
+  describe('social-security number', () => {
+    it('flags the shape without a valid check digit and with look-alike digits', () => {
+      expect(scanLine(words('Versicherungsnummer', '12', '345678', 'A', '901'), lenient)).toEqual([
+        { kind: 'SOCIAL_SECURITY', wordIndexes: [1, 2, 3, 4] },
+      ]);
+      expect(scanLine(words('12O3S6781901'), lenient)).toEqual([]);
+      expect(scanLine(words('12O3S678A901'), lenient)).toEqual([
+        { kind: 'SOCIAL_SECURITY', wordIndexes: [0] },
+      ]);
+    });
+  });
+
+  it('leaves the other detectors unchanged', () => {
+    const sample = words('mail@example.com', '0170', '1234567', '10115', 'Berlin');
+    expect(scanLine(sample, lenient)).toEqual(scanLine(sample));
+  });
+});

@@ -297,6 +297,13 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
         'ALTER TABLE earnings_imports ADD COLUMN corrected_count INTEGER NOT NULL DEFAULT 0 CHECK (corrected_count >= 0)',
       );
     }
+    // 034: marks files read via on-device text recognition (guarded, idempotent; not encrypted data)
+    const hasOcrRead = db
+      .prepare("SELECT 1 FROM pragma_table_info('earnings_imports') WHERE name = 'ocr_read'")
+      .get();
+    if (!hasOcrRead) {
+      db.exec('ALTER TABLE earnings_imports ADD COLUMN ocr_read INTEGER NOT NULL DEFAULT 0');
+    }
     db.exec('CREATE INDEX IF NOT EXISTS earnings_imports_owner_idx ON earnings_imports (owner_id)');
 
     db.exec(`

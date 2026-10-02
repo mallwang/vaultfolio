@@ -15,6 +15,8 @@ export interface ImportFileMeta {
   fileSha256: string;
   parserId: string;
   parserVersion: string;
+  /** Read via on-device text recognition (034); only written to the body when `true`. */
+  recognisedText?: boolean;
 }
 
 function pick<T extends object>(source: T, keys: readonly string[]): Partial<T> {
@@ -72,6 +74,7 @@ export function toImportFile(
     fileSha256: meta.fileSha256,
     parserId: meta.parserId,
     parserVersion: meta.parserVersion,
+    ...(meta.recognisedText ? { recognisedText: true } : {}),
     records: parsed.records.map(recordBody),
     certificates: parsed.certificates.map(certificateBody),
   };

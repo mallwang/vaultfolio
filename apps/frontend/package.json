@@ -4,10 +4,13 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
+    "@tesseract.js-data/deu": "^1.0.0",
     "echarts": "^6.1.0",
     "exceljs": "^4.4.0",
     "jszip": "^3.10.1",
     "pdfjs-dist": "6.3.289",
-    "pdfmake": "^0.2.20"
+    "pdfmake": "^0.2.20",
+    "tesseract.js": "^7.0.0",
+    "tesseract.js-core": "^7.0.0"
   }
 }

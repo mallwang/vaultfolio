@@ -264,8 +264,20 @@ Supported are:
 Every file gets a row with its outcome: **New**, **Replaces** (a newer version of
 figures you already imported), **Duplicate** (already imported — skipped) or
 **Rejected** with the reason, for example when gross − taxes − social insurance does
-not add up to net, or when a PDF contains no automatically readable text (a scan, for example). Rejected files are never
-saved.
+not add up to net, or when a PDF contains no automatically readable text and you decline to
+have it read (see below). Rejected files are never saved.
+
+**Scans and PDFs without text.** If a PDF contains no text that can be read automatically (a scan,
+or a PDF whose text was converted to graphics), its row shows **Needs your decision**. Choose
+**Read text on this device** to run text recognition: the file and its text stay in your browser,
+it works offline, nothing is uploaded, stored or cached, and nothing starts before you agree (per
+file). A progress bar shows the page being read and you can cancel at any time. Limits: German
+documents only, up to 5 pages. The recognised text goes through the same readers and the same
+arithmetic checks as any other PDF, but **digits can be misread** (a lost decimal comma, for
+example): files read this way carry a **Text recognition** tag and a notice to double-check every
+figure, a failing check opens the correction grid as usual, and the tag stays visible in the
+imports list. If you choose **Not now**, cancel, nothing is recognised, or recognition cannot run,
+the file is rejected as before and you can still choose **Read text on this device instead**.
 
 If a payslip is rejected because a check does not add up, its figures open in the row
 so you can fix a misread one: the figures taking part in the failing check are
@@ -316,8 +328,8 @@ belongs to; all years start collapsed — click a year to open it, or use **Expa
 ### 7.6 Requesting a Parser
 
 If a PDF with text is rejected as **format not supported yet**, its row offers
-**Request a parser** (not for scans, password-protected files or files that failed a
-check). A four-step wizard guides you:
+**Request a parser** (not for password-protected files or files that failed a check; a scan
+only after its text was read by text recognition, without a second consent). A four-step wizard guides you:
 
 1. **Consent** — what stays on your device (the PDF, its text, all real figures), what is
    sent (only a rebuilt copy) and who sees it: the administrators of your instance, in

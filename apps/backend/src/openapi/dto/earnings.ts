@@ -143,6 +143,12 @@ export class EarningsImportFileDto {
   @ApiProperty({ pattern: '^[0-9a-f]{64}$' }) fileSha256!: string;
   @ApiProperty({ example: 'sap-entgeltnachweis' }) parserId!: string;
   @ApiProperty({ example: '1.0.0' }) parserVersion!: string;
+  @ApiPropertyOptional({
+    default: false,
+    description:
+      'The text was read by on-device text recognition of a scan (a hint to double-check; no effect on checks).',
+  })
+  recognisedText?: boolean;
   @ApiProperty({ type: [EarningsPayRecordInputDto], maxItems: 2000 })
   records!: EarningsPayRecordInputDto[];
   @ApiProperty({ type: [EarningsCertificateInputDto], maxItems: 2000 })
@@ -233,6 +239,8 @@ export class EarningsImportSummaryDto {
     description: 'Number of figures the user corrected in the preview before importing (FR-012a).',
   })
   correctedCount!: number;
+  @ApiProperty({ description: 'The file was read via on-device text recognition.' })
+  recognisedText!: boolean;
 }
 
 // ------------------------------------------------------------------ employers

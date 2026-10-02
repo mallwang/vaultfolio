@@ -9,6 +9,8 @@ import {
   SAP_SEP_2026_WITH_CORRECTION,
   validExport,
 } from '@vaultfolio/earnings/testing';
+import { FakeTextRecogniser } from '../pdf/text-recogniser.testing';
+import { TEXT_RECOGNISER } from '../pdf/text-recogniser.token';
 import { EARNINGS_FILE_READER, ImportSessionStore } from './import-session.store';
 
 const PAGES: Record<string, string[][]> = {
@@ -45,20 +47,24 @@ function preview(
 describe('ImportSessionStore', () => {
   let store: ImportSessionStore;
   let http: HttpTestingController;
+  let recogniser: FakeTextRecogniser;
 
   beforeEach(() => {
+    recogniser = new FakeTextRecogniser();
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
         ImportSessionStore,
+        { provide: TEXT_RECOGNISER, useValue: recogniser },
         {
           provide: EARNINGS_FILE_READER,
           useValue: {
-            extractPdfText: async (file: File) =>
-              file.name === 'scan.pdf'
-                ? { error: 'IMAGE_ONLY' }
-                : { text: textDocument(PAGES[file.name]) },
+            extractPdfText: async (file: File) => {
+              if (file.name === 'scan.pdf') return { error: 'IMAGE_ONLY' };
+              if (file.name === 'locked.pdf') return { error: 'PASSWORD_PROTECTED' };
+              return { text: textDocument(PAGES[file.name]) };
+            },
             sha256Hex: async (file: File) => file.name.length.toString(16).padStart(64, '0'),
           },
         },
@@ -103,9 +109,11 @@ describe('ImportSessionStore', () => {
     expect(store.rows().map((r) => r.localRejection?.code ?? null)).toEqual([
       null,
       'CHECK_FAILED',
-      'IMAGE_ONLY',
+      null,
       'UNSUPPORTED_FORMAT',
     ]);
+    // a scan is not rejected: it waits for the user's decision on recognition (034)
+    expect(store.rows()[2].state).toBe('awaiting-recognition');
     expect(store.rows()[1].localRejection?.params).toEqual({
       check: 'NET',
       period: '2026-08',
@@ -113,7 +121,7 @@ describe('ImportSessionStore', () => {
     });
     expect(store.ready()).toHaveLength(1);
     expect(store.readyRecords()).toBe(1);
-    expect(store.rejected()).toBe(3);
+    expect(store.rejected()).toBe(2);
   });
 
   it('reads an earnings-export JSON and rejects unparsable JSON as UNREADABLE', async () => {
@@ -349,6 +357,188 @@ describe('ImportSessionStore', () => {
         expect(spy).not.toHaveBeenCalled();
         spy.mockRestore();
       }
+    });
+  });
+
+  describe('on-device text recognition (034)', () => {
+    async function addScan(): Promise<void> {
+      await store.addFiles([pdf('scan.pdf')]);
+      http.expectNone('/api/earnings/imports/preview');
+    }
+
+    async function recogniseAs(pages: string[][]): Promise<void> {
+      recogniser.script = { text: pages };
+      await addScan();
+      await store.acceptRecognition('file-1');
+    }
+
+    it('offers recognition for a scan without starting it, and never offers it for a text PDF (SC-006)', async () => {
+      void store.addFiles([pdf(SAP_AUG_2026.fileName), pdf('scan.pdf'), pdf('locked.pdf')]);
+      await settle();
+      http.expectOne('/api/earnings/imports/preview').flush({ files: [preview('file-1')] });
+      await settle();
+      expect(store.rows().map((r) => r.state)).toEqual([
+        'candidate',
+        'awaiting-recognition',
+        'local-rejected',
+      ]);
+      expect(store.rows()[2].localRejection).toEqual({ code: 'PASSWORD_PROTECTED' });
+      expect(recogniser.calls).toHaveLength(0);
+      expect(store.rejected()).toBe(1);
+    });
+
+    it('shows progress while recognising, then runs the normal parse pipeline and marks the file', async () => {
+      recogniser.script = {
+        text: SAP_AUG_2026.pages,
+        delayMs: 20,
+        progress: [{ phase: 'RECOGNISING', page: 1, pageCount: 2, fraction: 0.5 }],
+      };
+      await addScan();
+      const running = store.acceptRecognition('file-1');
+      const [row] = store.rows();
+      expect(row.state).toBe('recognising');
+      expect(store.phase()).toBe('reading');
+      await new Promise((resolve) => setTimeout(resolve, 5));
+      expect(store.rows()[0].recognition).toMatchObject({ page: 1, pageCount: 2, fraction: 0.5 });
+      await new Promise((resolve) => setTimeout(resolve, 40));
+      const request = http.expectOne('/api/earnings/imports/preview');
+      const [body] = (request.request.body as EarningsImportBatch).files;
+      expect(body).toMatchObject({ recognisedText: true, parserId: 'sap-entgeltnachweis' });
+      request.flush({ files: [preview('file-1')] });
+      await running;
+      expect(store.rows()[0]).toMatchObject({ state: 'candidate', recognised: true });
+      expect(store.rows()[0].recognition).toBeNull();
+      expect(store.ready()).toHaveLength(1);
+    });
+
+    it('keeps the arithmetic check: a misread figure lands in the correction grid and is never sent', async () => {
+      await recogniseAs(SAP_AUG_2026_NET_OFF.pages);
+      http.expectNone('/api/earnings/imports/preview');
+      expect(store.rows()[0]).toMatchObject({
+        state: 'needs-correction',
+        recognised: true,
+        localRejection: { code: 'CHECK_FAILED' },
+      });
+      expect(store.rows()[0].body?.recognisedText).toBe(true);
+      // the marker survives a correction
+      store.editFigure('file-1', 0, 'wageTax', '787,60');
+      const request = http.expectOne('/api/earnings/imports/preview');
+      expect((request.request.body as EarningsImportBatch).files[0].recognisedText).toBe(true);
+      request.flush({ files: [preview('file-1')] });
+    });
+
+    it('does not send the marker for text-layer PDFs', async () => {
+      void store.addFiles([pdf(SAP_AUG_2026.fileName)]);
+      await settle();
+      const request = http.expectOne('/api/earnings/imports/preview');
+      expect('recognisedText' in (request.request.body as EarningsImportBatch).files[0]).toBe(
+        false,
+      );
+      request.flush({ files: [preview('file-1')] });
+    });
+
+    it('keeps recognised text of an unsupported layout for the parser request', async () => {
+      await recogniseAs([['Völlig unbekanntes', 'Layout 1,00']]);
+      expect(store.rows()[0].localRejection?.code).toBe('UNSUPPORTED_FORMAT');
+      expect(store.rows()[0].recognised).toBe(true);
+      expect(store.requestableFile('file-1')).not.toBeNull();
+      expect(store.requestableRecognisedText('file-1')?.origin).toBe('RECOGNISED');
+    });
+
+    it('forgets the file, the consent and the text when the file is removed', async () => {
+      await recogniseAs([['Völlig unbekanntes', 'Layout 1,00']]);
+      store.remove('file-1');
+      expect(store.requestableRecognisedText('file-1')).toBeNull();
+      expect(store.requestableFile('file-1')).toBeNull();
+      await store.acceptRecognition('file-1');
+      expect(recogniser.calls).toHaveLength(1);
+    });
+
+    it('runs one recognition at a time', async () => {
+      recogniser.script = { text: [['Unbekannt 1,00']], delayMs: 200 };
+      await store.addFiles([pdf('scan.pdf'), pdf('scan.pdf')]);
+      const first = store.acceptRecognition('file-1');
+      const second = store.acceptRecognition('file-2');
+      await settle();
+      expect(recogniser.calls).toHaveLength(1);
+      await Promise.all([first, second]);
+      expect(recogniser.calls).toHaveLength(2);
+    });
+
+    describe('declined, cancelled or failed (US2)', () => {
+      it('declining ends in the image-only message without calling the recogniser', async () => {
+        await addScan();
+        await store.declineRecognition('file-1');
+        expect(store.rows()[0]).toMatchObject({
+          state: 'local-rejected',
+          localRejection: { code: 'IMAGE_ONLY' },
+          recognisable: true,
+          recognitionHint: null,
+        });
+        expect(recogniser.calls).toHaveLength(0);
+        expect(store.rejected()).toBe(1);
+      });
+
+      it('offers recognition again after a decline, with a new consent', async () => {
+        await addScan();
+        await store.declineRecognition('file-1');
+        recogniser.script = { text: [['Unbekannt 1,00']] };
+        await store.acceptRecognition('file-1');
+        expect(recogniser.calls).toHaveLength(1);
+        expect(store.rows()[0].recognised).toBe(true);
+      });
+
+      it('ends an empty result in the same message, with nothing created', async () => {
+        recogniser.script = { error: 'NO_TEXT' };
+        await addScan();
+        await store.acceptRecognition('file-1');
+        expect(store.rows()[0]).toMatchObject({
+          state: 'local-rejected',
+          localRejection: { code: 'IMAGE_ONLY' },
+          recognitionHint: null,
+          recognised: false,
+        });
+        expect(store.ready()).toHaveLength(0);
+        expect(store.requestableRecognisedText('file-1')).toBeNull();
+      });
+
+      it.each([
+        ['TOO_MANY_PAGES', false],
+        ['ENGINE_UNAVAILABLE', true],
+      ] as const)('adds the %s hint to the same message', async (error, recognisable) => {
+        recogniser.script = { error };
+        await addScan();
+        await store.acceptRecognition('file-1');
+        expect(store.rows()[0]).toMatchObject({
+          localRejection: { code: 'IMAGE_ONLY' },
+          recognitionHint: error,
+          recognisable,
+        });
+      });
+
+      it('cancelling mid-run stops it and ends as declined', async () => {
+        recogniser.script = { text: SAP_AUG_2026.pages, delayMs: 1000 };
+        await addScan();
+        const running = store.acceptRecognition('file-1');
+        store.cancelRecognition('file-1');
+        await running;
+        expect(store.rows()[0]).toMatchObject({
+          state: 'local-rejected',
+          localRejection: { code: 'IMAGE_ONLY' },
+          recognised: false,
+        });
+        expect(recogniser.lastSignal?.aborted).toBe(true);
+        http.expectNone('/api/earnings/imports/preview');
+      });
+
+      it('stops recognition when the store is destroyed', async () => {
+        recogniser.script = { text: SAP_AUG_2026.pages, delayMs: 1000 };
+        await addScan();
+        void store.acceptRecognition('file-1');
+        await settle();
+        TestBed.resetTestingModule();
+        expect(recogniser.lastSignal?.aborted).toBe(true);
+      });
     });
   });
 });

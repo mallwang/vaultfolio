@@ -5,6 +5,7 @@ export * from './lib/validation.js';
 export * from './lib/parsers/pdf-text.js';
 export * from './lib/parsers/registry.js';
 export * from './lib/import-file.js';
+export * from './lib/ocr-normalise.js';
 export * from './lib/aggregations/index.js';
 export * from './lib/export-v1.js';
 export * from './lib/parser-request/personal-data.js';

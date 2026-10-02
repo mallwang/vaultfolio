@@ -39,7 +39,7 @@ with a status tag; it lists readability, the personal data kinds found (warning,
 automatically, no prior redaction needed") and hidden text under black boxes. Then the consent
 checkbox in a bordered block, and Cancel / Continue (disabled until the box is ticked).
 
-**Refused (scan, password, unreadable, > 3 pages, limit reached)** — an error callout with the specific
+**Refused (scan, password, unreadable, > 3 pages, limit reached)** — an error callout with the specific _(Amended by 034-ocr-fallback-pdf: scans are no longer refused outright — after the user's per-file consent they are read by on-device text recognition; the refusal remains when the user declines, nothing is recognised, or the document is protected/unreadable.)_
 reason, "Choose another file", and a card listing all refusal reasons. Personal data is explicitly
 not a refusal reason.
 

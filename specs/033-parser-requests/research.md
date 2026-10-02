@@ -83,7 +83,7 @@ line grouping (±2 pt) and word splitting as `extractPdfText` and additionally r
 page `width`/`height`, per word `x`, `y`, `width`, `height` (font size), and `covered: boolean`.
 `covered` is computed from `page.getOperatorList()`: filled axis-aligned rectangles
 (`constructPath` + `fill`) whose fill colour is dark (luminance < 0.2) and which contain ≥ 80 % of
-a word's box. Image-only, password-protected and unreadable files map to the existing error codes
+a word's box. Image-only, password-protected and unreadable files map to the existing error codes _(Amended by 034-ocr-fallback-pdf: scans are no longer refused outright — after the user's per-file consent they are read by on-device text recognition; the refusal remains when the user declines, nothing is recognised, or the document is protected/unreadable.)_
 (FR-004). Pages beyond the limit (3) are refused with `TOO_MANY_PAGES` so the user can pick another
 file (edge case). All text — including covered text — enters the same pipeline; covered words that
 are not personal data are **preselected as masked** (FR-007 SHOULD).

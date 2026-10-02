@@ -117,6 +117,28 @@ Not run locally, but part of the same maintainability/security net:
   `speckit-sonar-validate` Claude Code skill to check the quality gate for the current branch/PR
   before considering a change done.
 
+## On-device text recognition (scans)
+
+PDFs without a text layer are read in the browser (specs/034). The engine sits behind the
+`TextRecogniser` port (`libs/frontend/domain/earnings/src/lib/pdf/text-recogniser.ts`, injected via
+`TEXT_RECOGNISER`; specs use `FakeTextRecogniser`). The only adapter, `tesseract-recogniser.ts`,
+renders pages with PDF.js and reads them with `tesseract.js` (German, LSTM) in one worker per file;
+`ocr-layout.ts` turns the word boxes into the parsers' line model (`origin: 'RECOGNISED'`).
+
+- **Assets:** worker, WASM core (`tesseract-core-*-lstm.wasm.js`), `deu.traineddata.gz` and licence
+  files are copied from `node_modules` to `assets/tesseract/` by the asset globs in
+  `apps/frontend/project.json`; nothing is fetched from a CDN, nothing is cached
+  (`cacheMethod: 'none'`), and everything is lazy-loaded after the user's consent. `tesseract.js`,
+  `tesseract.js-core` and `@tesseract.js-data/deu` are declared in both `package.json` files.
+- **Persisted marker:** `recognisedText` (API) ⇄ `ocr_read` (column of `earnings_imports`); it has
+  no effect on checks or the fingerprint.
+- **Personal data:** recognised text is scanned leniently (`scanDocument(doc, { lenient: true })`,
+  shape-only IBAN/tax ID/social-security matching); the server scan stays strict and unchanged.
+- **Real-engine spec (opt-in):** `ocr.integration.spec.ts` renders a synthetic payslip and reads it
+  with the real engine; it is skipped when the engine, the language data or `@napi-rs/canvas` are
+  not installed. Run it with
+  `npx nx test @vaultfolio/frontend-domain-earnings --include='**/pdf/ocr.integration.spec.ts'`.
+
 ## Parser requests (privacy exception)
 
 Earnings payslips never leave the device (specs/032, FR-008/FR-009) — with one opt-in exception

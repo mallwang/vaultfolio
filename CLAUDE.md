@@ -56,5 +56,5 @@
 
 ## Current Feature Plan
 
-Active implementation plan: [specs/033-parser-requests/plan.md](specs/033-parser-requests/plan.md)
+Active implementation plan: [specs/034-ocr-fallback-pdf/plan.md](specs/034-ocr-fallback-pdf/plan.md)
 <!-- SPECKIT END -->

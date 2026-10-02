@@ -343,4 +343,50 @@ describe('EarningsRepository (SQLite)', () => {
       process.env.DATABASE_PATH = path.join(tempDir, 'test.db');
     });
   });
+
+  describe('recognised text (034)', () => {
+    it('stores ocr_read per import and returns recognisedText in the history, defaulting to false', () => {
+      save(OWNER, file(['2026-07']));
+      save(OWNER, file(['2026-08'], { recognisedText: true }));
+      save(OWNER, file(['2026-09'], { recognisedText: false }));
+      expect(repository.listImports(OWNER).map((h) => h.recognisedText)).toEqual([
+        false,
+        true,
+        false,
+      ]);
+      expect(
+        database.querySync<{ ocr_read: number }>(
+          'SELECT ocr_read FROM earnings_imports ORDER BY ocr_read',
+        ),
+      ).toEqual([{ ocr_read: 0 }, { ocr_read: 0 }, { ocr_read: 1 }]);
+    });
+
+    it('adds the column to a database created without it, idempotently', async () => {
+      await database.onModuleDestroy();
+      const legacyPath = path.join(tempDir, 'legacy-ocr.db');
+      const legacy = new Sqlite(legacyPath);
+      legacy.exec(`CREATE TABLE earnings_imports (
+        id TEXT PRIMARY KEY, owner_id TEXT NOT NULL, file_name TEXT NOT NULL,
+        source_type TEXT NOT NULL, file_sha256 TEXT NOT NULL, parser_id TEXT NOT NULL,
+        parser_version TEXT NOT NULL, imported_at TEXT NOT NULL, UNIQUE (owner_id, file_sha256))`);
+      legacy
+        .prepare(
+          `INSERT INTO earnings_imports VALUES ('old', 'o', 'a.pdf', 'PAYSLIP_PDF', ?, 'p', '1', 'now')`,
+        )
+        .run('d'.repeat(64));
+      legacy.close();
+
+      process.env.DATABASE_PATH = legacyPath;
+      for (let round = 0; round < 2; round += 1) {
+        const migrated = new DatabaseService();
+        await migrated.onModuleInit();
+        expect(
+          migrated.querySync<{ ocr_read: number }>('SELECT ocr_read FROM earnings_imports'),
+        ).toEqual([{ ocr_read: 0 }]);
+        await migrated.onModuleDestroy();
+      }
+      database = new DatabaseService();
+      process.env.DATABASE_PATH = path.join(tempDir, 'test.db');
+    });
+  });
 });

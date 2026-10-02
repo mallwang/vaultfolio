@@ -173,6 +173,11 @@ export interface EarningsImportFile {
   fileSha256: string;
   parserId: string;
   parserVersion: string;
+  /**
+   * `true` when the text was read by on-device text recognition of a scan (034): a hint to
+   * double-check the figures, with no effect on the checks or the fingerprint. Omitted ⇒ `false`.
+   */
+  recognisedText?: boolean;
   records: EarningsPayRecordInput[];
   certificates: EarningsCertificateInput[];
 }
@@ -282,6 +287,8 @@ export interface EarningsImportSummary {
   years: number[];
   /** Number of figures the user corrected in the preview before importing (FR-012a). */
   correctedCount: number;
+  /** The file was read via on-device text recognition (034 FR-007). */
+  recognisedText: boolean;
 }
 
 // ------------------------------------------------------------------ employers

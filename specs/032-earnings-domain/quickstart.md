@@ -105,3 +105,5 @@ Use the synthetic "net off by 12.40" payslip (or a Bundesbank-style fixture with
    `corrected`, or `corrected` on a certificate → each is rejected by the server.
 5. Backend log contains no corrected value (FR-012a, FR-043).
 6. Run `verify-ui` (EN/DE, light/dark, 400 px) and check keyboard flow and labels.
+
+_Amended by 034-ocr-fallback-pdf: an image-only PDF first gets an offer of on-device text recognition (after the user's consent); the "image-only" row above is the outcome when the user declines, cancels, or nothing is recognised._

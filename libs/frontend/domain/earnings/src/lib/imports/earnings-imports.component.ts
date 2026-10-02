@@ -132,7 +132,16 @@ import { PrivacyNoteComponent } from '../privacy-note/privacy-note.component';
                     />
                   }
                 </td>
-                <td>{{ 'earnings.sourceType.' + item.sourceType | translate }}</td>
+                <td>
+                  {{ 'earnings.sourceType.' + item.sourceType | translate }}
+                  @if (item.recognisedText) {
+                    <p-tag
+                      severity="warn"
+                      [value]="'earnings.ocr.badge' | translate"
+                      data-testid="ocr-badge"
+                    />
+                  }
+                </td>
                 <td>{{ periodsOf(item) }}</td>
                 <td>{{ countOf(item) }}</td>
                 <td>

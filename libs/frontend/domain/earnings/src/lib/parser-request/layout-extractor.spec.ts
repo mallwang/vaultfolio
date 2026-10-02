@@ -1,4 +1,10 @@
-import { renderSamplePdf, toSheet, validateLayoutSubmission } from '@vaultfolio/earnings';
+import {
+  anonymizeLayout,
+  renderSamplePdf,
+  toSheet,
+  toSubmission,
+  validateLayoutSubmission,
+} from '@vaultfolio/earnings';
 import { SAP_AUG_2026, UNRELATED_PAGES } from '@vaultfolio/earnings/testing';
 import {
   asFile,
@@ -8,7 +14,7 @@ import {
   textPdf,
 } from '../../testing/synthetic-pdfs';
 import { type PdfJsModule, setPdfJsLoader } from '../pdf/pdf-text-extractor';
-import { extractLayout } from './layout-extractor';
+import { extractLayout, layoutFromRecognised } from './layout-extractor';
 
 beforeAll(() => {
   setPdfJsLoader(async () => {
@@ -143,4 +149,94 @@ describe('renderSamplePdf read back with PDF.js', () => {
     }
     expect(read).toHaveLength(sheet.pages[0].items.length);
   }, 30_000);
+});
+
+describe('layoutFromRecognised (034)', () => {
+  const recognised = {
+    origin: 'RECOGNISED' as const,
+    pages: [
+      {
+        width: 595,
+        height: 842,
+        lines: [
+          {
+            text: 'Brutto 3.842,17',
+            y: 700,
+            words: [
+              { text: 'Brutto', x: 60, width: 30, height: 10 },
+              { text: '3.842,l7', x: 400, width: 40, height: 10, lowConfidence: true },
+            ],
+          },
+          {
+            text: 'IBAN DE0O37601008500040094',
+            y: 680,
+            words: [
+              { text: 'IBAN', x: 60, width: 20, height: 10 },
+              { text: 'DE0O37601008500040094', x: 100, width: 110, height: 10 },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+
+  it('turns recognised text into the same analysis a text layer yields, y from the top', () => {
+    const result = layoutFromRecognised(recognised);
+    if (!('layout' in result)) throw new Error('refused');
+    const [page] = result.layout.pages;
+    expect(page.width).toBe(595);
+    expect(page.lines.map((l) => l.y)).toEqual([142, 162]);
+    expect(page.lines[0].words[1]).toMatchObject({
+      x: 400,
+      height: 10,
+      covered: false,
+      lowConfidence: true,
+    });
+    expect(page.lines[0].words[0].lowConfidence).toBeUndefined();
+  });
+
+  it('drops a word mostly covered by an earlier recognised word', () => {
+    const doubled = {
+      origin: 'RECOGNISED' as const,
+      pages: [
+        {
+          width: 595,
+          height: 842,
+          lines: [
+            { text: 'Betrag', y: 700, words: [{ text: 'Betrag', x: 60, width: 40, height: 10 }] },
+            { text: 'Betrag', y: 701, words: [{ text: 'Betr', x: 62, width: 30, height: 10 }] },
+            { text: 'Netto', y: 650, words: [{ text: 'Netto', x: 62, width: 30, height: 10 }] },
+          ],
+        },
+      ],
+    };
+    const result = layoutFromRecognised(doubled);
+    if (!('layout' in result)) throw new Error('refused');
+    expect(result.layout.pages[0].lines.map((l) => l.words.map((w) => w.text))).toEqual([
+      ['Betrag'],
+      ['Netto'],
+    ]);
+  });
+
+  it('refuses a recognition result without text', () => {
+    expect(layoutFromRecognised({ origin: 'RECOGNISED', pages: [{ lines: [] }] })).toEqual({
+      error: 'IMAGE_ONLY',
+    });
+  });
+
+  it('keeps the wire format unchanged: no recognition provenance in the submission, misread IBAN removed', () => {
+    const result = layoutFromRecognised(recognised);
+    if (!('layout' in result)) throw new Error('refused');
+    const anon = anonymizeLayout(result.layout, new Map(), () => 0.5, { lenient: true });
+    expect(anon.removedKinds).toContain('BANK_ACCOUNT');
+    const submission = toSubmission(anon);
+    expect(validateLayoutSubmission(submission).ok).toBe(true);
+    const json = JSON.stringify(submission);
+    expect(json).not.toContain('DE0O37601008500040094');
+    expect(json).not.toContain('lowConfidence');
+    expect(json).not.toContain('RECOGNISED');
+    // strict mode would have let the misread identifier through
+    const strict = anonymizeLayout(result.layout, new Map(), () => 0.5);
+    expect(strict.removedKinds).not.toContain('BANK_ACCOUNT');
+  });
 });

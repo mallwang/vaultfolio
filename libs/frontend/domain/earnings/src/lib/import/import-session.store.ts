@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Injectable, InjectionToken, computed, inject, signal } from '@angular/core';
+import { DestroyRef, Injectable, InjectionToken, computed, inject, signal } from '@angular/core';
 import type {
   EarningsFilePreview,
   EarningsFileResult,
@@ -12,6 +12,7 @@ import type {
 import {
   type CheckFailure,
   type ParseOutcome,
+  type PdfDocumentText,
   applyCorrection,
   collectCheckFailures,
   editableKeys,
@@ -24,6 +25,12 @@ import { firstValueFrom } from 'rxjs';
 import { EarningsService } from '../earnings.service';
 import { type PdfExtractResult, extractPdfText, sha256Hex } from '../pdf/pdf-text-extractor';
 import { readText } from '../pdf/read-blob';
+import type {
+  RecognitionError,
+  RecognitionProgress,
+  RecognitionResult,
+} from '../pdf/text-recogniser';
+import { TEXT_RECOGNISER } from '../pdf/text-recogniser.token';
 
 /** How files are read on the device; replaced in specs with fixture text. */
 export interface EarningsFileReader {
@@ -40,7 +47,18 @@ export const EARNINGS_FILE_READER = new InjectionToken<EarningsFileReader>('EARN
  * `needs-correction`: a payslip that failed an arithmetic check on the device. Its figures are
  * shown in the correction grid; it stays rejected (never sent) until every check passes (FR-012a).
  */
-export type ImportRowState = 'reading' | 'local-rejected' | 'needs-correction' | 'candidate';
+export type ImportRowState =
+  | 'reading'
+  /** A PDF without a text layer: waiting for the user's decision on on-device recognition (034). */
+  | 'awaiting-recognition'
+  /** On-device text recognition running (or queued behind another file). */
+  | 'recognising'
+  | 'local-rejected'
+  | 'needs-correction'
+  | 'candidate';
+
+/** Why recognition did not produce text, beyond the generic "no readable text" message (034 FR-013). */
+export type RecognitionHint = 'TOO_MANY_PAGES' | 'ENGINE_UNAVAILABLE';
 
 /** One editable figure of a record: record index and figure name. */
 export interface FigureRef {
@@ -78,6 +96,14 @@ export interface ImportRow {
   editable: FigureRef[];
   inputs: Record<string, string>;
   inputErrors: Record<string, true>;
+  /** The text was read via on-device recognition (034): shows the double-check notice and badge. */
+  recognised: boolean;
+  /** Progress of a `recognising` row; `null` while queued. */
+  recognition: RecognitionProgress | null;
+  /** A refused recognition names why (page limit, engine); `null` otherwise. */
+  recognitionHint: RecognitionHint | null;
+  /** A rejected image-only row the user may still choose to recognise ("read text instead"). */
+  recognisable: boolean;
 }
 
 export type ImportPhase =
@@ -96,7 +122,19 @@ const PDF = /\.pdf$/i;
 export class ImportSessionStore {
   private readonly api = inject(EarningsService);
   private readonly reader = inject(EARNINGS_FILE_READER);
+  private readonly recogniser = inject(TEXT_RECOGNISER);
   private counter = 0;
+  /** Files without a text layer, kept (in memory only) until recognised or removed. */
+  private readonly scans = new Map<string, File>();
+  private readonly recognitions = new Map<string, AbortController>();
+  /** Recognition runs one file at a time to cap memory (034 R9). */
+  private recognitionChain: Promise<void> = Promise.resolve();
+  /** Recognised text of rows no parser matched — handed to the parser request without a second recognition. */
+  private readonly recognisedTexts = new Map<string, PdfDocumentText>();
+
+  constructor() {
+    inject(DestroyRef).onDestroy(() => this.abortAll());
+  }
   /** Files of rows rejected as an unknown layout of a text PDF — the only ones a parser can be requested for (033 FR-001). */
   private readonly requestable = new Map<string, File>();
 
@@ -152,6 +190,7 @@ export class ImportSessionStore {
   }
 
   remove(clientFileId: string): void {
+    this.forget(clientFileId);
     this.rows.update((rows) => rows.filter((r) => r.clientFileId !== clientFileId));
     if (this.rows().length === 0) {
       this.reset();
@@ -207,7 +246,45 @@ export class ImportSessionStore {
     if (draft) this.update(row, draft, inputs, inputErrors);
   }
 
+  /** The user agrees to read the text of `clientFileId` on this device (034 FR-002). Consent is per file. */
+  acceptRecognition(clientFileId: string): Promise<void> {
+    const file = this.scans.get(clientFileId);
+    const row = this.rows().find((r) => r.clientFileId === clientFileId);
+    if (!file || !row || !(row.state === 'awaiting-recognition' || row.recognisable)) {
+      return Promise.resolve();
+    }
+    const controller = new AbortController();
+    this.recognitions.set(clientFileId, controller);
+    this.patch(clientFileId, {
+      state: 'recognising',
+      localRejection: null,
+      recognition: null,
+      recognitionHint: null,
+      recognisable: false,
+    });
+    this.phase.set('reading');
+    const run = this.recognitionChain.then(() => this.recognise(file, row, controller));
+    this.recognitionChain = run.catch(() => undefined);
+    return run;
+  }
+
+  /** The user does not want recognition: the file ends in the "no automatically readable text" message. */
+  async declineRecognition(clientFileId: string): Promise<void> {
+    const row = this.rows().find((r) => r.clientFileId === clientFileId);
+    if (row?.state !== 'awaiting-recognition') return;
+    this.patch(clientFileId, { ...imageOnlyRejection(true) });
+    await this.preview();
+  }
+
+  /** Stops a running or queued recognition; the file ends as if it had been declined. */
+  cancelRecognition(clientFileId: string): void {
+    this.recognitions.get(clientFileId)?.abort();
+  }
+
   reset(): void {
+    this.abortAll();
+    this.scans.clear();
+    this.recognisedTexts.clear();
     this.rows.set([]);
     this.phase.set('idle');
     this.errorCode.set(null);
@@ -256,6 +333,7 @@ export class ImportSessionStore {
             fileSha256: row.body.fileSha256,
             parserId: row.body.parserId,
             parserVersion: row.body.parserVersion,
+            recognisedText: row.body.recognisedText,
           },
         ) as EarningsImportFile)
       : null;
@@ -283,10 +361,41 @@ export class ImportSessionStore {
     return this.requestable.get(clientFileId) ?? null;
   }
 
+  /** The already recognised text of a requestable scan, so the request needs no second recognition (034 FR-010). */
+  requestableRecognisedText(clientFileId: string): PdfDocumentText | null {
+    return this.recognisedTexts.get(clientFileId) ?? null;
+  }
+
+  private async recognise(file: File, row: ImportRow, controller: AbortController): Promise<void> {
+    const id = row.clientFileId;
+    let result: RecognitionResult;
+    try {
+      result = await this.recogniser.recognise(file, {
+        signal: controller.signal,
+        onProgress: (recognition) => {
+          if (!controller.signal.aborted) this.patch(id, { recognition });
+        },
+      });
+    } catch {
+      result = { error: 'ENGINE_UNAVAILABLE' };
+    }
+    this.recognitions.delete(id);
+    // removed or reset while running: nothing to show, nothing retained
+    if (!this.rows().some((r) => r.clientFileId === id)) return;
+    if ('error' in result) {
+      this.patch(id, imageOnlyRejection(result.error !== 'TOO_MANY_PAGES', result.error));
+    } else {
+      this.patch(id, { recognition: null, recognised: true });
+      const next = await this.parseText(file, row, result.text, true);
+      this.patch(id, { ...next, recognised: true, recognition: null });
+    }
+    await this.preview();
+  }
+
   private async preview(): Promise<void> {
     const seq = ++this.previewSeq;
     const candidates = this.rows().filter((r) => r.state === 'candidate');
-    if (this.rows().some((r) => r.state === 'reading')) return;
+    if (this.rows().some((r) => r.state === 'reading' || r.state === 'recognising')) return;
     if (candidates.length === 0) {
       this.rows.update((rows) => rows.map((r) => ({ ...r, preview: null })));
       this.phase.set('ready');
@@ -324,13 +433,33 @@ export class ImportSessionStore {
         return rejected({ code: 'UNSUPPORTED_FORMAT' });
       }
       const extracted = await this.reader.extractPdfText(file);
-      if ('error' in extracted) return rejected({ code: extracted.error });
-      const outcome = parseDocument(extracted.text);
+      if ('error' in extracted) {
+        if (extracted.error !== 'IMAGE_ONLY') return rejected({ code: extracted.error });
+        // a scan: offer on-device recognition; nothing starts before the user agrees (034 FR-001)
+        this.scans.set(row.clientFileId, file);
+        return { state: 'awaiting-recognition' };
+      }
+      return this.parseText(file, row, extracted.text, false);
+    } catch {
+      return rejected({ code: 'UNREADABLE' });
+    }
+  }
+
+  /** Runs the parsers over the text of a PDF (extracted or recognised) and builds the row's candidate. */
+  private async parseText(
+    file: File,
+    row: ImportRow,
+    text: PdfDocumentText,
+    recognised: boolean,
+  ): Promise<Partial<ImportRow>> {
+    try {
+      const outcome = parseDocument(text);
       if (!outcome.ok && outcome.error.code === 'UNSUPPORTED_FORMAT') {
         this.requestable.set(row.clientFileId, file);
+        if (recognised) this.recognisedTexts.set(row.clientFileId, text);
       }
       const sourceType = outcome.documentType === 'CERTIFICATE' ? 'CERTIFICATE_PDF' : 'PAYSLIP_PDF';
-      return this.toCandidate(file, row, outcome, sourceType);
+      return await this.toCandidate(file, row, outcome, sourceType, recognised);
     } catch {
       return rejected({ code: 'UNREADABLE' });
     }
@@ -341,6 +470,7 @@ export class ImportSessionStore {
     row: ImportRow,
     outcome: ParseOutcome & { parserId?: string; parserVersion?: string },
     sourceType: EarningsSourceType,
+    recognised = false,
   ): Promise<Partial<ImportRow>> {
     if (!outcome.ok) {
       const base = { ...rejected(outcome.error), parserId: outcome.parserId ?? null, sourceType };
@@ -363,6 +493,7 @@ export class ImportSessionStore {
           fileSha256: await this.reader.sha256Hex(file),
           parserId: outcome.parserId as string,
           parserVersion: outcome.parserVersion as string,
+          recognisedText: recognised,
         }) as EarningsImportFile,
         draft: partial.records,
         originalRecords: partial.records,
@@ -377,6 +508,7 @@ export class ImportSessionStore {
       fileSha256: await this.reader.sha256Hex(file),
       parserId: outcome.parserId as string,
       parserVersion: outcome.parserVersion as string,
+      recognisedText: recognised,
     }) as EarningsImportFile;
     return {
       state: 'candidate',
@@ -406,7 +538,25 @@ export class ImportSessionStore {
       editable: [],
       inputs: {},
       inputErrors: {},
+      recognised: false,
+      recognition: null,
+      recognitionHint: null,
+      recognisable: false,
     };
+  }
+
+  /** Stops the recognition of a row and drops everything kept for it. */
+  private forget(clientFileId: string): void {
+    this.recognitions.get(clientFileId)?.abort();
+    this.recognitions.delete(clientFileId);
+    this.scans.delete(clientFileId);
+    this.recognisedTexts.delete(clientFileId);
+    this.requestable.delete(clientFileId);
+  }
+
+  private abortAll(): void {
+    for (const controller of this.recognitions.values()) controller.abort();
+    this.recognitions.clear();
   }
 
   private patch(clientFileId: string, next: Partial<ImportRow>): void {
@@ -437,6 +587,20 @@ function isEditable(row: ImportRow, recordIndex: number, key: EarningsPayAmountK
 /** Number of figures the user corrected in a row (names listed in the records' `corrected`). */
 export function correctedCount(row: Pick<ImportRow, 'draft'>): number {
   return (row.draft ?? []).reduce((n, r) => n + (r.corrected?.length ?? 0), 0);
+}
+
+/**
+ * A scan that ended without text (declined, cancelled, nothing recognised, cannot run): the
+ * existing "no automatically readable text" rejection, with the specific hint where there is one.
+ * `recognisable` keeps the "read text on this device instead" link available.
+ */
+function imageOnlyRejection(recognisable: boolean, reason?: RecognitionError): Partial<ImportRow> {
+  return {
+    ...rejected({ code: 'IMAGE_ONLY' }),
+    recognition: null,
+    recognisable,
+    recognitionHint: reason === 'TOO_MANY_PAGES' || reason === 'ENGINE_UNAVAILABLE' ? reason : null,
+  };
 }
 
 function rejected(rejection: EarningsRejection): Partial<ImportRow> {

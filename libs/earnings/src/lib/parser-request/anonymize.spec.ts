@@ -4,7 +4,7 @@ import {
   anonymizeLayout,
   COURIER_ADVANCE,
   layoutLimitProblem,
-  pendingDecisions,
+  isNoiseWord,
   replaceDigitsSameShape,
   toSubmission,
   type WordDecision,
@@ -116,16 +116,12 @@ describe('anonymizeLayout', () => {
   it('keeps known labels', () => {
     expect(gross[0]).toMatchObject({ text: 'Brutto', mark: 'LABEL' });
     expect(tax[0]).toMatchObject({ text: 'Lohnsteuer', mark: 'LABEL' });
-    expect(date[0]).toMatchObject({
-      text: 'Datum'.length === 5 ? 'xxxxx' : '',
-      mark: 'NEEDS_DECISION',
-    });
+    expect(date[0]).toMatchObject({ text: 'xxxxx', mark: 'MASKED' });
   });
 
-  it('marks unknown words as needing a decision, already masked in the output', () => {
-    expect(name[0]).toEqual({ text: 'xxxxx', x: 56, mark: 'NEEDS_DECISION', locked: false });
-    expect(name[1]).toEqual({ text: 'x'.repeat(10), x: 90, mark: 'NEEDS_DECISION', locked: false });
-    expect(pendingDecisions(anon)).toBe(4); // Erika, Mustermann, Datum, Abteilung — the covered word starts masked
+  it('masks unknown words by default', () => {
+    expect(name[0]).toEqual({ text: 'xxxxx', x: 56, mark: 'MASKED', locked: false });
+    expect(name[1]).toEqual({ text: 'x'.repeat(10), x: 90, mark: 'MASKED', locked: false });
   });
 
   it('replaces values with same-shape random digits', () => {
@@ -162,7 +158,7 @@ describe('anonymizeLayout', () => {
     expect(lines[6][1]).toMatchObject({ text: 'Kantine', mark: 'KEPT' });
     expect(lines[1][1]).toMatchObject({ mark: 'REMOVED', locked: true });
     expect(lines[3][0]).toMatchObject({ text: 'Brutto', mark: 'LABEL' });
-    expect(pendingDecisions(decided)).toBe(2); // Datum, Abteilung
+    expect(lines[5][0]).toMatchObject({ mark: 'MASKED' }); // undecided
   });
 
   it('clamps masked words to 3..20 characters', () => {
@@ -256,6 +252,16 @@ describe('anonymizeLayout', () => {
   });
 });
 
+describe('isNoiseWord', () => {
+  it('flags fragments and low-confidence words but not real words', () => {
+    expect(isNoiseWord({ text: 'Gehalt' })).toBe(false);
+    expect(isNoiseWord({ text: 'a' })).toBe(true);
+    expect(isNoiseWord({ text: '|,-' })).toBe(true);
+    expect(isNoiseWord({ text: 'x1l2' })).toBe(true);
+    expect(isNoiseWord({ text: 'Gehalt', lowConfidence: true })).toBe(true);
+  });
+});
+
 describe('toSubmission', () => {
   it('produces a valid submission the scan finds nothing in', () => {
     const decisions = new Map<string, WordDecision>([[wordKey(0, 0, 0), 'KEEP']]);
@@ -325,6 +331,67 @@ describe('toSubmission', () => {
     expect(toSubmission(anon, { lines: [] }).ruleDraft).toBeUndefined();
   });
 
+  it('keeps a leading wage-type code but still replaces other numbers', () => {
+    const layout: AnalyzedLayout = {
+      pages: [
+        {
+          width: 595,
+          height: 842,
+          lines: [
+            { y: 10, words: [word('2000', 10), word('Gehalt', 50), word('4.600,00', 400, 40)] },
+            { y: 20, words: [word('2000', 10), word('4.600,00', 400, 40)] },
+            { y: 30, words: [word('Brutto', 10), word('2000', 100)] },
+          ],
+        },
+      ],
+    };
+    const [coded, plain, late] = wordsOf(anonymizeLayout(layout, none, seeded(3)));
+    expect(coded[0]).toMatchObject({ text: '2000', mark: 'LABEL' });
+    expect(coded[2].text).not.toBe('4.600,00');
+    expect(plain[0].mark).toBe('VALUE');
+    expect(late[1].mark).toBe('VALUE');
+  });
+
+  it('keeps the line size below the distance to the line underneath', () => {
+    const layout: AnalyzedLayout = {
+      pages: [
+        {
+          width: 595,
+          height: 842,
+          lines: [
+            { y: 10, words: [{ ...word('Brutto', 10), height: 12 }] },
+            { y: 17.7, words: [word('Netto', 12)] },
+          ],
+        },
+      ],
+    };
+    const { lines } = toSubmission(anonymizeLayout(layout, none, seeded(1))).pages[0];
+    expect(lines[0].size).toBe(7); // 7.7 pt / 1.1
+  });
+
+  it('shrinks the line size so neighbouring words do not overlap', () => {
+    const crowded: AnalyzedLayout = {
+      pages: [
+        {
+          width: 595,
+          height: 842,
+          lines: [
+            {
+              y: 10,
+              words: [
+                { ...word('Geburtsdatum', 10), height: 14 },
+                { ...word('Konfession', 60), height: 14 },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    const { size } = toSubmission(anonymizeLayout(crowded, none, seeded(1))).pages[0].lines[0];
+    expect(size).toBeCloseTo(6.9, 1); // 50 pt for 12 Courier characters
+    expect(size).toBeGreaterThanOrEqual(5);
+  });
+
   it('derives the line size from the tallest word, within 5..20', () => {
     const tall = (height: number): AnalyzedLayout => ({
       pages: [
@@ -336,7 +403,7 @@ describe('toSubmission', () => {
               y: 10,
               words: [
                 { ...word('Brutto', 1), height },
-                { ...word('Netto', 50), height: 3 },
+                { ...word('Netto', 300), height: 3 },
               ],
             },
           ],

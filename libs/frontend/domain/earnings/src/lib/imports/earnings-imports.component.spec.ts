@@ -21,6 +21,7 @@ const IMPORTS: EarningsImportSummary[] = [
     lastPeriod: null,
     years: [2025],
     correctedCount: 0,
+    recognisedText: false,
   },
   {
     id: 'i1',
@@ -36,6 +37,7 @@ const IMPORTS: EarningsImportSummary[] = [
     lastPeriod: '2026-09',
     years: [],
     correctedCount: 1,
+    recognisedText: true,
   },
   {
     id: 'i3',
@@ -51,6 +53,7 @@ const IMPORTS: EarningsImportSummary[] = [
     lastPeriod: '2013-12',
     years: [2013],
     correctedCount: 0,
+    recognisedText: false,
   },
 ];
 
@@ -130,6 +133,25 @@ describe('EarningsImportsComponent', () => {
     expect(byTestId(root, 'earnings-imports-row-i3')?.textContent).toContain('3 · 1 certificate');
     expect(byTestId(root, 'earnings-danger-zone')).not.toBeNull();
     expect(byTestId(root, 'earnings-employer-row-e1')?.textContent).toContain('Detected as');
+  });
+
+  it('marks only imports read via text recognition with the badge in the source column', async () => {
+    const fixture = await create();
+    const root = fixture.nativeElement as HTMLElement;
+    byTestId(root, 'earnings-imports-toggle-all')?.click();
+    fixture.detectChanges();
+
+    expect(
+      byTestId(root, 'earnings-imports-row-i1')?.querySelector('[data-testid="ocr-badge"]'),
+    ).not.toBeNull();
+    expect(
+      byTestId(root, 'earnings-imports-row-i2')?.querySelector('[data-testid="ocr-badge"]'),
+    ).toBeNull();
+    expect(
+      byTestId(root, 'earnings-imports-row-i3')?.querySelector('[data-testid="ocr-badge"]'),
+    ).toBeNull();
+    expect(root.querySelectorAll('[data-testid="ocr-badge"]')).toHaveLength(1);
+    expect(byTestId(root, 'ocr-badge')?.textContent).toContain('Text recognition');
   });
 
   it('deletes an import after confirmation and reloads the history', async () => {
