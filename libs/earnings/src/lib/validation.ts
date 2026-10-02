@@ -37,9 +37,11 @@ const FILE_KEYS = [
   'fileSha256',
   'parserId',
   'parserVersion',
+  'recognisedText',
   'records',
   'certificates',
 ] as const;
+const FILE_REQUIRED = FILE_KEYS.filter((k) => k !== 'recognisedText');
 const RECORD_KEYS = [
   'employer',
   'period',
@@ -95,6 +97,11 @@ function string(value: unknown, path: string, test: (s: string) => boolean): str
 
 function money(value: unknown, path: string): string {
   if (!isMoney(value)) fail('INVALID_VALUE', path);
+  return value;
+}
+
+function flag(value: unknown, path: string): boolean {
+  if (typeof value !== 'boolean') fail('INVALID_VALUE', path);
   return value;
 }
 
@@ -210,7 +217,7 @@ export function certificateIdentity(c: Pick<CertificateInput, 'employer' | 'year
 }
 
 function parse(file: unknown): ImportFileInput {
-  const o = object(file, '', FILE_KEYS);
+  const o = object(file, '', FILE_KEYS, FILE_REQUIRED);
   const value: ImportFileInput = {
     clientFileId: string(o['clientFileId'], 'clientFileId', (s) => CLIENT_FILE_ID_PATTERN.test(s)),
     fileName: string(
@@ -226,6 +233,9 @@ function parse(file: unknown): ImportFileInput {
     parserVersion: string(o['parserVersion'], 'parserVersion', (s) =>
       PARSER_VERSION_PATTERN.test(s),
     ),
+    ...(o['recognisedText'] === undefined
+      ? {}
+      : { recognisedText: flag(o['recognisedText'], 'recognisedText') }),
     records: array(o['records'], 'records', MAX_RECORDS_PER_FILE).map((r, i) =>
       record(r, `records[${i}]`),
     ),

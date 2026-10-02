@@ -650,6 +650,41 @@ describe('/earnings', () => {
 
   // ---------------------------------------------------------------- US6 privacy
 
+  describe('recognised text (034)', () => {
+    it('persists recognisedText: true and returns it in the imports list, with checks unaffected', async () => {
+      const body = { ...aug(), recognisedText: true };
+      const [previewed] = (await preview([body])).body.files as EarningsFilePreview[];
+      expect(previewed).toMatchObject({ status: 'NEW', rejection: null });
+      const [saved] = (await commit([body])).body.files;
+      expect(saved).toMatchObject({ status: 'SAVED', recordCount: 1 });
+      const [history] = (await member.get('/earnings/imports')).body as EarningsImportSummary[];
+      expect(history.recognisedText).toBe(true);
+    });
+
+    it('defaults to false when omitted', async () => {
+      await commit([aug()]);
+      const [history] = (await member.get('/earnings/imports')).body as EarningsImportSummary[];
+      expect(history.recognisedText).toBe(false);
+    });
+
+    it('rejects a non-boolean flag and still re-runs the arithmetic checks', async () => {
+      const bad = (
+        await member.post('/earnings/imports/preview').send({
+          files: [{ ...aug(), recognisedText: 'yes' }],
+        })
+      ).body.files[0];
+      expect(bad.status).toBe('REJECTED');
+      const base = aug('ocr-bad', 'ocr-bad');
+      const failing = {
+        ...base,
+        recognisedText: true,
+        records: [{ ...base.records[0], amounts: { ...base.records[0].amounts, net: '1.00' } }],
+      };
+      const [result] = (await commit([failing])).body.files;
+      expect(result.status).toBe('REJECTED');
+    });
+  });
+
   describe('corrected figures (FR-012a)', () => {
     const corrected = (clientFileId = 'fixed') =>
       correctedImportFile(SAP_AUG_2026_NET_OFF.pages, '12.40', {

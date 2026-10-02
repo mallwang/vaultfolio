@@ -339,6 +339,29 @@ export const earningsEn: TranslationDictionary = {
     correctedOne: '1 figure corrected by you',
     removeFile: 'Remove file',
   },
+  ocr: {
+    badge: 'Text recognition',
+    statusDECISION: 'Needs your decision',
+    statusRECOGNISING: 'Reading…',
+    noText: 'No automatically readable text found in this PDF.',
+    offerInfo:
+      'This looks like a scan, or a PDF whose text was converted to graphics. Text recognition can read it on this device: the file and its text stay in your browser and are not stored. Digits can be misread, so you will need to check the figures.',
+    accept: 'Read text on this device',
+    decline: 'Not now',
+    lock: 'Works offline, nothing leaves your device',
+    cancel: 'Cancel',
+    waiting: 'Waiting for the previous file…',
+    loading: 'Preparing text recognition…',
+    rendering: 'Preparing page {{page}} of {{total}}…',
+    page: 'Reading page {{page}} of {{total}}',
+    noticeTitle: 'Read via text recognition',
+    notice:
+      'The text of the marked files was read by text recognition and may contain errors, especially in digits. Please double-check every figure against your document before importing.',
+    instead: 'Read text on this device instead',
+    hintTooManyPages:
+      'Text recognition is limited to {{max}} pages per document; this document has more.',
+    hintEngineUnavailable: 'Text recognition could not be started on this device.',
+  },
   widget: {
     title: 'Earnings {{year}}',
     open: 'Open',

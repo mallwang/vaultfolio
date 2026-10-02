@@ -10,6 +10,8 @@ import {
   SAP_AUG_2026_NET_OFF,
   SAP_SEP_2026_WITH_CORRECTION,
 } from '@vaultfolio/earnings/testing';
+import { FakeTextRecogniser } from '../pdf/text-recogniser.testing';
+import { TEXT_RECOGNISER } from '../pdf/text-recogniser.token';
 import { EarningsImportComponent } from './earnings-import.component';
 import { EARNINGS_FILE_READER } from './import-session.store';
 
@@ -47,13 +49,16 @@ function preview(
 
 describe('EarningsImportComponent', () => {
   let http: HttpTestingController;
+  let recogniser: FakeTextRecogniser;
 
   beforeEach(() => {
+    recogniser = new FakeTextRecogniser();
     TestBed.configureTestingModule({
       providers: [
         provideRouter([]),
         provideHttpClient(),
         provideHttpClientTesting(),
+        { provide: TEXT_RECOGNISER, useValue: recogniser },
         {
           provide: EARNINGS_FILE_READER,
           useValue: {
@@ -94,6 +99,111 @@ describe('EarningsImportComponent', () => {
       'Documents stay on your device',
     );
     expect(byTestId(root, 'earnings-import-confirm')).toBeNull();
+  });
+
+  describe('text recognition (034)', () => {
+    async function pick(
+      fixture: ReturnType<typeof TestBed.createComponent<EarningsImportComponent>>,
+      names: string[],
+    ) {
+      const input = byTestId(fixture.nativeElement, 'earnings-import-input') as HTMLInputElement;
+      Object.defineProperty(input, 'files', { value: names.map(pdf), configurable: true });
+      input.dispatchEvent(new Event('change'));
+      await settle(fixture);
+    }
+
+    function click(root: HTMLElement, id: string): void {
+      (byTestId(root, id) as HTMLButtonElement).click();
+    }
+
+    async function offered() {
+      const fixture = TestBed.createComponent(EarningsImportComponent);
+      fixture.detectChanges();
+      await pick(fixture, ['scan.pdf']);
+      return { fixture, root: fixture.nativeElement as HTMLElement };
+    }
+
+    it('offers recognition for a scan with consent, explanation and a decline button, and starts nothing', async () => {
+      const { root } = await offered();
+      const offer = byTestId(root, 'ocr-offer');
+      expect(offer?.textContent).toContain('stay in your browser');
+      expect(offer?.textContent).toContain('Digits can be misread');
+      expect(byTestId(root, 'ocr-accept')?.textContent).toContain('Read text on this device');
+      expect(byTestId(root, 'ocr-decline')?.textContent).toContain('Not now');
+      expect(byTestId(root, 'earnings-import-status-file-1')?.textContent).toContain(
+        'Needs your decision',
+      );
+      expect(byTestId(root, 'image-only-message')).toBeNull();
+      expect(recogniser.calls).toHaveLength(0);
+    });
+
+    it('shows a live progress region with the page, a cancel button, then the notice and the badge', async () => {
+      recogniser.script = {
+        text: SAP_AUG_2026.pages,
+        delayMs: 30,
+        progress: [{ phase: 'RECOGNISING', page: 2, pageCount: 3, fraction: 0.5 }],
+      };
+      const { fixture, root } = await offered();
+      click(root, 'ocr-accept');
+      await new Promise((r) => setTimeout(r, 10));
+      fixture.detectChanges();
+      const progress = byTestId(root, 'ocr-progress');
+      expect(progress?.getAttribute('role')).toBe('status');
+      expect(progress?.textContent).toContain('Reading page 2 of 3');
+      expect(byTestId(root, 'ocr-cancel')).not.toBeNull();
+      expect(byTestId(root, 'ocr-offer')).toBeNull();
+
+      await settle(fixture);
+      http.expectOne('/api/earnings/imports/preview').flush({ files: [preview('file-1')] });
+      await settle(fixture);
+      expect(byTestId(root, 'ocr-progress')).toBeNull();
+      expect(byTestId(root, 'ocr-notice')?.textContent).toContain('Read via text recognition');
+      expect(byTestId(root, 'ocr-notice')?.textContent).toContain('double-check every figure');
+      expect(
+        byTestId(root, 'earnings-import-row-file-1')?.querySelector('[data-testid="ocr-badge"]')
+          ?.textContent,
+      ).toContain('Text recognition');
+      expect(byTestId(root, 'earnings-import-status-file-1')?.textContent).toContain('New');
+    });
+
+    it('declining shows the image-only message and a link to read the text instead', async () => {
+      const { fixture, root } = await offered();
+      click(root, 'ocr-decline');
+      await settle(fixture);
+      expect(byTestId(root, 'image-only-message')?.textContent).toContain(
+        'no text that can be read automatically',
+      );
+      expect(byTestId(root, 'ocr-instead')?.textContent).toContain(
+        'Read text on this device instead',
+      );
+      expect(byTestId(root, 'ocr-notice')).toBeNull();
+      expect(byTestId(root, 'ocr-badge')).toBeNull();
+      expect(recogniser.calls).toHaveLength(0);
+    });
+
+    it('cancelling ends in the same message', async () => {
+      recogniser.script = { text: SAP_AUG_2026.pages, delayMs: 1000 };
+      const { fixture, root } = await offered();
+      click(root, 'ocr-accept');
+      await settle(fixture);
+      click(root, 'ocr-cancel');
+      await settle(fixture);
+      expect(byTestId(root, 'image-only-message')).not.toBeNull();
+      expect(byTestId(root, 'ocr-progress')).toBeNull();
+    });
+
+    it.each([
+      ['TOO_MANY_PAGES', 'limited to 5 pages', false],
+      ['ENGINE_UNAVAILABLE', 'could not be started', true],
+    ] as const)('adds the %s hint to the message', async (error, hint, retry) => {
+      recogniser.script = { error };
+      const { fixture, root } = await offered();
+      click(root, 'ocr-accept');
+      await settle(fixture);
+      expect(byTestId(root, 'image-only-message')).not.toBeNull();
+      expect(byTestId(root, 'ocr-hint')?.textContent).toContain(hint);
+      expect(byTestId(root, 'ocr-instead') !== null).toBe(retry);
+    });
   });
 
   it('lists each file with its outcome and reason, and imports the ready ones', async () => {
@@ -160,9 +270,12 @@ describe('EarningsImportComponent', () => {
     expect(byTestId(root, 'earnings-import-row-file-3')?.textContent).toContain(
       'Check failed for Aug 2026: Gross − taxes − social insurance = net is off by +€12.40.',
     );
-    expect(byTestId(root, 'earnings-import-row-file-4')?.textContent).toContain(
-      'no text that can be read automatically',
+    expect(byTestId(root, 'earnings-import-status-file-4')?.textContent).toContain(
+      'Needs your decision',
     );
+    expect(
+      byTestId(root, 'earnings-import-row-file-4')?.querySelector('[data-testid="ocr-offer"]'),
+    ).not.toBeNull();
     expect(byTestId(root, 'earnings-import-row-file-5')?.textContent).toContain(
       'Wage-tax certificate (Lohnsteuerbescheinigung)',
     );

@@ -276,3 +276,21 @@ describe('validateImportFile — corrected figures', () => {
     });
   });
 });
+
+describe('validateImportFile — recognised text (034)', () => {
+  it('keeps the flag when true or false and omits it when absent', () => {
+    for (const value of [true, false]) {
+      const out = validateImportFile(file({ recognisedText: value }));
+      expect(out.ok && out.value.recognisedText).toBe(value);
+    }
+    const absent = validateImportFile(file());
+    expect(absent.ok && 'recognisedText' in absent.value).toBe(false);
+  });
+
+  it.each(['yes', 1, null])('rejects the non-boolean %j', (recognisedText) => {
+    expect(errorOf(file({ recognisedText }))).toEqual({
+      code: 'INVALID_VALUE',
+      params: { path: 'recognisedText' },
+    });
+  });
+});

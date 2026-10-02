@@ -13,6 +13,8 @@ export interface FakeRecogniserScript {
 /** Scriptable recogniser for store/component specs: scripted text, progress ticks, errors, delay and abort. */
 export class FakeTextRecogniser implements TextRecogniser {
   readonly calls: Blob[] = [];
+  /** The abort signal of the latest call, to assert that leaving the page stops recognition. */
+  lastSignal: AbortSignal | null = null;
   script: FakeRecogniserScript = { text: [[]] };
 
   async recognise(
@@ -20,6 +22,7 @@ export class FakeTextRecogniser implements TextRecogniser {
     options: { signal: AbortSignal; onProgress: (p: RecognitionProgress) => void },
   ): Promise<RecognitionResult> {
     this.calls.push(file);
+    this.lastSignal = options.signal;
     for (const tick of this.script.progress ?? []) options.onProgress(tick);
     if (this.script.delayMs) {
       const aborted = await new Promise<boolean>((resolve) => {

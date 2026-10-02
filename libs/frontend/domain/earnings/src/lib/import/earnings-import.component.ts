@@ -8,21 +8,26 @@ import { TagModule } from 'primeng/tag';
 import { I18nService, IconComponent, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
 import { ParserRequestStore } from '../parser-request/parser-request.store';
 import { fill, formatDate, formatMonth, formatMoney, rejectionText } from '../earnings-format';
+import { MAX_RECOGNITION_PAGES } from '../pdf/text-recogniser';
 import { CorrectionGridComponent } from './correction-grid/correction-grid.component';
 import { RECORD_FIGURES } from './figures';
 import { type ImportRow, ImportSessionStore, correctedCount } from './import-session.store';
 
-type RowStatus = EarningsPreviewStatus | 'READING' | 'CORRECTED';
+type RowStatus = EarningsPreviewStatus | 'READING' | 'CORRECTED' | 'DECISION' | 'RECOGNISING';
 
-const STATUS_SEVERITY: Record<RowStatus, 'success' | 'info' | 'secondary' | 'danger' | 'contrast'> =
-  {
-    NEW: 'success',
-    REPLACES: 'info',
-    DUPLICATE: 'secondary',
-    REJECTED: 'danger',
-    READING: 'contrast',
-    CORRECTED: 'success',
-  };
+const STATUS_SEVERITY: Record<
+  RowStatus,
+  'success' | 'info' | 'secondary' | 'danger' | 'contrast' | 'warn'
+> = {
+  NEW: 'success',
+  REPLACES: 'info',
+  DUPLICATE: 'secondary',
+  REJECTED: 'danger',
+  READING: 'contrast',
+  CORRECTED: 'success',
+  DECISION: 'warn',
+  RECOGNISING: 'contrast',
+};
 
 interface FigureGroup {
   title: string;
@@ -115,17 +120,37 @@ interface FigureGroup {
         <p-progressbar [value]="progress()" [showValue]="false" />
       </div>
 
+      @if (anyRecognised()) {
+        <p-message severity="warn" data-testid="ocr-notice">
+          <div class="ocr-notice">
+            <strong>{{ 'earnings.ocr.noticeTitle' | translate }}</strong>
+            <span>{{ 'earnings.ocr.notice' | translate }}</span>
+          </div>
+        </p-message>
+      }
+
       <ul class="rows">
         @for (row of store.rows(); track row.clientFileId) {
           @let status = statusOf(row);
           <li class="row" [attr.data-testid]="'earnings-import-row-' + row.clientFileId">
             <div class="row__main">
               <span class="row__icon" [class]="'row__icon--' + status.toLowerCase()">
-                <app-icon [name]="iconOf(status)" [spin]="status === 'READING'" />
+                <app-icon
+                  [name]="iconOf(status)"
+                  [spin]="status === 'READING' || status === 'RECOGNISING'"
+                />
               </span>
               <div class="row__name">
                 <strong>{{ row.fileName }}</strong>
                 <span class="muted">{{ describe(row) }}</span>
+                @if (row.recognised) {
+                  <p-tag
+                    class="row__badge"
+                    severity="warn"
+                    [value]="'earnings.ocr.badge' | translate"
+                    data-testid="ocr-badge"
+                  />
+                }
               </div>
               <div class="row__periods">
                 {{ periodsOf(row) }}
@@ -143,7 +168,7 @@ interface FigureGroup {
               </div>
               <p-tag
                 [severity]="severityOf(status)"
-                [value]="'earnings.import.status' + status | translate"
+                [value]="statusLabel(status)"
                 [attr.data-testid]="'earnings-import-status-' + row.clientFileId"
               />
               @if (!busy() && store.phase() !== 'done') {
@@ -160,8 +185,83 @@ interface FigureGroup {
                 </button>
               }
             </div>
+            @if (row.state === 'awaiting-recognition') {
+              <div class="ocr-offer" data-testid="ocr-offer">
+                <p class="ocr-offer__text">{{ 'earnings.ocr.offerInfo' | translate }}</p>
+                <div class="ocr-offer__actions">
+                  <button
+                    pButton
+                    type="button"
+                    size="small"
+                    data-testid="ocr-accept"
+                    (click)="store.acceptRecognition(row.clientFileId)"
+                  >
+                    <app-icon name="scan" /> {{ 'earnings.ocr.accept' | translate }}
+                  </button>
+                  <button
+                    pButton
+                    type="button"
+                    size="small"
+                    severity="secondary"
+                    outlined
+                    data-testid="ocr-decline"
+                    (click)="store.declineRecognition(row.clientFileId)"
+                  >
+                    {{ 'earnings.ocr.decline' | translate }}
+                  </button>
+                  <span class="muted"
+                    ><app-icon name="lock" /> {{ 'earnings.ocr.lock' | translate }}</span
+                  >
+                </div>
+              </div>
+            }
+            @if (row.state === 'recognising') {
+              <div class="ocr-offer" role="status" aria-live="polite" data-testid="ocr-progress">
+                <p class="ocr-offer__text">{{ progressOf(row) }}</p>
+                <p-progressbar
+                  [value]="recognitionPercent(row)"
+                  [showValue]="false"
+                  [mode]="row.recognition ? 'determinate' : 'indeterminate'"
+                />
+                <div class="ocr-offer__actions">
+                  <button
+                    pButton
+                    type="button"
+                    size="small"
+                    severity="secondary"
+                    outlined
+                    data-testid="ocr-cancel"
+                    (click)="store.cancelRecognition(row.clientFileId)"
+                  >
+                    {{ 'earnings.ocr.cancel' | translate }}
+                  </button>
+                  <span class="muted"
+                    ><app-icon name="lock" /> {{ 'earnings.ocr.lock' | translate }}</span
+                  >
+                </div>
+              </div>
+            }
             @for (line of notesOf(row); track $index) {
-              <p class="row__note" [class.row__note--error]="line.error">{{ line.text }}</p>
+              <p
+                class="row__note"
+                [class.row__note--error]="line.error"
+                [attr.data-testid]="line.testId"
+              >
+                {{ line.text }}
+              </p>
+            }
+            @if (row.recognitionHint; as hint) {
+              <p class="row__note" data-testid="ocr-hint">{{ hintText(hint) }}</p>
+            }
+            @if (row.recognisable) {
+              <button
+                type="button"
+                class="link"
+                data-testid="ocr-instead"
+                (click)="store.acceptRecognition(row.clientFileId)"
+              >
+                {{ 'earnings.ocr.instead' | translate }}
+              </button>
             }
             @if (store.requestableFile(row.clientFileId)) {
               <div class="row__request">
@@ -342,6 +442,34 @@ interface FigureGroup {
       border-radius: var(--p-content-border-radius);
       background: var(--p-content-background);
     }
+    .ocr-offer {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin: 0.5rem 0 0 2.25rem;
+      padding: 0.75rem;
+      border: 1px solid var(--p-content-border-color);
+      border-radius: var(--p-content-border-radius);
+    }
+    .ocr-offer__text {
+      margin: 0;
+      font-size: 0.875rem;
+    }
+    .ocr-offer__actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .ocr-notice {
+      display: flex;
+      flex-direction: column;
+      gap: 0.125rem;
+    }
+    .row__badge {
+      align-self: flex-start;
+      margin-top: 0.25rem;
+    }
     .row__request {
       display: flex;
       align-items: center;
@@ -386,6 +514,7 @@ interface FigureGroup {
       color: var(--p-green-600);
     }
     .row__icon--duplicate,
+    .row__icon--recognising,
     .row__icon--reading {
       color: var(--p-text-muted-color);
     }
@@ -471,6 +600,7 @@ export class EarningsImportComponent {
   protected readonly busy = computed(() =>
     ['reading', 'checking', 'importing'].includes(this.store.phase()),
   );
+  protected readonly anyRecognised = computed(() => this.store.rows().some((r) => r.recognised));
   protected readonly progress = computed(() =>
     this.store.total() === 0 ? 0 : Math.round((this.store.read() / this.store.total()) * 100),
   );
@@ -532,6 +662,8 @@ export class EarningsImportComponent {
   }
 
   protected statusOf(row: ImportRow): RowStatus {
+    if (row.state === 'awaiting-recognition') return 'DECISION';
+    if (row.state === 'recognising') return 'RECOGNISING';
     if (row.state === 'local-rejected' || row.state === 'needs-correction') return 'REJECTED';
     const status = row.preview?.status ?? 'READING';
     return status === 'NEW' && correctedCount(row) > 0 ? 'CORRECTED' : status;
@@ -542,7 +674,8 @@ export class EarningsImportComponent {
   }
 
   protected iconOf(status: RowStatus): string {
-    if (status === 'READING') return 'spinner';
+    if (status === 'READING' || status === 'RECOGNISING') return 'spinner';
+    if (status === 'DECISION') return 'scan';
     if (status === 'REJECTED') return 'close';
     if (status === 'DUPLICATE') return 'ban';
     return 'check-circle';
@@ -583,20 +716,59 @@ export class EarningsImportComponent {
     return parts.join(', ');
   }
 
-  protected notesOf(row: ImportRow): { text: string; error: boolean }[] {
+  protected statusLabel(status: RowStatus): string {
+    return this.t(
+      status === 'DECISION' || status === 'RECOGNISING'
+        ? `earnings.ocr.status${status}`
+        : `earnings.import.status${status}`,
+    );
+  }
+
+  /** "Reading page 2 of 3", or the engine-load / queued wording. */
+  protected progressOf(row: ImportRow): string {
+    const p = row.recognition;
+    if (!p) return this.t('earnings.ocr.waiting');
+    if (p.phase === 'LOADING') return this.t('earnings.ocr.loading');
+    const params = { page: p.page, total: p.pageCount };
+    return fill(
+      this.t(p.phase === 'RENDERING' ? 'earnings.ocr.rendering' : 'earnings.ocr.page'),
+      params,
+    );
+  }
+
+  /** Whole-document progress: finished pages plus the fraction of the current one. */
+  protected recognitionPercent(row: ImportRow): number {
+    const p = row.recognition;
+    if (!p) return 0;
+    return Math.round(((p.page - 1 + p.fraction) / p.pageCount) * 100);
+  }
+
+  protected hintText(hint: 'TOO_MANY_PAGES' | 'ENGINE_UNAVAILABLE'): string {
+    return hint === 'TOO_MANY_PAGES'
+      ? fill(this.t('earnings.ocr.hintTooManyPages'), { max: MAX_RECOGNITION_PAGES })
+      : this.t('earnings.ocr.hintEngineUnavailable');
+  }
+
+  protected notesOf(row: ImportRow): { text: string; error: boolean; testId?: string }[] {
     const lang = this.i18n.language();
     const rejection = row.localRejection ?? row.preview?.rejection;
     if (rejection) {
       const template =
         row.state === 'needs-correction' ? 'earnings.import.checkFailedCorrectable' : undefined;
-      return [{ text: rejectionText(rejection, (k) => this.t(k), lang, template), error: true }];
+      return [
+        {
+          text: rejectionText(rejection, (k) => this.t(k), lang, template),
+          error: true,
+          testId: rejection.code === 'IMAGE_ONLY' ? 'image-only-message' : undefined,
+        },
+      ];
     }
     if (row.state === 'needs-correction') {
       return [{ text: this.t('earnings.import.invalidAmount'), error: true }];
     }
     const preview = row.preview;
     if (!preview) return [];
-    const notes: { text: string; error: boolean }[] = [];
+    const notes: { text: string; error: boolean; testId?: string }[] = [];
     if (preview.status === 'DUPLICATE') {
       notes.push({
         text: preview.duplicateOf

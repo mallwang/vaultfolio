@@ -73,4 +73,15 @@ describe('toImportFile', () => {
     expect(file.records[1]).not.toHaveProperty('corrected');
     expect(validateImportFile(JSON.parse(JSON.stringify(file))).ok).toBe(true);
   });
+
+  it('writes recognisedText only when the file was read via text recognition', () => {
+    const parsed = { records: [payRecord()], certificates: [] };
+    expect('recognisedText' in toImportFile(parsed, META)).toBe(false);
+    expect('recognisedText' in toImportFile(parsed, { ...META, recognisedText: false })).toBe(
+      false,
+    );
+    const file = toImportFile(parsed, { ...META, recognisedText: true });
+    expect(file.recognisedText).toBe(true);
+    expect(validateImportFile(file).ok).toBe(true);
+  });
 });
