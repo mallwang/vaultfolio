@@ -475,7 +475,7 @@ interface FigureGroup {
       align-items: center;
       gap: 0.75rem;
       flex-wrap: wrap;
-      padding: 0 1rem 0.75rem;
+      margin: 0.5rem 0 0 2.25rem;
     }
     .row {
       padding: 0.75rem 1rem;
