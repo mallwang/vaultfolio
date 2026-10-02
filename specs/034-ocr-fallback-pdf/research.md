@@ -80,3 +80,8 @@
 
 - Constitution: Earnings domain bullet "data enters exclusively by document import — text-based payslip and wage-tax certificate PDFs interpreted on the user's own device…" → "PDFs (text-based, or read by on-device text recognition after the user's consent)…"; MINOR bump 3.7.0 → 3.8.0; also note in Sensitive Personal Data that recognition runs on-device and OCR text is raw text under the same rules.
 - 032: FR-014 amended (image-only → recognition offer; message remains for decline/no text). 033: FR-004 and the "Text-based PDFs only"/"Out of scope: OCR" statements amended. Done as a first task, before implementation (spec FR-016).
+
+## Implementation notes (T004/T005)
+
+- `tesseract.js` 7 requires `tesseract.js-core` ^7 (not 6.x). The core is loaded from the `*-lstm.wasm.js` variants (WASM embedded in JS; plain, SIMD and relaxed-SIMD, ≈ 3.9 MB each — only one is fetched per device).
+- `@tesseract.js-data/deu` ships only gzipped data, so the adapter uses `gzip: true` (decompressed in the worker) instead of `gzip: false`, and the `4.0.0_best_int` model (`deu.traineddata.gz`, ≈ 1.3 MB) is copied — smaller than the "fast" file assumed above. Language data licence: MIT (package), engine: Apache-2.0 (licence files copied to `assets/tesseract/licenses/`).

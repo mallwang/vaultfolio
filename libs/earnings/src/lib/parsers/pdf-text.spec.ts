@@ -1,4 +1,5 @@
 import {
+  allLines,
   amountAtColumn,
   amountsIn,
   documentText,
@@ -81,5 +82,13 @@ describe('line helpers', () => {
         { text: 'bb', x: 10, width: 10 },
       ],
     });
+  });
+
+  it('ignores the text origin in helpers', () => {
+    const extracted = textDocument([['Gesamtbrutto 5.000,00']]);
+    const recognised = { ...extracted, origin: 'RECOGNISED' as const };
+    expect(allLines(recognised)).toEqual(allLines(extracted));
+    expect(documentText(recognised)).toBe(documentText(extracted));
+    expect(findLine(recognised, 'Gesamtbrutto')?.text).toBe('Gesamtbrutto 5.000,00');
   });
 });

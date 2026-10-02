@@ -3,6 +3,12 @@ import { type Money, normalizeEmployerName, toMoney } from '../model';
 /** Output of the browser PDF adapter (libs/frontend/domain/earnings), input of every parser. */
 export interface PdfDocumentText {
   pages: PdfPageText[];
+  /**
+   * Where the text comes from: the PDF's own text layer (`EXTRACTED`, the default) or on-device
+   * text recognition of a scan (`RECOGNISED`, 034). Parsers ignore it; downstream steps use it for
+   * the double-check notice and the lenient personal-data scan.
+   */
+  origin?: 'EXTRACTED' | 'RECOGNISED';
 }
 
 export interface PdfPageText {

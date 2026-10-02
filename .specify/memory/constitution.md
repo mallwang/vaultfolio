@@ -1,6 +1,17 @@
 <!--
 Sync Impact Report
-- Version change: 3.6.0 → 3.7.0 (MINOR: the Sensitive Personal Data rule "No document handling on
+- Version change: 3.7.0 → 3.8.0 (MINOR: Earnings document import also accepts PDFs without a text
+  layer, read by on-device text recognition after the user's per-file consent,
+  034-ocr-fallback-pdf; no principle removed or redefined)
+- Modified sections:
+  - Product Scope → In Scope → Earnings domain: PDFs are "text-based, or read by on-device text
+    recognition after the user's consent".
+  - Product Scope → Sensitive Personal Data → "Deterministic interpretation, no external services":
+    recognition runs entirely on the device (no external/cloud OCR), its output is raw text under
+    the same rules, and it is never transmitted, persisted or cached.
+- Added/removed principles and sections: none
+- Templates requiring updates: none
+- Previous: 3.6.0 → 3.7.0 (MINOR: the Sensitive Personal Data rule "No document handling on
   the server" gains one narrow exception for an anonymized, rebuilt sample submitted in an opt-in
   parser request, 033-parser-requests, FR-043)
 - Modified sections:
@@ -187,8 +198,9 @@ stated.
   one-off payments), wage tax, solidarity surcharge, church tax, employee social-insurance
   contributions, and annual wage-tax certificates — with yearly/monthly analysis and consistency
   checks against the printed year-to-date totals and certificates.
-- Earnings domain: data enters exclusively by document import — text-based payslip and wage-tax
-  certificate PDFs interpreted on the user's own device, or the companion local tool's versioned,
+- Earnings domain: data enters exclusively by document import — payslip and wage-tax
+  certificate PDFs (text-based, or read by on-device text recognition after the user's consent)
+  interpreted on the user's own device, or the companion local tool's versioned,
   whitelisted JSON export. Every imported record MUST pass the domain's arithmetic checks, re-run
   by the backend; a file containing any failing record MUST be rejected as a whole.
 - Earnings domain: parser requests (033-parser-requests) — when an import is rejected as "format
@@ -253,7 +265,10 @@ constitution:
   and figures from the user's real document MUST still never leave the device.
 - **Deterministic interpretation, no external services**: document interpretation MUST be
   deterministic and reproducible for a given input and parser version, and MUST NOT use any
-  external, cloud, or AI/LLM service.
+  external, cloud, or AI/LLM service. Text recognition for PDFs without a text layer is permitted
+  only if it runs entirely on the user's device after the user's per-file consent, loads its
+  engine and data only from the application's own origin, and neither transmits, persists nor
+  caches anything derived from the document; recognised text is raw text under the same rules.
 - **Owner-only access**: every record belongs to exactly one user and is only ever visible to,
   modifiable by, or deletable by that user. No administrative view, report, or endpoint may expose
   another user's data — role-based access (including Administrator) never overrides ownership.
@@ -373,4 +388,4 @@ alignment with the Core Principles; unresolved violations MUST be justified in t
 Complexity Tracking section or the plan MUST be revised to comply. Reviewers MUST treat this
 constitution as authoritative over informal team conventions.
 
-**Version**: 3.7.0 | **Ratified**: 2026-08-13 | **Last Amended**: 2026-10-01
+**Version**: 3.8.0 | **Ratified**: 2026-08-13 | **Last Amended**: 2026-10-02
