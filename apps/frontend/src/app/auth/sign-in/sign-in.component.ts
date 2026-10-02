@@ -60,7 +60,7 @@ export class SignInComponent {
     this.authService.signIn({ email: this.email, password: this.password }).subscribe({
       next: (user) => {
         this.currentUser.setAuthenticated(user);
-        this.router.navigateByUrl(this.redirectTarget());
+        void this.router.navigateByUrl(this.redirectTarget());
       },
       error: (error: unknown) => {
         this.submitting.set(false);

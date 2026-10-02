@@ -31,6 +31,6 @@ export class DynamicOutletComponent implements OnChanges {
   protected readonly type = signal<Type<unknown> | null>(null);
 
   ngOnChanges(): void {
-    this.loader().then((resolved) => this.type.set(resolved));
+    void this.loader().then((resolved) => this.type.set(resolved));
   }
 }

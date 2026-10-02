@@ -49,7 +49,7 @@ export class VerifyEmailComponent implements OnInit {
   }
 
   private goToInvalid(): void {
-    this.router.navigateByUrl('/account/link-invalid');
+    void this.router.navigateByUrl('/account/link-invalid');
   }
 
   protected confirm(): void {

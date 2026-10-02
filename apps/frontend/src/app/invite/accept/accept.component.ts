@@ -91,7 +91,7 @@ export class AcceptComponent implements OnInit {
   }
 
   private goToExpired(): void {
-    this.router.navigateByUrl('/invite/expired');
+    void this.router.navigateByUrl('/invite/expired');
   }
 
   protected submit(): void {
@@ -121,7 +121,7 @@ export class AcceptComponent implements OnInit {
     };
     this.invitationsService.accept(this.token, body).subscribe({
       next: () => {
-        this.router.navigateByUrl('/app/dashboard');
+        void this.router.navigateByUrl('/app/dashboard');
       },
       error: (error: unknown) => {
         this.submitting.set(false);

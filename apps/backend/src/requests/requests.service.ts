@@ -24,7 +24,7 @@ import { RequestsEmailService } from './requests-email.service';
 import { RequestsRepository, type StoredRequest } from './requests.repository';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-const ENVELOPE_KEYS = ['feature', 'type', 'payload'];
+const ENVELOPE_KEYS = new Set(['feature', 'type', 'payload']);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -203,7 +203,7 @@ export class RequestsService {
 
   private parseEnvelope(body: unknown): { feature: string; type: string; payload: unknown } {
     if (!isRecord(body)) throw invalidSubmission(RequestErrorCode.UNKNOWN_REQUEST_TYPE);
-    if (Object.keys(body).some((key) => !ENVELOPE_KEYS.includes(key))) {
+    if (Object.keys(body).some((key) => !ENVELOPE_KEYS.has(key))) {
       throw invalidSubmission(RequestErrorCode.LAYOUT_UNKNOWN_FIELD, '$');
     }
     if (typeof body['feature'] !== 'string' || typeof body['type'] !== 'string') {

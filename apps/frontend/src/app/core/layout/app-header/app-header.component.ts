@@ -119,6 +119,6 @@ export class AppHeaderComponent {
 
   private completeSignOut(): void {
     this.currentUser.setUnauthenticated();
-    this.router.navigateByUrl('/sign-in');
+    void this.router.navigateByUrl('/sign-in');
   }
 }

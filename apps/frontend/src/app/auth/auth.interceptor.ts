@@ -39,7 +39,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
           currentUrl && currentUrl !== '/' && !currentUrl.startsWith('/sign-in')
             ? `?redirect=${encodeURIComponent(currentUrl)}`
             : '';
-        router.navigateByUrl(`/sign-in${redirect}`);
+        void router.navigateByUrl(`/sign-in${redirect}`);
       }
       return throwError(() => error);
     }),

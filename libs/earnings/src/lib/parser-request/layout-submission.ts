@@ -190,7 +190,7 @@ function validateRuleLine(
   const page = nonNegativeInteger(rule['page'], `${path}.page`, pages.length, code);
   const line = nonNegativeInteger(rule['line'], `${path}.line`, pages[page].lines.length, code);
   const figure = rule['figure'];
-  if (!FIGURE_TYPES.some((f) => f === figure)) return reject(code, `${path}.figure`);
+  if (!(FIGURE_TYPES as readonly unknown[]).includes(figure)) return reject(code, `${path}.figure`);
   if (typeof rule['deduction'] !== 'boolean') return reject(code, `${path}.deduction`);
   const result: SubmittedRuleLine = {
     page,
@@ -202,7 +202,8 @@ function validateRuleLine(
     result.column = validateColumn(rule['column'], `${path}.column`, pages[page].width);
   }
   if ('format' in rule) {
-    if (!RULE_FORMATS.some((f) => f === rule['format'])) return reject(code, `${path}.format`);
+    if (!(RULE_FORMATS as readonly unknown[]).includes(rule['format']))
+      return reject(code, `${path}.format`);
     result.format = rule['format'] as SubmittedRuleLine['format'];
   }
   return result;
