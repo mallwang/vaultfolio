@@ -76,7 +76,7 @@ description: 'Task list for OCR Fallback for PDFs Without a Text Layer'
 - [x] T016 [P] [US1] Extend `libs/frontend/domain/earnings/src/lib/imports/earnings-imports.component.spec.ts`: `ocr-badge` shown in the Source column for `recognisedText: true` only
 - [x] T017 [P] [US1] Extend `apps/backend/src/earnings/earnings.repository.spec.ts` and `apps/backend/src/earnings/earnings.controller.spec.ts` (and `apps/backend/src/database/database.service.spec.ts` for the migration): `recognisedText` persisted, defaults to `false`, always returned; migration is idempotent
 - [x] T018 [P] [US1] Extend `apps/backend/src/tests/earnings.e2e-spec.ts`: import with `recognisedText: true` is persisted and returned by the imports list; omitted ⇒ `false`; arithmetic checks, fingerprint and amount encryption unaffected
-- [ ] T019 [P] [US1] Add opt-in real-engine spec `libs/frontend/domain/earnings/src/lib/pdf/ocr.integration.spec.ts` (skipped when `assets/tesseract` files are absent): render a synthetic image-only payslip fixture of a supported layout via PDF.js (`@napi-rs/canvas`), run real tesseract.js, assert word geometry and that a supported parser accepts the result. Fixtures are synthetic — never commit `tmp/` samples with real personal data
+- [x] T019 [P] [US1] Add opt-in real-engine spec `libs/frontend/domain/earnings/src/lib/pdf/ocr.integration.spec.ts` (skipped when `assets/tesseract` files are absent): render a synthetic image-only payslip fixture of a supported layout via PDF.js (`@napi-rs/canvas`), run real tesseract.js, assert word geometry and that a supported parser accepts the result. Fixtures are synthetic — never commit `tmp/` samples with real personal data
 
 ### Implementation for User Story 1
 
@@ -88,7 +88,7 @@ description: 'Task list for OCR Fallback for PDFs Without a Text Layer'
 - [x] T025 [US1] Update `libs/frontend/domain/earnings/src/lib/import/earnings-import.component.ts` (+ template): replace the `IMAGE_ONLY` rejection row with the undecided row (scan icon, "Needs your decision" tag, info box, primary "Read text on this device", outline "Not now", lock note), the reading row (progress bar "Page n of N", Cancel, live region), the warning callout "Read via text recognition" above the preview, and the "Text recognition" tag on the file row; add the `data-testid`s listed above
 - [x] T026 [US1] Show the "Text recognition" tag (`ocr-badge`) in the Source column in `libs/frontend/domain/earnings/src/lib/imports/earnings-imports.component.ts`
 - [x] T027 [US1] Add DE + EN strings for offer, consent info box, progress, preview notice, badge in `libs/frontend/shared-ui/src/lib/i18n/translations/earnings.de.ts` / `earnings.en.ts` (kept in sync; `earnings-translations.spec.ts` must pass)
-- [ ] T028 [US1] Verify via the `verify-ui` skill: image-only supported payslip → offer appears and nothing starts before the click → accept → progress → preview marker/notice → failing figures editable and Save disabled until the check passes → save → badge in the imports list (throw-away script in the scratchpad, not committed)
+- [x] T028 [US1] Verify via the `verify-ui` skill: image-only supported payslip → offer appears and nothing starts before the click → accept → progress → preview marker/notice → failing figures editable and Save disabled until the check passes → save → badge in the imports list (throw-away script in the scratchpad, not committed)
 
 **Checkpoint**: US1 is fully functional and independently testable (MVP).
 
@@ -109,7 +109,7 @@ description: 'Task list for OCR Fallback for PDFs Without a Text Layer'
 
 - [x] T031 [US2] Implement the decline/cancel/failure outcomes in `libs/frontend/domain/earnings/src/lib/import/import-session.store.ts` and `earnings-import.component.ts`: map `RecognitionResult` errors per contracts/ocr-lib.md "Error message mapping", re-offer via the "instead" link (new consent), stop recognition on file removal/selecting another file/route leave, and discard intermediate data
 - [x] T032 [P] [US2] Add DE + EN strings for the page-limit hint (names the limit 5), the engine-unavailable hint and the "instead" link in `libs/frontend/shared-ui/src/lib/i18n/translations/earnings.de.ts` / `earnings.en.ts`
-- [ ] T033 [US2] Verify via `verify-ui`: decline path, blank-page path, cancel mid-run, and a >5-page PDF; confirm identical refusal text to today (SC-007)
+- [x] T033 [US2] Verify via `verify-ui`: decline path, blank-page path, cancel mid-run, and a >5-page PDF; confirm identical refusal text to today (SC-007)
 
 **Checkpoint**: US1 and US2 both work independently.
 
