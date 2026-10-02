@@ -38,6 +38,7 @@
 
 - Reuse the existing `PdfDocumentText { pages: PdfPageText[] }` (`PdfLine { text, words[], y }`, `PdfWord { text, x, width }`) — parsers stay unchanged (FR-005).
 - Convert tesseract lines/words: x = bbox.x0 / scale, width = (x1 − x0) / scale, y = (pageHeight − bbox.y1) / scale… i.e. normalise to **PDF points with y growing upward** so column-sensitive parsers behave as with PDF.js. Lines sorted top-to-bottom as in `toLines()`.
+- **Row building**: do not trust tesseract's own `lines` (its block analysis splits table rows into per-cell lines, see the spike). Flatten all words of a page and regroup them by vertical centre with a tolerance of about half the median word height (the OCR counterpart of `toLines()`' ±2 pt), then sort each row left to right. Column gaps are not encoded as separators; parsers keep using each word's `x`/`width`, exactly as with PDF.js text. Verified in the spike: header and value rows of the "Steuer/Sozialversicherung" table line up column by column after this regrouping.
 - Drop words with confidence below a floor (starting value 30) and empty text; keep everything else — repairs happen in R5, not by silently dropping.
 - Add `PdfDocumentText.origin?: 'EXTRACTED' | 'RECOGNISED'` (default `EXTRACTED`) so downstream steps know the provenance without changing parser signatures.
 

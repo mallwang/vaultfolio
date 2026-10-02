@@ -1,0 +1,2191 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Text Recognition Review</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    />
+    <style>
+      /* Layout: review chrome on top, one app-shell canvas below; screens switch via data-screen on #canvas.
+     Tokens: PrimeNG Aura approximation, same values as specs/032-earnings-domain/mockup.html. */
+      :root {
+        color-scheme: light;
+        --p-content-background: #ffffff;
+        --p-surface-2: #f8f9fb;
+        --p-text-color: #1f2430;
+        --p-text-muted-color: #6b7280;
+        --p-content-border-color: #e5e7eb;
+        --p-content-hover-background: #f4f4f6;
+        --p-highlight-background: #eef1ff;
+        --p-primary-color: #6366f1;
+        --p-primary-600: #4f46e5;
+        --p-primary-contrast: #ffffff;
+        --p-info-color: #0284c7;
+        --p-info-bg: #e0f2fe;
+        --p-success-color: #15803d;
+        --p-success-bg: #dcfce7;
+        --p-danger-color: #dc2626;
+        --p-danger-bg: #fee2e2;
+        --p-warn-color: #b45309;
+        --p-warn-bg: #fef3c7;
+        --p-muted-bg: #f1f2f4;
+        --sheet-bg: #ffffff;
+        --sheet-line: #d9dce3;
+        --review-bg: #f3f2ee;
+        --review-ink: #2c2a25;
+        --review-muted: #7a7669;
+        --review-line: #ddd9d0;
+        --review-accent: #b45f2c;
+      }
+      .canvas[data-theme='dark'] {
+        color-scheme: dark;
+        --p-content-background: #18181b;
+        --p-surface-2: #1f1f23;
+        --p-text-color: #f4f4f5;
+        --p-text-muted-color: #a1a1aa;
+        --p-content-border-color: #34343a;
+        --p-content-hover-background: #27272a;
+        --p-highlight-background: rgba(129, 140, 248, 0.16);
+        --p-primary-color: #818cf8;
+        --p-primary-600: #a5b4fc;
+        --p-primary-contrast: #111827;
+        --p-info-color: #38bdf8;
+        --p-info-bg: rgba(14, 165, 233, 0.15);
+        --p-success-color: #4ade80;
+        --p-success-bg: rgba(34, 197, 94, 0.15);
+        --p-danger-color: #f87171;
+        --p-danger-bg: rgba(239, 68, 68, 0.16);
+        --p-warn-color: #fbbf24;
+        --p-warn-bg: rgba(245, 158, 11, 0.15);
+        --p-muted-bg: #242428;
+        --sheet-bg: #26262b;
+        --sheet-line: #3a3a41;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--review-bg);
+        color: var(--review-ink);
+        font-family:
+          'Inter',
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      h1,
+      h2,
+      h3,
+      p {
+        text-wrap: balance;
+      }
+
+      /* ===== review chrome ===== */
+      .review-header {
+        padding: 1.5rem 1.5rem 1rem;
+        border-bottom: 1px solid var(--review-line);
+      }
+      .review-eyebrow {
+        font-size: 0.72rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--review-accent);
+        font-weight: 700;
+        margin: 0 0 0.25rem;
+      }
+      .review-header h1 {
+        margin: 0 0 0.35rem;
+        font-size: 1.35rem;
+        font-weight: 800;
+      }
+      .review-header p {
+        margin: 0;
+        color: var(--review-muted);
+        font-size: 0.9rem;
+        max-width: 76ch;
+        line-height: 1.5;
+      }
+      .review-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem 1.25rem;
+        align-items: center;
+        padding: 0.85rem 1.5rem;
+        background: #fff;
+        border-bottom: 1px solid var(--review-line);
+        position: sticky;
+        top: env(safe-area-inset-top, 0px);
+        z-index: 10;
+      }
+      .control-group {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        min-width: 0;
+      }
+      .control-group .label {
+        font-size: 0.72rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--review-muted);
+        font-weight: 700;
+      }
+      .segmented {
+        display: inline-flex;
+        border: 1px solid var(--review-line);
+        border-radius: 8px;
+        overflow: hidden;
+        flex-wrap: wrap;
+      }
+      .segmented button {
+        appearance: none;
+        border: none;
+        background: #fff;
+        color: var(--review-ink);
+        font: inherit;
+        font-size: 0.8rem;
+        font-weight: 600;
+        padding: 0.4rem 0.7rem;
+        cursor: pointer;
+        border-right: 1px solid var(--review-line);
+      }
+      .segmented button:last-child {
+        border-right: none;
+      }
+      .segmented button:hover {
+        background: #f1efe9;
+      }
+      .segmented button:focus-visible {
+        outline: 2px solid var(--review-accent);
+        outline-offset: -2px;
+      }
+      .segmented button[aria-pressed='true'] {
+        background: var(--review-accent);
+        color: #fff;
+      }
+      .review-stage {
+        padding: 1.5rem;
+        display: flex;
+        justify-content: center;
+      }
+      .stage-frame {
+        width: 100%;
+        max-width: 1180px;
+        background: #d9d4c8;
+        border-radius: 14px;
+        padding: 1rem;
+        transition: max-width 0.2s ease;
+      }
+      .stage-frame[data-viewport='mobile'] {
+        max-width: 400px;
+      }
+      .stage-frame-label {
+        font-size: 0.72rem;
+        color: var(--review-muted);
+        text-align: center;
+        margin: 0 0 0.5rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      .canvas {
+        background: var(--p-content-background);
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+        color: var(--p-text-color);
+        font-size: 0.875rem;
+      }
+      .review-footer {
+        padding: 0 1.5rem 2rem;
+        max-width: 1180px;
+        margin: 0 auto;
+        font-size: 0.85rem;
+        color: var(--review-muted);
+        line-height: 1.55;
+      }
+      .review-footer h3 {
+        margin: 0.75rem 0 0;
+        font-size: 0.8rem;
+        color: var(--review-ink);
+      }
+      .review-footer ul {
+        margin: 0.25rem 0 0.5rem;
+        padding-left: 1.1rem;
+      }
+
+      /* ===== screen visibility ===== */
+      [hidden] {
+        display: none !important;
+      }
+      /* ===== app shell (snapshot from 032 mockup) ===== */
+      .app-shell {
+        display: grid;
+        grid-template-columns: 220px 1fr;
+        min-height: 720px;
+      }
+      .stage-frame[data-viewport='mobile'] .app-shell {
+        grid-template-columns: 1fr;
+      }
+      .app-sidebar {
+        background: var(--p-content-background);
+        border-right: 1px solid var(--p-content-border-color);
+        display: flex;
+        flex-direction: column;
+        padding: 1.1rem 0.85rem;
+        gap: 1.5rem;
+      }
+      .stage-frame[data-viewport='mobile'] .app-sidebar {
+        flex-direction: row;
+        align-items: center;
+        border-right: none;
+        border-bottom: 1px solid var(--p-content-border-color);
+        padding: 0.65rem 0.85rem;
+        gap: 0.75rem;
+        overflow-x: auto;
+      }
+      .app-brand {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        padding: 0 0.4rem;
+      }
+      .app-brand__mark {
+        width: 26px;
+        height: 26px;
+        border-radius: 7px;
+        background: linear-gradient(135deg, var(--p-primary-color), var(--p-primary-600));
+        flex: 0 0 auto;
+      }
+      .app-brand__name {
+        font-weight: 800;
+        font-size: 0.98rem;
+        letter-spacing: -0.01em;
+      }
+      .stage-frame[data-viewport='mobile'] .app-brand__name {
+        display: none;
+      }
+      .app-nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+      }
+      .stage-frame[data-viewport='mobile'] .app-nav {
+        flex-direction: row;
+        gap: 0.3rem;
+      }
+      .app-nav__item {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        padding: 0.55rem 0.6rem;
+        border-radius: 8px;
+        font-size: 0.86rem;
+        font-weight: 600;
+        color: var(--p-text-muted-color);
+        position: relative;
+      }
+      .app-nav__item .ic {
+        width: 17px;
+        height: 17px;
+        flex: 0 0 auto;
+      }
+      .app-nav__item--active {
+        background: var(--p-highlight-background);
+        color: var(--p-primary-color);
+      }
+      .app-nav__item--active::before {
+        content: '';
+        position: absolute;
+        left: -0.85rem;
+        top: 0.35rem;
+        bottom: 0.35rem;
+        width: 3px;
+        border-radius: 2px;
+        background: var(--p-primary-color);
+      }
+      .stage-frame[data-viewport='mobile'] .app-nav__item {
+        flex-direction: column;
+        gap: 0.2rem;
+        min-width: 64px;
+        padding: 0.45rem 0.4rem;
+        font-size: 0.64rem;
+        text-align: center;
+      }
+      .stage-frame[data-viewport='mobile'] .app-nav__item--active::before {
+        display: none;
+      }
+      .app-main {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+      }
+      .app-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--p-content-border-color);
+      }
+      .app-header__crumb {
+        font-size: 0.75rem;
+        color: var(--p-text-muted-color);
+        margin: 0 0 0.15rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+      }
+      .app-header__title {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 800;
+      }
+      .app-header__meta {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+        color: var(--p-text-muted-color);
+      }
+      .stage-frame[data-viewport='mobile'] .app-header__meta .meta-name,
+      .stage-frame[data-viewport='mobile'] .app-header__meta .role-badge,
+      .stage-frame[data-viewport='mobile'] .btn-signout span {
+        display: none;
+      }
+      .role-badge {
+        font-size: 0.68rem;
+        font-weight: 700;
+        color: var(--p-primary-600);
+        background: var(--p-highlight-background);
+        padding: 0.15rem 0.5rem;
+        border-radius: 999px;
+      }
+      .avatar {
+        width: 28px;
+        height: 28px;
+        border-radius: 999px;
+        background: var(--p-primary-color);
+        color: var(--p-primary-contrast);
+        font-size: 0.72rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .btn-signout,
+      .theme-toggle {
+        appearance: none;
+        border: none;
+        background: none;
+        color: var(--p-text-muted-color);
+        font: inherit;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        border-radius: 6px;
+      }
+      .theme-toggle {
+        width: 30px;
+        height: 30px;
+        justify-content: center;
+        border-radius: 999px;
+      }
+      .btn-signout {
+        font-size: 0.8rem;
+        font-weight: 600;
+        padding: 0.35rem 0.5rem;
+      }
+      .btn-signout .ic,
+      .theme-toggle .ic {
+        width: 16px;
+        height: 16px;
+      }
+      .app-content {
+        flex: 1;
+        padding: 1.25rem 1.5rem 1.75rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        min-width: 0;
+      }
+      .stage-frame[data-viewport='mobile'] .app-content {
+        padding: 1rem;
+      }
+      .ic {
+        width: 16px;
+        height: 16px;
+        flex: 0 0 auto;
+      }
+
+      /* ===== shared bits ===== */
+      .muted {
+        color: var(--p-text-muted-color);
+      }
+      .num {
+        font-variant-numeric: tabular-nums;
+      }
+      .btn {
+        appearance: none;
+        border: 1px solid transparent;
+        font: inherit;
+        font-size: 0.84rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.45rem 0.85rem;
+        border-radius: 6px;
+        cursor: pointer;
+      }
+      .btn:focus-visible,
+      .seg button:focus-visible,
+      .select:focus-visible,
+      .row-sel:focus-visible,
+      input:focus-visible,
+      textarea:focus-visible {
+        outline: 2px solid var(--p-primary-color);
+        outline-offset: 2px;
+      }
+      .btn--primary {
+        background: var(--p-primary-color);
+        color: var(--p-primary-contrast);
+      }
+      .btn--primary:hover {
+        background: var(--p-primary-600);
+      }
+      .btn--info {
+        background: var(--p-info-color);
+        color: #fff;
+      }
+      .btn--outline {
+        background: transparent;
+        border-color: var(--p-content-border-color);
+        color: var(--p-text-color);
+      }
+      .btn--outline:hover {
+        background: var(--p-content-hover-background);
+      }
+      .btn--danger-outline {
+        background: transparent;
+        border-color: var(--p-danger-color);
+        color: var(--p-danger-color);
+      }
+      .btn--text {
+        background: none;
+        color: var(--p-primary-color);
+        padding-inline: 0.3rem;
+      }
+      .btn[disabled] {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+      .tag {
+        font-size: 0.68rem;
+        font-weight: 700;
+        padding: 0.12rem 0.45rem;
+        border-radius: 999px;
+        background: var(--p-muted-bg);
+        color: var(--p-text-muted-color);
+        white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+      }
+      .tag--ok {
+        background: var(--p-success-bg);
+        color: var(--p-success-color);
+      }
+      .tag--bad {
+        background: var(--p-danger-bg);
+        color: var(--p-danger-color);
+      }
+      .tag--warn {
+        background: var(--p-warn-bg);
+        color: var(--p-warn-color);
+      }
+      .tag--info {
+        background: var(--p-info-bg);
+        color: var(--p-info-color);
+      }
+      .tag--primary {
+        background: var(--p-highlight-background);
+        color: var(--p-primary-600);
+      }
+      .select,
+      .input,
+      .textarea {
+        font: inherit;
+        font-size: 0.84rem;
+        color: var(--p-text-color);
+        background: var(--p-content-background);
+        border: 1px solid var(--p-content-border-color);
+        border-radius: 6px;
+        padding: 0.42rem 0.65rem;
+        max-width: 100%;
+      }
+      .textarea {
+        width: 100%;
+        min-height: 84px;
+        resize: vertical;
+      }
+      .field-label {
+        display: block;
+        font-size: 0.76rem;
+        font-weight: 600;
+        color: var(--p-text-muted-color);
+        margin-bottom: 0.3rem;
+      }
+      .seg {
+        display: inline-flex;
+        border: 1px solid var(--p-content-border-color);
+        border-radius: 6px;
+        overflow: hidden;
+      }
+      .seg button {
+        appearance: none;
+        border: none;
+        border-right: 1px solid var(--p-content-border-color);
+        background: var(--p-content-background);
+        color: var(--p-text-color);
+        font: inherit;
+        font-size: 0.78rem;
+        font-weight: 600;
+        padding: 0.32rem 0.6rem;
+        cursor: pointer;
+      }
+      .seg button:last-child {
+        border-right: none;
+      }
+      .seg button[aria-pressed='true'] {
+        background: var(--p-primary-color);
+        color: var(--p-primary-contrast);
+      }
+      .seg--keep button[aria-pressed='true'][data-v='keep'] {
+        background: var(--p-success-color);
+        color: #fff;
+      }
+      .seg--keep button[aria-pressed='true'][data-v='mask'] {
+        background: var(--p-text-color);
+        color: var(--p-content-background);
+      }
+      .card {
+        border: 1px solid var(--p-content-border-color);
+        border-radius: 10px;
+        background: var(--p-content-background);
+      }
+      .card__head {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid var(--p-content-border-color);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+      }
+      .card__head h3 {
+        margin: 0;
+        font-size: 0.92rem;
+        font-weight: 700;
+      }
+      .card__body {
+        padding: 1rem;
+      }
+      .callout {
+        display: flex;
+        gap: 0.7rem;
+        padding: 0.75rem 0.9rem;
+        border-radius: 8px;
+        font-size: 0.84rem;
+        line-height: 1.5;
+        background: var(--p-info-bg);
+        color: var(--p-text-color);
+        border: 1px solid transparent;
+      }
+      .callout .ic {
+        width: 18px;
+        height: 18px;
+        margin-top: 0.1rem;
+        color: var(--p-info-color);
+      }
+      .callout--warn {
+        background: var(--p-warn-bg);
+      }
+      .callout--warn .ic {
+        color: var(--p-warn-color);
+      }
+      .callout--bad {
+        background: var(--p-danger-bg);
+      }
+      .callout--bad .ic {
+        color: var(--p-danger-color);
+      }
+      .callout--ok {
+        background: var(--p-success-bg);
+      }
+      .callout--ok .ic {
+        color: var(--p-success-color);
+      }
+      .callout strong {
+        font-weight: 700;
+      }
+      .page-title {
+        margin: 0;
+        font-size: 1.15rem;
+        font-weight: 800;
+      }
+      .page-sub {
+        margin: 0.2rem 0 0;
+        color: var(--p-text-muted-color);
+        max-width: 70ch;
+        line-height: 1.5;
+      }
+      .actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .actions--end {
+        justify-content: flex-end;
+      }
+      .split {
+        display: grid;
+        grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+        gap: 1rem;
+        align-items: start;
+      }
+      .stage-frame[data-viewport='mobile'] .split {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .cols3 {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.75rem;
+      }
+      .stage-frame[data-viewport='mobile'] .cols3 {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .stage-frame[data-viewport='mobile'] .hide-m {
+        display: none;
+      }
+
+      /* stepper */
+      .stepper {
+        display: flex;
+        gap: 0.4rem;
+        flex-wrap: wrap;
+      }
+      .step {
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: var(--p-text-muted-color);
+        padding: 0.25rem 0.65rem 0.25rem 0.3rem;
+        border-radius: 999px;
+        border: 1px solid var(--p-content-border-color);
+      }
+      .step__n {
+        width: 20px;
+        height: 20px;
+        border-radius: 999px;
+        background: var(--p-muted-bg);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7rem;
+        font-weight: 700;
+      }
+      .step--done .step__n {
+        background: var(--p-success-bg);
+        color: var(--p-success-color);
+      }
+      .step--current {
+        color: var(--p-primary-600);
+        border-color: var(--p-primary-color);
+        background: var(--p-highlight-background);
+      }
+      .step--current .step__n {
+        background: var(--p-primary-color);
+        color: var(--p-primary-contrast);
+      }
+      .step em {
+        font-style: normal;
+        font-weight: 500;
+        opacity: 0.8;
+      }
+
+      /* import file rows */
+      .file-row {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        gap: 0.75rem;
+        align-items: start;
+        padding: 0.8rem 1rem;
+      }
+      .file-row + .file-row {
+        border-top: 1px solid var(--p-content-border-color);
+      }
+      .file-row .status {
+        width: 22px;
+        height: 22px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .file-row .status .ic {
+        width: 13px;
+        height: 13px;
+      }
+      .status--bad {
+        background: var(--p-danger-bg);
+        color: var(--p-danger-color);
+      }
+      .status--ok {
+        background: var(--p-success-bg);
+        color: var(--p-success-color);
+      }
+      .file-name {
+        font-weight: 600;
+        word-break: break-all;
+      }
+      .reason {
+        margin-top: 0.25rem;
+        color: var(--p-danger-color);
+        font-size: 0.82rem;
+        line-height: 1.45;
+      }
+      .stage-frame[data-viewport='mobile'] .file-row {
+        grid-template-columns: auto minmax(0, 1fr);
+      }
+      .stage-frame[data-viewport='mobile'] .file-row .file-cta {
+        grid-column: 2;
+      }
+
+      /* checklist */
+      .checks {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+      .checks li {
+        display: flex;
+        gap: 0.55rem;
+        align-items: flex-start;
+        line-height: 1.45;
+      }
+      .checks .ic {
+        width: 18px;
+        height: 18px;
+        margin-top: 0.05rem;
+      }
+      .checks .ok {
+        color: var(--p-success-color);
+      }
+      .checks .bad {
+        color: var(--p-danger-color);
+      }
+      .consent {
+        display: flex;
+        gap: 0.65rem;
+        align-items: flex-start;
+        padding: 0.85rem 1rem;
+        border: 1px solid var(--p-content-border-color);
+        border-radius: 8px;
+        background: var(--p-surface-2);
+        line-height: 1.5;
+      }
+      .consent input {
+        width: 18px;
+        height: 18px;
+        margin-top: 0.15rem;
+        accent-color: var(--p-primary-color);
+        flex: 0 0 auto;
+      }
+      .fact h4 {
+        margin: 0 0 0.35rem;
+        font-size: 0.82rem;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+      .fact ul {
+        margin: 0;
+        padding-left: 1.05rem;
+        color: var(--p-text-muted-color);
+        line-height: 1.55;
+        font-size: 0.82rem;
+      }
+      .fact {
+        padding: 0.85rem 1rem;
+        border: 1px solid var(--p-content-border-color);
+        border-radius: 8px;
+      }
+      .fact--stay {
+        background: var(--p-success-bg);
+        border-color: transparent;
+      }
+      .fact--stay h4 {
+        color: var(--p-success-color);
+      }
+      .fact--sent {
+        background: var(--p-info-bg);
+        border-color: transparent;
+      }
+      .fact--sent h4 {
+        color: var(--p-info-color);
+      }
+      .fact--stay ul,
+      .fact--sent ul {
+        color: var(--p-text-color);
+      }
+
+      /* sheet: the rebuilt, anonymized page */
+      .sheet-wrap {
+        overflow-x: auto;
+        border: 1px solid var(--p-content-border-color);
+        border-radius: 8px;
+        background: var(--p-surface-2);
+        padding: 0.75rem;
+      }
+      .sheet {
+        min-width: 540px;
+        background: var(--sheet-bg);
+        border: 1px solid var(--sheet-line);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+        padding: 1rem 1.1rem 1.1rem;
+        font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+        font-size: 0.74rem;
+        line-height: 1.25;
+      }
+      .sheet-title {
+        font-weight: 700;
+        margin-bottom: 0.15rem;
+        font-size: 0.8rem;
+      }
+      .sheet-meta {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        color: var(--p-text-muted-color);
+        padding-bottom: 0.45rem;
+        margin-bottom: 0.35rem;
+        border-bottom: 1px solid var(--sheet-line);
+      }
+      .srow {
+        display: grid;
+        grid-template-columns: 3rem minmax(0, 1fr) 6.2rem 6.2rem 5.2rem;
+        gap: 0.5rem;
+        padding: 0.28rem 0.3rem;
+        border-radius: 3px;
+        align-items: baseline;
+      }
+      .srow--head {
+        color: var(--p-text-muted-color);
+        font-weight: 700;
+        border-bottom: 1px solid var(--sheet-line);
+        border-radius: 0;
+        margin-bottom: 0.15rem;
+      }
+      .srow .r {
+        text-align: right;
+      }
+      .srow .chip-col {
+        text-align: right;
+        min-height: 1rem;
+      }
+      .rnd {
+        background-image: linear-gradient(to right, var(--p-text-muted-color) 40%, transparent 0);
+        background-size: 4px 1px;
+        background-repeat: repeat-x;
+        background-position: 0 100%;
+        padding-bottom: 1px;
+      }
+      .sheet--rules .srow:not(.srow--head) {
+        cursor: pointer;
+      }
+      .sheet--rules .srow:not(.srow--head):hover {
+        background: var(--p-content-hover-background);
+      }
+      .sheet--rules .srow.is-selected {
+        background: var(--p-highlight-background);
+        outline: 1px solid var(--p-primary-color);
+      }
+      .row-sel {
+        appearance: none;
+        border: none;
+        background: none;
+        font: inherit;
+        color: inherit;
+        padding: 0;
+        text-align: left;
+        cursor: pointer;
+        display: contents;
+      }
+      .col-pick {
+        background: var(--p-highlight-background);
+        outline: 1px dashed var(--p-primary-color);
+        border-radius: 2px;
+      }
+      .unk {
+        border-radius: 3px;
+        padding: 0 0.15rem;
+        cursor: pointer;
+        font: inherit;
+        border: 0;
+        color: inherit;
+      }
+      .unk--pending {
+        background: var(--p-warn-bg);
+        outline: 1px dashed var(--p-warn-color);
+      }
+      .unk--keep {
+        background: var(--p-success-bg);
+      }
+      .unk--pii {
+        background: var(--p-text-muted-color);
+        color: transparent;
+        user-select: none;
+        border-radius: 3px;
+        padding: 0 0.15rem;
+        cursor: default;
+        letter-spacing: -0.05em;
+      }
+      .unk--mask {
+        background: var(--p-muted-bg);
+        letter-spacing: 0.04em;
+      }
+      .legend {
+        display: flex;
+        gap: 0.85rem;
+        flex-wrap: wrap;
+        font-size: 0.76rem;
+        color: var(--p-text-muted-color);
+        align-items: center;
+      }
+      .legend i {
+        display: inline-block;
+        width: 14px;
+        height: 10px;
+        border-radius: 2px;
+        vertical-align: -1px;
+        margin-right: 0.3rem;
+      }
+
+      /* word decisions */
+      .word-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.6rem 0.9rem;
+        flex-wrap: wrap;
+      }
+      .word-row + .word-row {
+        border-top: 1px solid var(--p-content-border-color);
+      }
+      .word-row .w {
+        font-family: ui-monospace, Menlo, Consolas, monospace;
+        font-weight: 600;
+        word-break: break-all;
+      }
+      .word-row .ctx {
+        display: block;
+        font-size: 0.74rem;
+        color: var(--p-text-muted-color);
+        font-weight: 400;
+        font-family: 'Inter', system-ui, sans-serif;
+      }
+      .progress {
+        height: 6px;
+        border-radius: 999px;
+        background: var(--p-muted-bg);
+        overflow: hidden;
+      }
+      .progress > span {
+        display: block;
+        height: 100%;
+        background: var(--p-primary-color);
+        width: 0;
+        transition: width 0.2s;
+      }
+
+      /* rules panel */
+      .figchip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-family: 'Inter', system-ui, sans-serif;
+        font-size: 0.64rem;
+        font-weight: 700;
+        padding: 0.08rem 0.4rem;
+        border-radius: 999px;
+        background: var(--p-highlight-background);
+        color: var(--p-primary-600);
+      }
+      .figchip--ignore {
+        background: var(--p-muted-bg);
+        color: var(--p-text-muted-color);
+      }
+      .calc {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.82rem;
+      }
+      .calc td {
+        padding: 0.28rem 0;
+      }
+      .calc td:last-child {
+        text-align: right;
+      }
+      .calc tr.sum td {
+        border-top: 1px solid var(--p-content-border-color);
+        font-weight: 700;
+        padding-top: 0.4rem;
+      }
+      .check-line {
+        display: flex;
+        gap: 0.5rem;
+        align-items: flex-start;
+        padding: 0.55rem 0.7rem;
+        border-radius: 8px;
+        font-size: 0.82rem;
+        line-height: 1.45;
+      }
+      .check-line + .check-line {
+        margin-top: 0.4rem;
+      }
+      .check-line .ic {
+        width: 17px;
+        height: 17px;
+        margin-top: 0.05rem;
+      }
+      .check--ok {
+        background: var(--p-success-bg);
+      }
+      .check--ok .ic {
+        color: var(--p-success-color);
+      }
+      .check--bad {
+        background: var(--p-danger-bg);
+      }
+      .check--bad .ic {
+        color: var(--p-danger-color);
+      }
+      .hl-bad {
+        box-shadow: inset 0 -2px 0 var(--p-danger-color);
+      }
+      .device-note {
+        display: flex;
+        gap: 0.4rem;
+        align-items: center;
+        font-size: 0.74rem;
+        color: var(--p-text-muted-color);
+      }
+      .device-note .ic {
+        width: 13px;
+        height: 13px;
+      }
+
+      /* tables */
+      .tbl-wrap {
+        overflow-x: auto;
+      }
+      table.tbl {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.84rem;
+        min-width: 640px;
+      }
+      .tbl th {
+        text-align: left;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        color: var(--p-text-muted-color);
+        padding: 0.6rem 0.9rem;
+        border-bottom: 1px solid var(--p-content-border-color);
+        background: var(--p-surface-2);
+        white-space: nowrap;
+      }
+      .tbl td {
+        padding: 0.65rem 0.9rem;
+        border-bottom: 1px solid var(--p-content-border-color);
+        vertical-align: middle;
+      }
+      .tbl tbody tr:hover {
+        background: var(--p-content-hover-background);
+      }
+      .tbl tr.is-new td:first-child {
+        box-shadow: inset 3px 0 0 var(--p-primary-color);
+      }
+      .tabs {
+        display: flex;
+        gap: 0.2rem;
+        border-bottom: 1px solid var(--p-content-border-color);
+        overflow-x: auto;
+      }
+      .tab {
+        padding: 0.6rem 0.9rem;
+        font-weight: 600;
+        color: var(--p-text-muted-color);
+        border-bottom: 2px solid transparent;
+        white-space: nowrap;
+        display: inline-flex;
+        gap: 0.4rem;
+        align-items: center;
+      }
+      .tab--active {
+        color: var(--p-primary-color);
+        border-bottom-color: var(--p-primary-color);
+      }
+      .kv {
+        display: grid;
+        grid-template-columns: max-content 1fr;
+        gap: 0.35rem 1rem;
+        font-size: 0.84rem;
+      }
+      .kv dt {
+        color: var(--p-text-muted-color);
+      }
+      .kv dd {
+        margin: 0;
+        word-break: break-word;
+      }
+      .mono {
+        font-family: ui-monospace, Menlo, Consolas, monospace;
+        font-size: 0.78rem;
+      }
+      .backlink {
+        display: inline-flex;
+        gap: 0.35rem;
+        align-items: center;
+        color: var(--p-primary-color);
+        font-weight: 600;
+        font-size: 0.84rem;
+      }
+
+      /* e-mail */
+      .mail-stage {
+        padding: 1.5rem 1rem 2rem;
+        background: var(--p-surface-2);
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+        align-items: center;
+      }
+      .mail {
+        width: 100%;
+        max-width: 560px;
+        background: var(--p-content-background);
+        border: 1px solid var(--p-content-border-color);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .mail__head {
+        padding: 0.8rem 1rem;
+        border-bottom: 1px solid var(--p-content-border-color);
+        background: var(--p-muted-bg);
+        font-size: 0.78rem;
+        color: var(--p-text-muted-color);
+        line-height: 1.6;
+      }
+      .mail__head b {
+        color: var(--p-text-color);
+      }
+      .mail__body {
+        padding: 1.1rem 1.1rem 1.25rem;
+        line-height: 1.6;
+      }
+      .mail__body p {
+        margin: 0 0 0.8rem;
+        text-wrap: pretty;
+      }
+      .mail__note {
+        padding: 0.6rem 1rem;
+        border-top: 1px dashed var(--p-content-border-color);
+        font-size: 0.74rem;
+        color: var(--p-text-muted-color);
+        display: flex;
+        gap: 0.4rem;
+        align-items: center;
+      }
+      .mail__label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: var(--p-text-muted-color);
+        align-self: flex-start;
+        max-width: 560px;
+        width: 100%;
+        margin: 0 auto -0.6rem;
+      }
+      /* ===== feature: text recognition ===== */
+      .ocr-offer {
+        margin-top: 0.6rem;
+        border: 1px solid var(--p-info-color);
+        background: var(--p-info-bg);
+        border-radius: 8px;
+        padding: 0.75rem 0.9rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+      }
+      .ocr-offer p {
+        margin: 0;
+        font-size: 0.84rem;
+        line-height: 1.5;
+      }
+      .ocr-offer .row {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .ocr-note {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: 0.76rem;
+        color: var(--p-text-muted-color);
+      }
+      .ocr-note .ic {
+        width: 14px;
+        height: 14px;
+        color: var(--p-success-color);
+      }
+      .ocr-progress {
+        margin-top: 0.6rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.45rem;
+      }
+      .ocr-progress .line {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.75rem;
+        font-size: 0.8rem;
+        flex-wrap: wrap;
+      }
+      .tag--ocr {
+        background: var(--p-info-bg);
+        color: var(--p-info-color);
+        display: inline-flex;
+        gap: 0.3rem;
+        align-items: center;
+      }
+      .tag--ocr .ic {
+        width: 12px;
+        height: 12px;
+      }
+      .fig-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 0.6rem;
+        margin-top: 0.6rem;
+      }
+      .fig {
+        border: 1px solid var(--p-content-border-color);
+        border-radius: 8px;
+        padding: 0.5rem 0.65rem;
+        background: var(--p-surface-2);
+      }
+      .fig label {
+        display: block;
+        font-size: 0.72rem;
+        color: var(--p-text-muted-color);
+      }
+      .fig input {
+        width: 100%;
+        font: inherit;
+        font-variant-numeric: tabular-nums;
+        text-align: right;
+        border: 1px solid var(--p-content-border-color);
+        border-radius: 6px;
+        padding: 0.3rem 0.45rem;
+        background: var(--p-content-background);
+        color: var(--p-text-color);
+        margin-top: 0.2rem;
+      }
+      .fig--bad {
+        border-color: var(--p-danger-color);
+        background: var(--p-danger-bg);
+      }
+      .fig--bad input {
+        border-color: var(--p-danger-color);
+      }
+      .fig small {
+        display: block;
+        margin-top: 0.2rem;
+        font-size: 0.72rem;
+        color: var(--p-danger-color);
+      }
+      .low {
+        background-image: linear-gradient(to right, var(--p-warn-color) 50%, transparent 0);
+        background-size: 4px 1.5px;
+        background-repeat: repeat-x;
+        background-position: 0 100%;
+        padding-bottom: 1px;
+      }
+      table.imp {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.84rem;
+      }
+      table.imp th {
+        text-align: left;
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--p-text-muted-color);
+        padding: 0.55rem 0.8rem;
+        border-bottom: 1px solid var(--p-content-border-color);
+      }
+      table.imp td {
+        padding: 0.6rem 0.8rem;
+        border-bottom: 1px solid var(--p-content-border-color);
+        font-variant-numeric: tabular-nums;
+      }
+      .tbl-wrap {
+        overflow-x: auto;
+      }
+      .stack {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <defs>
+        <symbol
+          id="i-check"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.4"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M5 13l4 4L19 7" />
+        </symbol>
+        <symbol
+          id="i-x"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.4"
+          stroke-linecap="round"
+        >
+          <path d="M6 6l12 12M18 6L6 18" />
+        </symbol>
+        <symbol
+          id="i-alert"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"
+          />
+        </symbol>
+        <symbol
+          id="i-info"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+        >
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 11v5M12 8h.01" />
+        </symbol>
+        <symbol
+          id="i-lock"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <rect x="5" y="11" width="14" height="10" rx="2" />
+          <path d="M8 11V7a4 4 0 018 0v4" />
+        </symbol>
+        <symbol
+          id="i-upload"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M12 16V4M7 9l5-5 5 5M4 20h16" />
+        </symbol>
+        <symbol
+          id="i-download"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M12 4v12M7 11l5 5 5-5M4 20h16" />
+        </symbol>
+        <symbol
+          id="i-mail"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <rect x="3" y="5" width="18" height="14" rx="2" />
+          <path d="M3 7l9 7 9-7" />
+        </symbol>
+        <symbol id="i-grid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7" rx="1.5" />
+          <rect x="14" y="3" width="7" height="7" rx="1.5" />
+          <rect x="3" y="14" width="7" height="7" rx="1.5" />
+          <rect x="14" y="14" width="7" height="7" rx="1.5" />
+        </symbol>
+        <symbol
+          id="i-wallet"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="M3 7h16a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7zm0 0V6a2 2 0 012-2h11M16 14h2"
+          />
+        </symbol>
+        <symbol
+          id="i-trend"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M3 17l6-6 4 4 8-8M15 7h6v6" />
+        </symbol>
+        <symbol
+          id="i-sliders"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+        >
+          <path d="M4 6h10M18 6h2M4 12h2M10 12h10M4 18h12M20 18h0" />
+          <circle cx="16" cy="6" r="2" />
+          <circle cx="8" cy="12" r="2" />
+          <circle cx="18" cy="18" r="2" />
+        </symbol>
+        <symbol
+          id="i-shield"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linejoin="round"
+        >
+          <path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z" />
+        </symbol>
+        <symbol
+          id="i-sun"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+        >
+          <circle cx="12" cy="12" r="4" />
+          <path
+            d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"
+          />
+        </symbol>
+        <symbol
+          id="i-signout"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" />
+        </symbol>
+        <symbol
+          id="i-back"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M15 6l-6 6 6 6" />
+        </symbol>
+        <symbol
+          id="i-scan"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="M4 8V5a1 1 0 011-1h3M16 4h3a1 1 0 011 1v3M20 16v3a1 1 0 01-1 1h-3M8 20H5a1 1 0 01-1-1v-3M4 12h16"
+          />
+        </symbol>
+        <symbol
+          id="i-file"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linejoin="round"
+        >
+          <path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8l-5-5zM14 3v5h5" />
+        </symbol>
+      </defs>
+    </svg>
+    <header class="review-header">
+      <p class="review-eyebrow">Non-functional review mockup</p>
+      <h1>Text Recognition Review</h1>
+      <p>
+        Static mockup of the OCR fallback for PDFs without a text layer (spec 034): the consent
+        offer, progress, the import preview with the "read via text recognition" notice, the
+        parser-request preview for recognised documents, and the declined state. All data is
+        invented. The Request flow screen shows only the step that changes; steps 1 to 3 stay as in
+        spec 033.
+      </p>
+    </header>
+
+    <div class="review-controls">
+      <div class="control-group">
+        <span class="label">Viewport</span>
+        <div class="segmented" id="viewport-toggle">
+          <button type="button" data-viewport="desktop" aria-pressed="true">Desktop</button>
+          <button type="button" data-viewport="mobile" aria-pressed="false">Mobile</button>
+        </div>
+      </div>
+      <div class="control-group">
+        <span class="label">Theme</span>
+        <div class="segmented" id="theme-toggle">
+          <button type="button" data-theme-set="light" aria-pressed="true">Light</button>
+          <button type="button" data-theme-set="dark" aria-pressed="false">Dark</button>
+        </div>
+      </div>
+      <div class="control-group">
+        <span class="label">Screen</span>
+        <div class="segmented" id="screen-toggle">
+          <button type="button" data-screen="offer" aria-pressed="true">1 Offer</button>
+          <button type="button" data-screen="running" aria-pressed="false">2 Reading</button>
+          <button type="button" data-screen="preview" aria-pressed="false">3 Import preview</button>
+          <button type="button" data-screen="imports" aria-pressed="false">4 Saved imports</button>
+          <button type="button" data-screen="nomatch" aria-pressed="false">
+            5 No parser matches
+          </button>
+          <button type="button" data-screen="request" aria-pressed="false">
+            6 Request preview
+          </button>
+          <button type="button" data-screen="declined" aria-pressed="false">
+            7 Declined / no text
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="review-stage">
+      <div class="stage-frame" id="stage-frame" data-viewport="desktop">
+        <p class="stage-frame-label" id="stage-frame-label">Desktop (≥1024px)</p>
+        <div class="canvas" id="canvas" data-screen="offer" data-theme="light">
+          <div class="app-shell">
+            <nav class="app-sidebar" aria-label="Primary">
+              <div class="app-brand">
+                <span class="app-brand__mark"></span><span class="app-brand__name">Vaultfolio</span>
+              </div>
+              <div class="app-nav">
+                <span class="app-nav__item"
+                  ><svg class="ic"><use href="#i-grid" /></svg><span>Dashboard</span></span
+                >
+                <span class="app-nav__item"
+                  ><svg class="ic"><use href="#i-wallet" /></svg><span>Holdings</span></span
+                >
+                <span class="app-nav__item app-nav__item--active"
+                  ><svg class="ic"><use href="#i-trend" /></svg><span>Earnings</span></span
+                >
+                <span class="app-nav__item"
+                  ><svg class="ic"><use href="#i-sliders" /></svg><span>Settings</span></span
+                >
+              </div>
+            </nav>
+            <div class="app-main">
+              <div class="app-header">
+                <div>
+                  <p class="app-header__crumb">Earnings</p>
+                  <h2 class="app-header__title" id="hdr-title">Import documents</h2>
+                </div>
+                <div class="app-header__meta">
+                  <span class="meta-name">Mira Keller</span>
+                  <span class="role-badge">Member</span>
+                  <span class="avatar">MK</span>
+                  <button type="button" class="theme-toggle" aria-label="Switch theme">
+                    <svg class="ic"><use href="#i-sun" /></svg>
+                  </button>
+                  <button type="button" class="btn-signout">
+                    <svg class="ic"><use href="#i-signout" /></svg><span>Sign out</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="app-content">
+                <!-- ===== 1 Offer / 2 Reading / 7 Declined share the import list ===== -->
+                <div data-show="offer running declined">
+                  <div class="stack">
+                    <div>
+                      <h3 class="page-title">2 files selected</h3>
+                      <p class="page-sub">Nothing is saved until you confirm.</p>
+                    </div>
+                    <div class="card">
+                      <div class="file-row">
+                        <span class="status status--ok"
+                          ><svg class="ic"><use href="#i-check" /></svg
+                        ></span>
+                        <div>
+                          <div class="file-name">Entgeltnachweis_2026-08.pdf</div>
+                          <div class="muted">SAP payslip · Aug 2026 · all checks passed</div>
+                        </div>
+                        <span class="tag tag--ok">New</span>
+                      </div>
+                      <div class="file-row">
+                        <span class="status status--bad" data-show="declined"
+                          ><svg class="ic"><use href="#i-x" /></svg
+                        ></span>
+                        <span class="status" data-show="offer running"
+                          ><svg class="ic"><use href="#i-scan" /></svg
+                        ></span>
+                        <div style="min-width: 0">
+                          <div class="file-name">Abrechnung_2025_12.pdf</div>
+
+                          <!-- 1 Offer -->
+                          <div data-show="offer">
+                            <div class="muted">
+                              No automatically readable text found in this PDF.
+                            </div>
+                            <div class="ocr-offer" data-testid="ocr-offer">
+                              <p>
+                                <strong>Read the text on this device?</strong> This can work for
+                                scans and for PDFs whose text was converted to graphics. It takes a
+                                few seconds per page. The file and the text it contains stay in your
+                                browser and are not sent anywhere.
+                              </p>
+                              <p style="color: var(--p-text-muted-color)">
+                                Text recognition can misread digits. You will be asked to check the
+                                figures.
+                              </p>
+                              <div class="row">
+                                <button
+                                  type="button"
+                                  class="btn btn--primary"
+                                  data-goto="running"
+                                  data-testid="ocr-accept"
+                                >
+                                  <svg class="ic"><use href="#i-scan" /></svg>Read text on this
+                                  device
+                                </button>
+                                <button
+                                  type="button"
+                                  class="btn btn--outline"
+                                  data-goto="declined"
+                                  data-testid="ocr-decline"
+                                >
+                                  Not now
+                                </button>
+                                <span class="ocr-note"
+                                  ><svg class="ic"><use href="#i-lock" /></svg>Works offline,
+                                  nothing leaves your device</span
+                                >
+                              </div>
+                            </div>
+                          </div>
+
+                          <!-- 2 Reading -->
+                          <div data-show="running">
+                            <div class="muted">Reading text on this device…</div>
+                            <div
+                              class="ocr-progress"
+                              role="status"
+                              aria-live="polite"
+                              data-testid="ocr-progress"
+                            >
+                              <div class="line">
+                                <span>Page 2 of 3</span
+                                ><span class="muted">about 5 seconds per page</span>
+                              </div>
+                              <div class="progress"><span style="width: 52%"></span></div>
+                              <div
+                                class="row"
+                                style="
+                                  display: flex;
+                                  gap: 0.5rem;
+                                  align-items: center;
+                                  flex-wrap: wrap;
+                                "
+                              >
+                                <button
+                                  type="button"
+                                  class="btn btn--outline"
+                                  data-goto="declined"
+                                  data-testid="ocr-cancel"
+                                >
+                                  Cancel
+                                </button>
+                                <span class="ocr-note"
+                                  ><svg class="ic"><use href="#i-lock" /></svg>Nothing leaves your
+                                  device</span
+                                >
+                                <button
+                                  type="button"
+                                  class="btn btn--text"
+                                  data-goto="preview"
+                                  style="margin-left: auto"
+                                >
+                                  (mockup: finish)
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+
+                          <!-- 7 Declined -->
+                          <div data-show="declined">
+                            <div class="reason" data-testid="image-only-message">
+                              Rejected: the file was recognised as a PDF but contains no text that
+                              can be read automatically (e.g. a scan, or a PDF whose text was
+                              converted to graphics). Nothing from this file will be saved.
+                            </div>
+                            <div style="margin-top: 0.4rem">
+                              <button type="button" class="btn btn--text" data-goto="offer">
+                                Read text on this device instead
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                        <span class="tag tag--bad" data-show="declined">Rejected</span>
+                        <span class="tag tag--info" data-show="offer">Needs your decision</span>
+                        <span class="tag tag--info" data-show="running">Reading…</span>
+                      </div>
+                    </div>
+
+                    <div class="card" data-show="declined">
+                      <div class="card__head"><h3>Other outcomes use the same message</h3></div>
+                      <div class="card__body muted" style="line-height: 1.6">
+                        Recognition cancelled · recognition finished without usable text · the
+                        device could not run recognition (extra hint: "text recognition could not be
+                        started on this device") · more than 5 pages (extra hint names the limit).
+                        Password-protected or damaged files show their existing messages and never
+                        get this offer.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ===== 3 Import preview ===== -->
+                <div data-show="preview">
+                  <div class="stack">
+                    <div>
+                      <h3 class="page-title">Check before saving</h3>
+                      <p class="page-sub">Nothing is saved until you confirm.</p>
+                    </div>
+                    <div class="callout callout--warn" data-testid="ocr-notice">
+                      <svg class="ic"><use href="#i-alert" /></svg>
+                      <div>
+                        <strong>Read via text recognition.</strong> Digits can be misread. Please
+                        compare the figures below with your document before saving. Figures that
+                        fail the arithmetic check are marked and cannot be saved until you correct
+                        them.
+                      </div>
+                    </div>
+                    <div class="card">
+                      <div class="file-row">
+                        <span class="status status--bad"
+                          ><svg class="ic"><use href="#i-alert" /></svg
+                        ></span>
+                        <div style="min-width: 0">
+                          <div class="file-name">Abrechnung_2025_12.pdf</div>
+                          <div class="muted">SAP payslip · Dec 2025 · 1 figure fails the check</div>
+                        </div>
+                        <span class="tag tag--ocr"
+                          ><svg class="ic"><use href="#i-scan" /></svg>Text recognition</span
+                        >
+                      </div>
+                      <div style="padding: 0 1rem 1rem">
+                        <div class="reason" style="margin-bottom: 0.2rem">
+                          Gross − taxes − social insurance ≠ net (difference 4.510,00 €). A figure
+                          was probably misread.
+                        </div>
+                        <div class="fig-grid">
+                          <div class="fig">
+                            <label for="f-gross">Gross</label
+                            ><input id="f-gross" value="4.600,00" />
+                          </div>
+                          <div class="fig fig--bad">
+                            <label for="f-tax">Wage tax</label
+                            ><input id="f-tax" value="67940" aria-invalid="true" /><small
+                              >Looks like a missing decimal comma</small
+                            >
+                          </div>
+                          <div class="fig">
+                            <label for="f-si">Social insurance</label
+                            ><input id="f-si" value="933,49" />
+                          </div>
+                          <div class="fig">
+                            <label for="f-net">Net</label><input id="f-net" value="2.967,11" />
+                          </div>
+                        </div>
+                        <div
+                          style="display: flex; gap: 0.5rem; margin-top: 0.9rem; flex-wrap: wrap"
+                        >
+                          <button type="button" class="btn btn--primary" disabled>
+                            Save 2 files
+                          </button>
+                          <button type="button" class="btn btn--outline">Remove file</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ===== 4 Saved imports ===== -->
+                <div data-show="imports">
+                  <div class="stack">
+                    <div>
+                      <h3 class="page-title">Imports</h3>
+                      <p class="page-sub">Files you imported into Earnings.</p>
+                    </div>
+                    <div class="card tbl-wrap">
+                      <table class="imp">
+                        <thead>
+                          <tr>
+                            <th>File</th>
+                            <th>Period</th>
+                            <th>Source</th>
+                            <th>Imported</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td>Entgeltnachweis_2026-08.pdf</td>
+                            <td>Aug 2026</td>
+                            <td>PDF</td>
+                            <td>12 Sep 2026</td>
+                          </tr>
+                          <tr>
+                            <td>Abrechnung_2025_12.pdf</td>
+                            <td>Dec 2025</td>
+                            <td>
+                              <span class="tag tag--ocr" data-testid="ocr-badge"
+                                ><svg class="ic"><use href="#i-scan" /></svg>Text recognition</span
+                              >
+                            </td>
+                            <td>2 Oct 2026</td>
+                          </tr>
+                          <tr>
+                            <td>lohnsteuerbescheinigung_2025.pdf</td>
+                            <td>2025</td>
+                            <td>PDF</td>
+                            <td>2 Oct 2026</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                    <p class="muted" style="margin: 0">
+                      The badge tells you which figures came from text recognition and are worth a
+                      second look.
+                    </p>
+                  </div>
+                </div>
+
+                <!-- ===== 5 No parser matches ===== -->
+                <div data-show="nomatch">
+                  <div class="stack">
+                    <div>
+                      <h3 class="page-title">1 file read</h3>
+                      <p class="page-sub">Nothing is saved until you confirm.</p>
+                    </div>
+                    <div class="card">
+                      <div class="file-row">
+                        <span class="status status--bad"
+                          ><svg class="ic"><use href="#i-x" /></svg
+                        ></span>
+                        <div style="min-width: 0">
+                          <div class="file-name">Abrechnung_Muster-Logistik_2025_12.pdf</div>
+                          <div class="reason">
+                            Rejected: format not supported yet. This layout is not recognized by any
+                            parser.
+                          </div>
+                          <div
+                            class="muted"
+                            style="margin-top: 0.35rem; font-size: 0.82rem; line-height: 1.5"
+                          >
+                            The text was read on this device via text recognition. You can ask for
+                            support for this format. You send an anonymized copy of the layout,
+                            never your real figures or personal data.
+                          </div>
+                        </div>
+                        <div
+                          class="file-cta"
+                          style="
+                            display: flex;
+                            flex-direction: column;
+                            gap: 0.4rem;
+                            align-items: flex-end;
+                          "
+                        >
+                          <span class="tag tag--bad">Rejected</span>
+                          <span class="tag tag--ocr"
+                            ><svg class="ic"><use href="#i-scan" /></svg>Text recognition</span
+                          >
+                          <button
+                            type="button"
+                            class="btn btn--primary"
+                            data-goto="request"
+                            data-testid="request-parser-button"
+                          >
+                            <svg class="ic"><use href="#i-upload" /></svg>Request a parser
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ===== 6 Request preview ===== -->
+                <div data-show="request">
+                  <div class="stack">
+                    <div class="stepper">
+                      <span class="step step--done"
+                        ><span class="step__n"
+                          ><svg class="ic" style="width: 12px; height: 12px">
+                            <use href="#i-check" /></svg></span
+                        >Consent</span
+                      >
+                      <span class="step step--done"
+                        ><span class="step__n"
+                          ><svg class="ic" style="width: 12px; height: 12px">
+                            <use href="#i-check" /></svg></span
+                        >Review words</span
+                      >
+                      <span class="step step--done"
+                        ><span class="step__n"
+                          ><svg class="ic" style="width: 12px; height: 12px">
+                            <use href="#i-check" /></svg></span
+                        >Mark rules <em>(optional)</em></span
+                      >
+                      <span class="step step--current" aria-current="step"
+                        ><span class="step__n">4</span>Preview &amp; send</span
+                      >
+                    </div>
+                    <div class="callout callout--warn" data-testid="request-ocr-notice">
+                      <svg class="ic"><use href="#i-alert" /></svg>
+                      <div>
+                        <strong
+                          >This text was recognised automatically and may contain errors.</strong
+                        >
+                        Look through the preview. Words underlined in orange were recognised with
+                        low confidence. Anything wrong you can mask in step 2.
+                      </div>
+                    </div>
+                    <div class="callout callout--ok">
+                      <svg class="ic"><use href="#i-lock" /></svg>
+                      <div>
+                        <strong>Personal data removed on this device:</strong> bank account, tax ID,
+                        address. Values that look like these are removed even if a digit was
+                        misread. The server runs its own check as well.
+                      </div>
+                    </div>
+                    <div class="legend">
+                      <span
+                        ><i style="background: var(--p-text-muted-color)"></i>Removed (cannot be
+                        restored)</span
+                      >
+                      <span
+                        ><i style="background: var(--p-warn-color); height: 3px"></i>Low
+                        confidence</span
+                      >
+                      <span><i style="background: var(--p-muted-bg)"></i>Replaced value</span>
+                    </div>
+                    <div class="sheet-wrap">
+                      <div class="sheet">
+                        <div class="sheet-title">Abrechnung der Brutto/Netto-Bezüge</div>
+                        <div class="sheet-meta">
+                          <span>IBAN <span class="unk--pii">DE0O37601008500040XXXX94478</span></span
+                          ><span>Steuer-ID <span class="unk--pii">03215684959</span></span>
+                        </div>
+                        <div class="sheet-meta">
+                          <span><span class="unk--pii">Robert-Muster</span></span
+                          ><span
+                            ><span class="unk--pii">90429</span>
+                            <span class="unk--pii">Nürnberg</span></span
+                          >
+                        </div>
+                        <div class="srow srow--head">
+                          <span>Art</span><span>Bezeichnung</span><span class="r">Menge</span
+                          ><span class="r">Betrag</span><span class="r"></span>
+                        </div>
+                        <div class="srow">
+                          <span>2000</span><span>Gehalt</span><span class="r"></span
+                          ><span class="r"><span class="rnd">4.600,00</span></span
+                          ><span></span>
+                        </div>
+                        <div class="srow">
+                          <span>3040</span
+                          ><span>Gehaltsverzicht<span class="low">,</span> mtl.</span
+                          ><span class="r"></span
+                          ><span class="r"><span class="rnd">85,00-</span></span
+                          ><span></span>
+                        </div>
+                        <div class="srow">
+                          <span>4720</span><span>Betr.AV,Geh.vz.<span class="low">1fd</span></span
+                          ><span class="r"></span
+                          ><span class="r"><span class="rnd">85,00</span></span
+                          ><span></span>
+                        </div>
+                        <div class="srow">
+                          <span></span><span>Lohnsteuer</span><span class="r"></span
+                          ><span class="r"><span class="rnd low">679<span>,</span>40</span></span
+                          ><span></span>
+                        </div>
+                      </div>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap">
+                      <button type="button" class="btn btn--outline" data-goto="nomatch">
+                        <svg class="ic"><use href="#i-back" /></svg>Back
+                      </button>
+                      <button type="button" class="btn btn--primary" data-testid="send-request">
+                        <svg class="ic"><use href="#i-upload" /></svg>Send request
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="review-footer">
+      <h3>What this mockup covers</h3>
+      <ul>
+        <li>
+          <strong>FR-001 / FR-002 / FR-003:</strong> screen 1 (offer, explicit consent, nothing
+          starts before it), screen 2 (progress per page, cancel).
+        </li>
+        <li>
+          <strong>FR-006 / FR-007:</strong> screens 3 and 4 (notice in the preview, badge in the
+          saved list).
+        </li>
+        <li>
+          <strong>FR-005:</strong> screen 3 keeps the existing failing-check handling and correction
+          fields.
+        </li>
+        <li>
+          <strong>FR-009 / FR-010 / FR-011:</strong> screens 5 and 6 (request offer, "recognised
+          automatically" notice, low-confidence marks, removed values including a misread IBAN).
+        </li>
+        <li>
+          <strong>FR-008 / FR-013 / FR-014:</strong> screen 7 (same message when declined, cancelled
+          or no text; extra hints for the page limit and an unavailable engine).
+        </li>
+      </ul>
+      <h3>Not in the mockup</h3>
+      <ul>
+        <li>
+          Wizard steps 1 to 3 of the request flow (unchanged from spec 033), German texts, e-mails.
+        </li>
+        <li>
+          Visual language approximates the PrimeNG Aura preset, as in the 032 and 033 mockups.
+        </li>
+      </ul>
+    </footer>
+
+    <script>
+      const canvas = document.getElementById('canvas');
+      const stageFrame = document.getElementById('stage-frame');
+      const stageLabel = document.getElementById('stage-frame-label');
+      const TITLES = {
+        request: 'Request a parser',
+        nomatch: 'Import documents',
+        imports: 'Imports',
+      };
+      function setScreen(name) {
+        canvas.setAttribute('data-screen', name);
+        document
+          .querySelectorAll('#screen-toggle button')
+          .forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.screen === name)));
+        document.getElementById('hdr-title').textContent = TITLES[name] || 'Import documents';
+        document.querySelectorAll('[data-show]').forEach((el) => {
+          el.hidden = !el.dataset.show.split(' ').includes(name);
+        });
+      }
+      setScreen('offer');
+      document.getElementById('viewport-toggle').addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-viewport]');
+        if (!btn) return;
+        stageFrame.setAttribute('data-viewport', btn.dataset.viewport);
+        stageLabel.textContent =
+          btn.dataset.viewport === 'mobile' ? 'Mobile (≈400px)' : 'Desktop (≥1024px)';
+        document
+          .querySelectorAll('#viewport-toggle button')
+          .forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+      });
+      document.getElementById('theme-toggle').addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-theme-set]');
+        if (!btn) return;
+        canvas.setAttribute('data-theme', btn.dataset.themeSet);
+        document
+          .querySelectorAll('#theme-toggle button')
+          .forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+      });
+      document.getElementById('screen-toggle').addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-screen]');
+        if (btn) setScreen(btn.dataset.screen);
+      });
+      canvas.addEventListener('click', (e) => {
+        const go = e.target.closest('[data-goto]');
+        if (go && !go.disabled) setScreen(go.dataset.goto);
+      });
+    </script>
+  </body>
+</html>

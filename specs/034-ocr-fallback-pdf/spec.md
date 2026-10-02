@@ -6,6 +6,8 @@
 
 **Status**: Draft
 
+**Design**: [design.md](./design.md) (approved mockup: [mockup.html](./mockup.html))
+
 **Input**: User description: "OCR fallback for payslip/wage-tax PDFs without a text layer (GitHub issue #66): when text extraction finds no readable text, offer on-device text recognition after explicit consent; import via the existing parsers with the row marked as recognised text; allow parser requests for such documents; nothing leaves the device."
 
 ## Background
