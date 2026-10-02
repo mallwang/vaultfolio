@@ -10,7 +10,7 @@ describe('SheetComponent', () => {
     const clicks: WordClick[] = [];
     fixture.componentInstance.wordClick.subscribe((c) => clicks.push(c));
     fixture.detectChanges();
-    return { root: fixture.nativeElement as HTMLElement, clicks };
+    return { fixture, root: fixture.nativeElement as HTMLElement, clicks };
   }
   const word = (root: HTMLElement, id: string) =>
     root.querySelector(`[data-testid="request-word-${id}"]`) as HTMLButtonElement;
@@ -19,10 +19,26 @@ describe('SheetComponent', () => {
   it('renders every word as a button with a stable test id and a mark', () => {
     const { root } = render(pages());
     expect(root.querySelectorAll('button.word')).toHaveLength(12);
-    expect(word(root, '0-0-0').classList).toContain('word--needs_decision');
+    expect(word(root, '0-0-0').classList).toContain('word--masked');
     expect(word(root, '0-4-0').textContent?.trim()).toBe('Brutto');
     expect(word(root, '0-4-0').classList).toContain('word--label');
     expect(word(root, '0-4-1').classList).toContain('word--value');
+  });
+
+  it('zooms with the buttons and fits again', () => {
+    const { fixture, root } = render(pages());
+    const click = (id: string) => {
+      (root.querySelector(`[data-testid="${id}"]`) as HTMLButtonElement).click();
+      fixture.detectChanges();
+    };
+    const value = () => root.querySelector('[data-testid="request-zoom-value"]')?.textContent;
+    expect(value()?.trim()).toBe('100%');
+    click('request-zoom-in');
+    expect((root.querySelector('.page') as HTMLElement).style.getPropertyValue('--zoom')).toBe(
+      '1.25',
+    );
+    click('request-zoom-fit');
+    expect(value()?.trim()).toBe('100%');
   });
 
   it('emits the position of a clicked word', () => {

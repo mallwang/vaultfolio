@@ -25,9 +25,9 @@ describe('ParserRequestStore', () => {
 
   afterEach(() => http.verify());
 
-  it('counts the words that need a decision and the removed personal data', () => {
+  it('lists the unknown words, masked by default, and counts the removed personal data', () => {
     // Erika, Musterfrau, Hafenweg, (20457 Musterstadt, IBAN removed), IBAN: is a label
-    expect(store.pendingDecisions()).toBe(3);
+    expect(store.decisionWords().every((w) => w.mark === 'MASKED')).toBe(true);
     expect(store.removedKinds()).toEqual(['BANK_ACCOUNT', 'POSTCODE_CITY']);
     expect(store.removedCount()).toBe(3);
     expect(store.decisionWords().map((w) => w.original)).toEqual([
@@ -41,7 +41,31 @@ describe('ParserRequestStore', () => {
     const before = store.preview()?.pages[0].lines[4].words[1].text;
     store.decide(wordKey(0, 0, 0), 'KEEP');
     expect(store.preview()?.pages[0].lines[4].words[1].text).toBe(before);
-    expect(store.pendingDecisions()).toBe(2);
+    expect(store.decisionWords()[0].mark).toBe('KEPT');
+  });
+
+  it('groups repeated words and decides all occurrences together', () => {
+    store.analysis.set({
+      pages: [
+        {
+          width: 595,
+          height: 842,
+          lines: [
+            { y: 20, words: [{ text: 'Kantine', x: 10, width: 40, height: 9, covered: false }] },
+            { y: 40, words: [{ text: 'kantine', x: 10, width: 40, height: 9, covered: false }] },
+            { y: 60, words: [{ text: 'k', x: 10, width: 3, height: 9, covered: false }] },
+          ],
+        },
+      ],
+    });
+    const [group, ...rest] = store.decisionGroups();
+    expect(rest).toEqual([]); // the fragment is left out
+    expect(group.keys).toHaveLength(2);
+    expect(store.noiseCount()).toBe(1);
+    store.decideMany(group.keys, 'KEEP');
+    expect(store.decisionGroups()[0].mark).toBe('KEPT');
+    store.decide(group.keys[0], 'MASK');
+    expect(store.decisionGroups()[0].mark).toBe('MIXED');
   });
 
   it('cycles a word keep → mask → keep and ignores locked words', () => {
@@ -55,11 +79,9 @@ describe('ParserRequestStore', () => {
     expect(store.decisions().has(wordKey(0, 3, 1))).toBe(false);
   });
 
-  it('only allows sending with consent, every word decided and a clean final scan', () => {
+  it('only allows sending with consent and a clean final scan', () => {
     expect(store.canSend()).toBe(false);
     store.consent.set(true);
-    expect(store.canSend()).toBe(false); // undecided words
-    for (const w of store.decisionWords()) store.decide(w.key, 'MASK');
     expect(store.remainingHits()).toBe(0);
     expect(store.canSend()).toBe(true);
     store.consent.set(false);

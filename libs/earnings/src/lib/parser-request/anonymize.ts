@@ -45,11 +45,11 @@ export interface AnalyzedLayout {
 
 export type WordDecision = 'KEEP' | 'MASK';
 
-/** How a word appears in the sample: label (kept), value (digits replaced), removed (personal data), … */
-export type WordMark = 'LABEL' | 'VALUE' | 'REMOVED' | 'NEEDS_DECISION' | 'MASKED' | 'KEPT';
+/** How a word appears in the sample: label (kept), value (digits replaced), removed (personal data), masked (default for unknown words), … */
+export type WordMark = 'LABEL' | 'VALUE' | 'REMOVED' | 'MASKED' | 'KEPT';
 
 export interface AnonWord {
-  /** What would be sent for this word right now (an undecided word is already masked). */
+  /** What would be sent for this word right now. */
   text: string;
   x: number;
   mark: WordMark;
@@ -83,6 +83,15 @@ export const COURIER_ADVANCE = 0.6;
 const MAX_REROLLS = 20;
 const FILL_DIGITS = ['0', '9', '5', '7', '3'];
 const DEFAULT_SIZE = 9;
+
+/**
+ * A fragment that is no label worth deciding on: low-confidence recognition, or hardly any letters
+ * (stray characters, punctuation, `l`/`1` mix-ups). Such words stay masked and are not listed.
+ */
+export function isNoiseWord(word: Pick<AnalyzedWord, 'text' | 'lowConfidence'>): boolean {
+  const letters = [...word.text].filter((char) => /\p{L}/u.test(char)).length;
+  return word.lowConfidence === true || letters < 2 || letters / word.text.length < 0.6;
+}
 
 /** Key of a word in the decision map: `<page>-<line>-<index>`. */
 export function wordKey(page: number, line: number, index: number): string {
@@ -143,11 +152,52 @@ function isRightAligned(text: string): boolean {
   return isNumericWord(text) && !DATE.test(text);
 }
 
-function lineSize(line: AnalyzedLine): number {
+/**
+ * The line's font size: the tallest word (5..20), shrunk so no word of the monospace sample runs
+ * into the next one. Recognised text reports inflated heights on small print and the original's
+ * proportional font is narrower than Courier, so the height alone makes neighbours overlap. It
+ * also stays below the distance to the next line underneath, so tightly set blocks do not overprint.
+ */
+function lineSize(line: AnalyzedLine, page: AnalyzedLine[]): number {
   const heights = line.words.map((word) => word.height).filter((h) => Number.isFinite(h) && h > 0);
-  return heights.length === 0
-    ? DEFAULT_SIZE
-    : clamp(Math.round(Math.max(...heights) * 10) / 10, 5, 20);
+  const tallest = heights.length === 0 ? DEFAULT_SIZE : Math.max(...heights);
+  let size = clamp(tallest, 5, 20);
+  line.words.forEach((word, index) => {
+    const next = line.words[index + 1];
+    if (!next || isRightAligned(word.text) || word.text.length === 0) return;
+    const room = next.x - word.x;
+    if (room > 0) size = Math.min(size, room / (word.text.length * COURIER_ADVANCE));
+  });
+  size = Math.min(size, verticalRoom(line, page) / LINE_HEIGHT);
+  return Math.round(clamp(size, 5, 20) * 10) / 10;
+}
+
+/** Line box height in em, as the preview draws it. */
+const LINE_HEIGHT = 1.1;
+
+/** Distance to the nearest line below that shares horizontal space with this one. */
+function verticalRoom(line: AnalyzedLine, page: AnalyzedLine[]): number {
+  const spans = line.words.map((word) => [word.x, word.x + word.width]);
+  let room = Number.POSITIVE_INFINITY;
+  for (const other of page) {
+    const distance = other.y - line.y;
+    if (distance <= 0.5 || distance >= room) continue;
+    const overlaps = other.words.some((word) =>
+      spans.some(([from, to]) => word.x < to && word.x + word.width > from),
+    );
+    if (overlaps) room = distance;
+  }
+  return room;
+}
+
+/**
+ * A wage-type code (Lohnart) opening a line, such as `2000 Gehalt`: a 3–4 digit integer followed by a
+ * word. It names the line and is no figure or personal data, so it is kept for the parser author.
+ */
+function isWageTypeCode(line: AnalyzedLine, index: number): boolean {
+  return (
+    index === 0 && /^\d{3,4}$/.test(line.words[0].text) && /^\p{L}/u.test(line.words[1]?.text ?? '')
+  );
 }
 
 interface ValueRef {
@@ -161,7 +211,7 @@ interface ValueRef {
  * Builds the anonymized layout (R8, FR-005–FR-007): personal data is removed and locked, every
  * digit sequence is replaced by a random one of the same shape (re-rolled until the personal-data
  * scan finds nothing in the result, so browser and server verdicts agree), known labels are kept,
- * every other word needs the user's decision (covered words start masked). For text read by text
+ * every other word is masked unless the user decides to keep it (covered words too). For text read by text
  * recognition pass `{ lenient: true }` so identifiers with misread digits are removed too (034).
  */
 export function anonymizeLayout(
@@ -177,7 +227,7 @@ export function anonymizeLayout(
     width: page.width,
     height: page.height,
     lines: page.lines.map((line, lineIndex) => {
-      const size = lineSize(line);
+      const size = lineSize(line, page.lines);
       const hits = scanLine(line.words, scanOptions);
       const removed = new Set<number>();
       for (const hit of hits) {
@@ -188,6 +238,9 @@ export function anonymizeLayout(
         const length = word.text.length;
         if (removed.has(wordIndex)) {
           return { text: removedText(length), x: word.x, mark: 'REMOVED', locked: true };
+        }
+        if (isWageTypeCode(line, wordIndex)) {
+          return { text: word.text, x: word.x, mark: 'LABEL', locked: false };
         }
         if (/\d/.test(word.text)) {
           valueRefs.push({
@@ -215,9 +268,7 @@ export function anonymizeLayout(
           return { text: word.text, x: word.x, mark: 'LABEL', locked: false };
         }
         if (decision === 'KEEP') return { text: word.text, x: word.x, mark: 'KEPT', locked: false };
-        if (decision === 'MASK')
-          return { text: maskText(length), x: word.x, mark: 'MASKED', locked: false };
-        return { text: maskText(length), x: word.x, mark: 'NEEDS_DECISION', locked: false };
+        return { text: maskText(length), x: word.x, mark: 'MASKED', locked: false };
       });
       return { y: line.y, size, words };
     }),
@@ -297,19 +348,6 @@ function rerollUntilClean(ctx: RerollContext, refs: ValueRef[]): void {
         .forEach((ref) => reroll(ctx, ref, make));
     }
   }
-}
-
-/** Number of words still waiting for a keep/mask decision — the gate for "Continue" and "Send". */
-export function pendingDecisions(anon: AnonymizedLayout): number {
-  return anon.pages.reduce(
-    (total, page) =>
-      total +
-      page.lines.reduce(
-        (sum, line) => sum + line.words.filter((word) => word.mark === 'NEEDS_DECISION').length,
-        0,
-      ),
-    0,
-  );
 }
 
 export type LayoutLimitProblem = 'NO_TEXT' | 'TOO_MANY_PAGES' | 'TOO_LARGE';

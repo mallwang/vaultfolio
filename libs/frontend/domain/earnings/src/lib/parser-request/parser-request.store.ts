@@ -13,7 +13,7 @@ import {
   liveCheck,
   type WordDecision,
   anonymizeLayout,
-  pendingDecisions,
+  isNoiseWord,
   scanDocument,
   toSubmission,
   wordKey,
@@ -43,7 +43,14 @@ export type RecognitionState = 'none' | 'offer' | 'running';
 export interface DecisionWord {
   key: string;
   original: string;
-  mark: 'NEEDS_DECISION' | 'KEPT' | 'MASKED';
+  mark: 'KEPT' | 'MASKED';
+}
+
+/** Every occurrence of one word, decided together (`MIXED`: the occurrences were decided differently on the sheet). */
+export interface DecisionGroup {
+  text: string;
+  keys: string[];
+  mark: 'KEPT' | 'MASKED' | 'MIXED';
 }
 
 /** Deterministic random source (mulberry32), seeded once per document so re-computing the preview keeps the same replacement values. */
@@ -117,11 +124,6 @@ export class ParserRequestStore {
       : null;
   });
 
-  readonly pendingDecisions = computed(() => {
-    const anon = this.anon();
-    return anon ? pendingDecisions(anon) : 0;
-  });
-
   readonly removedKinds = computed(() => this.anon()?.removedKinds ?? []);
 
   readonly coveredCount = computed(
@@ -131,7 +133,7 @@ export class ParserRequestStore {
         .filter((w) => w.covered).length ?? 0,
   );
 
-  /** Words the user can decide on, in reading order. */
+  /** Unknown words in reading order; fragments (`isNoiseWord`) stay masked and are not listed. */
   readonly decisionWords = computed<DecisionWord[]>(() => {
     const anon = this.anon();
     const analysis = this.analysis();
@@ -140,12 +142,9 @@ export class ParserRequestStore {
     anon.pages.forEach((page, p) =>
       page.lines.forEach((line, l) =>
         line.words.forEach((word, i) => {
-          if (word.mark === 'NEEDS_DECISION' || word.mark === 'KEPT' || word.mark === 'MASKED') {
-            words.push({
-              key: wordKey(p, l, i),
-              original: analysis.pages[p].lines[l].words[i].text,
-              mark: word.mark,
-            });
+          const original = analysis.pages[p].lines[l].words[i];
+          if ((word.mark === 'KEPT' || word.mark === 'MASKED') && !isNoiseWord(original)) {
+            words.push({ key: wordKey(p, l, i), original: original.text, mark: word.mark });
           }
         }),
       ),
@@ -153,11 +152,30 @@ export class ParserRequestStore {
     return words;
   });
 
+  /** The decision words grouped by their text, so a repeated word is decided once. */
+  readonly decisionGroups = computed<DecisionGroup[]>(() => {
+    const groups = new Map<string, DecisionGroup>();
+    for (const word of this.decisionWords()) {
+      const id = word.original.toLowerCase();
+      const group = groups.get(id);
+      if (!group) {
+        groups.set(id, { text: word.original, keys: [word.key], mark: word.mark });
+        continue;
+      }
+      group.keys.push(word.key);
+      if (group.mark !== word.mark) group.mark = 'MIXED';
+    }
+    return [...groups.values()];
+  });
+
+  /** Fragments masked automatically and left out of the decision list. */
+  readonly noiseCount = computed(
+    () => this.countMarks('MASKED') + this.countMarks('KEPT') - this.decisionWords().length,
+  );
+
   readonly removedCount = computed(() => this.countMarks('REMOVED'));
   readonly valueCount = computed(() => this.countMarks('VALUE'));
-  readonly maskedCount = computed(
-    () => this.countMarks('MASKED') + this.countMarks('NEEDS_DECISION'),
-  );
+  readonly maskedCount = computed(() => this.countMarks('MASKED'));
   readonly keptCount = computed(() => this.countMarks('KEPT') + this.countMarks('LABEL'));
 
   /** On-device arithmetic check of the markings against the original amounts; never sent. */
@@ -186,11 +204,7 @@ export class ParserRequestStore {
   });
 
   readonly canSend = computed(
-    () =>
-      this.pendingDecisions() === 0 &&
-      this.remainingHits() === 0 &&
-      this.consent() &&
-      !this.sending(),
+    () => this.remainingHits() === 0 && this.consent() && !this.sending(),
   );
 
   /**
@@ -277,15 +291,23 @@ export class ParserRequestStore {
   }
 
   decide(key: string, decision: WordDecision): void {
-    this.decisions.update((map) => new Map(map).set(key, decision));
+    this.decideMany([key], decision);
+  }
+
+  /** Applies one decision to several words at once (every occurrence of a word, or all listed words). */
+  decideMany(keys: readonly string[], decision: WordDecision): void {
+    this.decisions.update((map) => {
+      const next = new Map(map);
+      for (const key of keys) next.set(key, decision);
+      return next;
+    });
   }
 
   /** Clicking a word on the sheet cycles its decision. */
   cycle(page: number, line: number, index: number): void {
     const word = this.anon()?.pages[page]?.lines[line]?.words[index];
     if (!word || word.locked) return;
-    if (word.mark === 'NEEDS_DECISION' || word.mark === 'MASKED')
-      this.decide(wordKey(page, line, index), 'KEEP');
+    if (word.mark === 'MASKED') this.decide(wordKey(page, line, index), 'KEEP');
     else if (word.mark === 'KEPT') this.decide(wordKey(page, line, index), 'MASK');
   }
 

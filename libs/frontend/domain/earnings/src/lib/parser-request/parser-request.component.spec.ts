@@ -61,24 +61,25 @@ describe('ParserRequestComponent', () => {
     expect(button(fixture, 'request-continue').disabled).toBe(false);
   });
 
-  it('disables Continue on the review step until every word is decided', () => {
+  it('masks unknown words by default and groups repeated ones; Continue stays enabled', () => {
     const fixture = open();
     store.consent.set(true);
     store.step.set('review');
     fixture.detectChanges();
     expect(el(fixture, 'request-removed-callout')?.textContent).toContain('bank account');
-    expect(el(fixture, 'request-progress')?.textContent).toContain('0 of 3 decided');
-    expect(button(fixture, 'request-continue').disabled).toBe(true);
+    expect(el(fixture, 'request-progress')?.textContent).toContain('0 of 3 words kept');
+    expect(button(fixture, 'request-continue').disabled).toBe(false);
 
     button(fixture, 'request-decision-0-0-0-keep').click();
-    button(fixture, 'request-decision-0-0-1-mask').click();
     fixture.detectChanges();
-    expect(el(fixture, 'request-progress')?.textContent).toContain('2 of 3 decided');
-    expect(button(fixture, 'request-continue').disabled).toBe(true);
+    expect(el(fixture, 'request-progress')?.textContent).toContain('1 of 3 words kept');
 
-    button(fixture, 'request-decision-0-1-0-mask').click();
+    button(fixture, 'request-keep-all').click();
     fixture.detectChanges();
-    expect(button(fixture, 'request-continue').disabled).toBe(false);
+    expect(el(fixture, 'request-progress')?.textContent).toContain('3 of 3 words kept');
+    button(fixture, 'request-mask-all').click();
+    fixture.detectChanges();
+    expect(el(fixture, 'request-progress')?.textContent).toContain('0 of 3 words kept');
     expect(el(fixture, 'request-removed-row')?.textContent).toContain('3');
   });
 
@@ -102,15 +103,14 @@ describe('ParserRequestComponent', () => {
     expect(store.step()).toBe('preview');
   });
 
-  it('keeps Send disabled until all words are decided, then sends once and shows the confirmation', async () => {
+  it('keeps Send disabled until consent is given, then sends once and shows the confirmation', async () => {
     const fixture = open();
-    store.consent.set(true);
     store.step.set('preview');
     fixture.detectChanges();
     expect(button(fixture, 'request-send').disabled).toBe(true);
     expect(el(fixture, 'request-blocked')).not.toBeNull();
 
-    for (const w of store.decisionWords()) store.decide(w.key, 'MASK');
+    store.consent.set(true);
     fixture.detectChanges();
     expect(button(fixture, 'request-send').disabled).toBe(false);
 

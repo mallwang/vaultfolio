@@ -195,6 +195,29 @@ describe('layoutFromRecognised (034)', () => {
     expect(page.lines[0].words[0].lowConfidence).toBeUndefined();
   });
 
+  it('drops a word mostly covered by an earlier recognised word', () => {
+    const doubled = {
+      origin: 'RECOGNISED' as const,
+      pages: [
+        {
+          width: 595,
+          height: 842,
+          lines: [
+            { text: 'Betrag', y: 700, words: [{ text: 'Betrag', x: 60, width: 40, height: 10 }] },
+            { text: 'Betrag', y: 701, words: [{ text: 'Betr', x: 62, width: 30, height: 10 }] },
+            { text: 'Netto', y: 650, words: [{ text: 'Netto', x: 62, width: 30, height: 10 }] },
+          ],
+        },
+      ],
+    };
+    const result = layoutFromRecognised(doubled);
+    if (!('layout' in result)) throw new Error('refused');
+    expect(result.layout.pages[0].lines.map((l) => l.words.map((w) => w.text))).toEqual([
+      ['Betrag'],
+      ['Netto'],
+    ]);
+  });
+
   it('refuses a recognition result without text', () => {
     expect(layoutFromRecognised({ origin: 'RECOGNISED', pages: [{ lines: [] }] })).toEqual({
       error: 'IMAGE_ONLY',

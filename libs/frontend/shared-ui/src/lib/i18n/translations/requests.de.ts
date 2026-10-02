@@ -123,7 +123,7 @@ export const requestsDe: TranslationDictionary = {
         'Deine PDF, ihr Text und alle echten Zahlen werden nur hier gelesen. Sie werden nie gesendet.',
       factSentTitle: 'Wird nach deiner Bestätigung gesendet',
       factSentText:
-        'Nur eine nachgebaute Kopie: Layout und Bezeichnungen, jede Zahl durch eine Zufallszahl gleicher Form ersetzt, jedes unbekannte Wort von dir maskiert oder behalten.',
+        'Nur eine nachgebaute Kopie: Layout und Bezeichnungen, jede Zahl durch eine Zufallszahl gleicher Form ersetzt, jedes unbekannte Wort maskiert, sofern du es nicht behältst.',
       factWhoTitle: 'Wer sieht es, wie lange',
       factWhoText:
         'Administratoren, nur im Portal (nie per E-Mail). Gelöscht 30 Tage nach Abschluss der Anfrage.',
@@ -139,18 +139,25 @@ export const requestsDe: TranslationDictionary = {
     review: {
       calloutRemoved: 'Personenbezogene Daten wurden gefunden und entfernt: {{kinds}}.',
       explain:
-        'Zahlen werden durch Zufallswerte ersetzt. Bekannte Bezeichnungen bleiben. Entscheide bei jedem anderen Wort, ob es bleibt oder maskiert wird.',
+        'Zahlen werden durch Zufallswerte ersetzt (Lohnart-Nummern bleiben). Bekannte Bezeichnungen bleiben. Jedes andere Wort wird maskiert – behalte nur die, die der Entwickler braucht, um eine Zeile zu erkennen.',
       legendValue: 'Ersetzter Wert',
       legendRemoved: 'Entfernt (gesperrt)',
-      legendUndecided: 'Entscheidung nötig',
       legendMasked: 'Maskiert',
       legendKept: 'Behalten',
       markedTitle: 'Markierte Wörter',
-      progress: '{{done}} von {{total}} entschieden',
+      summary: '{{kept}} von {{total}} Wörtern als Bezeichnung behalten, der Rest maskiert',
+      noiseRow: 'Bruchstücke automatisch maskiert ({{count}})',
+      keepAll: 'Alle behalten',
+      maskAll: 'Alle maskieren',
       keep: 'Als Bezeichnung behalten',
-      mask: 'Maskieren',
       removedRow: 'Automatisch entfernt ({{count}})',
-      noWords: 'Kein Wort braucht eine Entscheidung.',
+      noWords: 'Keine weiteren Wörter – nichts zu entscheiden.',
+    },
+    sheet: {
+      zoom: 'Zoom',
+      zoomIn: 'Vergrößern',
+      zoomOut: 'Verkleinern',
+      fit: 'An Bildschirm anpassen',
     },
     rules: {
       optional:
@@ -217,7 +224,7 @@ export const requestsDe: TranslationDictionary = {
       sending: 'Wird gesendet…',
       discard: 'Verwerfen',
       blocked:
-        'Senden ist gesperrt, bis jedes Wort entschieden ist und keine personenbezogenen Daten mehr übrig sind.',
+        'Senden ist gesperrt, bis du zugestimmt hast und keine personenbezogenen Daten mehr übrig sind.',
     },
     sent: {
       title: 'Anfrage gesendet',

@@ -120,7 +120,7 @@ export const requestsEn: TranslationDictionary = {
         'Your PDF, its text and all real figures are only read here. They are never sent.',
       factSentTitle: 'Sent after you confirm',
       factSentText:
-        'Only a rebuilt copy: layout and labels, with every number replaced by a random one of the same shape and every unknown word masked or kept by you.',
+        'Only a rebuilt copy: layout and labels, with every number replaced by a random one of the same shape and every unknown word masked unless you keep it.',
       factWhoTitle: 'Who sees it, how long',
       factWhoText:
         'Administrators, in the portal only (never by e-mail). Deleted 30 days after the request is closed.',
@@ -136,18 +136,25 @@ export const requestsEn: TranslationDictionary = {
     review: {
       calloutRemoved: 'Personal data was found and removed: {{kinds}}.',
       explain:
-        'Numbers are replaced by random values. Known labels stay. Decide for every other word whether to keep it or mask it.',
+        'Numbers are replaced by random values (wage-type codes stay). Known labels stay. Every other word is masked — only keep the ones the developer needs to recognise a line.',
       legendValue: 'Replaced value',
       legendRemoved: 'Removed (locked)',
-      legendUndecided: 'Needs a decision',
       legendMasked: 'Masked',
       legendKept: 'Kept',
       markedTitle: 'Marked words',
-      progress: '{{done}} of {{total}} decided',
+      summary: '{{kept}} of {{total}} words kept as labels, the rest masked',
+      noiseRow: 'Fragments masked automatically ({{count}})',
+      keepAll: 'Keep all',
+      maskAll: 'Mask all',
       keep: 'Keep as label',
-      mask: 'Mask',
       removedRow: 'Removed automatically ({{count}})',
-      noWords: 'No word needs a decision.',
+      noWords: 'No other words — nothing to decide.',
+    },
+    sheet: {
+      zoom: 'Zoom',
+      zoomIn: 'Zoom in',
+      zoomOut: 'Zoom out',
+      fit: 'Fit to screen',
     },
     rules: {
       optional:
@@ -213,7 +220,7 @@ export const requestsEn: TranslationDictionary = {
       send: 'Send request',
       sending: 'Sending…',
       discard: 'Discard',
-      blocked: 'Sending is blocked until every word is decided and no personal data remains.',
+      blocked: 'Sending is blocked until you have given consent and no personal data remains.',
     },
     sent: {
       title: 'Request sent',
