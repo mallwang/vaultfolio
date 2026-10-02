@@ -48,7 +48,7 @@ export type ExportRow = Record<string, string | number | null>;
 
 /**
  * The contract a domain library registers with the shared `FeatureExportRegistry`. One instance
- * per feature (Holdings, Account Overview, Retirement, Insurances, Haushaltsplaner, Historic
+ * per feature (Holdings, Account Overview, Retirement, Insurances, Budget Planner, Historic
  * Wealth Development).
  */
 export interface FeatureExportDefinition {

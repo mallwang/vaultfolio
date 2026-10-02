@@ -11,8 +11,8 @@ describe('HAUSHALTSPLANER_EXPORT_DEFINITION', () => {
       const blob = await exportFeature(
         {
           featureId: HAUSHALTSPLANER_EXPORT_DEFINITION.featureId,
-          title: 'Haushaltsplaner',
-          infobox: 'About haushaltsplaner',
+          title: 'Budget Planner',
+          infobox: 'About Budget Planner',
           columns: [],
           rows: await HAUSHALTSPLANER_EXPORT_DEFINITION.fetchData(),
         },

@@ -80,7 +80,7 @@ export const APPLICATION_AREAS: ApplicationArea[] = [
   },
   {
     id: 'haushaltsplaner',
-    label: 'Haushaltsplaner',
+    label: 'Budget Planner',
     labelKey: 'nav.haushaltsplaner',
     path: 'haushaltsplaner',
     icon: 'receipt-long',

@@ -163,7 +163,7 @@ description: 'Task list for OCR Fallback for PDFs Without a Text Layer'
 - [x] T050 Run `npx nx build frontend` (production): initial bundle budget unaffected, tesseract assets emitted, WASM/worker lazy-loaded only on consent
 - [x] T051 Run `npx nx run backend:openapi:check` (drift detection) and the backend e2e suite
 - [x] T052 Run the full quickstart.md validation (sections 1–4), including the manual DATEV flow; record any digit-accuracy findings in research.md as follow-up input (per-field digit-whitelist re-recognition idea)
-- [ ] T053 Run `/speckit-sonar-validate` for the branch and fix issues / coverage gaps
+- [x] T053 Run `/speckit-sonar-validate` for the branch and fix issues / coverage gaps
 
 ---
 

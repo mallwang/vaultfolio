@@ -3,7 +3,7 @@ import { CardModule } from 'primeng/card';
 import { ExportControlComponent, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
 
 /**
- * Haushaltsplaner placeholder page (022-add-domain-placeholders, FR-003):
+ * Budget Planner placeholder page (022-add-domain-placeholders, FR-003):
  * names the domain and states its functionality isn't built yet — no
  * inputs, no backend call (contracts/domain-placeholder-library.md
  * "Component contract"). Mirrors `ImportsComponent`'s existing empty-state
