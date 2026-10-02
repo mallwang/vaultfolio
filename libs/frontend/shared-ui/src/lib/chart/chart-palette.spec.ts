@@ -36,15 +36,19 @@ describe('ASSET_TYPE_COLORS', () => {
 });
 
 describe('resolveEarningsSeriesColors', () => {
-  it.each(['light', 'dark'] as const)('defines five distinct roles for theme "%s"', (theme) => {
-    const colors = resolveEarningsSeriesColors(theme);
-    const values = Object.values(colors);
-    expect(Object.keys(colors).sort()).toEqual(['bonus', 'net', 'regular', 'social', 'taxes']);
-    expect(new Set(values).size).toBe(5);
-    values.forEach((c) => expect(c).toMatch(/^#[0-9a-f]{6}$/));
-  });
+  it.each(['light', 'dark'] as const)(
+    'defines five roles, distinct within each chart for theme "%s"',
+    (theme) => {
+      const colors = resolveEarningsSeriesColors(theme);
+      const values = Object.values(colors);
+      expect(Object.keys(colors).sort()).toEqual(['bonus', 'net', 'regular', 'social', 'taxes']);
+      expect(new Set([colors.net, colors.taxes, colors.social]).size).toBe(3);
+      expect(new Set([colors.regular, colors.bonus]).size).toBe(2);
+      values.forEach((c) => expect(c).toMatch(/^#[0-9a-f]{6}$/));
+    },
+  );
 
-  it('uses the app primary indigo for regular pay', () => {
-    expect(resolveEarningsSeriesColors('light').regular).toBe('#6366f1');
+  it('uses teal for regular pay, matching the app theme', () => {
+    expect(resolveEarningsSeriesColors('light').regular).toBe('#0d9488');
   });
 });

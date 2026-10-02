@@ -12,6 +12,7 @@ import {
   I18nService,
   ThemeService,
   TranslatePipe,
+  resolveChartPalette,
   resolveEarningsSeriesColors,
 } from '@vaultfolio/frontend-shared-ui';
 import { EarningsFilterStore } from '../earnings-area/earnings-filter.store';
@@ -113,7 +114,9 @@ const PERIOD = /^\d{4}-(0[1-9]|1[0-2])$/;
         <section class="card">
           <h2>{{ 'earnings.overview.ratios' | translate }}</h2>
           <p class="muted">{{ 'earnings.overview.ratiosSub' | translate }}</p>
-          <div class="chart"><app-echart [option]="ratiosChart()" /></div>
+          <div class="chart" data-testid="earnings-ratios-chart">
+            <app-echart [option]="ratiosChart()" />
+          </div>
         </section>
         <section class="card">
           <app-earnings-month-detail
@@ -197,7 +200,10 @@ export class EarningsOverviewComponent {
     { initialValue: null },
   );
 
-  private readonly colors = computed(() => resolveEarningsSeriesColors(this.theme.theme()));
+  private readonly colors = computed(() => ({
+    ...resolveEarningsSeriesColors(this.theme.theme()),
+    text: resolveChartPalette(this.theme.theme()).textColor,
+  }));
 
   private readonly labels = computed<ChartLabels>(() => {
     this.i18n.language();
@@ -263,8 +269,14 @@ export class EarningsOverviewComponent {
     );
   });
 
+  // Only taxes and social share this chart, so social takes the theme teal here (taxes stay orange).
   protected readonly ratiosChart = computed(() =>
-    ratiosOption(this.store.overview()?.yearly ?? [], this.colors(), this.labels(), this.format()),
+    ratiosOption(
+      this.store.overview()?.yearly ?? [],
+      { ...this.colors(), social: this.colors().net },
+      this.labels(),
+      this.format(),
+    ),
   );
 
   protected readonly checkStrip = computed(() => {
