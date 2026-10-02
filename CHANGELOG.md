@@ -1,3 +1,19 @@
+## 0.0.10 (2026-10-02)
+
+### 🚀 Features
+
+- **data-export:** add multi-format data export with PDF report and holdings distribution chart ([#57](https://github.com/mallwang/vaultfolio/pull/57))
+- **backend:** add OpenAPI/Swagger documentation with drift-detection CI check ([#61](https://github.com/mallwang/vaultfolio/pull/61))
+- **earnings:** add Earnings domain with on-device payslip import ([#64](https://github.com/mallwang/vaultfolio/pull/64))
+- **earnings:** allow correcting failed-check figures in import preview ([#65](https://github.com/mallwang/vaultfolio/pull/65))
+- **earnings:** add on-device OCR fallback for scanned payslips and parser requests ([#68](https://github.com/mallwang/vaultfolio/pull/68))
+- **observability:** add correlation IDs, structured logging, and categorized error handling ([#60](https://github.com/mallwang/vaultfolio/pull/60))
+- **requests:** add parser requests for unsupported payslip formats ([#67](https://github.com/mallwang/vaultfolio/pull/67))
+
+### 🩹 Fixes
+
+- **sonar:** resolve open SonarQube Cloud findings and add local scan ([#69](https://github.com/mallwang/vaultfolio/pull/69))
+
 ## 0.0.9 (2026-09-08)
 
 ### 🚀 Features
