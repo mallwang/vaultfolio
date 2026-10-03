@@ -108,7 +108,7 @@ function sheetName(title: string, used: Set<string>): string {
 function columnLetter(index: number): string {
   let letter = '';
   for (let n = index; n > 0; n = Math.floor((n - 1) / 26)) {
-    letter = String.fromCharCode(65 + ((n - 1) % 26)) + letter;
+    letter = String.fromCodePoint(65 + ((n - 1) % 26)) + letter;
   }
   return letter;
 }

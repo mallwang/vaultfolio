@@ -2,6 +2,8 @@ import { InjectionToken } from '@angular/core';
 import type * as EChartsNamespace from 'echarts';
 type EChartsOption = EChartsNamespace.EChartsOption;
 
+const DEFAULT_CHART_SIZE = { width: 800, height: 500 };
+
 /**
  * research.md §3: renders `option` in a fresh, off-screen, unattached `echarts.init` instance —
  * sized to match the on-screen chart's aspect ratio — and captures it as a PNG data URL, then
@@ -11,7 +13,7 @@ type EChartsOption = EChartsNamespace.EChartsOption;
  */
 export async function captureChartImage(
   option: EChartsOption,
-  size: { width: number; height: number } = { width: 800, height: 500 },
+  size: { width: number; height: number } = DEFAULT_CHART_SIZE,
 ): Promise<string> {
   const echarts = await import('echarts');
 

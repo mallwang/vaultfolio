@@ -100,7 +100,7 @@ export function createEarningsExportDefinition(): FeatureExportDefinition {
     pdfInfoboxKey: 'earnings.export.pdfInfobox',
     // Per-payslip rows are retired (035); the formats are served by `getExportTables`/`getPdfSections`.
     columns: [],
-    fetchData: async (): Promise<ExportRow[]> => [],
+    fetchData: (): Promise<ExportRow[]> => Promise.resolve([]),
     async getPdfSections(): Promise<PdfSection[]> {
       yearly = [];
       const t = (key: string) => i18n.translate(key);
