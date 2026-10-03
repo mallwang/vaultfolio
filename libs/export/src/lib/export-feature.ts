@@ -1,4 +1,5 @@
 import { exportCsv, exportCsvTables } from './csv-exporter.js';
+import { exportFileExtensionFor } from './export-file-name.js';
 import type { ExportFormat, ResolvedFeatureExport } from './feature-export-definition.js';
 import { exportJson } from './json-exporter.js';
 import { exportPdf } from './pdf-exporter.js';
@@ -30,5 +31,5 @@ export async function exportFeature(
 
 /** File extension of the download: a CSV export of tables is a ZIP with one file per table. */
 export function exportFileExtension(resolved: ResolvedFeatureExport, format: ExportFormat): string {
-  return format === 'csv' && resolved.tables ? 'zip' : format;
+  return exportFileExtensionFor(format, Boolean(resolved.tables));
 }

@@ -21,7 +21,7 @@ import { ExportControlComponent, TranslatePipe } from '@vaultfolio/frontend-shar
   template: `
     <p-card>
       <div class="placeholder-header">
-        <app-export-control featureId="retirement" severity="info" />
+        <app-export-control featureId="retirement" />
       </div>
       <div class="placeholder">
         <strong>{{ 'retirementPlaceholder.title' | translate }}</strong>

@@ -75,7 +75,7 @@ export const ICON_NAME_MAP: Record<string, string> = {
   // (research.md #4) and the admin domain-scopes multiselect's DomainDescriptor icon.
   handshake: 'handshake',
   // Export control (029-export-data, design.md's format menu icons and split-button icon).
-  'file-export': 'file_export',
+  'file-export': 'export_notes',
   'file-json': 'data_object',
   'file-csv': 'csv',
   'file-excel': 'table_view',

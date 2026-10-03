@@ -380,6 +380,12 @@ export const earningsEn: TranslationDictionary = {
     issues: '{{count}} to review in Data check',
   },
   export: {
+    data: {
+      pdf: 'Gross per year, totals per employer, monthly overview and taxes and contributions as a report with a chart',
+      xlsx: 'The same four tables as sheets, with formulas and totals',
+      csv: '4 CSV files (one per table) in a ZIP archive',
+      json: 'The same four tables in structured form',
+    },
     title: 'Earnings',
     infobox:
       'About this export — Earnings. The same four tables as the PDF: gross per year, totals per employer with the career total, the monthly overview (gross and net in separate columns) and all taxes and contributions per year. Years and employers are listed from newest to oldest. Amounts are in EUR; deductions are shown as positive values.',

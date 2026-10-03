@@ -74,7 +74,7 @@ import { EarningsUnavailableComponent } from './earnings-unavailable.component';
             <app-earnings-privacy-dialog [(visible)]="privacyOpen" />
           </div>
           <div class="toolbar__actions">
-            <app-export-control featureId="earnings" severity="info" />
+            <app-export-control featureId="earnings" />
             <a pButton routerLink="import" data-testid="earnings-import-button">
               <app-icon name="upload" /> {{ 'earnings.toolbar.importDocuments' | translate }}
             </a>
@@ -148,9 +148,6 @@ import { EarningsUnavailableComponent } from './earnings-unavailable.component';
       font-size: 0.875rem;
       color: var(--p-primary-color);
       text-decoration: none;
-    }
-    .privacy-link:hover {
-      text-decoration: underline;
     }
     a.p-button {
       text-decoration: none;

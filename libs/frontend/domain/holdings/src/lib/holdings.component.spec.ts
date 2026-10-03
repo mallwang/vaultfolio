@@ -102,7 +102,7 @@ describe('HoldingsComponent', () => {
     fixture.detectChanges();
   }
 
-  it('renders the Export control left of "Add holding", with info severity (029-export-data, design.md)', () => {
+  it('renders the Export control left of "Add holding" (029-export-data, design.md)', () => {
     flushList([]);
 
     const header = (fixture.nativeElement as HTMLElement).querySelector(
@@ -112,7 +112,6 @@ describe('HoldingsComponent', () => {
     const exportControl = header?.querySelector('app-export-control[featureId="holdings"]');
     const addButton = header?.querySelector('[data-testid="holdings-add-holding"]');
     expect(exportControl).not.toBeNull();
-    expect(exportControl?.getAttribute('severity')).toBe('info');
     expect(addButton).not.toBeNull();
     // Export control must come before "Add holding" in DOM order (immediately left of it).
     expect(exportControl?.compareDocumentPosition(addButton as Node)).toBe(

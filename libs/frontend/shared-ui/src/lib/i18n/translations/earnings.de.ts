@@ -387,6 +387,12 @@ export const earningsDe: TranslationDictionary = {
     issues: '{{count}} in der Datenprüfung zu prüfen',
   },
   export: {
+    data: {
+      pdf: 'Brutto pro Jahr, Summen je Arbeitgeber, Monatsübersicht sowie Steuern und Abgaben als Bericht mit Diagramm',
+      xlsx: 'Dieselben vier Tabellen als Blätter, mit Formeln und Summen',
+      csv: '4 CSV-Dateien (eine je Tabelle) in einem ZIP-Archiv',
+      json: 'Dieselben vier Tabellen in strukturierter Form',
+    },
     title: 'Einkommensentwicklung',
     infobox:
       'Zu diesem Export – Einkommensentwicklung. Dieselben vier Tabellen wie im PDF: Brutto pro Jahr, Summen je Arbeitgeber mit Berufsleben gesamt, die Monatsübersicht (Brutto und Netto in getrennten Spalten) und alle Steuern und Abgaben pro Jahr. Jahre und Arbeitgeber stehen vom neuesten zum ältesten. Beträge in EUR; Abzüge werden als positive Werte gezeigt.',

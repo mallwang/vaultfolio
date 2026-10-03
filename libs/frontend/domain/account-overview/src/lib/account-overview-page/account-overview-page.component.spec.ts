@@ -48,7 +48,7 @@ describe('AccountOverviewPageComponent', () => {
   afterEach(() => httpMock.verify());
 
   describe('Export control (029-export-data, FR-008/FR-009)', () => {
-    it('renders left of "Add account", with info severity', () => {
+    it('renders left of "Add account"', () => {
       const header = (fixture.nativeElement as HTMLElement).querySelector(
         '.account-overview-panel__header-actions',
       );
@@ -58,7 +58,6 @@ describe('AccountOverviewPageComponent', () => {
       );
       const addButton = header?.querySelector('[data-testid="account-overview-add-account"]');
       expect(exportControl).not.toBeNull();
-      expect(exportControl?.getAttribute('severity')).toBe('info');
       expect(addButton).not.toBeNull();
       expect(exportControl?.compareDocumentPosition(addButton as Node)).toBe(
         Node.DOCUMENT_POSITION_FOLLOWING,

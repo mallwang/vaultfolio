@@ -1,68 +1,17 @@
-import { Component, Input, computed, inject, signal } from '@angular/core';
-import { SplitButtonModule } from 'primeng/splitbutton';
-import type { ButtonSeverity } from 'primeng/types/button';
-import {
-  FeatureExportRegistry,
-  exportFeature,
-  exportFileExtension,
-  type ExportFormat,
-  type ResolvedFeatureExport,
-} from '@vaultfolio/export';
+import { Component, ElementRef, Input, ViewChild, computed, inject, signal } from '@angular/core';
+import { TooltipModule } from 'primeng/tooltip';
 import { I18nService } from '../i18n/i18n.service';
 import { TranslatePipe } from '../i18n/translate.pipe';
 import { IconComponent } from '../icon/icon.component';
-import { ICON_NAME_MAP } from '../icon/icon-name.map';
-import { CHART_IMAGE_CAPTURE } from './chart-image-capture';
+import { ExportDialogComponent } from './export-dialog.component';
 import { FEATURE_EXPORT_REGISTRY } from './feature-export-registry.token';
 
-interface FormatMenuEntry {
-  format: ExportFormat;
-  icon: string;
-  labelKey: string;
-  descriptionKey: string;
-}
-
-const FORMAT_MENU: FormatMenuEntry[] = [
-  {
-    format: 'pdf',
-    icon: 'file-pdf',
-    labelKey: 'export.formatPdf',
-    descriptionKey: 'export.formatPdfDescription',
-  },
-  {
-    format: 'xlsx',
-    icon: 'file-excel',
-    labelKey: 'export.formatXlsx',
-    descriptionKey: 'export.formatXlsxDescription',
-  },
-  {
-    format: 'csv',
-    icon: 'file-csv',
-    labelKey: 'export.formatCsv',
-    descriptionKey: 'export.formatCsvDescription',
-  },
-  {
-    format: 'json',
-    icon: 'file-json',
-    labelKey: 'export.formatJson',
-    descriptionKey: 'export.formatJsonDescription',
-  },
-];
-
-function triggerDownload(blob: Blob, fileName: string): void {
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = fileName;
-  link.click();
-  URL.revokeObjectURL(url);
-}
-
 /**
- * The single reusable Export split-button (contracts/export-lib.md's `<app-export-control>`)
- * every data-holding feature mounts next to its own "Add" action (FR-001, FR-008/FR-009).
- * Carries no per-feature knowledge itself — it looks its `FeatureExportDefinition` up from the
- * app-wide `FeatureExportRegistry` by `featureId`.
+ * The single reusable export entry point (contracts/export-lib.md's `<app-export-control>`)
+ * every data-holding feature mounts next to its own "Add" action (FR-001, FR-008/FR-009): a text
+ * link that opens the export dialog with one card per format. Carries no per-feature knowledge
+ * itself — it looks its `FeatureExportDefinition` up from the app-wide `FeatureExportRegistry`
+ * by `featureId`.
  *
  * Inline template/styles, not templateUrl/styleUrl (per the existing `IconComponent`/
  * `EchartComponent` convention in this same library): every consumer of this component lives
@@ -72,35 +21,74 @@ function triggerDownload(blob: Blob, fileName: string): void {
  */
 @Component({
   selector: 'app-export-control',
-  imports: [SplitButtonModule, TranslatePipe, IconComponent],
+  imports: [TooltipModule, TranslatePipe, IconComponent, ExportDialogComponent],
   template: `
-    <p-splitbutton
-      [severity]="severity"
-      [model]="menuItems()"
-      [disabled]="isDisabled() || exporting()"
-      [tooltip]="disabledTooltip()"
-      data-testid="export-control"
-      (onClick)="onDefaultAction()"
-    >
-      <ng-template #content>
+    <span class="wrapper" [pTooltip]="disabledTooltip()" tooltipPosition="bottom">
+      <button
+        type="button"
+        class="link"
+        #openLink
+        data-testid="export-open-link"
+        [disabled]="isDisabled()"
+        (click)="open()"
+      >
         <app-icon name="file-export" />
-        <span class="p-button-label">{{ 'export.buttonLabel' | translate }}</span>
-      </ng-template>
-    </p-splitbutton>
+        <span class="link__label">{{ 'export.link' | translate }}</span>
+      </button>
+    </span>
+    <app-export-dialog
+      [featureId]="featureId"
+      [visible]="dialogVisible()"
+      (visibleChange)="onVisibleChange($event)"
+    />
+  `,
+  styles: `
+    :host {
+      display: inline-flex;
+      align-items: center;
+    }
+    .wrapper {
+      display: inline-flex;
+      align-items: center;
+    }
+    .link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0;
+      line-height: 1;
+      border: 0;
+      background: none;
+      font: inherit;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--p-primary-color);
+      cursor: pointer;
+    }
+    .link:hover:not(:disabled) .link__label {
+      text-decoration: underline;
+    }
+    .link:focus-visible {
+      outline: 2px solid var(--p-primary-color);
+      outline-offset: 2px;
+      border-radius: 0.25rem;
+    }
+    .link:disabled {
+      color: var(--p-text-muted-color);
+      cursor: not-allowed;
+    }
   `,
 })
 export class ExportControlComponent {
   /** Matches the registered `FeatureExportDefinition.featureId` this control exports. */
   @Input({ required: true }) featureId!: string;
 
-  /** PrimeNG button severity — 'info' per design.md for every current call site. */
-  @Input() severity: ButtonSeverity = 'info';
+  @ViewChild('openLink') private readonly openLink?: ElementRef<HTMLButtonElement>;
 
-  private readonly registry: FeatureExportRegistry = inject(FEATURE_EXPORT_REGISTRY);
+  private readonly registry = inject(FEATURE_EXPORT_REGISTRY);
   private readonly i18n = inject(I18nService);
-  private readonly captureChartImage = inject(CHART_IMAGE_CAPTURE);
 
-  protected readonly exporting = signal(false);
+  protected readonly dialogVisible = signal(false);
 
   protected readonly isDisabled = computed(() => {
     const definition = this.registry.getById(this.featureId);
@@ -115,92 +103,14 @@ export class ExportControlComponent {
       : undefined;
   });
 
-  protected readonly menuItems = computed(() =>
-    FORMAT_MENU.map((entry) => {
-      const glyph = ICON_NAME_MAP[entry.icon] ?? '';
-      return {
-        // PrimeNG menu items use CSS-class-based icons, incompatible with Material Symbols
-        // ligatures — embed the glyph as inline HTML with escape:false instead.
-        label: `<span class="export-menu-item"><span class="material-symbols-outlined">${glyph}</span>${this.i18n.translate(entry.labelKey)}</span>`,
-        escape: false,
-        title: this.i18n.translate(entry.descriptionKey),
-        command: () => this.export(entry.format),
-      };
-    }),
-  );
-
-  /** Default (non-caret) click: no single default format per design.md — just opens the menu. */
-  protected onDefaultAction(): void {
-    // No-op: p-splitbutton's own caret already owns opening the menu; the left segment has no
-    // separate default action per design.md ("no single default format").
+  protected onVisibleChange(visible: boolean): void {
+    this.dialogVisible.set(visible);
+    // The dialog is dismissed through its own close button or the mask; hand focus back to the
+    // link that opened it (WCAG 2.4.3).
+    if (!visible) this.openLink?.nativeElement.focus();
   }
 
-  protected async export(format: ExportFormat): Promise<void> {
-    const definition = this.registry.getById(this.featureId);
-    if (!definition) {
-      return;
-    }
-
-    this.exporting.set(true);
-    try {
-      // The PDF of a definition with sections shows those instead of the generic table; they are
-      // awaited first because the definition may derive its chart data from the same fetch.
-      const pdfSections =
-        format === 'pdf' && definition.getPdfSections
-          ? await definition.getPdfSections()
-          : undefined;
-      // JSON/CSV/Excel of a definition with tables serialize those instead of the generic rows.
-      const tables =
-        format !== 'pdf' && definition.getExportTables
-          ? await definition.getExportTables()
-          : undefined;
-      const rows = pdfSections || tables ? [] : await definition.fetchData();
-      const chartImages =
-        format === 'pdf' && definition.getChartOptions
-          ? await Promise.all(
-              definition
-                .getChartOptions()
-                .map((option) => this.captureChartImage(option, definition.pdfChartSize)),
-            )
-          : undefined;
-
-      const chartSideTable =
-        format === 'pdf' && definition.getChartSideTable
-          ? definition.getChartSideTable()
-          : undefined;
-
-      const title = this.i18n.translate(definition.titleKey);
-      const lang = this.i18n.language();
-      const subtitleDate = new Intl.DateTimeFormat(lang).format(new Date());
-      const resolved: ResolvedFeatureExport = {
-        featureId: definition.featureId,
-        title,
-        infobox: this.i18n.translate(
-          format === 'pdf' && definition.pdfInfoboxKey
-            ? definition.pdfInfoboxKey
-            : definition.infoboxKey,
-        ),
-        columns: definition.columns.map((column) => ({
-          key: column.key,
-          label: this.i18n.translate(column.labelKey),
-          format: column.format,
-          summable: column.summable,
-        })),
-        rows,
-        ...(pdfSections ? { pdfSections } : {}),
-        ...(tables ? { tables } : {}),
-        chartImages,
-        chartSideTable,
-        locale: lang,
-        subtitle: `${this.i18n.translate('export.subtitlePrefix')} ${subtitleDate}`,
-        footer: this.i18n.translate('export.footerText'),
-      };
-
-      const safeTitle = title.replace(/[/\\:*?"<>|]/g, '_');
-      const blob = await exportFeature(resolved, format);
-      triggerDownload(blob, `${safeTitle}.${exportFileExtension(resolved, format)}`);
-    } finally {
-      this.exporting.set(false);
-    }
+  protected open(): void {
+    if (!this.isDisabled()) this.dialogVisible.set(true);
   }
 }

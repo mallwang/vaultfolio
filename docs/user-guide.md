@@ -173,8 +173,10 @@ Deletion cannot be undone.
 
 ### 4.6 Exporting Holdings Data
 
-The **Export** split-button (top right of the Holdings panel, next to **Add holding**) lets you
-download your holdings in four formats:
+The **Export data** link (top right of the Holdings panel, next to **Add holding**) opens a dialog
+with one card per format. Each card shows a preview, the exact file name, what the file contains and
+what it suits best; its own button downloads that format, and the dialog stays open so you can
+export several formats in one visit. The four formats:
 
 | Format | Use case                                      |
 | ------ | --------------------------------------------- |
@@ -183,8 +185,7 @@ download your holdings in four formats:
 | CSV    | Spreadsheet import (Excel, LibreOffice, etc.) |
 | JSON   | Raw structured data for scripts or backups    |
 
-Click the button label to open the format menu, then select your format. The file downloads
-immediately. An empty holdings list produces a valid but row-free file (CSV/JSON/Excel) or a
+Click a card's button to download that format; the file downloads immediately. An empty holdings list produces a valid but row-free file (CSV/JSON/Excel) or a
 header-only PDF.
 
 ---
@@ -204,8 +205,8 @@ Use the **Add account** button to create an entry. Edit and delete work the same
 in Holdings. Decommissioning an account marks it as inactive without deleting it —
 useful for keeping historical records.
 
-The **Export** split-button (top right) works the same as in Holdings — JSON, CSV,
-Excel, and PDF formats are available.
+The **Export data** link (top right) works the same as in Holdings — JSON, CSV,
+Excel, and PDF formats are available in the export dialog.
 
 ---
 
@@ -299,7 +300,8 @@ device. Nothing is saved until you click the import button at the bottom.
 - **Tables** — a month grid per year (click a cell for the month detail), all taxes
   and contributions per year, and your wage-tax certificates.
 - The **Employer** filter at the top narrows every view to one employer.
-- **Export** offers your earnings as JSON, CSV, Excel or PDF. The PDF is a landscape
+- **Export data** opens a dialog that offers your earnings as JSON, CSV (a ZIP with four CSV
+  files), Excel or PDF. The PDF is a landscape
   summary: the gross-per-year chart, totals per employer with a closing "Career total"
   row, the monthly overview and all taxes and contributions per year (newest first,
   always for your whole career). Excel, CSV and JSON carry the same four tables as the
