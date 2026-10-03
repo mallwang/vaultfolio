@@ -1,0 +1,49 @@
+<p-dialog
+  [header]="'dashboard.edit.title' | translate"
+  [modal]="true"
+  [dismissableMask]="true"
+  [draggable]="false"
+  [(visible)]="visible"
+  [style]="{ width: '32rem' }"
+  [breakpoints]="{ '640px': '92vw' }"
+  [pt]="{
+    root: { 'data-testid': 'dashboard-edit-dialog' },
+    pcCloseButton: { root: { 'data-testid': 'dashboard-edit-dialog-close' } },
+  }"
+>
+  <ng-template #closeicon><app-icon name="close" /></ng-template>
+  <p class="hint">{{ 'dashboard.edit.hint' | translate }}</p>
+  <ul class="tiles">
+    @for (tile of tiles(); track tile.id) {
+      <li class="tile" [class.tile--locked]="!tile.entitled">
+        <div class="tile__text">
+          <label class="tile__title" [for]="'dashboard-tile-toggle-' + tile.id">
+            {{ tile.titleKey | translate }}
+          </label>
+          @if (!tile.entitled) {
+            <p class="tile__note" [attr.data-testid]="'dashboard-edit-locked-' + tile.id">
+              <app-icon name="lock" />{{ 'dashboard.tileDisabled' | translate }}
+            </p>
+          }
+        </div>
+        <p-toggleswitch
+          [inputId]="'dashboard-tile-toggle-' + tile.id"
+          [attr.data-testid]="'dashboard-edit-toggle-' + tile.id"
+          [ngModel]="tile.entitled && !tile.hidden"
+          [disabled]="!tile.entitled"
+          (ngModelChange)="setVisible(tile.id, $event)"
+        />
+      </li>
+    }
+  </ul>
+  <ng-template #footer>
+    <p-button
+      severity="secondary"
+      [text]="true"
+      [label]="'dashboard.edit.reset' | translate"
+      [disabled]="!isCustomized()"
+      data-testid="dashboard-edit-reset"
+      (onClick)="reset()"
+    />
+  </ng-template>
+</p-dialog>

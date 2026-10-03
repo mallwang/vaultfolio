@@ -1,29 +1,48 @@
-<div class="card-row">
-  <p-card [header]="'dashboard.totalValue' | translate">
-    <div class="stat-card__placeholder">
-      <app-icon name="wallet" class="stat-card__placeholder-icon" />
-      <span>{{ 'dashboard.comingSoon' | translate }}</span>
-      <p>{{ 'dashboard.totalValueBody' | translate }}</p>
+<div class="toolbar">
+  <button type="button" class="link" data-testid="dashboard-edit-open" (click)="editOpen.set(true)">
+    <app-icon name="pencil" />
+    <span class="link__label">{{ 'dashboard.edit.link' | translate }}</span>
+  </button>
+</div>
+<app-dashboard-edit-dialog [(visible)]="editOpen" />
+
+<div
+  class="card-row"
+  cdkDropList
+  cdkDropListOrientation="mixed"
+  (cdkDropListDropped)="onDrop($event)"
+>
+  @for (tile of tiles(); track tile.id; let i = $index) {
+    <div class="tile" cdkDrag [attr.data-testid]="'dashboard-tile-' + tile.id">
+      <button
+        type="button"
+        class="tile__handle"
+        cdkDragHandle
+        [attr.data-testid]="'dashboard-tile-handle-' + tile.id"
+        [attr.aria-label]="('dashboard.moveTile' | translate) + ': ' + (tile.titleKey | translate)"
+        (keydown)="onHandleKeydown($event, i)"
+      >
+        <app-icon name="drag-handle" />
+      </button>
+      <p-card [header]="tile.titleKey | translate">
+        @if (!tile.entitled) {
+          <div
+            class="stat-card__placeholder"
+            [attr.data-testid]="'dashboard-tile-disabled-' + tile.id"
+          >
+            <app-icon name="lock" class="stat-card__placeholder-icon" />
+            <p>{{ 'dashboard.tileDisabled' | translate }}</p>
+          </div>
+        } @else if (tile.source.kind === 'widget') {
+          <app-dynamic-outlet [loader]="tile.source.widget.loadComponent" />
+        } @else {
+          <div class="stat-card__placeholder">
+            <app-icon [name]="tile.source.icon" class="stat-card__placeholder-icon" />
+            <span>{{ 'dashboard.comingSoon' | translate }}</span>
+            <p>{{ tile.source.bodyKey | translate }}</p>
+          </div>
+        }
+      </p-card>
     </div>
-  </p-card>
-  <p-card [header]="'dashboard.todaysChange' | translate">
-    <div class="stat-card__placeholder">
-      <app-icon name="trending-up" class="stat-card__placeholder-icon" />
-      <span>{{ 'dashboard.comingSoon' | translate }}</span>
-      <p>{{ 'dashboard.todaysChangeBody' | translate }}</p>
-    </div>
-  </p-card>
-  @for (widget of visibleWidgets(); track widget.domainId) {
-    <p-card [header]="widget.titleKey | translate">
-      <app-dynamic-outlet [loader]="widget.loadComponent" />
-    </p-card>
   }
 </div>
-
-<p-card>
-  <div class="empty-state">
-    <app-icon name="chart-line" class="empty-state__icon" />
-    <h2>{{ 'dashboard.emptyStateTitle' | translate }}</h2>
-    <p>{{ 'dashboard.emptyStateBody' | translate }}</p>
-  </div>
-</p-card>

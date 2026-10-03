@@ -117,6 +117,12 @@ widgets from the domains you use — for example, a total portfolio value card. 
 widgets only appear once you have added data. The dashboard is still being expanded
 with each new domain.
 
+**Arranging your dashboard.** Drag a tile by the handle in its top-right corner to move it
+(or focus the handle and use the arrow keys). Choose **Edit dashboard** above the tiles to switch
+individual tiles on or off. A tile for a feature that is disabled for your account stays in its
+place as a placeholder; its switch is greyed out — ask your administrator to enable the feature.
+Your arrangement is saved in this browser only, per account, and **Reset** restores the default.
+
 ---
 
 ## 4. Holdings
