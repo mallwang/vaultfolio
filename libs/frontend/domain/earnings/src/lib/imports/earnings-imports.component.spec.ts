@@ -186,6 +186,44 @@ describe('EarningsImportsComponent', () => {
     http.expectOne('/api/earnings/employers').flush([]);
   });
 
+  it('prefills the name field and disables Save until the name changes', async () => {
+    const fixture = await create();
+    const input = byTestId(fixture.nativeElement, 'earnings-employer-name-e1') as HTMLInputElement;
+    const save = byTestId(fixture.nativeElement, 'earnings-employer-save-e1') as HTMLButtonElement;
+    expect(input.value).toBe('Brightline Software GmbH');
+    expect(save.disabled).toBe(true);
+
+    input.value = '';
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    expect(save.disabled).toBe(true);
+
+    input.value = 'Brightline';
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    expect(save.disabled).toBe(false);
+  });
+
+  it('shows an error and keeps Save disabled while the name exceeds 120 characters', async () => {
+    const fixture = await create();
+    const input = byTestId(fixture.nativeElement, 'earnings-employer-name-e1') as HTMLInputElement;
+    const save = byTestId(fixture.nativeElement, 'earnings-employer-save-e1') as HTMLButtonElement;
+
+    input.value = 'x'.repeat(125);
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    expect(save.disabled).toBe(true);
+    expect(byTestId(fixture.nativeElement, 'earnings-employer-toolong-e1')?.textContent).toContain(
+      '125',
+    );
+
+    input.value = 'x'.repeat(120);
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    expect(save.disabled).toBe(false);
+    expect(byTestId(fixture.nativeElement, 'earnings-employer-toolong-e1')).toBeNull();
+  });
+
   it('saves an employer display name — never a figure', async () => {
     const fixture = await create();
     const input = byTestId(fixture.nativeElement, 'earnings-employer-name-e1') as HTMLInputElement;

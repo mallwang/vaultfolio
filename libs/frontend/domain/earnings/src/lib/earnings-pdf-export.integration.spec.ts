@@ -262,22 +262,31 @@ describe('earnings PDF with maximum realistic data', () => {
     expect(text).toContain(fmt('en', total?.totals.gross ?? ''));
   });
 
-  it('starts every table on a new page, with the chart alone on the first', () => {
+  it('moves the 8 employers to their own page and starts the other tables on new pages', () => {
     const titles = [
       'Totals per employer',
       'Monthly overview gross / net',
       'All taxes and contributions per year',
     ];
-    const firstOnPage = (title: string) => en_.pages.findIndex((p) => p[0]?.str === title);
-    const pageOf = titles.map(firstOnPage);
-    expect(pageOf.every((n) => n >= 1)).toBe(true);
-    expect([...pageOf].sort((a, b) => a - b)).toEqual(pageOf);
-    expect(new Set(pageOf).size).toBe(3);
+    const pageIndexOf = (title: string) =>
+      en_.pages.findIndex((p) => p.some((i) => i.str === title));
+    const [employers, monthly, taxes] = titles.map(pageIndexOf);
     const firstPageText = en_.pages[0].map((i) => i.str);
     expect(firstPageText).toContain('Earnings');
-    expect(firstPageText).not.toContain('Totals per employer');
-    // The employer overview fits one page, so the monthly overview starts right after it.
-    expect(pageOf[1]).toBe(pageOf[0] + 1);
+    // More than 6 employers do not fit below the chart.
+    expect(firstPageText).not.toContain(titles[0]);
+    expect(employers).toBe(1);
+    expect(en_.pages[employers][0]?.str).toBe(titles[0]);
+    expect(en_.pages[monthly][0]?.str).toBe(titles[1]);
+    expect(en_.pages[taxes][0]?.str).toBe(titles[2]);
+    expect(monthly).toBe(2);
+    expect(taxes).toBeGreaterThan(monthly);
+  });
+
+  it('repeats the own-account notice as footer on every page', () => {
+    for (const page of en_.pages) {
+      expect(page.some((i) => i.str.includes('own account'))).toBe(true);
+    }
   });
 
   it('shows net below gross in the monthly overview', () => {

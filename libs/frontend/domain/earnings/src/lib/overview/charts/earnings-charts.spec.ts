@@ -7,6 +7,7 @@ import {
   monthlyOption,
   monthlyTotals,
   ratiosOption,
+  fitChartToYearCount,
 } from './earnings-charts';
 
 const COLORS = {
@@ -265,5 +266,36 @@ describe('ratiosOption', () => {
     expect(series[0]).toMatchObject({ name: 'Taxes', type: 'line', data: [0.2, 0.215] });
     expect(series[0].endLabel.formatter({ value: 0.215 })).toBe('21.5 %');
     expect(series[1].lineStyle.color).toBe('#0d9488');
+  });
+});
+
+describe('fitChartToYearCount', () => {
+  interface Fitted {
+    xAxis: { axisLabel?: object };
+    yAxis: { max: (v: { max: number }) => number };
+    series: { label: object }[];
+  }
+  const option = (n: number) =>
+    ({
+      xAxis: { type: 'category', data: Array.from({ length: n }, (_, i) => String(2026 - i)) },
+      yAxis: { type: 'value' },
+      series: [{ name: 'a' }, { name: 'b', label: { show: true, position: 'top' } }],
+    }) as EChartsOption;
+  const fit = (n: number) => fitChartToYearCount(option(n), n) as unknown as Fitted;
+
+  it('keeps the chart as is for a short career', () => {
+    expect(fitChartToYearCount(option(15), 15)).toEqual(option(15));
+  });
+
+  it('turns the bar labels upright and shows every year for a medium career', () => {
+    const mid = fit(20);
+    expect(mid.series[1].label).toMatchObject({ show: true, rotate: 90 });
+    expect(mid.xAxis.axisLabel).toEqual({ interval: 0 });
+  });
+
+  it('also turns the year ticks upright and adds headroom for a long career', () => {
+    const long = fit(50);
+    expect(long.xAxis.axisLabel).toEqual({ interval: 0, rotate: 90 });
+    expect(long.yAxis.max({ max: 100 })).toBeCloseTo(130);
   });
 });

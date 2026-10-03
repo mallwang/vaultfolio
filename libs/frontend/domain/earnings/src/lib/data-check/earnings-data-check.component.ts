@@ -109,6 +109,11 @@ interface EmployerGroup {
     </section>
   `,
   styles: `
+    :host {
+      display: block;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
     .panel {
       display: flex;
       flex-direction: column;

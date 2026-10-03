@@ -278,7 +278,12 @@ describe('PDF sections', () => {
     const widths: (number | string)[] = table['table'].widths;
 
     expect(doc.pageOrientation).toBe('landscape');
-    expect(doc.pageMargins).toBe(SECTION_PAGE_MARGIN);
+    expect(doc.pageMargins).toEqual([
+      SECTION_PAGE_MARGIN,
+      SECTION_PAGE_MARGIN,
+      SECTION_PAGE_MARGIN,
+      40,
+    ]);
     expect(widths).toEqual([220, '*', '*', '*', '*']);
     const fixed = widths.reduce<number>((sum, w) => sum + (typeof w === 'number' ? w : 0), 0);
     expect(fixed).toBeLessThan(CONTENT_WIDTH);
@@ -372,6 +377,25 @@ describe('section PDF layout', () => {
       ['Totals per employer', 'before'],
       ['Monthly', 'before'],
     ]);
+  });
+
+  it('lets a table follow the previous content when startOnNewPage is false', () => {
+    const doc = buildDocDefinition(
+      sectionResolved([{ ...employerTable, startOnNewPage: false }, stacked]),
+    );
+    const headings = (doc.content as Node[]).filter((n) => n['style'] === 'sectionHeader');
+    expect(headings.map((n) => n['pageBreak'])).toEqual([undefined, 'before']);
+    expect(headings[0]['keepWithNext']).toBe(true);
+  });
+
+  it('repeats the footer on every page of a section PDF instead of once at the end', () => {
+    const doc = buildDocDefinition({
+      ...sectionResolved([employerTable]),
+      footer: 'Own data only',
+    });
+    const footer = (doc.footer as unknown as () => Node)();
+    expect(footer['text']).toBe('Own data only');
+    expect((doc.content as Node[]).some((n) => n['style'] === 'footer')).toBe(false);
   });
 
   it('stacks the secondary value below the main one in the same cell', () => {

@@ -17,7 +17,7 @@ import { firstValueFrom } from 'rxjs';
 import { buildEarningsPdfSections, emptyEarningsPdfSections } from './earnings-pdf-sections';
 import { formatMoney, formatMonth, formatPercent } from './earnings-format';
 import { EarningsService } from './earnings.service';
-import { grossPerYearOption } from './overview/charts/earnings-charts';
+import { fitChartToYearCount, grossPerYearOption } from './overview/charts/earnings-charts';
 
 const AMOUNT_COLUMNS: [key: string, labelKey: string, summable?: boolean][] = [
   ['gross', 'earnings.terms.grossTotal', true],
@@ -121,7 +121,7 @@ export function createEarningsExportDefinition(): FeatureExportDefinition {
     // Heading on the left, legend moved to the right so they do not overlap.
     return [
       {
-        ...option,
+        ...fitChartToYearCount(option, yearly.length),
         title: {
           text: t('earnings.overview.grossPerYear'),
           left: 0,

@@ -7,6 +7,7 @@ import type {
 import type { PdfSection, PdfTableRow } from '@vaultfolio/export';
 import { de, en, type TranslationDictionary } from '@vaultfolio/frontend-shared-ui';
 import {
+  MAX_EMPLOYERS_ON_FIRST_PAGE,
   PDF_CONTENT_WIDTH,
   starColumnWidth,
   buildEarningsPdfSections,
@@ -246,6 +247,20 @@ describe('buildEarningsPdfSections', () => {
         0,
       ).rows;
       expect(rows.map((r) => r.cells['employer'])).toEqual(['Alpha', 'Beta', 'Gamma']);
+    });
+
+    it('stays on the chart page up to the employer limit and gets its own page beyond it', () => {
+      const many = (n: number) =>
+        Array.from({ length: n }, (_, i) =>
+          entry(`e${i}`, `Corp ${i}`, '2020-01', '2022-12', ['1', '1', '0', '0', '0'], '1'),
+        );
+      const startsNewPage = (n: number) =>
+        tableOf(
+          buildEarningsPdfSections(overview({ career: many(n) }), TABLES, translator(en), 'en'),
+          0,
+        ).startOnNewPage;
+      expect(startsNewPage(MAX_EMPLOYERS_ON_FIRST_PAGE)).toBe(false);
+      expect(startsNewPage(MAX_EMPLOYERS_ON_FIRST_PAGE + 1)).toBe(true);
     });
 
     it('uses the single employer as the career total when there is no ALL entry', () => {

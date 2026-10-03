@@ -24,6 +24,7 @@ import {
   type ChartLabels,
   type GrossMode,
   type MonthRange,
+  fitChartToYearCount,
   grossPerYearOption,
   monthlyOption,
   ratiosOption,
@@ -246,15 +247,13 @@ export class EarningsOverviewComponent {
     }));
   });
 
-  protected readonly grossOption = computed(() =>
-    grossPerYearOption(
-      this.store.overview()?.yearly ?? [],
-      this.grossMode(),
-      this.colors(),
-      this.labels(),
-      this.format(),
-    ),
-  );
+  protected readonly grossOption = computed(() => {
+    const yearly = this.store.overview()?.yearly ?? [];
+    return fitChartToYearCount(
+      grossPerYearOption(yearly, this.grossMode(), this.colors(), this.labels(), this.format()),
+      yearly.length,
+    );
+  });
 
   protected readonly monthly = computed(() => {
     const overview = this.store.overview();

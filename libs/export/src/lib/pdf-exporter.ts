@@ -43,6 +43,8 @@ const MISSING = '–';
 const SECTION_FONT_SIZE = 8;
 /** Landscape A4 is 842 pt wide; section PDFs use 28 pt side margins (≈ 786 pt content width). */
 export const SECTION_PAGE_MARGIN = 28;
+/** Bottom margin of section PDFs, tall enough for the page footer. */
+const SECTION_BOTTOM_MARGIN = 40;
 const PAGE_CONTENT_WIDTH = 842 - 2 * SECTION_PAGE_MARGIN;
 /**
  * Left/right padding of section table cells. pdfmake adds cell padding on top of the declared
@@ -152,9 +154,10 @@ function sectionContent(section: PdfSection, locale: string): Content[] {
     {
       text: section.title,
       style: 'sectionHeader',
-      // Every table starts on its own page, so a heading is never separated from its table.
-      pageBreak: 'before',
-      margin: [0, 0, 0, section.subtitle ? 0 : 4],
+      // By default every table starts on its own page, so a heading is never separated from its
+      // table; `keepWithNext` still moves a table that does not fit to the next page.
+      ...(section.startOnNewPage === false ? {} : { pageBreak: 'before' }),
+      margin: [0, section.startOnNewPage === false ? 8 : 0, 0, section.subtitle ? 0 : 4],
       keepWithNext: true,
     },
     ...(section.subtitle
@@ -214,6 +217,31 @@ function genericTable(resolved: ResolvedFeatureExport, locale: string): Content 
   };
 }
 
+function chartWidthOf(resolved: ResolvedFeatureExport): number {
+  return resolved.pdfSections?.length ? PAGE_CONTENT_WIDTH : 440;
+}
+
+function footerOf(resolved: ResolvedFeatureExport): string {
+  return resolved.footer ?? 'This export is scoped to your own account data only.';
+}
+
+/** Margins with room for the page footer, which repeats the notice on every page. */
+function sectionPageSetup(footerText: string): Partial<TDocumentDefinitions> {
+  return {
+    pageMargins: [
+      SECTION_PAGE_MARGIN,
+      SECTION_PAGE_MARGIN,
+      SECTION_PAGE_MARGIN,
+      SECTION_BOTTOM_MARGIN,
+    ],
+    footer: () => ({
+      text: footerText,
+      style: 'footer',
+      margin: [SECTION_PAGE_MARGIN, 12, SECTION_PAGE_MARGIN, 0],
+    }),
+  };
+}
+
 export function buildDocDefinition(resolved: ResolvedFeatureExport): TDocumentDefinitions {
   const locale = resolved.locale ?? 'en';
   const subtitle = resolved.subtitle ?? new Intl.DateTimeFormat(locale).format(new Date());
@@ -242,7 +270,7 @@ export function buildDocDefinition(resolved: ResolvedFeatureExport): TDocumentDe
     const sideTable = resolved.chartSideTable;
     // A section PDF draws its chart across the whole page; the generic layout keeps it narrow
     // so the allocation table fits beside it.
-    const chartWidth = resolved.pdfSections?.length ? PAGE_CONTENT_WIDTH : 440;
+    const chartWidth = chartWidthOf(resolved);
     const chartCol: Content = {
       stack: [{ image: mainImage, width: chartWidth } as unknown as Content],
       width: chartWidth,
@@ -302,16 +330,15 @@ export function buildDocDefinition(resolved: ResolvedFeatureExport): TDocumentDe
     content.push(genericTable(resolved, locale));
   }
 
-  content.push({
-    text: resolved.footer ?? 'This export is scoped to your own account data only.',
-    style: 'footer',
-    margin: [0, 16, 0, 0],
-  });
+  const footerText = footerOf(resolved);
+  if (sections.length === 0) {
+    content.push({ text: footerText, style: 'footer', margin: [0, 16, 0, 0] });
+  }
 
   return {
     content,
     pageOrientation: 'landscape',
-    ...(sections.length > 0 ? { pageMargins: SECTION_PAGE_MARGIN } : {}),
+    ...(sections.length > 0 ? sectionPageSetup(footerText) : {}),
     styles: {
       title: { fontSize: 20, bold: true },
       meta: { fontSize: 9, color: '#666666' },

@@ -36,6 +36,11 @@ export function starColumnWidth(columns: readonly PdfTableColumn[]): number {
   return (PDF_CONTENT_WIDTH - fixed - padding) / stars;
 }
 const ALL = 'ALL';
+/**
+ * Up to this many employers (plus the career-total row) fit on page 1 below the chart; more
+ * employers get a page of their own.
+ */
+export const MAX_EMPLOYERS_ON_FIRST_PAGE = 6;
 
 /** Most recent employer first: last period, then first period (both descending), then label. */
 function byRecency(a: CareerEntry, b: CareerEntry): number {
@@ -88,6 +93,7 @@ function employerTable(
     columns,
     rows: employerRows(career, t('earnings.export.careerTotal')),
     fontSize: 8,
+    startOnNewPage: career.filter((e) => e.key !== ALL).length > MAX_EMPLOYERS_ON_FIRST_PAGE,
   };
 }
 

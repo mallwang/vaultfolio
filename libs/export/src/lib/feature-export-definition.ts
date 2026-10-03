@@ -60,6 +60,11 @@ export type PdfSection =
       rows: PdfTableRow[];
       /** Density hint in points; the renderer defaults to 8. */
       fontSize?: number;
+      /**
+       * `false` lets the table follow the previous content on the same page (it still moves to
+       * the next page if it does not fit). Defaults to `true`: every table starts a new page.
+       */
+      startOnNewPage?: boolean;
     }
   | { kind: 'text'; title?: string; text: string };
 

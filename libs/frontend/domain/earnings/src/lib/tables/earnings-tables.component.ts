@@ -202,7 +202,7 @@ export function gridRows(tables: EarningsTables, metric: MonthGridMetric): GridR
             @for (row of taxRows(); track row.year + row.employerId) {
               <tr [attr.data-testid]="'earnings-taxes-row-' + row.year + '-' + row.employerId">
                 <th scope="row">{{ row.year }}</th>
-                <td>{{ row.employerLabel }}</td>
+                <td class="employer">{{ row.employerLabel }}</td>
                 <td class="num">{{ row.monthsEmployed }}</td>
                 <td class="num">{{ money(row.gross) }}</td>
                 <td class="num">{{ money(row.bonus) }}</td>
@@ -248,7 +248,7 @@ export function gridRows(tables: EarningsTables, metric: MonthGridMetric): GridR
               @for (cert of tables()?.certificates ?? []; track cert.id) {
                 <tr [attr.data-testid]="'earnings-certificate-row-' + cert.id">
                   <th scope="row">{{ cert.year }}</th>
-                  <td>{{ cert.employerLabel }}</td>
+                  <td class="employer">{{ cert.employerLabel }}</td>
                   <td class="num">{{ money(cert.amounts.grossWage) }}</td>
                   <td class="num">{{ money(cert.amounts.wageTax) }}</td>
                   <td class="num">{{ money(cert.amounts.soli) }}</td>
@@ -308,6 +308,14 @@ export function gridRows(tables: EarningsTables, metric: MonthGridMetric): GridR
       border: 1px solid var(--p-content-border-color);
       border-radius: var(--p-content-border-radius);
       background: var(--p-content-background);
+    }
+    td.employer {
+      /* Cells don't wrap by default; a fixed width makes a long name break at its spaces. */
+      width: 16rem;
+      min-width: 16rem;
+      max-width: 16rem;
+      white-space: normal;
+      overflow-wrap: break-word;
     }
     table {
       width: 100%;

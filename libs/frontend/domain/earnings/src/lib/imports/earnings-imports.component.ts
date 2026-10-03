@@ -5,6 +5,7 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { InputTextModule } from 'primeng/inputtext';
+import { MessageModule } from 'primeng/message';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
@@ -27,6 +28,7 @@ import { PrivacyInfoComponent } from '../privacy-note/privacy-info.component';
     ButtonModule,
     ConfirmDialogModule,
     InputTextModule,
+    MessageModule,
     TableModule,
     TagModule,
     ToastModule,
@@ -175,7 +177,7 @@ import { PrivacyInfoComponent } from '../privacy-note/privacy-info.component';
             <input
               pInputText
               type="text"
-              maxlength="100"
+              [attr.maxlength]="maxName"
               [attr.aria-label]="'earnings.imports.displayName' | translate"
               [placeholder]="employer.detectedName"
               [attr.data-testid]="'earnings-employer-name-' + employer.id"
@@ -185,11 +187,30 @@ import { PrivacyInfoComponent } from '../privacy-note/privacy-info.component';
               pButton
               type="button"
               outlined
+              [disabled]="isUnchanged(employer) || isTooLong(employer)"
               [attr.data-testid]="'earnings-employer-save-' + employer.id"
               (click)="rename(employer)"
             >
               <app-icon name="save" /> {{ 'common.save' | translate }}
             </button>
+            @if (isTooLong(employer)) {
+              <p-message
+                class="employer__warning"
+                severity="error"
+                [attr.data-testid]="'earnings-employer-toolong-' + employer.id"
+              >
+                {{ tooLongText(employer) }}
+              </p-message>
+            }
+            @if (isLong(employer)) {
+              <p-message
+                class="employer__warning"
+                severity="warn"
+                [attr.data-testid]="'earnings-employer-long-' + employer.id"
+              >
+                {{ longNameText(employer) }}
+              </p-message>
+            }
           </div>
         }
       </section>
@@ -214,6 +235,8 @@ import { PrivacyInfoComponent } from '../privacy-note/privacy-info.component';
       display: flex;
       flex-direction: column;
       gap: 1.5rem;
+      max-width: 1100px;
+      margin: 0 auto;
     }
     .panel {
       display: flex;
@@ -259,7 +282,8 @@ import { PrivacyInfoComponent } from '../privacy-note/privacy-info.component';
     }
     .employer {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(10rem, 16rem) auto;
+      /* Capped name column keeps the input close to the name; the input takes the rest of the row. */
+      grid-template-columns: minmax(0, 26rem) minmax(10rem, 1fr) auto;
       align-items: center;
       gap: 0.75rem;
       padding: 0.5rem 0;
@@ -268,8 +292,15 @@ import { PrivacyInfoComponent } from '../privacy-note/privacy-info.component';
     .employer__detected {
       display: flex;
       flex-direction: column;
+      /* Limited width: a long name wraps instead of pushing the input and Save to the right. */
+      max-width: 26rem;
       min-width: 0;
       overflow-wrap: anywhere;
+    }
+    .employer__warning {
+      grid-column: 1 / -1;
+      /* Its text must not size the grid tracks, or input and Save get stretched in warned rows. */
+      contain: inline-size;
     }
     .danger {
       align-items: flex-start;
@@ -321,6 +352,7 @@ export class EarningsImportsComponent implements OnInit {
   );
   protected readonly employers = signal<EarningsEmployer[]>([]);
   protected readonly loading = signal(true);
+  protected readonly maxName = MAX_EMPLOYER_NAME;
   protected names: Record<string, string> = {};
 
   ngOnInit(): void {
@@ -417,8 +449,49 @@ export class EarningsImportsComponent implements OnInit {
     });
   }
 
+  /** Judged by the name shown across Earnings: the saved display name, else the detected one. */
+  protected isLong(employer: EarningsEmployer): boolean {
+    return (employer.displayName ?? employer.detectedName).length > LONG_EMPLOYER_NAME;
+  }
+
+  protected longNameText(employer: EarningsEmployer): string {
+    return fill(this.i18n.translate('earnings.imports.longName'), {
+      count: (employer.displayName ?? employer.detectedName).length,
+    });
+  }
+
+  /** The name shown across Earnings: the saved display name, else the detected one. */
+  private shownName(employer: EarningsEmployer): string {
+    return employer.displayName ?? employer.detectedName;
+  }
+
+  /** An empty field means "use the detected name", so it counts as that name. */
+  private targetName(employer: EarningsEmployer): string {
+    return (this.names[employer.id] ?? '').trim().replace(/\s+/g, ' ') || employer.detectedName;
+  }
+
+  protected isTooLong(employer: EarningsEmployer): boolean {
+    return this.targetName(employer).length > MAX_EMPLOYER_NAME;
+  }
+
+  protected tooLongText(employer: EarningsEmployer): string {
+    const count = this.targetName(employer).length;
+    return fill(this.i18n.translate('earnings.imports.nameTooLong'), {
+      count,
+      max: MAX_EMPLOYER_NAME,
+      over: count - MAX_EMPLOYER_NAME,
+    });
+  }
+
+  protected isUnchanged(employer: EarningsEmployer): boolean {
+    return this.targetName(employer) === this.shownName(employer);
+  }
+
   protected rename(employer: EarningsEmployer): void {
-    this.api.renameEmployer(employer.id, this.names[employer.id] ?? '').subscribe({
+    if (this.isUnchanged(employer)) return;
+    const target = this.targetName(employer);
+    // Saving the detected name clears the override instead of storing a copy of it.
+    this.api.renameEmployer(employer.id, target === employer.detectedName ? '' : target).subscribe({
       next: () => this.changed('earnings.imports.renamed'),
       error: () => this.failed(),
     });
@@ -448,11 +521,17 @@ export class EarningsImportsComponent implements OnInit {
     this.api.employers().subscribe({
       next: (employers) => {
         this.employers.set(employers);
-        this.names = Object.fromEntries(employers.map((e) => [e.id, e.displayName ?? '']));
+        this.names = Object.fromEntries(employers.map((e) => [e.id, this.shownName(e)]));
       },
     });
   }
 }
+
+/** The longest display name the backend accepts. */
+const MAX_EMPLOYER_NAME = 120;
+
+/** Names longer than this get a warning: they wrap over several lines in tables and the PDF. */
+const LONG_EMPLOYER_NAME = 50;
 
 /** The year an import is grouped under: its latest period or certificate year, else its import date. */
 function yearOf(item: EarningsImportSummary): number {

@@ -257,7 +257,11 @@ export const earningsEn: TranslationDictionary = {
     employerNamesSub:
       'Employers are detected from your documents. You can change how they are displayed; figures cannot be edited.',
     detectedAs: 'Detected as',
+    longName:
+      'This name has {{count}} characters and will wrap over several lines in tables and the PDF export. Enter a shorter display name on the right and save it — it applies everywhere in Earnings.',
     displayName: 'Display name',
+    nameTooLong:
+      'This name has {{count}} characters — at most {{max}} are allowed. Shorten it by {{over}} to save it.',
     renamed: 'Display name saved',
     dangerTitle: 'Delete all earnings data',
     dangerSub:

@@ -258,7 +258,11 @@ export const earningsDe: TranslationDictionary = {
     employerNamesSub:
       'Arbeitgeber werden aus Ihren Dokumenten erkannt. Sie können ändern, wie sie angezeigt werden; Beträge lassen sich nicht bearbeiten.',
     detectedAs: 'Erkannt als',
+    longName:
+      'Dieser Name hat {{count}} Zeichen und wird in Tabellen und im PDF-Export mehrzeilig. Geben Sie rechts einen kürzeren Anzeigenamen ein und speichern Sie ihn – er gilt überall in der Einkommensentwicklung.',
     displayName: 'Anzeigename',
+    nameTooLong:
+      'Dieser Name hat {{count}} Zeichen – erlaubt sind höchstens {{max}}. Kürzen Sie ihn um {{over}}, um ihn zu speichern.',
     renamed: 'Anzeigename gespeichert',
     dangerTitle: 'Alle Einkommensdaten löschen',
     dangerSub:
