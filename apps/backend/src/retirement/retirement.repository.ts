@@ -210,7 +210,7 @@ export class RetirementRepository {
   replace(ownerId: string, oldId: string, data: RetirementRecordData): RetirementRecord | null {
     return this.database.transaction(() => {
       const old = this.get(ownerId, oldId);
-      if (!old || old.contractType !== data.contractType) return null;
+      if (old?.contractType !== data.contractType) return null;
       this.delete(ownerId, oldId);
       return this.insert(ownerId, data);
     });

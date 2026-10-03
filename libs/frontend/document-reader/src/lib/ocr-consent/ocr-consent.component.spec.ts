@@ -15,7 +15,7 @@ describe('OcrConsentComponent', () => {
     const { fixture, root } = create({ fileName: 'scan.pdf', pageCount: 3 });
     const events: string[] = [];
     fixture.componentInstance.allow.subscribe(() => events.push('allow'));
-    fixture.componentInstance.cancel.subscribe(() => events.push('cancel'));
+    fixture.componentInstance.dismissed.subscribe(() => events.push('cancel'));
 
     expect(byTestId(root, 'ocr-offer')?.getAttribute('aria-label')).toBe('scan.pdf');
     expect(byTestId(root, 'ocr-page-count')?.textContent).toContain('3');
@@ -37,7 +37,7 @@ describe('OcrConsentComponent', () => {
       progressPercent: 50,
     });
     let cancelled = 0;
-    fixture.componentInstance.cancel.subscribe(() => cancelled++);
+    fixture.componentInstance.dismissed.subscribe(() => cancelled++);
 
     const progress = byTestId(root, 'ocr-progress');
     expect(progress?.getAttribute('role')).toBe('status');

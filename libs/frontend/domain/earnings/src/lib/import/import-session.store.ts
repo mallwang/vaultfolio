@@ -25,16 +25,14 @@ import { firstValueFrom } from 'rxjs';
 import { EarningsService } from '../earnings.service';
 import {
   type PdfExtractResult,
+  type RecognitionError,
+  type RecognitionProgress,
+  type RecognitionResult,
+  TEXT_RECOGNISER,
   extractPdfText,
+  readText,
   sha256Hex,
 } from '@vaultfolio/frontend-document-reader';
-import { readText } from '@vaultfolio/frontend-document-reader';
-import type {
-  RecognitionError,
-  RecognitionProgress,
-  RecognitionResult,
-} from '@vaultfolio/frontend-document-reader';
-import { TEXT_RECOGNISER } from '@vaultfolio/frontend-document-reader';
 
 /** How files are read on the device; replaced in specs with fixture text. */
 export interface EarningsFileReader {

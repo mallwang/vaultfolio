@@ -94,7 +94,7 @@ const PILLAR_ROUTE = {
           state="offer"
           [fileName]="store.fileName()"
           (allow)="store.acceptRecognition()"
-          (cancel)="store.declineRecognition()"
+          (dismissed)="store.declineRecognition()"
         />
       }
       @case ('recognising') {
@@ -103,7 +103,7 @@ const PILLAR_ROUTE = {
           [fileName]="store.fileName()"
           [progressText]="progressText()"
           [progressPercent]="progressPercent()"
-          (cancel)="store.cancelRecognition()"
+          (dismissed)="store.cancelRecognition()"
         />
       }
       @case ('rejected') {

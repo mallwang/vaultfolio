@@ -192,7 +192,7 @@ interface FigureGroup {
                 state="offer"
                 [fileName]="row.fileName"
                 (allow)="store.acceptRecognition(row.clientFileId)"
-                (cancel)="store.declineRecognition(row.clientFileId)"
+                (dismissed)="store.declineRecognition(row.clientFileId)"
               />
             }
             @if (row.state === 'recognising') {
@@ -202,7 +202,7 @@ interface FigureGroup {
                 [fileName]="row.fileName"
                 [progressText]="progressOf(row)"
                 [progressPercent]="row.recognition ? recognitionPercent(row) : null"
-                (cancel)="store.cancelRecognition(row.clientFileId)"
+                (dismissed)="store.cancelRecognition(row.clientFileId)"
               />
             }
             @for (line of notesOf(row); track $index) {

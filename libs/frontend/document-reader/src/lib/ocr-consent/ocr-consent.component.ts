@@ -6,7 +6,7 @@ import { I18nService, IconComponent, TranslatePipe } from '@vaultfolio/frontend-
 /**
  * On-device text recognition, as the user sees it: the offer for a scan (consent) and the progress
  * of the running recognition. The parent owns the state machine; this block only renders it and
- * reports `allow` / `cancel`. Wording comes from the shared `ocr.*` translation group.
+ * reports `allow` / `dismissed`. Wording comes from the shared `ocr.*` translation group.
  */
 @Component({
   selector: 'vf-ocr-consent',
@@ -37,7 +37,7 @@ import { I18nService, IconComponent, TranslatePipe } from '@vaultfolio/frontend-
             severity="secondary"
             outlined
             data-testid="ocr-decline"
-            (click)="cancel.emit()"
+            (click)="dismissed.emit()"
           >
             {{ 'ocr.decline' | translate }}
           </button>
@@ -66,7 +66,7 @@ import { I18nService, IconComponent, TranslatePipe } from '@vaultfolio/frontend-
             severity="secondary"
             outlined
             data-testid="ocr-cancel"
-            (click)="cancel.emit()"
+            (click)="dismissed.emit()"
           >
             {{ 'ocr.cancel' | translate }}
           </button>
@@ -116,7 +116,7 @@ export class OcrConsentComponent {
   @Input() progressPercent: number | null = null;
   @Output() readonly allow = new EventEmitter<void>();
   /** Offer: decline; progress: abort the running recognition. */
-  @Output() readonly cancel = new EventEmitter<void>();
+  @Output() readonly dismissed = new EventEmitter<void>();
 
   protected get pageCountText(): string {
     return this.i18n.translate('ocr.pageCount').replace('{{count}}', String(this.pageCount));
