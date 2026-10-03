@@ -12,7 +12,7 @@
 
 ### User Story 1 - Record all pension entitlements across the three pillars (Priority: P1)
 
-A user opens the Retirement domain and enters what they are entitled to: the figures from their statutory pension information (Renteninformation), one entry per occupational pension contract (e.g. one per former or current employer), and one entry per private provision contract (Riester, private pension insurance). Each entry captures the contract's key figures — guaranteed and expected monthly pension, expected start of payout, current monthly contribution, and current value where applicable. Users can edit and delete entries at any time.
+A user opens the Retirement domain and records what they are entitled to. For the statutory pension the preferred route is uploading their Renteninformation document of the Deutsche Rentenversicherung, whose figures are read on the user's device and shown for review before saving; alternatively they type the figures in manually. Occupational pension contracts (one entry per former or current employer) and private provision contracts (Riester, private pension insurance) are entered manually. Each entry captures the contract's key figures, including the insurance or contract number the user needs to look the contract up — guaranteed and expected monthly pension, expected start of payout, current monthly contribution, and current value where applicable. Manually entered entries can be edited and deleted at any time; imported entries can be deleted or replaced by a newer import, but their figures cannot be edited by hand.
 
 **Why this priority**: Capturing the data is the primary purpose of the feature; every other view depends on it. Even with only this story, users have a single structured place for their pension data.
 
@@ -20,7 +20,11 @@ A user opens the Retirement domain and enters what they are entitled to: the fig
 
 **Acceptance Scenarios**:
 
-1. **Given** a user with no retirement data, **When** they enter the figures of their Renteninformation (e.g. current entitlement, projected monthly pension at regular retirement age, projected pension with assumed contribution growth, pension-eligibility date), **Then** the statutory pillar shows these figures and the date they refer to.
+1. **Given** a user with no retirement data, **When** they upload their Renteninformation document, **Then** the recognised figures (e.g. current entitlement, projected monthly pensions, statement date, insurance number) are shown for review, and after confirmation the statutory pillar shows them marked as "imported".
+   - **Given** a document that cannot be recognised or whose figures contradict each other, **When** the upload finishes, **Then** it is rejected as a whole with an explanation and manual entry is offered; nothing is saved.
+   - **Given** a user who prefers not to upload, **When** they enter the figures manually, **Then** the statutory pillar shows them marked as "manual".
+   - **Given** an imported record, **When** the user opens it, **Then** its figures are read-only and only delete and "replace with a newer document" are offered.
+   - **Given** a manual record, **When** the user edits it, **Then** the change is saved; **When** they later upload a document, **Then** they must confirm replacing the manual record.
 2. **Given** an existing occupational contract with employer A, **When** the user adds a second contract for employer B, **Then** both are listed separately and their figures are summed in the pillar total.
 3. **Given** a user adding a private contract, **When** they choose its type (Riester, private pension insurance, Altersvorsorgedepot), **Then** the form shows the fields relevant for that type and nothing the type cannot have.
 4. **Given** an entry with an invalid value (negative amount, payout start before today's year minus an implausible range, missing required field), **When** the user saves, **Then** the save is rejected with a message naming the offending field.
@@ -93,6 +97,7 @@ From 2027, when the new Altersvorsorgedepot becomes available, users can record 
 
 ### Edge Cases
 
+- A newer Renteninformation is uploaded while an imported record exists: after confirmation it replaces the older one.
 - A user holds several contracts with the same employer or provider: each is its own entry; no deduplication.
 - A contract is already paying out (pension in payment) or is paid-up (beitragsfrei): the monthly contribution is 0 and the entry remains valid.
 - A contract has a one-time capital payout instead of monthly pension: the entry can record the capital amount; it is shown separately and not summed into monthly pension figures.
@@ -106,9 +111,12 @@ From 2027, when the new Altersvorsorgedepot becomes available, users can record 
 ### Functional Requirements
 
 - **FR-001**: The system MUST provide a Retirement area with an overview, one view per pillar (statutory, occupational, private), and a "Weiterführende Informationen" tab.
-- **FR-002**: Users MUST be able to create, view, edit, and delete a statutory pension record from their Renteninformation figures: statement date, pension-eligibility/regular retirement age or date, current monthly entitlement, projected monthly pension at regular retirement age (without further contributions), projected monthly pension with assumed continued contributions, and reduced-earning-capacity figures where printed.
-- **FR-003**: Users MUST be able to create, view, edit, and delete any number of occupational pension contracts, each with: employer/provider label, contract type (e.g. direct insurance, Pensionskasse, Direktzusage, Unterstützungskasse, Pensionsfonds), status (active, paid-up, in payout), guaranteed monthly pension, expected monthly pension, payout start, current monthly contribution (split into employee and employer share), current value, and statement date.
-- **FR-004**: Users MUST be able to create, view, edit, and delete any number of private provision contracts of type Riester, private pension insurance, or Altersvorsorgedepot, each with: provider label, status, guaranteed monthly pension, expected monthly pension, payout start, current monthly contribution, state subsidies per year (for Riester), current value, and statement date.
+- **FR-002**: Users MUST be able to record the statutory pension either by uploading their Deutsche Rentenversicherung Renteninformation document (preferred, offered first) or by manual entry, with these figures, including the insurance number: statement date, pension-eligibility/regular retirement age or date, current monthly entitlement, projected monthly pension at regular retirement age (without further contributions), projected monthly pension with assumed continued contributions, and reduced-earning-capacity figures where printed.
+- **FR-002a**: Every statutory record MUST carry its origin ("imported" or "manual"). Figures of an imported record MUST NOT be editable by the user; they can only be deleted or replaced by a newer import. Manual records MUST remain editable and deletable.
+- **FR-002b**: A document import MUST show the recognised figures for review and require explicit confirmation before saving; unrecognised or inconsistent documents MUST be rejected as a whole, offering manual entry.
+- **FR-002c**: Document interpretation MUST happen on the user's device; the document and its extracted text MUST NOT be sent to or stored by the server.
+- **FR-003**: Users MUST be able to create, view, edit, and delete any number of occupational pension contracts, each with: employer/provider label, contract type (e.g. direct insurance, Pensionskasse, Direktzusage, Unterstützungskasse, Pensionsfonds), status (active, paid-up, in payout), guaranteed monthly pension, expected monthly pension, payout start, current monthly contribution (split into employee and employer share), current value, and statement date, and contract number.
+- **FR-004**: Users MUST be able to create, view, edit, and delete any number of private provision contracts of type Riester, private pension insurance, or Altersvorsorgedepot, each with: provider label, status, guaranteed monthly pension, expected monthly pension, payout start, current monthly contribution, state subsidies per year (for Riester), current value, and statement date, and contract number.
 - **FR-005**: The entry form MUST show only the fields that apply to the chosen contract type, and MUST distinguish guaranteed figures from projected figures.
 - **FR-006**: The system MUST validate entries (non-negative amounts, plausible dates, required fields, consistent guaranteed ≤ expected) on the server, and reject invalid entries with a message identifying the field.
 - **FR-007**: The overview MUST show per pillar its entries and sub-totals, and overall: total guaranteed monthly pension, total expected monthly pension, expected pension start, and total current monthly savings.
@@ -118,18 +126,18 @@ From 2027, when the new Altersvorsorgedepot becomes available, users can record 
 - **FR-011**: The dashboard MUST show a Retirement tile with expected pension start, guaranteed monthly pension sum, current monthly savings, expected monthly pension and the difference between expected and guaranteed, with an empty state and a link to the Retirement area.
 - **FR-012**: The "Weiterführende Informationen" tab MUST present one card per resource with title, description, and an external link opening in a new tab: Deutsche Rentenversicherung (three pillars of retirement provision), Finanzfluss (Rentenlückenrechner), Finanztip (Rentenlücke).
 - **FR-013**: The feature MUST be scoped to the German retirement system; amounts are in euros and terminology follows German usage. No other countries' systems are supported.
-- **FR-014**: Retirement data MUST be treated as sensitive personal data: every record is owned by exactly one user and visible/modifiable/deletable only by that user, monetary amounts are stored encrypted, personal identifiers (insurance number, contract numbers, name, address) are neither requested nor stored, and logs contain no amounts.
+- **FR-014**: Retirement data MUST be treated as sensitive personal data: every record is owned by exactly one user and visible/modifiable/deletable only by that user, monetary amounts are stored encrypted, the insurance number and contract numbers MAY be entered, stored (encrypted) and shown to the owner because the user needs them for look-ups, while name, address, tax ID and bank details are neither requested nor stored, and logs contain no amounts or identifiers.
 - **FR-015**: Users MUST be able to delete a single entry and all of their retirement data, and the data MUST follow the account lifecycle of other owned data.
 - **FR-016**: The Retirement area MUST explain in-app what is stored, that amounts are encrypted, and that the instance operator runs the server and holds the key.
-- **FR-017**: The feature MUST NOT read data from any external pension provider or from the Deutsche Rentenversicherung; all figures come from user entry.
+- **FR-017**: The feature MUST NOT fetch data from any external pension provider or from the Deutsche Rentenversicherung; figures come only from the user's own entry or the user's own uploaded DRV document.
 - **FR-018**: The user-facing text MUST be available in the app's supported languages, consistent with the rest of the application.
 - **FR-019**: Retirement data MUST be included in the shared data export, consistent with other domains.
 
 ### Key Entities
 
 - **Statutory pension record**: One per user. Statement date, regular retirement age/date, current entitlement, projected monthly pensions (without/with continued contributions), reduced-earning-capacity figures.
-- **Occupational pension contract**: Many per user. Employer/provider label, contract type, status, guaranteed and expected monthly pension, payout start, employee/employer monthly contribution, current value, optional capital payout, statement date.
-- **Private provision contract**: Many per user. Provider label, type (Riester, private pension insurance, Altersvorsorgedepot), status, guaranteed and expected monthly pension, payout start, monthly contribution, annual state subsidies (Riester), current value, optional capital payout, statement date.
+- **Occupational pension contract**: Many per user. Employer/provider label, contract type, status, guaranteed and expected monthly pension, payout start, employee/employer monthly contribution, current value, optional capital payout, statement date, contract number.
+- **Private provision contract**: Many per user. Provider label, type (Riester, private pension insurance, Altersvorsorgedepot), status, guaranteed and expected monthly pension, payout start, monthly contribution, annual state subsidies (Riester), current value, optional capital payout, statement date, contract number.
 - **Retirement summary** (derived): Per-pillar and overall totals — guaranteed monthly pension, expected monthly pension, expected pension start, current monthly savings, difference expected vs. guaranteed, flags for incomplete/outdated entries.
 - **Information resource**: Title, description, external link, topic.
 
@@ -147,8 +155,9 @@ From 2027, when the new Altersvorsorgedepot becomes available, users can record 
 ## Assumptions
 
 - All users live in Germany, are subject to German tax, and are entitled to German statutory pension; no other pension system is modelled.
-- All figures are typed in manually from the user's statements (Renteninformation, Betriebsrenteninformation, Riester annual statement). This is permitted for the Retirement domain because no payroll-style source-of-truth import exists for it; the Earnings domain's "document-only" rule does not extend here.
-- Uploading or automatically reading the DRV document is out of scope for this feature and may be added later as a separate feature; it would follow the on-device-only document-handling rules of the constitution's Sensitive Personal Data section.
+- The DRV Renteninformation is imported from an uploaded document (preferred) or typed in manually. Occupational and private contracts are entered manually in this feature; document import for them can follow once sample documents are analysed.
+- "Upload" means the user selects a document in the app; it is interpreted on the device under the constitution's on-device-only, deterministic, no-external-service rules (including consent-based on-device text recognition for scans). The document itself is never stored.
+- The constitution's rule against storing insurance/contract numbers is deliberately relaxed for this domain (owner-only, encrypted at rest); it needs a matching amendment.
 - The Altersvorsorgedepot is modelled as a private contract type with generic fields (value, monthly contribution, optional expected pension); its detailed legal rules (subsidies, payout phases) are not calculated and can be refined once the product is available in 2027. The type may be offered in the UI before then.
 - Displayed pensions are gross nominal amounts as printed on the statements; the feature performs no tax, inflation, or health-insurance-contribution calculations and no pension-gap computation (it links to external calculators instead).
 - The Retirement domain already exists as a registered placeholder and is replaced by this feature's content; the domain follows the same sensitive-data rules as Earnings.
