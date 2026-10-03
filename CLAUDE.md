@@ -56,5 +56,5 @@
 
 ## Current Feature Plan
 
-Active implementation plan: [specs/035-earnings-export-rework/plan.md](specs/035-earnings-export-rework/plan.md)
+Active implementation plan: [specs/036-export-modal-dialog/plan.md](specs/036-export-modal-dialog/plan.md)
 <!-- SPECKIT END -->
