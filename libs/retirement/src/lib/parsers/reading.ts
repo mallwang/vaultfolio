@@ -92,7 +92,7 @@ const MONTHS = [
   'November',
   'Dezember',
 ];
-const LONG_DATE = new RegExp(`(\\d{1,2})\\.\\s?(${MONTHS.join('|')})\\s+(\\d{4})`, 'i');
+const LONG_DATE = new RegExp(String.raw`(\d{1,2})\.\s?(${MONTHS.join('|')})\s+(\d{4})`, 'i');
 
 /** First date written with the month name (`01. Januar 2019`) in `text`, as `YYYY-MM-DD`. */
 export function longDateIn(text: string): string | undefined {

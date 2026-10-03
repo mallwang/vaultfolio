@@ -199,7 +199,7 @@ Nx monorepo: `libs/<lib>/src/lib/`, `apps/backend/src/`, `libs/frontend/domain/r
 - [x] T077 [P] Document the feature: `RETIREMENT_ENCRYPTION_KEY` and 503 behaviour in `README.md` and `README.de.md`; add upload vs manual entry, read-only imports and supported statement types to `docs/user-guide.md` and `docs/user-guide.de.md`; update `docs/frontend/testid-conventions.md` if new patterns appear
 - [x] T078 [P] Verify no secrets/personal data in the diff: no real PDFs under `libs/**` or `specs/**` (only `tmp/` locally), no amounts/identifiers in log statements (grep `Logger` calls in `apps/backend/src/retirement/`)
 - [x] T079 Run the quickstart.md walkthrough (sections 1–4: libs/backend tests, the ten UI flows via `verify-ui`, key handling incl. missing/different key, privacy checks)
-- [ ] T080 Run gates: `npm exec nx -- run-many -t lint test build`, `npm run format:check`, `npx nx run backend:openapi:check`; then `/speckit-coverage` (≥ 80 % per project) and the Sonar steps
+- [x] T080 Run gates: `npm exec nx -- run-many -t lint test build`, `npm run format:check`, `npx nx run backend:openapi:check`; then `/speckit-coverage` (≥ 80 % per project) and the Sonar steps
 
 ---
 
