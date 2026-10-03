@@ -1,5 +1,6 @@
 import { requestsEn } from './requests.en';
 import { earningsEn } from './earnings.en';
+import { ocrEn } from './ocr.en';
 
 /**
  * Default-language (`en`) dictionary — every other dictionary
@@ -667,5 +668,6 @@ export const en: TranslationDictionary = {
       'About this export — Wealth Development. Historic wealth development tracking is not built yet in Vaultfolio, so this file contains no rows today — it will automatically start including your data once that feature ships.',
   },
   earnings: earningsEn,
+  ocr: ocrEn,
   requests: requestsEn,
 };

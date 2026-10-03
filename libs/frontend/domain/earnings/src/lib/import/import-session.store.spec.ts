@@ -9,8 +9,8 @@ import {
   SAP_SEP_2026_WITH_CORRECTION,
   validExport,
 } from '@vaultfolio/earnings/testing';
-import { FakeTextRecogniser } from '../pdf/text-recogniser.testing';
-import { TEXT_RECOGNISER } from '../pdf/text-recogniser.token';
+import { FakeTextRecogniser } from '@vaultfolio/frontend-document-reader';
+import { TEXT_RECOGNISER } from '@vaultfolio/frontend-document-reader';
 import { EARNINGS_FILE_READER, ImportSessionStore } from './import-session.store';
 
 const PAGES: Record<string, string[][]> = {

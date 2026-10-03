@@ -1,24 +1,12 @@
-import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto';
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
+import { decodeFieldKey, decryptField, encryptField } from '../shared/field-crypto';
 import { EarningsUnavailableException } from './earnings.exceptions';
 
 export type EarningsEncryptedTable = 'earnings_records' | 'earnings_certificates';
 
-const FORMAT_VERSION = 'v1';
-const IV_BYTES = 12;
-const KEY_BYTES = 32;
-const BASE64 = /^[A-Za-z0-9+/]+={0,2}$/;
-
 /** Decodes `EARNINGS_ENCRYPTION_KEY`; `null` unless it is base64 of exactly 32 bytes. */
-export function decodeEarningsKey(raw: string | undefined): Buffer | null {
-  const value = raw?.trim() ?? '';
-  if (!value || value.length % 4 !== 0 || !BASE64.test(value)) {
-    return null;
-  }
-  const key = Buffer.from(value, 'base64');
-  return key.length === KEY_BYTES ? key : null;
-}
+export const decodeEarningsKey = decodeFieldKey;
 
 /**
  * AES-256-GCM encryption at rest for earnings amounts (research R5, FR-041). One ciphertext per
@@ -54,44 +42,13 @@ export class EarningsCryptoService implements OnModuleInit {
   }
 
   encrypt(table: EarningsEncryptedTable, id: string, ownerId: string, payload: unknown): string {
-    const key = this.requireKey();
-    const iv = randomBytes(IV_BYTES);
-    const cipher = createCipheriv('aes-256-gcm', key, iv);
-    cipher.setAAD(aad(table, id, ownerId));
-    const ciphertext = Buffer.concat([
-      cipher.update(JSON.stringify(payload), 'utf8'),
-      cipher.final(),
-    ]);
-    const tag = cipher.getAuthTag();
-    return [
-      FORMAT_VERSION,
-      iv.toString('base64'),
-      tag.toString('base64'),
-      ciphertext.toString('base64'),
-    ].join(':');
+    return encryptField(this.requireKey(), aad(table, id, ownerId), payload);
   }
 
   decrypt<T>(table: EarningsEncryptedTable, id: string, ownerId: string, encoded: string): T {
     const key = this.requireKey();
     try {
-      const [version, iv, tag, ciphertext, ...rest] = encoded.split(':');
-      if (
-        version !== FORMAT_VERSION ||
-        rest.length > 0 ||
-        !iv ||
-        !tag ||
-        ciphertext === undefined
-      ) {
-        throw new Error('format');
-      }
-      const decipher = createDecipheriv('aes-256-gcm', key, Buffer.from(iv, 'base64'));
-      decipher.setAAD(aad(table, id, ownerId));
-      decipher.setAuthTag(Buffer.from(tag, 'base64'));
-      const plain = Buffer.concat([
-        decipher.update(Buffer.from(ciphertext, 'base64')),
-        decipher.final(),
-      ]);
-      return JSON.parse(plain.toString('utf8')) as T;
+      return decryptField<T>(key, aad(table, id, ownerId), encoded);
     } catch {
       // Fail closed: never return partial data, never log the ciphertext or the row.
       this.keyRejected = true;
@@ -129,6 +86,6 @@ export class EarningsCryptoService implements OnModuleInit {
   }
 }
 
-function aad(table: EarningsEncryptedTable, id: string, ownerId: string): Buffer {
-  return Buffer.from(`${table}|${id}|${ownerId}`, 'utf8');
+function aad(table: EarningsEncryptedTable, id: string, ownerId: string): string {
+  return `${table}|${id}|${ownerId}`;
 }

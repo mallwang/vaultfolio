@@ -1,4 +1,4 @@
-import type { PdfDocumentText, PdfLine, PdfPageText, PdfWord } from '@vaultfolio/earnings';
+import type { PdfDocumentText, PdfLine, PdfPageText, PdfWord } from '@vaultfolio/document-text';
 import { readBytes } from './read-blob';
 
 export type PdfExtractError = 'IMAGE_ONLY' | 'PASSWORD_PROTECTED' | 'UNREADABLE';

@@ -3,9 +3,9 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { textDocument, validateLayoutSubmission, wordKey } from '@vaultfolio/earnings';
 import { asFile, imageOnlyPdf } from '../../testing/synthetic-pdfs';
-import { type PdfJsModule, setPdfJsLoader } from '../pdf/pdf-text-extractor';
-import { FakeTextRecogniser } from '../pdf/text-recogniser.testing';
-import { TEXT_RECOGNISER } from '../pdf/text-recogniser.token';
+import { type PdfJsModule, setPdfJsLoader } from '@vaultfolio/frontend-document-reader';
+import { FakeTextRecogniser } from '@vaultfolio/frontend-document-reader';
+import { TEXT_RECOGNISER } from '@vaultfolio/frontend-document-reader';
 import { ParserRequestStore } from './parser-request.store';
 import { PLANTED, plantedLayout } from './parser-request.testing';
 

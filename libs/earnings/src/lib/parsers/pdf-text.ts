@@ -1,114 +1,20 @@
-import { type Money, normalizeEmployerName, toMoney } from '../model';
+import { normalizeEmployerName } from '../model';
 
-/** Output of the browser PDF adapter (libs/frontend/domain/earnings), input of every parser. */
-export interface PdfDocumentText {
-  pages: PdfPageText[];
-  /**
-   * Where the text comes from: the PDF's own text layer (`EXTRACTED`, the default) or on-device
-   * text recognition of a scan (`RECOGNISED`, 034). Parsers ignore it; downstream steps use it for
-   * the double-check notice and the lenient personal-data scan.
-   */
-  origin?: 'EXTRACTED' | 'RECOGNISED';
-}
-
-export interface PdfPageText {
-  /** Top to bottom. */
-  lines: PdfLine[];
-  /** Page size in points; set for recognised pages (the request sample needs it). */
-  width?: number;
-  height?: number;
-}
-
-export interface PdfWord {
-  text: string;
-  x: number;
-  width: number;
-  /** Glyph height in points; set for recognised words. */
-  height?: number;
-  /** Recognised with low confidence (034): shown underlined in the request preview. */
-  lowConfidence?: boolean;
-}
-
-export interface PdfLine {
-  /** Words joined by single spaces. */
-  text: string;
-  /** Left to right, for column-sensitive parsing. */
-  words: PdfWord[];
-  y: number;
-}
-
-/** German amount: `1.234,56`, optionally signed `-5,63` or trailing-minus `591,70-`. */
-const GERMAN_AMOUNT = /(?<![\d.])(-?)(\d[\d.]*),(\d{2})(-)?/;
-/** Every German amount of a line; a trailing `-` counts only when not followed by an uppercase letter (`12,00-E`). */
-const GERMAN_AMOUNTS = /(?<![\d,.])-?(?:\d{1,3}(?:\.\d{3})+|\d+),\d{2}(?:-(?![A-ZÄÖÜ]))?/g;
-/** Hours/days quantities printed next to amounts, e.g. `8,00 S`, `21,00 T`, `160,00 H`. */
-const QUANTITY = /(?<!\d)\d+,\d{2}(?: ?-)? ?[STH]\b/g;
-
-/** Converts a German amount to a canonical money string; `null` when `text` holds none. */
-export function parseGermanAmount(text: string): Money | null {
-  const m = GERMAN_AMOUNT.exec(text);
-  if (!m) return null;
-  const negative = m[1] === '-' || m[4] === '-';
-  const value = `${negative ? '-' : ''}${m[2].replaceAll('.', '')}.${m[3]}`;
-  return toMoney(value);
-}
-
-/** All money amounts of a text, left to right, quantities (hours/days) removed. */
-export function amountsIn(text: string): Money[] {
-  const cleaned = text.replace(QUANTITY, ' ');
-  return [...cleaned.matchAll(GERMAN_AMOUNTS)].map((m) => parseGermanAmount(m[0]) as Money);
-}
-
-/** Text before the first amount (the line's label). */
-export function labelOf(text: string): string {
-  const cleaned = text.replace(QUANTITY, ' ');
-  GERMAN_AMOUNTS.lastIndex = 0;
-  const idx = cleaned.search(GERMAN_AMOUNTS);
-  return (idx < 0 ? cleaned : cleaned.slice(0, idx)).trim();
-}
-
-export function allLines(doc: PdfDocumentText): PdfLine[] {
-  return doc.pages.flatMap((p) => p.lines);
-}
-
-export function documentText(doc: PdfDocumentText): string {
-  return doc.pages.map((p) => p.lines.map((l) => l.text).join('\n')).join('\n');
-}
-
-/** First line whose text matches `label` (a regex or a substring). */
-export function findLine(doc: PdfDocumentText, label: RegExp | string): PdfLine | undefined {
-  return allLines(doc).find((l) =>
-    typeof label === 'string' ? l.text.includes(label) : label.test(l.text),
-  );
-}
-
-/**
- * The amount printed in the column that contains `x` (a word whose horizontal extent covers `x`,
- * with `tolerance` points of slack), or `null` when that column is empty.
- */
-export function amountAtColumn(line: PdfLine, x: number, tolerance = 2): Money | null {
-  const word = line.words.find((w) => x >= w.x - tolerance && x <= w.x + w.width + tolerance);
-  return word ? parseGermanAmount(word.text) : null;
-}
-
-/** Builds a line from plain text (words split at spaces, evenly spaced) — for fixtures and tests. */
-export function textLine(text: string, y = 0): PdfLine {
-  let x = 0;
-  const words = text
-    .split(' ')
-    .filter((w) => w.length > 0)
-    .map((w) => {
-      const word = { text: w, x, width: w.length * 5 };
-      x += word.width + 5;
-      return word;
-    });
-  return { text: words.map((w) => w.text).join(' '), words, y };
-}
-
-/** Builds a document from pages of plain-text lines — for fixtures and tests. */
-export function textDocument(pages: string[][]): PdfDocumentText {
-  return { pages: pages.map((lines) => ({ lines: lines.map((t, i) => textLine(t, i * 12)) })) };
-}
+export {
+  allLines,
+  amountAtColumn,
+  amountsIn,
+  documentText,
+  findLine,
+  labelOf,
+  parseGermanAmount,
+  textDocument,
+  textLine,
+  type PdfDocumentText,
+  type PdfLine,
+  type PdfPageText,
+  type PdfWord,
+} from '@vaultfolio/document-text';
 
 const LEGAL_FORM = /\b(?:GmbH & Co\. KG|GmbH|AG|SE|KGaA|KG|OHG|UG|mbH|e\.\s?V\.)(?=$|[\s,·|])/;
 

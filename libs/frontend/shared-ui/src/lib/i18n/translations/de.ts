@@ -1,5 +1,6 @@
 import { requestsDe } from './requests.de';
 import { earningsDe } from './earnings.de';
+import { ocrDe } from './ocr.de';
 import type { TranslationDictionary } from './en';
 
 /**
@@ -671,5 +672,6 @@ export const de: TranslationDictionary = {
       'Über diesen Export — Vermögensentwicklung. Die historische Vermögensentwicklung ist in Vaultfolio noch nicht umgesetzt, daher enthält diese Datei heute keine Zeilen — sie wird automatisch Ihre Daten enthalten, sobald diese Funktion verfügbar ist.',
   },
   earnings: earningsDe,
+  ocr: ocrDe,
   requests: requestsDe,
 };

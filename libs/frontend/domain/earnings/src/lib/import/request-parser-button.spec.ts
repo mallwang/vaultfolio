@@ -6,8 +6,8 @@ import { textDocument } from '@vaultfolio/earnings';
 import { SAP_AUG_2026, SAP_AUG_2026_NET_OFF, UNRELATED_PAGES } from '@vaultfolio/earnings/testing';
 import { ParserRequestStore } from '../parser-request/parser-request.store';
 import { EarningsImportComponent } from './earnings-import.component';
-import { FakeTextRecogniser } from '../pdf/text-recogniser.testing';
-import { TEXT_RECOGNISER } from '../pdf/text-recogniser.token';
+import { FakeTextRecogniser } from '@vaultfolio/frontend-document-reader';
+import { TEXT_RECOGNISER } from '@vaultfolio/frontend-document-reader';
 import { EARNINGS_FILE_READER } from './import-session.store';
 
 const PAGES: Record<string, string[][]> = {

@@ -128,7 +128,7 @@ import { PrivacyInfoComponent } from '../privacy-note/privacy-info.component';
                   @if (item.recognisedText) {
                     <p-tag
                       severity="warn"
-                      [value]="'earnings.ocr.badge' | translate"
+                      [value]="'ocr.badge' | translate"
                       data-testid="ocr-badge"
                     />
                   }

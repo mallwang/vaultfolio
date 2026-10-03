@@ -41,6 +41,9 @@
     },
     {
       "path": "../../libs/domain/accounts/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/retirement/tsconfig.lib.json"
     }
   ]
 }

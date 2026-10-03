@@ -1,7 +1,12 @@
 import { parseDocument } from '@vaultfolio/earnings';
 import { LSTB_2025_BRIGHTLINE, SAP_FIXTURES, UNRELATED_PAGES } from '@vaultfolio/earnings/testing';
 import { asFile, corruptPdf, imageOnlyPdf, textPdf } from '../../testing/synthetic-pdfs';
-import { extractPdfText, type PdfJsModule, setPdfJsLoader, sha256Hex } from './pdf-text-extractor';
+import {
+  extractPdfText,
+  type PdfJsModule,
+  setPdfJsLoader,
+  sha256Hex,
+} from '@vaultfolio/frontend-document-reader';
 
 /**
  * Adapter integration (T047, T095): synthetic PDFs rendered from the shared text fixtures go

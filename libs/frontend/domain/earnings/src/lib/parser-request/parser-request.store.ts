@@ -19,8 +19,8 @@ import {
   wordKey,
 } from '@vaultfolio/earnings';
 import { firstValueFrom } from 'rxjs';
-import type { RecognitionError, RecognitionProgress } from '../pdf/text-recogniser';
-import { TEXT_RECOGNISER } from '../pdf/text-recogniser.token';
+import type { RecognitionError, RecognitionProgress } from '@vaultfolio/frontend-document-reader';
+import { TEXT_RECOGNISER } from '@vaultfolio/frontend-document-reader';
 import { type LayoutRefusal, extractLayout, layoutFromRecognised } from './layout-extractor';
 import { ParserRequestService } from './parser-request.service';
 

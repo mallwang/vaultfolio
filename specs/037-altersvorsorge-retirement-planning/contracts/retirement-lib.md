@@ -28,7 +28,7 @@ validateSupplement(type: ContractType, body: unknown): ValidationResult<Suppleme
 
 - Strict whitelist per type; unknown/inapplicable field → issue `UNKNOWN_FIELD` with the field path.
 - Returns canonicalised decimals; never throws for user input.
-- Issue codes: `REQUIRED`, `INVALID_AMOUNT`, `INVALID_DATE`, `OUT_OF_RANGE`, `INVALID_IDENTIFIER`,
+- Issue codes: `REQUIRED`, `INVALID_AMOUNT`, `INVALID_DATE`, `INVALID_VALUE`, `OUT_OF_RANGE`, `INVALID_IDENTIFIER`,
   `GUARANTEE_ABOVE_EXPECTED`, `UNKNOWN_FIELD`, `NOT_APPLICABLE`.
 
 ## Checks

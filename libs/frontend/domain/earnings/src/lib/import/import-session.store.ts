@@ -23,14 +23,18 @@ import {
 } from '@vaultfolio/earnings';
 import { firstValueFrom } from 'rxjs';
 import { EarningsService } from '../earnings.service';
-import { type PdfExtractResult, extractPdfText, sha256Hex } from '../pdf/pdf-text-extractor';
-import { readText } from '../pdf/read-blob';
+import {
+  type PdfExtractResult,
+  extractPdfText,
+  sha256Hex,
+} from '@vaultfolio/frontend-document-reader';
+import { readText } from '@vaultfolio/frontend-document-reader';
 import type {
   RecognitionError,
   RecognitionProgress,
   RecognitionResult,
-} from '../pdf/text-recogniser';
-import { TEXT_RECOGNISER } from '../pdf/text-recogniser.token';
+} from '@vaultfolio/frontend-document-reader';
+import { TEXT_RECOGNISER } from '@vaultfolio/frontend-document-reader';
 
 /** How files are read on the device; replaced in specs with fixture text. */
 export interface EarningsFileReader {

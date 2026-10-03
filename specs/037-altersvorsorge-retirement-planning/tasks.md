@@ -28,11 +28,11 @@ Nx monorepo: `libs/<lib>/src/lib/`, `apps/backend/src/`, `libs/frontend/domain/r
 
 **Purpose**: Scaffold the three new Nx libs and operator config.
 
-- [ ] T001 Invoke the `nx-generate` skill, then generate the pure TS lib `@vaultfolio/document-text` at `libs/document-text` (tag `scope:shared`, Jest, same lint/ts config as `libs/earnings`) and register its path alias in `tsconfig.base.json`
-- [ ] T002 Generate the pure TS lib `@vaultfolio/retirement` at `libs/retirement` (tag `scope:shared`, Jest, mirror `libs/earnings` config) and register its path alias in `tsconfig.base.json`
-- [ ] T003 Generate the Angular lib `@vaultfolio/frontend-document-reader` at `libs/frontend/document-reader` (tag `scope:shared`, same test runner as `libs/frontend/domain/earnings`) and register its path alias in `tsconfig.base.json`
-- [ ] T004 [P] Document `RETIREMENT_ENCRYPTION_KEY` (Base64 of 32 bytes; "missing → 503 for Retirement only") in `.env.example`, `docker-compose.yml` and `docker-compose.portainer.yml`
-- [ ] T005 [P] Confirm Nx module-boundary rules in `eslint.config.mjs` allow `scope:frontend-domain` → the two new `scope:shared` libs and `scope:shared` → `scope:shared`; adjust only if lint fails
+- [x] T001 Invoke the `nx-generate` skill, then generate the pure TS lib `@vaultfolio/document-text` at `libs/document-text` (tag `scope:shared`, Jest, same lint/ts config as `libs/earnings`) and register its path alias in `tsconfig.base.json`
+- [x] T002 Generate the pure TS lib `@vaultfolio/retirement` at `libs/retirement` (tag `scope:shared`, Jest, mirror `libs/earnings` config) and register its path alias in `tsconfig.base.json`
+- [x] T003 Generate the Angular lib `@vaultfolio/frontend-document-reader` at `libs/frontend/document-reader` (tag `scope:shared`, same test runner as `libs/frontend/domain/earnings`) and register its path alias in `tsconfig.base.json`
+- [x] T004 [P] Document `RETIREMENT_ENCRYPTION_KEY` (Base64 of 32 bytes; "missing → 503 for Retirement only") in `.env.example`, `docker-compose.yml` and `docker-compose.portainer.yml`
+- [x] T005 [P] Confirm Nx module-boundary rules in `eslint.config.mjs` allow `scope:frontend-domain` → the two new `scope:shared` libs and `scope:shared` → `scope:shared`; adjust only if lint fails
 
 ---
 
@@ -44,36 +44,36 @@ Nx monorepo: `libs/<lib>/src/lib/`, `apps/backend/src/`, `libs/frontend/domain/r
 
 ### Shared PDF stack refactor (contracts/document-reader.md)
 
-- [ ] T006 Move `PdfDocumentText`, `PdfPageText`, `PdfLine`, `PdfWord` (incl. `origin: 'EXTRACTED' | 'RECOGNISED'`) from `libs/earnings/src/lib/parsers/pdf-text.ts` to `libs/document-text/src/lib/pdf-text.ts`; leave `libs/earnings/src/lib/parsers/pdf-text.ts` as a re-export; export from `libs/document-text/src/index.ts`
-- [ ] T007 Move the OCR digit normalisation from `libs/earnings/src/lib/parsers/ocr-normalise.ts` (+ its spec) to `libs/document-text/src/lib/ocr-normalise.ts`; leave a re-export in Earnings
-- [ ] T008 Extract the German amount/date token helpers (`parseGermanAmount`, date token parsing, Money-string helpers not tied to Earnings types) used by Earnings parsers into `libs/document-text/src/lib/amount-tokens.ts` with a unit spec (fixed expected decimals, e.g. `1.234,56` → `1234.56`); Earnings parsers import them from `@vaultfolio/document-text`
-- [ ] T009 Run `npm exec nx -- run-many -t lint test -p document-text earnings` and fix until green (no Earnings spec edited)
-- [ ] T010 Move `pdf-text-extractor.ts`, `read-blob.ts`, `text-recogniser.ts`, `tesseract-recogniser.ts`, `ocr-layout.ts`, `text-recogniser.token.ts`, `text-recogniser.testing.ts` (+ their specs and the optional real-engine OCR integration spec) from `libs/frontend/domain/earnings/src/lib/pdf/` to `libs/frontend/document-reader/src/lib/`; export from `src/index.ts`; move `pdfjs-dist`/`tesseract.js` declarations to the lib's `package.json` while keeping them in the app `package.json`
-- [ ] T011 Move the OCR consent component (`ocr-consent/`) from the Earnings frontend lib to `libs/frontend/document-reader/src/lib/ocr-consent/` as `<vf-ocr-consent>` (inputs `fileName`, `pageCount`; outputs `allow`, `cancel`; plus progress view) using a shared i18n key group; keep existing `data-testid`s
-- [ ] T012 Switch all imports in `libs/frontend/domain/earnings/src/lib/**` (import flow, provider wiring) to `@vaultfolio/frontend-document-reader`; verify `apps/frontend/project.json` still copies `assets/tesseract/` unchanged
-- [ ] T013 Move the shared OCR-consent/progress i18n keys to a shared translation group in `libs/frontend/shared-ui/src/lib/i18n/translations/` and update the Earnings translation parity spec accordingly
-- [ ] T014 Run `npm exec nx -- run-many -t lint test build -p frontend-document-reader frontend-domain-earnings frontend` and fix until green; Earnings behaviour must be unchanged
+- [x] T006 Move `PdfDocumentText`, `PdfPageText`, `PdfLine`, `PdfWord` (incl. `origin: 'EXTRACTED' | 'RECOGNISED'`) from `libs/earnings/src/lib/parsers/pdf-text.ts` to `libs/document-text/src/lib/pdf-text.ts`; leave `libs/earnings/src/lib/parsers/pdf-text.ts` as a re-export; export from `libs/document-text/src/index.ts`
+- [x] T007 Move the OCR digit normalisation from `libs/earnings/src/lib/parsers/ocr-normalise.ts` (+ its spec) to `libs/document-text/src/lib/ocr-normalise.ts`; leave a re-export in Earnings
+- [x] T008 Extract the German amount/date token helpers (`parseGermanAmount`, date token parsing, Money-string helpers not tied to Earnings types) used by Earnings parsers into `libs/document-text/src/lib/amount-tokens.ts` with a unit spec (fixed expected decimals, e.g. `1.234,56` → `1234.56`); Earnings parsers import them from `@vaultfolio/document-text`
+- [x] T009 Run `npm exec nx -- run-many -t lint test -p document-text earnings` and fix until green (no Earnings spec edited)
+- [x] T010 Move `pdf-text-extractor.ts`, `read-blob.ts`, `text-recogniser.ts`, `tesseract-recogniser.ts`, `ocr-layout.ts`, `text-recogniser.token.ts`, `text-recogniser.testing.ts` (+ their specs and the optional real-engine OCR integration spec) from `libs/frontend/domain/earnings/src/lib/pdf/` to `libs/frontend/document-reader/src/lib/`; export from `src/index.ts`; move `pdfjs-dist`/`tesseract.js` declarations to the lib's `package.json` while keeping them in the app `package.json`
+- [x] T011 Move the OCR consent component (`ocr-consent/`) from the Earnings frontend lib to `libs/frontend/document-reader/src/lib/ocr-consent/` as `<vf-ocr-consent>` (inputs `fileName`, `pageCount`; outputs `allow`, `cancel`; plus progress view) using a shared i18n key group; keep existing `data-testid`s
+- [x] T012 Switch all imports in `libs/frontend/domain/earnings/src/lib/**` (import flow, provider wiring) to `@vaultfolio/frontend-document-reader`; verify `apps/frontend/project.json` still copies `assets/tesseract/` unchanged
+- [x] T013 Move the shared OCR-consent/progress i18n keys to a shared translation group in `libs/frontend/shared-ui/src/lib/i18n/translations/` and update the Earnings translation parity spec accordingly
+- [x] T014 Run `npm exec nx -- run-many -t lint test build -p frontend-document-reader frontend-domain-earnings frontend` and fix until green; Earnings behaviour must be unchanged
 
 ### Contract types and pure retirement logic
 
-- [ ] T015 [P] Declare record/figures/supplement/summary DTO types (per data-model.md and contracts/retirement-api.md) in `libs/api-contract/src/lib/retirement.ts` and export from `libs/api-contract/src/index.ts`
-- [ ] T016 [P] Implement the model in `libs/retirement/src/lib/model.ts` (`Pillar`, `ContractType`, `Origin`, `Status`, `pillarOf`, pillar↔type pairing, Money helper on `decimal.js`) and re-export api-contract types; export from `libs/retirement/src/index.ts`
-- [ ] T017 [P] Write `libs/retirement/src/lib/validation.spec.ts`: whitelist per type (unknown/inapplicable field → `UNKNOWN_FIELD`, e.g. `guaranteedMonthly` on `ALTERSVORSORGEDEPOT`), amount ranges/decimals, dates (`statement_date` not future, `payout_start` window), `GUARANTEE_ABOVE_EXPECTED`, identifier charset/length, required fields per type incl. `providerLabel`
-- [ ] T018 Implement `validateRecordInput` and `validateSupplement` in `libs/retirement/src/lib/validation.ts` (never throws on user input, canonicalised decimals, issue codes per contracts/retirement-lib.md)
-- [ ] T019 [P] Write `libs/retirement/src/lib/checks.spec.ts` with fixed expected values for every check id (`STATUTORY_POINTS_VALUE`, `STATUTORY_ORDER`, `STATUTORY_DATES`, `SCENARIOS_MONOTONIC`, `GUARANTEE_BELOW_ZERO_CASE`, `CONTRIBUTION_SUM`, `ACCOUNT_ROLL_FORWARD`, `ACCOUNT_INTEREST`), passing and failing cases
-- [ ] T020 Implement `runChecks(type, figures, dates)` returning `{ id, ok }[]` only (no figures) in `libs/retirement/src/lib/checks.ts`
-- [ ] T021 [P] Add `libs/retirement/src/lib/testing/builders.ts` (`buildRecord(overrides)`) with invented, internally consistent values for every contract type
+- [x] T015 [P] Declare record/figures/supplement/summary DTO types (per data-model.md and contracts/retirement-api.md) in `libs/api-contract/src/lib/retirement.ts` and export from `libs/api-contract/src/index.ts`
+- [x] T016 [P] Implement the model in `libs/retirement/src/lib/model.ts` (`Pillar`, `ContractType`, `Origin`, `Status`, `pillarOf`, pillar↔type pairing, Money helper on `decimal.js`) and re-export api-contract types; export from `libs/retirement/src/index.ts`
+- [x] T017 [P] Write `libs/retirement/src/lib/validation.spec.ts`: whitelist per type (unknown/inapplicable field → `UNKNOWN_FIELD`, e.g. `guaranteedMonthly` on `ALTERSVORSORGEDEPOT`), amount ranges/decimals, dates (`statement_date` not future, `payout_start` window), `GUARANTEE_ABOVE_EXPECTED`, identifier charset/length, required fields per type incl. `providerLabel`
+- [x] T018 Implement `validateRecordInput` and `validateSupplement` in `libs/retirement/src/lib/validation.ts` (never throws on user input, canonicalised decimals, issue codes per contracts/retirement-lib.md)
+- [x] T019 [P] Write `libs/retirement/src/lib/checks.spec.ts` with fixed expected values for every check id (`STATUTORY_POINTS_VALUE`, `STATUTORY_ORDER`, `STATUTORY_DATES`, `SCENARIOS_MONOTONIC`, `GUARANTEE_BELOW_ZERO_CASE`, `CONTRIBUTION_SUM`, `ACCOUNT_ROLL_FORWARD`, `ACCOUNT_INTEREST`), passing and failing cases
+- [x] T020 Implement `runChecks(type, figures, dates)` returning `{ id, ok }[]` only (no figures) in `libs/retirement/src/lib/checks.ts`
+- [x] T021 [P] Add `libs/retirement/src/lib/testing/builders.ts` (`buildRecord(overrides)`) with invented, internally consistent values for every contract type
 
 ### Backend storage, crypto, availability
 
-- [ ] T022 Extract the AES-256-GCM primitive from the Earnings crypto service into `apps/backend/src/shared/field-crypto.ts` (+ spec); make `earnings-crypto` use it with zero behaviour change; run `npm exec nx -- run backend:test` for Earnings specs
-- [ ] T023 [P] Write `apps/backend/src/retirement/retirement-crypto.service.spec.ts`: round trip, AAD `retirement_records|<id>|<owner_id>` mismatch fails, missing/invalid key → unavailable, boot self-check against one stored row with a different key → unavailable
-- [ ] T024 Implement `apps/backend/src/retirement/retirement-crypto.service.ts` (`RETIREMENT_ENCRYPTION_KEY`, format `v1:iv:tag:ciphertext`, runtime auth failure flips to unavailable) mirroring `EarningsCryptoService`
-- [ ] T025 Add idempotent `CREATE TABLE IF NOT EXISTS retirement_records` with the CHECKs, the partial unique index `(owner_id) WHERE pillar='STATUTORY'` and index `(owner_id, pillar)` from data-model.md in `apps/backend/src/database/database.service.ts`
-- [ ] T026 Implement `apps/backend/src/retirement/retirement.repository.ts`: owner-scoped insert/update/get/list(pillar)/delete/deleteAll, transactional `replace(oldId, newRow)`; every SQL filters by `owner_id`
-- [ ] T027 [P] Implement `apps/backend/src/retirement/retirement.exceptions.ts` (error codes/bodies from contracts/retirement-api.md) and `retirement-available.guard.ts` (503 `RETIREMENT_UNAVAILABLE` on every route while the crypto service is unavailable)
-- [ ] T028 Register the module skeleton `apps/backend/src/retirement/retirement.module.ts` (controller/service stubs, `@RequiresDomain('retirement')`) in `apps/backend/src/app/app.module.ts`; add the purge of `retirement_records` to the owner purge list in `apps/backend/src/auth/users.repository.ts` and cover it in its existing spec
-- [ ] T029 [P] Write `apps/backend/src/tests/retirement-e2e.helpers.ts` (test app bootstrap with key, user/admin/member sessions, record payload builders)
+- [x] T022 Extract the AES-256-GCM primitive from the Earnings crypto service into `apps/backend/src/shared/field-crypto.ts` (+ spec); make `earnings-crypto` use it with zero behaviour change; run `npm exec nx -- run backend:test` for Earnings specs
+- [x] T023 [P] Write `apps/backend/src/retirement/retirement-crypto.service.spec.ts`: round trip, AAD `retirement_records|<id>|<owner_id>` mismatch fails, missing/invalid key → unavailable, boot self-check against one stored row with a different key → unavailable
+- [x] T024 Implement `apps/backend/src/retirement/retirement-crypto.service.ts` (`RETIREMENT_ENCRYPTION_KEY`, format `v1:iv:tag:ciphertext`, runtime auth failure flips to unavailable) mirroring `EarningsCryptoService`
+- [x] T025 Add idempotent `CREATE TABLE IF NOT EXISTS retirement_records` with the CHECKs, the partial unique index `(owner_id) WHERE pillar='STATUTORY'` and index `(owner_id, pillar)` from data-model.md in `apps/backend/src/database/database.service.ts`
+- [x] T026 Implement `apps/backend/src/retirement/retirement.repository.ts`: owner-scoped insert/update/get/list(pillar)/delete/deleteAll, transactional `replace(oldId, newRow)`; every SQL filters by `owner_id`
+- [x] T027 [P] Implement `apps/backend/src/retirement/retirement.exceptions.ts` (error codes/bodies from contracts/retirement-api.md) and `retirement-available.guard.ts` (503 `RETIREMENT_UNAVAILABLE` on every route while the crypto service is unavailable)
+- [x] T028 Register the module skeleton `apps/backend/src/retirement/retirement.module.ts` (controller/service stubs, `@RequiresDomain('retirement')`) in `apps/backend/src/app/app.module.ts`; add the purge of `retirement_records` to the owner purge list in `apps/backend/src/auth/users.repository.ts` and cover it in its existing spec
+- [x] T029 [P] Write `apps/backend/src/tests/retirement-e2e.helpers.ts` (test app bootstrap with key, user/admin/member sessions, record payload builders)
 
 ### Frontend shell
 

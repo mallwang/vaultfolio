@@ -1,4 +1,4 @@
-import { type PdfDocumentText, textDocument } from '@vaultfolio/earnings';
+import { type PdfDocumentText, textDocument } from '@vaultfolio/document-text';
 import type { RecognitionProgress, RecognitionResult, TextRecogniser } from './text-recogniser';
 
 export interface FakeRecogniserScript {

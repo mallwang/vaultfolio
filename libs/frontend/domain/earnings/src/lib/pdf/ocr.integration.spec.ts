@@ -4,7 +4,7 @@ import path from 'node:path';
 import { parseDocument } from '@vaultfolio/earnings';
 import { SAP_AUG_2026 } from '@vaultfolio/earnings/testing';
 import { textPdf } from '../../testing/synthetic-pdfs';
-import { recognisedWordsToPage, type RecognisedWord } from './ocr-layout';
+import { recognisedWordsToPage, type RecognisedWord } from '@vaultfolio/frontend-document-reader';
 
 /**
  * Opt-in real-engine check (034 T019, quickstart §2): renders a synthetic payslip of a supported

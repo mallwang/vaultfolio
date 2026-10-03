@@ -26,6 +26,9 @@
     },
     {
       "path": "../../../api-contract/tsconfig.lib.json"
+    },
+    {
+      "path": "../../document-reader/tsconfig.lib.json"
     }
   ]
 }

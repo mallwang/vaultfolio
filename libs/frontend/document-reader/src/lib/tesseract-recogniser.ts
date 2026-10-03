@@ -1,4 +1,4 @@
-import type { PdfPageText } from '@vaultfolio/earnings';
+import type { PdfPageText } from '@vaultfolio/document-text';
 import { recognisedWordsToPage, type RecognisedWord } from './ocr-layout';
 import { loadPdfJs } from './pdf-text-extractor';
 import { readBytes } from './read-blob';

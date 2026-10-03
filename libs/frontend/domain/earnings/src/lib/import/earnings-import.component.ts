@@ -8,7 +8,7 @@ import { TagModule } from 'primeng/tag';
 import { I18nService, IconComponent, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
 import { ParserRequestStore } from '../parser-request/parser-request.store';
 import { fill, formatDate, formatMonth, formatMoney, rejectionText } from '../earnings-format';
-import { MAX_RECOGNITION_PAGES } from '../pdf/text-recogniser';
+import { MAX_RECOGNITION_PAGES, OcrConsentComponent } from '@vaultfolio/frontend-document-reader';
 import { CorrectionGridComponent } from './correction-grid/correction-grid.component';
 import { RECORD_FIGURES } from './figures';
 import { type ImportRow, ImportSessionStore, correctedCount } from './import-session.store';
@@ -50,6 +50,7 @@ interface FigureGroup {
     IconComponent,
     TranslatePipe,
     CorrectionGridComponent,
+    OcrConsentComponent,
   ],
   providers: [ImportSessionStore],
   template: `
@@ -123,8 +124,8 @@ interface FigureGroup {
       @if (anyRecognised()) {
         <p-message severity="warn" data-testid="ocr-notice">
           <div class="ocr-notice">
-            <strong>{{ 'earnings.ocr.noticeTitle' | translate }}</strong>
-            <span>{{ 'earnings.ocr.notice' | translate }}</span>
+            <strong>{{ 'ocr.noticeTitle' | translate }}</strong>
+            <span>{{ 'ocr.notice' | translate }}</span>
           </div>
         </p-message>
       }
@@ -147,7 +148,7 @@ interface FigureGroup {
                   <p-tag
                     class="row__badge"
                     severity="warn"
-                    [value]="'earnings.ocr.badge' | translate"
+                    [value]="'ocr.badge' | translate"
                     data-testid="ocr-badge"
                   />
                 }
@@ -186,60 +187,23 @@ interface FigureGroup {
               }
             </div>
             @if (row.state === 'awaiting-recognition') {
-              <div class="ocr-offer" data-testid="ocr-offer">
-                <p class="ocr-offer__text">{{ 'earnings.ocr.offerInfo' | translate }}</p>
-                <div class="ocr-offer__actions">
-                  <button
-                    pButton
-                    type="button"
-                    size="small"
-                    data-testid="ocr-accept"
-                    (click)="store.acceptRecognition(row.clientFileId)"
-                  >
-                    <app-icon name="scan" /> {{ 'earnings.ocr.accept' | translate }}
-                  </button>
-                  <button
-                    pButton
-                    type="button"
-                    size="small"
-                    severity="secondary"
-                    outlined
-                    data-testid="ocr-decline"
-                    (click)="store.declineRecognition(row.clientFileId)"
-                  >
-                    {{ 'earnings.ocr.decline' | translate }}
-                  </button>
-                  <span class="muted"
-                    ><app-icon name="lock" /> {{ 'earnings.ocr.lock' | translate }}</span
-                  >
-                </div>
-              </div>
+              <vf-ocr-consent
+                class="row__ocr"
+                state="offer"
+                [fileName]="row.fileName"
+                (allow)="store.acceptRecognition(row.clientFileId)"
+                (cancel)="store.declineRecognition(row.clientFileId)"
+              />
             }
             @if (row.state === 'recognising') {
-              <div class="ocr-offer" role="status" aria-live="polite" data-testid="ocr-progress">
-                <p class="ocr-offer__text">{{ progressOf(row) }}</p>
-                <p-progressbar
-                  [value]="recognitionPercent(row)"
-                  [showValue]="false"
-                  [mode]="row.recognition ? 'determinate' : 'indeterminate'"
-                />
-                <div class="ocr-offer__actions">
-                  <button
-                    pButton
-                    type="button"
-                    size="small"
-                    severity="secondary"
-                    outlined
-                    data-testid="ocr-cancel"
-                    (click)="store.cancelRecognition(row.clientFileId)"
-                  >
-                    {{ 'earnings.ocr.cancel' | translate }}
-                  </button>
-                  <span class="muted"
-                    ><app-icon name="lock" /> {{ 'earnings.ocr.lock' | translate }}</span
-                  >
-                </div>
-              </div>
+              <vf-ocr-consent
+                class="row__ocr"
+                state="progress"
+                [fileName]="row.fileName"
+                [progressText]="progressOf(row)"
+                [progressPercent]="row.recognition ? recognitionPercent(row) : null"
+                (cancel)="store.cancelRecognition(row.clientFileId)"
+              />
             }
             @for (line of notesOf(row); track $index) {
               <p
@@ -260,7 +224,7 @@ interface FigureGroup {
                 data-testid="ocr-instead"
                 (click)="store.acceptRecognition(row.clientFileId)"
               >
-                {{ 'earnings.ocr.instead' | translate }}
+                {{ 'ocr.instead' | translate }}
               </button>
             }
             @if (store.requestableFile(row.clientFileId)) {
@@ -445,24 +409,9 @@ interface FigureGroup {
       border-radius: var(--p-content-border-radius);
       background: var(--p-content-background);
     }
-    .ocr-offer {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
+    .row__ocr {
+      display: block;
       margin: 0.5rem 0 0 2.25rem;
-      padding: 0.75rem;
-      border: 1px solid var(--p-content-border-color);
-      border-radius: var(--p-content-border-radius);
-    }
-    .ocr-offer__text {
-      margin: 0;
-      font-size: 0.875rem;
-    }
-    .ocr-offer__actions {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 0.75rem;
     }
     .ocr-notice {
       display: flex;
@@ -724,7 +673,7 @@ export class EarningsImportComponent {
   protected statusLabel(status: RowStatus): string {
     return this.t(
       status === 'DECISION' || status === 'RECOGNISING'
-        ? `earnings.ocr.status${status}`
+        ? `ocr.status${status}`
         : `earnings.import.status${status}`,
     );
   }
@@ -732,13 +681,10 @@ export class EarningsImportComponent {
   /** "Reading page 2 of 3", or the engine-load / queued wording. */
   protected progressOf(row: ImportRow): string {
     const p = row.recognition;
-    if (!p) return this.t('earnings.ocr.waiting');
-    if (p.phase === 'LOADING') return this.t('earnings.ocr.loading');
+    if (!p) return this.t('ocr.waiting');
+    if (p.phase === 'LOADING') return this.t('ocr.loading');
     const params = { page: p.page, total: p.pageCount };
-    return fill(
-      this.t(p.phase === 'RENDERING' ? 'earnings.ocr.rendering' : 'earnings.ocr.page'),
-      params,
-    );
+    return fill(this.t(p.phase === 'RENDERING' ? 'ocr.rendering' : 'ocr.page'), params);
   }
 
   /** Whole-document progress: finished pages plus the fraction of the current one. */
@@ -750,8 +696,8 @@ export class EarningsImportComponent {
 
   protected hintText(hint: 'TOO_MANY_PAGES' | 'ENGINE_UNAVAILABLE'): string {
     return hint === 'TOO_MANY_PAGES'
-      ? fill(this.t('earnings.ocr.hintTooManyPages'), { max: MAX_RECOGNITION_PAGES })
-      : this.t('earnings.ocr.hintEngineUnavailable');
+      ? fill(this.t('ocr.hintTooManyPages'), { max: MAX_RECOGNITION_PAGES })
+      : this.t('ocr.hintEngineUnavailable');
   }
 
   private rejectionNotes(
@@ -769,7 +715,7 @@ export class EarningsImportComponent {
       },
     ];
     if (row.recognised && rejection.code === 'UNSUPPORTED_FORMAT') {
-      lines.push({ text: this.t('earnings.ocr.noParserNote'), error: false });
+      lines.push({ text: this.t('ocr.noParserNote'), error: false });
     }
     return lines;
   }

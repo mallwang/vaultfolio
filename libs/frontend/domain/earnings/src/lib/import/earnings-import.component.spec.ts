@@ -10,8 +10,8 @@ import {
   SAP_AUG_2026_NET_OFF,
   SAP_SEP_2026_WITH_CORRECTION,
 } from '@vaultfolio/earnings/testing';
-import { FakeTextRecogniser } from '../pdf/text-recogniser.testing';
-import { TEXT_RECOGNISER } from '../pdf/text-recogniser.token';
+import { FakeTextRecogniser } from '@vaultfolio/frontend-document-reader';
+import { TEXT_RECOGNISER } from '@vaultfolio/frontend-document-reader';
 import { EarningsImportComponent } from './earnings-import.component';
 import { EARNINGS_FILE_READER } from './import-session.store';
 

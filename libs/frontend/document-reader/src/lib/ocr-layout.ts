@@ -3,7 +3,7 @@ import {
   type PdfLine,
   type PdfPageText,
   type PdfWord,
-} from '@vaultfolio/earnings';
+} from '@vaultfolio/document-text';
 
 /** A recognised word as the engine reports it: render-pixel box, top-left origin, and confidence 0..100. */
 export interface RecognisedWord {

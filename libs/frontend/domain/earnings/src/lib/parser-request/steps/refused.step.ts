@@ -4,7 +4,7 @@ import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
 import { TranslatePipe } from '@vaultfolio/frontend-shared-ui';
 import { ParserRequestStore } from '../parser-request.store';
-import { MAX_RECOGNITION_PAGES } from '../../pdf/text-recogniser';
+import { MAX_RECOGNITION_PAGES } from '@vaultfolio/frontend-document-reader';
 import { wizardText } from './wizard-text';
 
 /** The document cannot be offered (scan, password, unreadable, too large): a specific reason, never "personal data". */
@@ -26,7 +26,7 @@ import { wizardText } from './wizard-text';
         data-testid="ocr-instead"
         (click)="store.reofferRecognition()"
       >
-        {{ 'earnings.ocr.instead' | translate }}
+        {{ 'ocr.instead' | translate }}
       </button>
     }
     <a pButton routerLink="/app/earnings/import" data-testid="request-choose-another">
@@ -60,9 +60,9 @@ export class RefusedStepComponent {
   protected hint(): string {
     const hint = this.store.recognitionHint();
     if (hint === 'TOO_MANY_PAGES') {
-      return this.t('earnings.ocr.hintTooManyPages', { max: MAX_RECOGNITION_PAGES });
+      return this.t('ocr.hintTooManyPages', { max: MAX_RECOGNITION_PAGES });
     }
-    return hint ? this.t('earnings.ocr.hintEngineUnavailable') : '';
+    return hint ? this.t('ocr.hintEngineUnavailable') : '';
   }
 
   /** A declined or failed scan can be offered again, except when the page limit rules it out. */

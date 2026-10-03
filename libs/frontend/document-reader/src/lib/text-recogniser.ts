@@ -1,4 +1,4 @@
-import type { PdfDocumentText } from '@vaultfolio/earnings';
+import type { PdfDocumentText } from '@vaultfolio/document-text';
 
 /** Pages above this limit are refused before any rendering (payslips and certificates have 1–2). */
 export const MAX_RECOGNITION_PAGES = 5;

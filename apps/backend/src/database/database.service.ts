@@ -357,6 +357,42 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       'CREATE INDEX IF NOT EXISTS earnings_certificates_import_idx ON earnings_certificates (import_id)',
     );
 
+    // 037-altersvorsorge: one row per pension entry. Monetary figures and the contract number live
+    // only inside the AES-256-GCM `payload_enc`; the plain columns are non-monetary lookup fields.
+    // Brand-new table, so `IF NOT EXISTS` is enough.
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS retirement_records (
+        id             TEXT PRIMARY KEY,
+        owner_id       TEXT NOT NULL,
+        pillar         TEXT NOT NULL CHECK (pillar IN ('STATUTORY', 'OCCUPATIONAL', 'PRIVATE')),
+        contract_type  TEXT NOT NULL,
+        origin         TEXT NOT NULL CHECK (origin IN ('IMPORTED', 'MANUAL')),
+        status         TEXT NOT NULL CHECK (status IN ('ACTIVE', 'PAID_UP', 'IN_PAYOUT')),
+        provider_label TEXT,
+        statement_date TEXT NOT NULL CHECK (statement_date GLOB '[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]'),
+        payout_start   TEXT CHECK (payout_start IS NULL OR payout_start GLOB '[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]'),
+        parser_id      TEXT,
+        parser_version TEXT,
+        ocr_read       INTEGER NOT NULL DEFAULT 0 CHECK (ocr_read IN (0, 1)),
+        payload_enc    TEXT NOT NULL,
+        key_version    INTEGER NOT NULL DEFAULT 1,
+        created_at     TEXT NOT NULL,
+        updated_at     TEXT NOT NULL,
+        CHECK (
+          (pillar = 'STATUTORY' AND contract_type = 'STATUTORY_PENSION')
+          OR (pillar = 'OCCUPATIONAL' AND contract_type IN ('DIRECT_INSURANCE', 'PENSIONSKASSE', 'DIREKTZUSAGE', 'UNTERSTUETZUNGSKASSE', 'PENSIONSFONDS', 'CAPITAL_ACCOUNT'))
+          OR (pillar = 'PRIVATE' AND contract_type IN ('RIESTER', 'PRIVATE_PENSION_INSURANCE', 'ALTERSVORSORGEDEPOT'))
+        ),
+        CHECK (origin = 'MANUAL' OR (parser_id IS NOT NULL AND parser_version IS NOT NULL))
+      )
+    `);
+    db.exec(
+      "CREATE UNIQUE INDEX IF NOT EXISTS retirement_records_statutory_uidx ON retirement_records (owner_id) WHERE pillar = 'STATUTORY'",
+    );
+    db.exec(
+      'CREATE INDEX IF NOT EXISTS retirement_records_owner_pillar_idx ON retirement_records (owner_id, pillar)',
+    );
+
     // 033-parser-requests: generic requests (feature + type, status workflow) with an optional
     // generated attachment and an admin download audit. Brand-new tables, so `IF NOT EXISTS` is
     // enough. No monetary values and no personal identifiers of any document are stored here.

@@ -17,8 +17,8 @@ import { wizardText } from './wizard-text';
     @if (store.recognitionState() === 'offer') {
       <p-message severity="info" data-testid="ocr-offer">
         <div class="box">
-          <strong>{{ 'earnings.ocr.noText' | translate }}</strong>
-          <span>{{ 'earnings.ocr.offerInfo' | translate }}</span>
+          <strong>{{ 'ocr.noText' | translate }}</strong>
+          <span>{{ 'ocr.offerInfo' | translate }}</span>
           <div class="actions">
             <button
               pButton
@@ -26,7 +26,7 @@ import { wizardText } from './wizard-text';
               data-testid="ocr-accept"
               (click)="store.acceptRecognition()"
             >
-              <app-icon name="scan" /> {{ 'earnings.ocr.accept' | translate }}
+              <app-icon name="scan" /> {{ 'ocr.accept' | translate }}
             </button>
             <button
               pButton
@@ -36,11 +36,9 @@ import { wizardText } from './wizard-text';
               data-testid="ocr-decline"
               (click)="store.declineRecognition()"
             >
-              {{ 'earnings.ocr.decline' | translate }}
+              {{ 'ocr.decline' | translate }}
             </button>
-            <span class="muted"
-              ><app-icon name="lock" /> {{ 'earnings.ocr.lock' | translate }}</span
-            >
+            <span class="muted"><app-icon name="lock" /> {{ 'ocr.lock' | translate }}</span>
           </div>
         </div>
       </p-message>
@@ -61,9 +59,9 @@ import { wizardText } from './wizard-text';
             data-testid="ocr-cancel"
             (click)="store.cancelRecognition()"
           >
-            {{ 'earnings.ocr.cancel' | translate }}
+            {{ 'ocr.cancel' | translate }}
           </button>
-          <span class="muted"><app-icon name="lock" /> {{ 'earnings.ocr.lock' | translate }}</span>
+          <span class="muted"><app-icon name="lock" /> {{ 'ocr.lock' | translate }}</span>
         </div>
       </div>
     }
@@ -93,9 +91,9 @@ export class RecognitionStepComponent {
 
   protected progressText(): string {
     const p = this.store.recognitionProgress();
-    if (!p) return this.t('earnings.ocr.waiting');
-    if (p.phase === 'LOADING') return this.t('earnings.ocr.loading');
-    return this.t(p.phase === 'RENDERING' ? 'earnings.ocr.rendering' : 'earnings.ocr.page', {
+    if (!p) return this.t('ocr.waiting');
+    if (p.phase === 'LOADING') return this.t('ocr.loading');
+    return this.t(p.phase === 'RENDERING' ? 'ocr.rendering' : 'ocr.page', {
       page: p.page,
       total: p.pageCount,
     });
