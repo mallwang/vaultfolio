@@ -32,4 +32,4 @@
 ## Notes
 
 - Exact field lists per contract type are provisional; `/speckit-clarify` should refine them against real sample documents (Renteninformation, Betriebsrenteninformation, Riester statement) if the user supplies them.
-- Constitution Product Scope needs an In Scope entry for the Retirement domain (noted in Assumptions).
+- Constitution amended to 3.9.0 (Retirement scope, contract-number exception).

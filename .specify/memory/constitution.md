@@ -1,6 +1,20 @@
 <!--
 Sync Impact Report
-- Version change: 3.7.0 → 3.8.0 (MINOR: Earnings document import also accepts PDFs without a text
+- Version change: 3.8.0 → 3.9.0 (MINOR: Retirement domain gets concrete scope, 037-altersvorsorge-
+  retirement-planning; it joins the Sensitive Personal Data rules with one narrow relaxation for
+  insurance/contract numbers; no principle removed or redefined)
+- Modified sections:
+  - Product Scope intro: Retirement is now specified (037), no longer a bare placeholder.
+  - Product Scope → In Scope: Retirement-domain bullets (German three-pillar pension data; manual
+    entry; DRV Renteninformation import from an uploaded document, interpreted on the device).
+  - Product Scope → Out of Scope: the data-origin rule names Retirement's manual entry and
+    document import as permitted; no pension-provider or DRV API integration.
+  - Product Scope → Sensitive Personal Data: applies to Retirement; insurance and contract numbers
+    MAY be stored (encrypted, owner-only) in Retirement because the user needs them for look-ups;
+    imported figures are read-only, parser requests do not extend to Retirement.
+- Added/removed principles and sections: none
+- Templates requiring updates: none
+- Previous: 3.7.0 → 3.8.0 (MINOR: Earnings document import also accepts PDFs without a text
   layer, read by on-device text recognition after the user's per-file consent,
   034-ocr-fallback-pdf; no principle removed or redefined)
 - Modified sections:
@@ -175,7 +189,8 @@ Vaultfolio is a multi-domain personal finance app, organized as an app-shell plu
 domains per the Frontend domain libraries Stack Decision below. **Holdings** (investment tracking)
 is the first fully-built domain; **Retirement**, **Insurances**, **Haushaltsplaner** (household/
 budget planning), **Historic Wealth Development**, and **Account Overview** are planned domains
-(registered today as placeholders — see 022-add-domain-placeholders), as is **Earnings**
+(registered today as placeholders — see 022-add-domain-placeholders; Retirement is specified in
+037-altersvorsorge-retirement-planning), as is **Earnings**
 (employment income history — see 032-earnings-domain). The scope rules below apply
 per domain as noted; a rule scoped to "the Holdings domain" does not extend to other domains unless
 stated.
@@ -207,6 +222,16 @@ stated.
   not supported yet", an entitled user MAY request a new parser by submitting an anonymized, rebuilt
   sample under the exception in Sensitive Personal Data; requests are handled by administrators.
 
+- Retirement domain: a user's German retirement provision across the three pillars — statutory
+  pension (Renteninformation of the Deutsche Rentenversicherung), occupational pension contracts
+  (any number, e.g. one per employer), and private provision (Riester, private pension insurance,
+  Altersvorsorgedepot) — with an overview, a dashboard tile, and a static "further information"
+  list of external resources. Scope is Germany only; no tax, inflation, or pension-gap calculation.
+- Retirement domain: data enters by manual UI entry or, for the statutory pension, by upload of the
+  user's own Renteninformation document, interpreted on the user's device under the Sensitive
+  Personal Data rules. Figures of an imported record are read-only (delete or replace by a newer
+  import only); manually entered records stay editable by the user.
+
 ### Out of Scope
 
 - Day-to-day expense or budget tracking (income, spending categories, bills, recurring payments)
@@ -220,8 +245,10 @@ stated.
   NOT be pulled automatically from a linked bank or brokerage account. This applies across all
   domains, including Account Overview: it MAY aggregate manually entered or imported balances
   across accounts, but MUST NOT itself integrate with a bank/brokerage API to fetch them live. The
-  one exception to the "manual UI entry or CSV/JSON import" origin rule is the Earnings domain's
-  document import (see In Scope), which is still an explicit, user-initiated upload.
+  exceptions to the "manual UI entry or CSV/JSON import" origin rule are the Earnings domain's
+  document import and the Retirement domain's Renteninformation import (see In Scope), which are
+  still explicit, user-initiated uploads. Neither domain may fetch data from a provider, from the
+  Deutsche Rentenversicherung, or from any other external system.
 - Manual entry of monetary figures in the Earnings domain. Payroll and tax figures MUST come from
   the documents that printed them. The one exception is the correction of a figure that a parser
   misread, in the import preview only: the figure MUST take part in a failing arithmetic check,
@@ -246,17 +273,21 @@ provider is unreachable, since a user's recorded holdings are the source of trut
 
 ### Sensitive Personal Data
 
-The Earnings domain, and any future domain holding comparably sensitive personal data (e.g.,
-salary, tax, or health-related records), MUST follow these rules in addition to the rest of this
+The Earnings and Retirement domains, and any future domain holding comparably sensitive personal
+data (e.g., salary, tax, or health-related records), MUST follow these rules in addition to the rest of this
 constitution:
 
 - **Data minimization**: only an explicitly whitelisted set of figures and labels is transmitted
   and stored. Personal identifiers printed on source documents (tax ID, social-security number,
   bank account/IBAN, name, address, personnel number) MUST NOT be transmitted or stored; the
-  backend MUST reject any payload containing fields outside the whitelist.
+  backend MUST reject any payload containing fields outside the whitelist. Exception, Retirement
+  domain only: the insurance number and contract numbers MAY be entered, stored and displayed to
+  their owner, because the user needs them to look up the contract; they follow the same
+  owner-only, encryption-at-rest and log-hygiene rules as amounts. Name, address, tax ID, and bank
+  details remain forbidden.
 - **No document handling on the server**: original documents and their extracted text MUST NOT be
   transmitted to or stored by the backend. Document interpretation happens on the user's device.
-  The single exception is an opt-in, explicitly consented, user-reviewed flow that transmits a
+  The single exception (available in the Earnings domain only, not in Retirement) is an opt-in, explicitly consented, user-reviewed flow that transmits a
   derived, anonymized, rebuilt sample — structured layout data only, never a file; every value
   replaced by a random value of the same shape; personal identifiers removed on the device and
   re-checked on the server — for the sole purpose of letting a developer build a parser. Such a
@@ -388,4 +419,4 @@ alignment with the Core Principles; unresolved violations MUST be justified in t
 Complexity Tracking section or the plan MUST be revised to comply. Reviewers MUST treat this
 constitution as authoritative over informal team conventions.
 
-**Version**: 3.8.0 | **Ratified**: 2026-08-13 | **Last Amended**: 2026-10-02
+**Version**: 3.9.0 | **Ratified**: 2026-08-13 | **Last Amended**: 2026-10-03
