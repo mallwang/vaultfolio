@@ -120,7 +120,7 @@ If the user says "edit first", ask what to change, apply the edit, show the upda
 - If the diff contains only spec/docs changes, use type `docs` and scope `specs`.
 - Do not include a "Test plan" section — the project's CI covers that.
 - Always end the description with `Co-Authored-By: Claude <noreply@anthropic.com>` on its own line after a blank line — this is required for the squash-merge commit to carry the co-authorship attribution.
-- If the diff skips test-first for money-handling code, or otherwise deviates from a Core
-  Principle in the [constitution](../../../.specify/memory/constitution.md), add a short
-  **Constitution deviations** section explicitly justifying it — the constitution requires this
-  to be documented in the PR description rather than left implicit.
+- If the diff deviates from a Core Principle in the
+  [constitution](../../../.specify/memory/constitution.md) (e.g. money-handling changes without
+  exact-value test coverage per Principle III), add a short **Constitution deviations** section
+  justifying it — the constitution requires this to be documented in the PR description.

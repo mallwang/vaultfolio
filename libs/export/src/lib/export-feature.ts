@@ -1,4 +1,4 @@
-import { exportCsv } from './csv-exporter.js';
+import { exportCsv, exportCsvTables } from './csv-exporter.js';
 import type { ExportFormat, ResolvedFeatureExport } from './feature-export-definition.js';
 import { exportJson } from './json-exporter.js';
 import { exportPdf } from './pdf-exporter.js';
@@ -10,7 +10,7 @@ import { exportXlsx } from './xlsx-exporter.js';
  * resolved every translation key and captured any chart images into `resolved` before calling
  * this, so `libs/export` stays free of any Angular/DOM/`TranslateService` dependency.
  *
- * `format: 'json' | 'csv' | 'xlsx'` ignore `resolved.chartImages`.
+ * `format: 'json' | 'csv' | 'xlsx'` ignore `resolved.chartImages`; `pdf` ignores `resolved.tables`.
  */
 export async function exportFeature(
   resolved: ResolvedFeatureExport,
@@ -20,10 +20,15 @@ export async function exportFeature(
     case 'json':
       return exportJson(resolved);
     case 'csv':
-      return exportCsv(resolved);
+      return resolved.tables ? exportCsvTables(resolved.tables) : exportCsv(resolved);
     case 'xlsx':
       return exportXlsx(resolved);
     case 'pdf':
       return exportPdf(resolved);
   }
+}
+
+/** File extension of the download: a CSV export of tables is a ZIP with one file per table. */
+export function exportFileExtension(resolved: ResolvedFeatureExport, format: ExportFormat): string {
+  return format === 'csv' && resolved.tables ? 'zip' : format;
 }

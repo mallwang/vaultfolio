@@ -75,7 +75,13 @@ export function grossPerYearOption(
       axisPointer: { type: 'shadow' },
       valueFormatter: (v) => format.money(Number(v)),
     },
-    xAxis: { type: 'category', data: yearly.map((p) => String(p.year)) },
+    // Rotation is set explicitly (also when upright): ECharts keeps a rotation from the previous
+    // option on reused labels when a later option merely leaves it out.
+    xAxis: {
+      type: 'category',
+      data: yearly.map((p) => String(p.year)),
+      axisLabel: { rotate: 0, interval: 'auto' },
+    },
     yAxis: { type: 'value', axisLabel: { formatter: (v: number) => format.moneyWhole(v) } },
     series: [
       {
@@ -96,6 +102,10 @@ export function grossPerYearOption(
         label: {
           show: true,
           position: 'top',
+          rotate: 0,
+          align: 'center',
+          verticalAlign: 'bottom',
+          fontSize: 12,
           // Labels don't pick up the theme text color, and ECharts outlines them by default,
           // which reads as a shadow in dark mode.
           color: colors.text,
@@ -104,6 +114,50 @@ export function grossPerYearOption(
           formatter: (p) => format.moneyWhole(regular[p.dataIndex] + bonus[p.dataIndex]),
         },
       },
+    ],
+  };
+}
+
+/** Up to this many years the bar labels and year ticks fit horizontally in the 1000 px chart. */
+export const MAX_YEARS_HORIZONTAL_LABELS = 15;
+/** The value labels need more room than the year ticks, which stay horizontal a little longer. */
+const MAX_YEARS_HORIZONTAL_TICKS = 24;
+
+/**
+ * Keeps the PDF chart legible for a long career: a bar slot narrows to ~18 px at 50 years, too
+ * little for a horizontal "€123.456" above each bar. Past the thresholds the value labels and the
+ * year ticks are turned upright (every year shown, none skipped) and the value axis gets headroom
+ * so the upright label above the tallest bar stays inside the plot.
+ */
+export function fitChartToYearCount(option: EChartsOption, years: number): EChartsOption {
+  if (years <= MAX_YEARS_HORIZONTAL_LABELS) return option;
+  const upright = years > MAX_YEARS_HORIZONTAL_TICKS;
+  const { xAxis, yAxis, series } = option as {
+    xAxis: { axisLabel?: object };
+    yAxis: object;
+    series: Record<string, unknown>[];
+  };
+  const [regular, bonus, ...rest] = series;
+  return {
+    ...option,
+    xAxis: {
+      ...xAxis,
+      axisLabel: { ...xAxis.axisLabel, interval: 0, ...(upright ? { rotate: 90 } : {}) },
+    },
+    yAxis: { ...yAxis, max: (v: { max: number }) => v.max * 1.3 },
+    series: [
+      regular,
+      {
+        ...bonus,
+        label: {
+          ...(bonus['label'] as object),
+          rotate: 90,
+          align: 'left' as const,
+          verticalAlign: 'middle' as const,
+          fontSize: 9,
+        },
+      },
+      ...rest,
     ],
   };
 }

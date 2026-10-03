@@ -37,7 +37,7 @@ interface Tile {
           >
             <p-accordion-header>
               <span class="summary">
-                <strong>{{
+                <strong class="name">{{
                   entry.key === 'ALL' ? ('earnings.overview.wholeCareer' | translate) : entry.label
                 }}</strong>
                 <span class="muted">{{ subline(entry) }}</span>
@@ -87,6 +87,10 @@ interface Tile {
       gap: 0.25rem 0.75rem;
       width: 100%;
       padding-inline-end: 0.75rem;
+    }
+    .name {
+      max-width: 28rem;
+      overflow-wrap: anywhere;
     }
     .total {
       margin-inline-start: auto;

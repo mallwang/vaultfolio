@@ -267,10 +267,25 @@ export class ProfileComponent implements OnInit {
         label: this.i18n.translate(column.labelKey),
         format: column.format,
       })),
+      // Section PDFs need the locale and page texts; other features' archive PDFs stay as before.
+      ...(definition.getPdfSections
+        ? {
+            ...(definition.pdfInfoboxKey
+              ? { pdfInfobox: this.i18n.translate(definition.pdfInfoboxKey) }
+              : {}),
+            locale: this.i18n.language(),
+            subtitle: `${this.i18n.translate('export.subtitlePrefix')} ${new Intl.DateTimeFormat(this.i18n.language()).format(new Date())}`,
+            footer: this.i18n.translate('export.footerText'),
+          }
+        : {}),
     });
     const resolveChartImages = async (definition: FeatureExportDefinition) =>
       definition.getChartOptions
-        ? Promise.all(definition.getChartOptions().map((option) => this.captureChartImage(option)))
+        ? Promise.all(
+            definition
+              .getChartOptions()
+              .map((option) => this.captureChartImage(option, definition.pdfChartSize)),
+          )
         : [];
 
     try {

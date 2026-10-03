@@ -185,13 +185,14 @@ export const earningsEn: TranslationDictionary = {
     year: 'Year',
     sum: 'Sum',
     missing: 'Missing payslip',
-    taxTitle: 'All taxes and contributions per year',
+    taxTitle: 'Taxes and contributions',
     taxSub: 'Employee share of social insurance; percentages relative to gross',
     employer: 'Employer',
     months: 'Months',
     ofWhichBonus: 'of which bonus',
     taxesPct: 'Taxes %',
     socialPct: 'Social %',
+    bonusPct: 'Bonus %',
     healthShort: 'Health',
     careShort: 'Care',
     pensionShort: 'Pension',
@@ -257,7 +258,11 @@ export const earningsEn: TranslationDictionary = {
     employerNamesSub:
       'Employers are detected from your documents. You can change how they are displayed; figures cannot be edited.',
     detectedAs: 'Detected as',
+    longName:
+      'This name has {{count}} characters and will wrap over several lines in tables and the PDF export. Enter a shorter display name on the right and save it — it applies everywhere in Earnings.',
     displayName: 'Display name',
+    nameTooLong:
+      'This name has {{count}} characters — at most {{max}} are allowed. Shorten it by {{over}} to save it.',
     renamed: 'Display name saved',
     dangerTitle: 'Delete all earnings data',
     dangerSub:
@@ -377,12 +382,15 @@ export const earningsEn: TranslationDictionary = {
   export: {
     title: 'Earnings',
     infobox:
-      'About this export — Earnings. One row per payslip section (regular payslip, correction or back-payment) with the figures read from your documents. Amounts are in EUR; deductions are shown as positive values.',
-    columnEmployer: 'Employer',
-    columnPeriod: 'Period',
-    columnIssued: 'Issued',
-    columnKind: 'Kind',
-    columnCorrected: 'Corrected figures',
-    columnSource: 'Source file',
+      'About this export — Earnings. The same four tables as the PDF: gross per year, totals per employer with the career total, the monthly overview (gross and net in separate columns) and all taxes and contributions per year. Years and employers are listed from newest to oldest. Amounts are in EUR; deductions are shown as positive values.',
+    pdfInfobox:
+      'About this export — Earnings. Gross income per year, totals per employer and over your whole career, the month-by-month gross and all taxes and contributions per year, as shown in the Earnings overview. Employers and years are listed from newest to oldest. Amounts are in EUR; deductions are shown as positive values.',
+    tableEmployers: 'Employers',
+    tableMonthly: 'Monthly overview',
+    sectionEmployers: 'Totals per employer',
+    sectionMonthly: 'Monthly overview gross / net',
+    sectionMonthlySub: 'Gross on top, net below',
+    careerTotal: 'Career total',
+    empty: 'There is no earnings data yet.',
   },
 };

@@ -184,13 +184,14 @@ export const earningsDe: TranslationDictionary = {
     year: 'Jahr',
     sum: 'Summe',
     missing: 'Fehlende Abrechnung',
-    taxTitle: 'Alle Steuern und Abgaben pro Jahr',
+    taxTitle: 'Steuern und Abgaben',
     taxSub: 'Arbeitnehmeranteil der Sozialversicherung, Prozentwerte bezogen auf das Brutto',
     employer: 'Arbeitgeber',
     months: 'Monate',
     ofWhichBonus: 'davon Bonus',
     taxesPct: 'Steuern %',
     socialPct: 'SV %',
+    bonusPct: 'Bonus %',
     healthShort: 'KV',
     careShort: 'PV',
     pensionShort: 'RV',
@@ -258,7 +259,11 @@ export const earningsDe: TranslationDictionary = {
     employerNamesSub:
       'Arbeitgeber werden aus Ihren Dokumenten erkannt. Sie können ändern, wie sie angezeigt werden; Beträge lassen sich nicht bearbeiten.',
     detectedAs: 'Erkannt als',
+    longName:
+      'Dieser Name hat {{count}} Zeichen und wird in Tabellen und im PDF-Export mehrzeilig. Geben Sie rechts einen kürzeren Anzeigenamen ein und speichern Sie ihn – er gilt überall in der Einkommensentwicklung.',
     displayName: 'Anzeigename',
+    nameTooLong:
+      'Dieser Name hat {{count}} Zeichen – erlaubt sind höchstens {{max}}. Kürzen Sie ihn um {{over}}, um ihn zu speichern.',
     renamed: 'Anzeigename gespeichert',
     dangerTitle: 'Alle Einkommensdaten löschen',
     dangerSub:
@@ -384,12 +389,15 @@ export const earningsDe: TranslationDictionary = {
   export: {
     title: 'Einkommensentwicklung',
     infobox:
-      'Zu diesem Export – Einkommensentwicklung. Eine Zeile pro Abrechnungsteil (reguläre Abrechnung, Korrektur oder Nachzahlung) mit den aus Ihren Dokumenten gelesenen Werten. Beträge in EUR; Abzüge werden als positive Werte gezeigt.',
-    columnEmployer: 'Arbeitgeber',
-    columnPeriod: 'Zeitraum',
-    columnIssued: 'Abgerechnet',
-    columnKind: 'Art',
-    columnCorrected: 'Korrigierte Werte',
-    columnSource: 'Quelldatei',
+      'Zu diesem Export – Einkommensentwicklung. Dieselben vier Tabellen wie im PDF: Brutto pro Jahr, Summen je Arbeitgeber mit Berufsleben gesamt, die Monatsübersicht (Brutto und Netto in getrennten Spalten) und alle Steuern und Abgaben pro Jahr. Jahre und Arbeitgeber stehen vom neuesten zum ältesten. Beträge in EUR; Abzüge werden als positive Werte gezeigt.',
+    pdfInfobox:
+      'Zu diesem Export – Einkommensentwicklung. Bruttoeinkommen pro Jahr, Summen je Arbeitgeber und über das gesamte Berufsleben, das Brutto Monat für Monat sowie alle Steuern und Abgaben pro Jahr, wie in der Übersicht der Einkommensentwicklung. Arbeitgeber und Jahre sind vom neuesten zum ältesten sortiert. Beträge in EUR; Abzüge werden als positive Werte gezeigt.',
+    tableEmployers: 'Arbeitgeber',
+    tableMonthly: 'Monatsübersicht',
+    sectionEmployers: 'Summen je Arbeitgeber',
+    sectionMonthly: 'Monatsübersicht Brutto / Netto',
+    sectionMonthlySub: 'Brutto oben, Netto darunter',
+    careerTotal: 'Berufsleben gesamt',
+    empty: 'Es liegen noch keine Einkommensdaten vor.',
   },
 };

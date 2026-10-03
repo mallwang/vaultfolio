@@ -4,6 +4,7 @@ import type { ButtonSeverity } from 'primeng/types/button';
 import {
   FeatureExportRegistry,
   exportFeature,
+  exportFileExtension,
   type ExportFormat,
   type ResolvedFeatureExport,
 } from '@vaultfolio/export';
@@ -142,11 +143,24 @@ export class ExportControlComponent {
 
     this.exporting.set(true);
     try {
-      const rows = await definition.fetchData();
+      // The PDF of a definition with sections shows those instead of the generic table; they are
+      // awaited first because the definition may derive its chart data from the same fetch.
+      const pdfSections =
+        format === 'pdf' && definition.getPdfSections
+          ? await definition.getPdfSections()
+          : undefined;
+      // JSON/CSV/Excel of a definition with tables serialize those instead of the generic rows.
+      const tables =
+        format !== 'pdf' && definition.getExportTables
+          ? await definition.getExportTables()
+          : undefined;
+      const rows = pdfSections || tables ? [] : await definition.fetchData();
       const chartImages =
         format === 'pdf' && definition.getChartOptions
           ? await Promise.all(
-              definition.getChartOptions().map((option) => this.captureChartImage(option)),
+              definition
+                .getChartOptions()
+                .map((option) => this.captureChartImage(option, definition.pdfChartSize)),
             )
           : undefined;
 
@@ -161,7 +175,11 @@ export class ExportControlComponent {
       const resolved: ResolvedFeatureExport = {
         featureId: definition.featureId,
         title,
-        infobox: this.i18n.translate(definition.infoboxKey),
+        infobox: this.i18n.translate(
+          format === 'pdf' && definition.pdfInfoboxKey
+            ? definition.pdfInfoboxKey
+            : definition.infoboxKey,
+        ),
         columns: definition.columns.map((column) => ({
           key: column.key,
           label: this.i18n.translate(column.labelKey),
@@ -169,6 +187,8 @@ export class ExportControlComponent {
           summable: column.summable,
         })),
         rows,
+        ...(pdfSections ? { pdfSections } : {}),
+        ...(tables ? { tables } : {}),
         chartImages,
         chartSideTable,
         locale: lang,
@@ -178,7 +198,7 @@ export class ExportControlComponent {
 
       const safeTitle = title.replace(/[/\\:*?"<>|]/g, '_');
       const blob = await exportFeature(resolved, format);
-      triggerDownload(blob, `${safeTitle}.${format}`);
+      triggerDownload(blob, `${safeTitle}.${exportFileExtension(resolved, format)}`);
     } finally {
       this.exporting.set(false);
     }

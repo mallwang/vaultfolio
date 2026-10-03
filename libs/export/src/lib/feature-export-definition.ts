@@ -25,6 +25,95 @@ interface ChartSideTable {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- ECharts option shape is owned by the `echarts` package, not this library.
 export type EChartsOption = Record<string, any>;
 
+/** How a `PdfTableColumn` value is rendered; amounts are formatted with the export locale. */
+export type PdfColumnFormat = 'text' | 'currency' | 'currencyWhole' | 'percent' | 'integer';
+
+export interface PdfTableColumn {
+  key: string;
+  /** Already translated. */
+  label: string;
+  format: PdfColumnFormat;
+  /** Fixed width in points, `'auto'` or `'*'`; defaults to `'*'` for numeric, `'auto'` for text. */
+  width?: number | 'auto' | '*';
+  align?: 'left' | 'right';
+  /**
+   * Key of a second value shown below the main one in the same cell, in smaller grey text and the
+   * same format (e.g. net below gross).
+   */
+  secondaryKey?: string;
+}
+
+export interface PdfTableRow {
+  /** Decimals are canonical strings, formatted at render time. Ratios (`percent`) are fractions. */
+  cells: Record<string, string | number | null>;
+  /** `'total'` renders the row bold (e.g. a career-total row). */
+  emphasis?: 'total';
+}
+
+/** One block of a section-based PDF (rendered after title, infobox and charts). */
+export type PdfSection =
+  | {
+      kind: 'table';
+      title: string;
+      subtitle?: string;
+      columns: PdfTableColumn[];
+      rows: PdfTableRow[];
+      /** Density hint in points; the renderer defaults to 8. */
+      fontSize?: number;
+      /**
+       * `false` lets the table follow the previous content on the same page (it still moves to
+       * the next page if it does not fit). Defaults to `true`: every table starts a new page.
+       */
+      startOnNewPage?: boolean;
+    }
+  | { kind: 'text'; title?: string; text: string };
+
+export type ExportTableColumnFormat = 'text' | 'integer' | 'money' | 'ratio';
+
+export interface ExportTableColumn {
+  /** Stable, language-independent key (JSON field name). */
+  key: string;
+  /** Already translated (CSV/Excel header). */
+  label: string;
+  format: ExportTableColumnFormat;
+  /**
+   * Excel only: formula written instead of the value in every row of the column, as a template
+   * whose `{key}` placeholders refer to the cell of that column in the same row, e.g.
+   * `IF({gross}=0,0,{taxes}/{gross})`. The row's value is kept as the cached result, so viewers
+   * that do not recalculate still show it. CSV and JSON ignore this and carry the value.
+   */
+  formula?: string;
+  /** Excel only: a row with `emphasis: 'total'` sums the column's data rows with `SUM(…)`. */
+  sumInTotal?: boolean;
+  /** Excel only: presentation that differs from the flat CSV/JSON column. */
+  excel?: {
+    /** Merged header cell above all adjacent columns with the same group; `label` goes below. */
+    group?: string;
+    /** Header text of the column; defaults to the column's `label`. */
+    label?: string;
+    /** Leaves the column out of the sheet. */
+    hidden?: boolean;
+  };
+}
+
+export interface ExportTableRow {
+  /** `money`/`ratio` are canonical decimal strings (ratio = fraction), `integer` a number. */
+  cells: Record<string, string | number | null>;
+  emphasis?: 'total';
+}
+
+/** Format-neutral table: Excel sheet, CSV file or JSON section, depending on the exporter. */
+export interface ExportTable {
+  /** Stable, language-independent key (JSON section name). */
+  id: string;
+  /** Already translated (sheet name, CSV file name). */
+  title: string;
+  columns: ExportTableColumn[];
+  rows: ExportTableRow[];
+  /** JSON key that receives the `emphasis: 'total'` row. */
+  totalKey?: string;
+}
+
 export type ExportFormat = 'json' | 'csv' | 'xlsx' | 'pdf';
 
 export type ExportColumnFormat = 'text' | 'number' | 'decimal' | 'date' | 'currency';
@@ -70,6 +159,24 @@ export interface FeatureExportDefinition {
    */
   getChartSideTable?(): ChartSideTable | undefined;
   /**
+   * Optional PDF-only replacement for the generic table: when present, the PDF shows these
+   * sections instead of the `fetchData()` table. Awaited before `getChartOptions()`, so the
+   * definition may cache what the charts need. Other formats ignore it.
+   */
+  getPdfSections?(): Promise<PdfSection[]>;
+  /**
+   * Optional replacement of `fetchData()`/`columns` for JSON, CSV and Excel: when present, those
+   * formats serialize these tables instead of the generic rows. The PDF ignores it.
+   */
+  getExportTables?(): Promise<ExportTable[]>;
+  /** PDF-only infobox key, used instead of `infoboxKey` for the PDF. */
+  pdfInfoboxKey?: string;
+  /**
+   * Capture size in CSS pixels of the PDF chart images. In a section PDF the first chart is drawn
+   * at the full page width, so a wide size (e.g. 1000×330) avoids a stretched or tiny chart.
+   */
+  pdfChartSize?: { width: number; height: number };
+  /**
    * Returns `false` to disable the export button. Omit (or return `true`) when always available.
    * May read Angular signals — the component calls this inside `computed()`.
    */
@@ -92,6 +199,10 @@ export interface ResolvedFeatureExport {
   rows: ExportRow[];
   /** Pre-captured PNG data URLs, PDF only. */
   chartImages?: string[];
+  /** Sections rendered instead of the generic table, PDF only. */
+  pdfSections?: PdfSection[];
+  /** Tables serialized instead of `rows`, JSON/CSV/Excel only. */
+  tables?: ExportTable[];
   /** Allocation table rendered to the right of the first chart image, PDF only. */
   chartSideTable?: ChartSideTable;
   /** BCP 47 language tag (e.g. 'de', 'en') for locale-aware number/date formatting in PDF. */
