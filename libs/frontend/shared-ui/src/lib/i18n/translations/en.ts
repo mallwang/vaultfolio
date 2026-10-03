@@ -64,6 +64,15 @@ export const en: TranslationDictionary = {
     genericError: 'Sign in failed. Please try again.',
   },
   dashboard: {
+    tileDisabled:
+      'This feature is disabled for your account. Contact your administrator to have it enabled.',
+    moveTile: 'Move tile',
+    edit: {
+      link: 'Edit dashboard',
+      title: 'Edit dashboard',
+      hint: 'Choose which tiles appear on your dashboard. Reorder them right on the dashboard by dragging the handle of a tile (or with the arrow keys).',
+      reset: 'Reset',
+    },
     retirement: 'Retirement',
     earnings: 'Earnings',
     totalValue: 'Total value',
@@ -74,9 +83,6 @@ export const en: TranslationDictionary = {
       "This card will show your holdings' combined total value once portfolio data is available.",
     todaysChangeBody:
       "This card will show how your portfolio's value moved today once portfolio data is available.",
-    emptyStateTitle: 'Portfolio overview coming soon',
-    emptyStateBody:
-      "This area will show your holdings' total value, allocation, and performance once portfolio data is available.",
   },
   holdingsDistribution: {
     title: 'Distribution by value',

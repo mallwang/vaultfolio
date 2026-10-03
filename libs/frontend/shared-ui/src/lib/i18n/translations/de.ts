@@ -58,6 +58,15 @@ export const de: TranslationDictionary = {
     genericError: 'Anmeldung fehlgeschlagen. Bitte erneut versuchen.',
   },
   dashboard: {
+    tileDisabled:
+      'Dieses Feature ist für Ihr Konto deaktiviert. Wenden Sie sich an den Administrator, um es freischalten zu lassen.',
+    moveTile: 'Kachel verschieben',
+    edit: {
+      link: 'Dashboard bearbeiten',
+      title: 'Dashboard bearbeiten',
+      hint: 'Wählen Sie, welche Kacheln auf Ihrem Dashboard erscheinen. Die Reihenfolge ändern Sie direkt auf dem Dashboard per Drag & Drop am Griff einer Kachel (oder mit den Pfeiltasten).',
+      reset: 'Zurücksetzen',
+    },
     retirement: 'Altersvorsorge',
     earnings: 'Einkommen',
     totalValue: 'Gesamtwert',
@@ -68,9 +77,6 @@ export const de: TranslationDictionary = {
       'Diese Karte zeigt den Gesamtwert Ihrer Bestände, sobald Portfoliodaten verfügbar sind.',
     todaysChangeBody:
       'Diese Karte zeigt die heutige Wertentwicklung Ihres Portfolios, sobald Portfoliodaten verfügbar sind.',
-    emptyStateTitle: 'Portfolioübersicht folgt in Kürze',
-    emptyStateBody:
-      'Hier werden Gesamtwert, Verteilung und Wertentwicklung Ihrer Bestände angezeigt, sobald Portfoliodaten verfügbar sind.',
   },
   holdingsDistribution: {
     title: 'Verteilung nach Wert',

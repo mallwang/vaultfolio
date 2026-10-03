@@ -1,0 +1,77 @@
+import {
+  parseDashboardLayout,
+  reorderVisible,
+  resolveTiles,
+  type DashboardTileDefinition,
+} from './dashboard-layout';
+
+const tile = (id: string, entitled = true): DashboardTileDefinition => ({
+  id,
+  titleKey: `t.${id}`,
+  source: { kind: 'placeholder', icon: 'x', bodyKey: 'b' },
+  entitled,
+});
+
+const catalog = [tile('a'), tile('b'), tile('c')];
+const ids = (tiles: { id: string }[]) => tiles.map((t) => t.id);
+
+describe('resolveTiles', () => {
+  it('keeps catalog order for an empty layout', () => {
+    expect(ids(resolveTiles(catalog, { order: [], hidden: [] }))).toEqual(['a', 'b', 'c']);
+  });
+
+  it('applies the saved order and appends tiles the layout does not know yet', () => {
+    expect(ids(resolveTiles(catalog, { order: ['c', 'a'], hidden: [] }))).toEqual(['c', 'a', 'b']);
+  });
+
+  it('ignores saved ids that are no longer in the catalog', () => {
+    expect(ids(resolveTiles(catalog, { order: ['gone', 'b'], hidden: [] }))).toEqual([
+      'b',
+      'a',
+      'c',
+    ]);
+  });
+
+  it('keeps a not-entitled tile in its slot', () => {
+    const tiles = resolveTiles([tile('a'), tile('b', false), tile('c')], {
+      order: ['c', 'b', 'a'],
+      hidden: [],
+    });
+    expect(ids(tiles)).toEqual(['c', 'b', 'a']);
+    expect(tiles[1].entitled).toBe(false);
+  });
+
+  it('flags hidden tiles but never hides a not-entitled tile', () => {
+    const tiles = resolveTiles([tile('a'), tile('b', false)], { order: [], hidden: ['a', 'b'] });
+    expect(tiles.map((t) => t.hidden)).toEqual([true, false]);
+  });
+});
+
+describe('reorderVisible', () => {
+  it('moves a visible tile and leaves hidden tiles in their slots', () => {
+    const tiles = resolveTiles(catalog, { order: [], hidden: ['b'] });
+    // visible: a, c -> move a behind c; b keeps slot 1
+    expect(reorderVisible(tiles, 0, 1)).toEqual(['c', 'b', 'a']);
+  });
+
+  it('returns the current order for out-of-range moves', () => {
+    const tiles = resolveTiles(catalog, { order: [], hidden: [] });
+    expect(reorderVisible(tiles, 0, 3)).toEqual(['a', 'b', 'c']);
+    expect(reorderVisible(tiles, 0, -1)).toEqual(['a', 'b', 'c']);
+  });
+});
+
+describe('parseDashboardLayout', () => {
+  it('falls back to an empty layout for missing or broken input', () => {
+    for (const raw of [null, '', 'not json', '42', 'null']) {
+      expect(parseDashboardLayout(raw)).toEqual({ order: [], hidden: [] });
+    }
+  });
+
+  it('keeps only string entries', () => {
+    expect(parseDashboardLayout('{"order":["a",1],"hidden":"x"}')).toEqual({
+      order: ['a'],
+      hidden: [],
+    });
+  });
+});

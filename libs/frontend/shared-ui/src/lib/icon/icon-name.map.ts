@@ -18,6 +18,7 @@ export const ICON_NAME_MAP: Record<string, string> = {
   cog: 'settings',
   contract: 'description',
   download: 'download',
+  'drag-handle': 'drag_indicator',
   envelope: 'mail',
   warning: 'warning',
   inbox: 'inbox',

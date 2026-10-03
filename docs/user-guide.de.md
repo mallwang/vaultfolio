@@ -119,6 +119,13 @@ Zusammenfassungs-Widgets der von dir genutzten Bereiche anzuzeigen – zum Beisp
 dem Gesamtportfoliowert. Einige Widgets erscheinen erst, nachdem du Daten eingegeben hast. Das
 Dashboard wird mit jeder neuen Domäne weiter ausgebaut.
 
+**Dashboard anordnen.** Ziehe eine Kachel am Griff oben rechts an eine andere Stelle (oder
+fokussiere den Griff und nutze die Pfeiltasten). Über **Dashboard bearbeiten** oberhalb der Kacheln
+schaltest du einzelne Kacheln ein oder aus. Die Kachel eines Features, das für dein Konto
+deaktiviert ist, bleibt als Platzhalter an ihrer Stelle; ihr Schalter ist ausgegraut – wende dich
+an den Administrator, um das Feature freischalten zu lassen. Deine Anordnung wird nur in diesem
+Browser und pro Konto gespeichert; **Zurücksetzen** stellt den Standard wieder her.
+
 ---
 
 ## 4. Holdings

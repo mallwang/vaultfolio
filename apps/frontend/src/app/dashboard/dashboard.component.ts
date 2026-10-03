@@ -1,4 +1,5 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
+import { CdkDrag, CdkDragHandle, CdkDropList, type CdkDragDrop } from '@angular/cdk/drag-drop';
 import { CardModule } from 'primeng/card';
 import { TagModule } from 'primeng/tag';
 import {
@@ -6,16 +7,20 @@ import {
   TranslatePipe,
   DynamicOutletComponent,
 } from '@vaultfolio/frontend-shared-ui';
-import { isDomainEntitled } from '@vaultfolio/frontend-domain-access';
-import { CurrentUserStore } from '../auth/current-user.store';
-import { DASHBOARD_WIDGET_CONTRIBUTIONS } from './dashboard-widgets.registry';
+import { DashboardEditDialogComponent } from './dashboard-edit-dialog.component';
+import { DashboardLayoutStore } from './dashboard-layout.store';
 
 /**
  * Dashboard area (FR-005): total value and today's change remain placeholder
  * shells; a `p-card` per `DASHBOARD_WIDGET_CONTRIBUTIONS` entry the current
  * user is entitled to renders that widget (FR-001, FR-004,
  * 021-frontend-extension-points), via the generic `DynamicOutletComponent`,
- * headed by the contribution's own `titleKey`.
+ * headed by the contribution's own `titleKey`. A widget the user is not
+ * entitled to renders a placeholder card in its slot instead.
+ *
+ * The user can drag the cards into their own order and switch individual
+ * ones off ("Edit dashboard"); both live in `DashboardLayoutStore`
+ * (browser-local).
  *
  * `DashboardComponent` itself has no domain-specific knowledge — it neither
  * imports a domain's widget component nor fetches that domain's data
@@ -26,17 +31,35 @@ import { DASHBOARD_WIDGET_CONTRIBUTIONS } from './dashboard-widgets.registry';
  */
 @Component({
   selector: 'app-dashboard',
-  imports: [CardModule, TagModule, TranslatePipe, IconComponent, DynamicOutletComponent],
+  imports: [
+    CdkDrag,
+    CdkDragHandle,
+    CdkDropList,
+    CardModule,
+    TagModule,
+    TranslatePipe,
+    IconComponent,
+    DynamicOutletComponent,
+    DashboardEditDialogComponent,
+  ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
 })
 export class DashboardComponent {
-  private readonly currentUserStore = inject(CurrentUserStore);
+  private readonly layout = inject(DashboardLayoutStore);
 
-  protected readonly visibleWidgets = computed(() => {
-    const user = this.currentUserStore.current();
-    return DASHBOARD_WIDGET_CONTRIBUTIONS.filter((widget) =>
-      isDomainEntitled(user, widget.domainId),
-    );
-  });
+  protected readonly tiles = this.layout.visibleTiles;
+  protected readonly editOpen = signal(false);
+
+  protected onDrop(event: CdkDragDrop<unknown>): void {
+    this.layout.moveVisible(event.previousIndex, event.currentIndex);
+  }
+
+  /** Keyboard alternative to dragging: arrow keys on the focused handle move the tile. */
+  protected onHandleKeydown(event: KeyboardEvent, index: number): void {
+    const step = { ArrowLeft: -1, ArrowUp: -1, ArrowRight: 1, ArrowDown: 1 }[event.key];
+    if (!step) return;
+    event.preventDefault();
+    this.layout.moveVisible(index, index + step);
+  }
 }

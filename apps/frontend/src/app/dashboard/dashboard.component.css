@@ -15,6 +15,91 @@
   }
 }
 
+.toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.65rem;
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0;
+  line-height: 1;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--p-primary-color);
+  cursor: pointer;
+}
+
+.link:hover .link__label {
+  text-decoration: underline;
+}
+
+.link:focus-visible {
+  outline: 2px solid var(--p-primary-color);
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}
+
+.tile {
+  position: relative;
+  min-width: 0;
+  display: flex;
+}
+
+/* Cards in one grid row share the row's height; the spare room sits inside the card. */
+.tile p-card {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+}
+
+.tile ::ng-deep .p-card {
+  flex: 1;
+  min-width: 0;
+}
+
+.tile__handle {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  z-index: 1;
+  display: inline-flex;
+  padding: 0.15rem;
+  border: 0;
+  border-radius: 0.25rem;
+  background: none;
+  color: var(--p-text-muted-color);
+  cursor: grab;
+}
+
+.tile__handle:hover,
+.tile__handle:focus-visible {
+  color: var(--p-text-color);
+  background: var(--p-content-hover-background);
+}
+
+.tile__handle:focus-visible {
+  outline: 2px solid var(--p-primary-color);
+}
+
+.tile.cdk-drag-placeholder {
+  opacity: 0.35;
+}
+
+.tile.cdk-drag-preview {
+  box-shadow: 0 0.5rem 1.5rem rgb(0 0 0 / 0.25);
+}
+
+.card-row.cdk-drop-list-dragging .tile:not(.cdk-drag-placeholder) {
+  transition: transform 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
 .stat-card__placeholder {
   display: flex;
   flex-direction: column;
@@ -38,30 +123,4 @@
   margin: 0;
   font-size: 0.75rem;
   max-width: 26ch;
-}
-
-.empty-state {
-  text-align: center;
-  color: var(--p-text-muted-color);
-  padding: 1rem 0;
-}
-
-.empty-state__icon {
-  font-size: 2.2rem;
-  margin: 0 auto 0.85rem;
-  color: var(--p-text-muted-color);
-  display: block;
-}
-
-.empty-state h2 {
-  margin: 0 0 0.35rem;
-  font-size: 1rem;
-  color: var(--p-text-color);
-}
-
-.empty-state p {
-  margin: 0;
-  font-size: 0.85rem;
-  max-width: 40ch;
-  margin-inline: auto;
 }

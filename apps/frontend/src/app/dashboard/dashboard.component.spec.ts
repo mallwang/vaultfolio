@@ -228,4 +228,59 @@ describe('DashboardComponent', () => {
     expect(text).toContain("Today's change");
     expect(el.querySelector('app-dynamic-outlet')).toBeNull();
   });
+
+  describe('arranging tiles', () => {
+    const tileIds = (el: HTMLElement) =>
+      Array.from(el.querySelectorAll('[data-testid^="dashboard-tile-"]'))
+        .map((node) => node.getAttribute('data-testid') ?? '')
+        .filter((id) => !id.includes('handle') && !id.includes('disabled'));
+    const byTestId = (el: HTMLElement, id: string) =>
+      el.querySelector(`[data-testid="${id}"]`) as HTMLElement;
+
+    it('keeps a placeholder in the slot of a tile the account is not entitled to', () => {
+      fakeCurrentUser.setAuthenticated(unentitledUser);
+      fixture.detectChanges();
+
+      const el = fixture.nativeElement as HTMLElement;
+      expect(tileIds(el)).toContain('dashboard-tile-holdings');
+      expect(byTestId(el, 'dashboard-tile-disabled-holdings').textContent).toContain(
+        'administrator',
+      );
+    });
+
+    it('moves a tile with the arrow keys and remembers the order', () => {
+      fakeCurrentUser.setAuthenticated(unentitledUser);
+      fixture.detectChanges();
+      const el = fixture.nativeElement as HTMLElement;
+
+      byTestId(el, 'dashboard-tile-handle-totalValue').dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'ArrowRight' }),
+      );
+      fixture.detectChanges();
+
+      expect(tileIds(el).slice(0, 2)).toEqual([
+        'dashboard-tile-todaysChange',
+        'dashboard-tile-totalValue',
+      ]);
+      expect(localStorage.getItem('vaultfolio.dashboard-layout.user-2')).toContain('"order"');
+    });
+
+    it('switches a tile off through the edit dialog and keeps unavailable ones locked', async () => {
+      fakeCurrentUser.setAuthenticated(unentitledUser);
+      fixture.detectChanges();
+      const el = fixture.nativeElement as HTMLElement;
+
+      byTestId(el, 'dashboard-edit-open').click();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(byTestId(document.body, 'dashboard-edit-locked-holdings')).not.toBeNull();
+      const toggle = byTestId(document.body, 'dashboard-edit-toggle-todaysChange');
+      (toggle.querySelector('input') as HTMLInputElement).click();
+      fixture.detectChanges();
+
+      expect(tileIds(el)).not.toContain('dashboard-tile-todaysChange');
+    });
+  });
 });
