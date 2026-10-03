@@ -154,7 +154,10 @@ describe('app.routes', () => {
 
     it.each(NEW_DOMAIN_IDS)('resolves /app/%s to itself', async (id) => {
       await router.navigateByUrl(`/app/${id}`);
-      expect(location.path()).toBe(`/app/${id}`);
+      // the retirement area opens on its first pillar tab (037)
+      expect(location.path()).toBe(
+        id === 'retirement' ? '/app/retirement/statutory' : `/app/${id}`,
+      );
     });
   });
 

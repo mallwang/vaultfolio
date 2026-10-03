@@ -95,6 +95,9 @@
           "exclude": [
             "@vaultfolio/export",
             "@vaultfolio/api-contract",
+            "@vaultfolio/document-text",
+            "@vaultfolio/retirement",
+            "@vaultfolio/frontend-document-reader",
             "@vaultfolio/frontend-admin",
             "@vaultfolio/frontend-domain-access",
             "@vaultfolio/earnings",

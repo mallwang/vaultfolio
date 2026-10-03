@@ -1,5 +1,6 @@
 import { requestsEn } from './requests.en';
 import { earningsEn } from './earnings.en';
+import { retirementEn } from './retirement.en';
 import { ocrEn } from './ocr.en';
 
 /**
@@ -409,10 +410,6 @@ export const en: TranslationDictionary = {
   },
   // Placeholder domains (022-add-domain-placeholders, FR-003): each renders
   // only its name and this "not yet available" copy — no other UI surface.
-  retirementPlaceholder: {
-    title: 'Retirement',
-    body: 'Retirement is not yet available. This area will be built out in a future update.',
-  },
   insurancesPlaceholder: {
     title: 'Insurances',
     body: 'Insurances is not yet available. This area will be built out in a future update.',
@@ -518,6 +515,13 @@ export const en: TranslationDictionary = {
     earningsImports: 'Earnings · Imports',
     earningsImport: 'Import documents',
     earningsRequest: 'Request a parser',
+    retirementStatutory: 'Retirement · Statutory',
+    retirementOccupational: 'Retirement · Occupational',
+    retirementPrivate: 'Retirement · Private',
+    retirementInfo: 'Retirement · Further information',
+    retirementImport: 'Upload retirement document',
+    retirementNew: 'Add retirement entry',
+    retirementEdit: 'Edit retirement entry',
     settings: 'Settings',
     settingsProfile: 'Settings · Profile',
     settingsPreferences: 'Settings · Preferences',
@@ -668,6 +672,7 @@ export const en: TranslationDictionary = {
       'About this export — Wealth Development. Historic wealth development tracking is not built yet in Vaultfolio, so this file contains no rows today — it will automatically start including your data once that feature ships.',
   },
   earnings: earningsEn,
+  retirement: retirementEn,
   ocr: ocrEn,
   requests: requestsEn,
 };

@@ -1,5 +1,6 @@
 import { requestsDe } from './requests.de';
 import { earningsDe } from './earnings.de';
+import { retirementDe } from './retirement.de';
 import { ocrDe } from './ocr.de';
 import type { TranslationDictionary } from './en';
 
@@ -410,10 +411,6 @@ export const de: TranslationDictionary = {
   },
   // Placeholder-Domänen (022-add-domain-placeholders, FR-003): jede zeigt nur
   // ihren Namen und diesen "noch nicht verfügbar"-Text — keine weitere UI.
-  retirementPlaceholder: {
-    title: 'Altersvorsorge',
-    body: 'Altersvorsorge ist noch nicht verfügbar. Dieser Bereich wird in einem zukünftigen Update ausgebaut.',
-  },
   insurancesPlaceholder: {
     title: 'Versicherungen',
     body: 'Versicherungen sind noch nicht verfügbar. Dieser Bereich wird in einem zukünftigen Update ausgebaut.',
@@ -520,6 +517,13 @@ export const de: TranslationDictionary = {
     earningsImports: 'Einkommensentwicklung · Importe',
     earningsImport: 'Dokumente importieren',
     earningsRequest: 'Parser anfragen',
+    retirementStatutory: 'Altersvorsorge · Gesetzlich',
+    retirementOccupational: 'Altersvorsorge · Betrieblich',
+    retirementPrivate: 'Altersvorsorge · Privat',
+    retirementInfo: 'Altersvorsorge · Weiterführende Informationen',
+    retirementImport: 'Altersvorsorge-Dokument hochladen',
+    retirementNew: 'Altersvorsorge-Eintrag hinzufügen',
+    retirementEdit: 'Altersvorsorge-Eintrag bearbeiten',
     settings: 'Einstellungen',
     settingsProfile: 'Einstellungen · Profil',
     settingsPreferences: 'Einstellungen · Präferenzen',
@@ -672,6 +676,7 @@ export const de: TranslationDictionary = {
       'Über diesen Export — Vermögensentwicklung. Die historische Vermögensentwicklung ist in Vaultfolio noch nicht umgesetzt, daher enthält diese Datei heute keine Zeilen — sie wird automatisch Ihre Daten enthalten, sobald diese Funktion verfügbar ist.',
   },
   earnings: earningsDe,
+  retirement: retirementDe,
   ocr: ocrDe,
   requests: requestsDe,
 };
