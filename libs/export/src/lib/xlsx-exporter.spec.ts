@@ -166,4 +166,58 @@ describe('exportXlsx with tables', () => {
     expect(sheet.rowCount).toBe(1);
     expect(sheet.getRow(1).getCell(1).value).toBe('Jahr');
   });
+
+  it('writes formulas with cached results and SUM in the total row', async () => {
+    const table: ExportTable = {
+      id: 't',
+      title: 'F',
+      columns: [
+        { key: 'name', label: 'Name', format: 'text' },
+        { key: 'gross', label: 'Brutto', format: 'money', sumInTotal: true },
+        { key: 'tax', label: 'Steuern', format: 'money', sumInTotal: true },
+        { key: 'pct', label: '%', format: 'ratio', formula: 'IF({gross}=0,0,{tax}/{gross})' },
+      ],
+      rows: [
+        { cells: { name: 'A', gross: '100.00', tax: '20.00', pct: '0.2000' } },
+        { cells: { name: 'B', gross: '300.00', tax: '30.00', pct: '0.1000' } },
+        { cells: { name: 'Σ', gross: '400.00', tax: '50.00', pct: '0.1250' }, emphasis: 'total' },
+      ],
+    };
+    const sheet = (await readWorkbook(await exportXlsx(withTables([table])))).worksheets[0];
+
+    expect(sheet.getCell('D2').value).toEqual({ formula: 'IF(B2=0,0,C2/B2)', result: 0.2 });
+    expect(sheet.getCell('B4').value).toEqual({ formula: 'SUM(B2:B3)', result: 400 });
+    expect(sheet.getCell('C4').value).toEqual({ formula: 'SUM(C2:C3)', result: 50 });
+    expect(sheet.getCell('D4').value).toEqual({ formula: 'IF(B4=0,0,C4/B4)', result: 0.125 });
+  });
+
+  it('merges a grouped two-row header and skips hidden columns', async () => {
+    const table: ExportTable = {
+      id: 't',
+      title: 'G',
+      columns: [
+        { key: 'year', label: 'Jahr', format: 'integer' },
+        {
+          key: 'g1',
+          label: 'Brutto Jan',
+          format: 'money',
+          excel: { group: 'Jan', label: 'Brutto' },
+        },
+        { key: 'n1', label: 'Netto Jan', format: 'money', excel: { group: 'Jan', label: 'Netto' } },
+        { key: 'sum', label: 'Summe', format: 'money', excel: { hidden: true } },
+      ],
+      rows: [{ cells: { year: 2026, g1: '10.00', n1: '6.00', sum: '10.00' } }],
+    };
+    const sheet = (await readWorkbook(await exportXlsx(withTables([table])))).worksheets[0];
+
+    expect(sheet.columns).toHaveLength(3);
+    expect(sheet.getCell('A1').value).toBe('Jahr');
+    expect(sheet.getCell('B1').value).toBe('Jan');
+    expect(sheet.getCell('C1').master.address).toBe('B1');
+    expect(sheet.getCell('A2').master.address).toBe('A1');
+    expect([sheet.getCell('B2').value, sheet.getCell('C2').value]).toEqual(['Brutto', 'Netto']);
+    expect(Number(sheet.getCell('B3').value)).toBe(10);
+    expect(sheet.views[0]).toMatchObject({ state: 'frozen', ySplit: 2 });
+    expect(sheet.autoFilter).toBeUndefined();
+  });
 });

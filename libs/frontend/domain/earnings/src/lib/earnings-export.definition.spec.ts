@@ -120,7 +120,7 @@ describe('createEarningsExportDefinition', () => {
       expect(result?.map((x) => (x.kind === 'table' ? x.title : x.text))).toEqual([
         'Totals per employer',
         'Monthly overview gross / net',
-        'All taxes and contributions per year',
+        'Taxes and contributions',
       ]);
     });
 

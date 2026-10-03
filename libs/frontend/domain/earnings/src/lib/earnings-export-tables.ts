@@ -13,7 +13,28 @@ const col = (
   key: string,
   label: string,
   format: ExportTableColumnFormat = 'money',
-): ExportTableColumn => ({ key, label, format });
+  extra: Partial<ExportTableColumn> = {},
+): ExportTableColumn => ({ key, label, format, ...extra });
+
+/** Excel formula template for a share of the gross, `0` without gross (as the report's ratios). */
+const shareOfGross = (...parts: string[]) =>
+  'IF({gross}=0,0,(' + parts.map((p) => '{' + p + '}').join('+') + ')/{gross})';
+
+/** Canonical `0.0000` ratio of two money strings, rounded half up like the report's ratios. */
+function ratio(numerator: string, denominator: string): string {
+  const cents = (value: string) => {
+    const [whole, fraction = ''] = value.replace('-', '').split('.');
+    return BigInt(whole + fraction.padEnd(2, '0').slice(0, 2)) * (value.startsWith('-') ? -1n : 1n);
+  };
+  const n = cents(numerator);
+  const d = cents(denominator);
+  if (d === 0n) return '0.0000';
+  const negative = n < 0n !== d < 0n;
+  const abs = (v: bigint) => (v < 0n ? -v : v);
+  const scaled = (abs(n) * 20000n + abs(d)) / (2n * abs(d));
+  const text = scaled.toString().padStart(5, '0');
+  return `${negative && scaled !== 0n ? '-' : ''}${text.slice(0, -4)}.${text.slice(-4)}`;
+}
 
 const pad = (month: number) => String(month).padStart(2, '0');
 
@@ -37,8 +58,10 @@ function grossPerYear(report: EarningsReport, t: Translate): ExportTable {
       col('net', t('earnings.terms.net')),
       col('taxes', t('earnings.terms.taxes')),
       col('social', t('earnings.terms.social')),
-      col('taxRatio', t('earnings.tables.taxesPct'), 'ratio'),
-      col('socialRatio', t('earnings.tables.socialPct'), 'ratio'),
+      col('taxRatio', t('earnings.tables.taxesPct'), 'ratio', { formula: shareOfGross('taxes') }),
+      col('socialRatio', t('earnings.tables.socialPct'), 'ratio', {
+        formula: shareOfGross('social'),
+      }),
     ],
     rows: report.yearly.map((p) => ({
       cells: {
@@ -65,8 +88,11 @@ function employers(report: EarningsReport, t: Translate): ExportTable {
       net: entry.totals.net,
       netRatio: entry.netRatio,
       taxes: entry.totals.taxes,
+      taxRatio: ratio(entry.totals.taxes, entry.totals.gross),
       social: entry.totals.social,
+      socialRatio: ratio(entry.totals.social, entry.totals.gross),
       bonus: entry.totals.bonus,
+      bonusRatio: ratio(entry.totals.bonus, entry.totals.gross),
     },
     ...(emphasis ? { emphasis } : {}),
   });
@@ -76,12 +102,19 @@ function employers(report: EarningsReport, t: Translate): ExportTable {
     totalKey: 'careerTotal',
     columns: [
       col('employer', t('earnings.tables.employer'), 'text'),
-      col('gross', t('earnings.terms.gross')),
-      col('net', t('earnings.terms.net')),
-      col('netRatio', t('earnings.terms.netRatio'), 'ratio'),
-      col('taxes', t('earnings.terms.taxes')),
-      col('social', t('earnings.terms.social')),
-      col('bonus', t('earnings.terms.bonus')),
+      col('gross', t('earnings.terms.gross'), 'money', { sumInTotal: true }),
+      col('net', t('earnings.terms.net'), 'money', { sumInTotal: true }),
+      col('netRatio', t('earnings.terms.netRatio'), 'ratio', {
+        formula: 'IF({gross}=0,0,{net}/{gross})',
+      }),
+      col('taxes', t('earnings.terms.taxes'), 'money', { sumInTotal: true }),
+      col('taxRatio', t('earnings.tables.taxesPct'), 'ratio', { formula: shareOfGross('taxes') }),
+      col('social', t('earnings.terms.social'), 'money', { sumInTotal: true }),
+      col('socialRatio', t('earnings.tables.socialPct'), 'ratio', {
+        formula: shareOfGross('social'),
+      }),
+      col('bonus', t('earnings.terms.bonus'), 'money', { sumInTotal: true }),
+      col('bonusRatio', t('earnings.tables.bonusPct'), 'ratio', { formula: shareOfGross('bonus') }),
     ],
     rows: [
       ...report.employers.map((e) => toRow(e, e.label)),
@@ -94,24 +127,32 @@ function monthlyOverview(report: EarningsReport, t: Translate, lang: string): Ex
   const months = Array.from({ length: 12 }, (_, i) => i + 1);
   const gross = t('earnings.terms.gross');
   const net = t('earnings.terms.net');
-  const sum = t('earnings.tables.sum');
+  // CSV/JSON keep one flat column per figure ("Brutto Januar", "Netto Januar", ...); Excel shows
+  // gross and net side by side under a merged month header. No year sums in any format.
   return {
     id: 'monthlyOverview',
     title: t('earnings.export.tableMonthly'),
     columns: [
       col('year', t('earnings.tables.year'), 'integer'),
-      ...months.map((m) => col(`gross${pad(m)}`, `${gross} ${longMonth(m, lang)}`)),
-      col('grossTotal', `${gross} ${sum}`),
-      ...months.map((m) => col(`net${pad(m)}`, `${net} ${longMonth(m, lang)}`)),
-      col('netTotal', `${net} ${sum}`),
+      ...months.flatMap((m) => {
+        const month = longMonth(m, lang);
+        return [
+          col(`gross${pad(m)}`, `${gross} ${month}`, 'money', {
+            excel: { group: month, label: gross },
+          }),
+          col(`net${pad(m)}`, `${net} ${month}`, 'money', { excel: { group: month, label: net } }),
+        ];
+      }),
     ],
     rows: report.monthGrid.map((row) => ({
       cells: {
         year: row.year,
-        ...Object.fromEntries(months.map((m) => [`gross${pad(m)}`, row.gross[m - 1]])),
-        grossTotal: row.grossSum,
-        ...Object.fromEntries(months.map((m) => [`net${pad(m)}`, row.net[m - 1]])),
-        netTotal: row.netSum,
+        ...Object.fromEntries(
+          months.flatMap((m) => [
+            [`gross${pad(m)}`, row.gross[m - 1]],
+            [`net${pad(m)}`, row.net[m - 1]],
+          ]),
+        ),
       },
     })),
   };
@@ -135,8 +176,12 @@ function taxesPerYear(report: EarningsReport, t: Translate): ExportTable {
       col('care', t('earnings.tables.careShort')),
       col('pension', t('earnings.tables.pensionShort')),
       col('unemployment', t('earnings.tables.unemploymentShort')),
-      col('taxRatio', t('earnings.tables.taxesPct'), 'ratio'),
-      col('socialRatio', t('earnings.tables.socialPct'), 'ratio'),
+      col('taxRatio', t('earnings.tables.taxesPct'), 'ratio', {
+        formula: shareOfGross('wageTax', 'soli', 'churchTax'),
+      }),
+      col('socialRatio', t('earnings.tables.socialPct'), 'ratio', {
+        formula: shareOfGross('health', 'care', 'pension', 'unemployment'),
+      }),
     ],
     rows: report.taxRows.map((row) => ({
       cells: {

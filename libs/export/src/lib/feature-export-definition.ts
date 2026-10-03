@@ -76,6 +76,24 @@ export interface ExportTableColumn {
   /** Already translated (CSV/Excel header). */
   label: string;
   format: ExportTableColumnFormat;
+  /**
+   * Excel only: formula written instead of the value in every row of the column, as a template
+   * whose `{key}` placeholders refer to the cell of that column in the same row, e.g.
+   * `IF({gross}=0,0,{taxes}/{gross})`. The row's value is kept as the cached result, so viewers
+   * that do not recalculate still show it. CSV and JSON ignore this and carry the value.
+   */
+  formula?: string;
+  /** Excel only: a row with `emphasis: 'total'` sums the column's data rows with `SUM(…)`. */
+  sumInTotal?: boolean;
+  /** Excel only: presentation that differs from the flat CSV/JSON column. */
+  excel?: {
+    /** Merged header cell above all adjacent columns with the same group; `label` goes below. */
+    group?: string;
+    /** Header text of the column; defaults to the column's `label`. */
+    label?: string;
+    /** Leaves the column out of the sheet. */
+    hidden?: boolean;
+  };
 }
 
 export interface ExportTableRow {

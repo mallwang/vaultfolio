@@ -170,7 +170,7 @@ describe('buildEarningsPdfSections', () => {
     expect(sections.map((s) => (s.kind === 'table' ? s.title : ''))).toEqual([
       'Totals per employer',
       'Monthly overview gross / net',
-      'All taxes and contributions per year',
+      'Taxes and contributions',
     ]);
   });
 
@@ -426,7 +426,7 @@ describe('earnings PDF section language', () => {
     expect(s.map((x) => (x.kind === 'table' ? x.title : ''))).toEqual([
       'Summen je Arbeitgeber',
       'Monatsübersicht Brutto / Netto',
-      'Alle Steuern und Abgaben pro Jahr',
+      'Steuern und Abgaben',
     ]);
     expect(
       tableOf(s, 0)

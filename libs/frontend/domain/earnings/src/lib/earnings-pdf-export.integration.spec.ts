@@ -266,7 +266,7 @@ describe('earnings PDF with maximum realistic data', () => {
     const titles = [
       'Totals per employer',
       'Monthly overview gross / net',
-      'All taxes and contributions per year',
+      'Taxes and contributions',
     ];
     const pageIndexOf = (title: string) =>
       en_.pages.findIndex((p) => p.some((i) => i.str === title));
@@ -306,9 +306,7 @@ describe('earnings PDF with maximum realistic data', () => {
     const at = (label: string) => flat.findIndex((i) => i.str === label);
     expect(at('Totals per employer')).toBeGreaterThanOrEqual(0);
     expect(at('Totals per employer')).toBeLessThan(at('Monthly overview gross / net'));
-    expect(at('Monthly overview gross / net')).toBeLessThan(
-      at('All taxes and contributions per year'),
-    );
+    expect(at('Monthly overview gross / net')).toBeLessThan(at('Taxes and contributions'));
     expect(at('Career total')).toBeLessThan(at('Monthly overview gross / net'));
   });
 

@@ -119,7 +119,7 @@ describe('toExportTables', () => {
       'Gross per year',
       'Employers',
       'Monthly overview',
-      'All taxes and contributions per year',
+      'Taxes and contributions',
     ]);
   });
 
@@ -146,25 +146,22 @@ describe('toExportTables', () => {
     expect(table.rows[0].cells['netRatio']).toBe('0.6000');
   });
 
-  it('has 27 stable columns in the monthly overview with null for missing months', () => {
+  it('has 25 stable columns in the monthly overview with null for missing months', () => {
     const table = byId(tables, 'monthlyOverview');
     const keys = table.columns.map((c) => c.key);
-    expect(keys).toHaveLength(27);
+    expect(keys).toHaveLength(25);
     expect(keys[0]).toBe('year');
-    expect(keys.slice(1, 3)).toEqual(['gross01', 'gross02']);
-    expect(keys[12]).toBe('gross12');
-    expect(keys[13]).toBe('grossTotal');
-    expect(keys[14]).toBe('net01');
-    expect(keys[26]).toBe('netTotal');
+    expect(keys.slice(1, 5)).toEqual(['gross01', 'net01', 'gross02', 'net02']);
+    expect(keys[23]).toBe('gross12');
+    expect(keys[24]).toBe('net12');
     expect(table.columns[1].label).toBe('Gross January');
+    expect(table.columns[1].excel).toEqual({ group: 'January', label: 'Gross' });
     expect(table.rows[0].cells).toMatchObject({
       year: 2026,
       gross01: '5000.40',
       gross03: null,
-      grossTotal: '10000.80',
       net01: '3100.20',
       net02: null,
-      netTotal: '3100.20',
     });
     expect(table.rows[1].cells).toMatchObject({ gross12: '4000.10', net12: '2500.05' });
   });
@@ -228,8 +225,6 @@ describe('toExportTables', () => {
         expect(monthly.rows[i].cells[`gross${p}`]).toBe(row.cells[`m${m}`]);
         expect(monthly.rows[i].cells[`net${p}`]).toBe(row.cells[`n${m}`]);
       }
-      expect(monthly.rows[i].cells['grossTotal']).toBe(row.cells['sum']);
-      expect(monthly.rows[i].cells['netTotal']).toBe(row.cells['netSum']);
     });
     const taxes = byId(tables, 'taxesPerYear');
     pdf(2).forEach((row, i) => {
@@ -238,5 +233,14 @@ describe('toExportTables', () => {
         expect(taxes.rows[i].cells[key]).toBe(expected);
       }
     });
+  });
+});
+
+describe('toExportTables formulas', () => {
+  it('derives the percentage columns of gross per year from the same row', () => {
+    const table = byId(toExportTables(report, translator(en), 'en'), 'grossPerYear');
+    const formulas = Object.fromEntries(table.columns.map((c) => [c.key, c.formula]));
+    expect(formulas['taxRatio']).toBe('IF({gross}=0,0,({taxes})/{gross})');
+    expect(formulas['socialRatio']).toBe('IF({gross}=0,0,({social})/{gross})');
   });
 });

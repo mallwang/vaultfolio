@@ -207,7 +207,7 @@ describe('earnings tables export (integration)', () => {
     await workbook.xlsx.load((await readBuffer(await exportFeature(resolved, 'xlsx'))) as never);
     expect(workbook.worksheets).toHaveLength(4);
     const employers = workbook.worksheets[1];
-    expect(employers.getRow(employers.rowCount).getCell(2).value).toBe(Number(total['gross']));
+    expect(employers.getRow(employers.rowCount).getCell(2).result).toBe(Number(total['gross']));
     expect(workbook.worksheets[0].getRow(2).getCell(3).value).toBe(152026);
 
     const csvBlob = await exportFeature(resolved, 'csv');
@@ -217,7 +217,7 @@ describe('earnings tables export (integration)', () => {
       '01-gross-per-year.csv',
       '02-employers.csv',
       '03-monthly-overview.csv',
-      '04-all-taxes-and-contributions-per-year.csv',
+      '04-taxes-and-contributions.csv',
     ]);
     const employersCsv = (await zip.files['02-employers.csv'].async('string')).split('\r\n');
     expect(employersCsv.at(-1)).toContain(`Career total,${total['gross']},`);
