@@ -5,7 +5,7 @@ import { Router, provideRouter } from '@angular/router';
 import type { EarningsTables } from '@vaultfolio/api-contract';
 import { EarningsFilterStore } from '../earnings-area/earnings-filter.store';
 import { fakeFilterStore } from '../../testing/fake-filter-store';
-import { EarningsTablesComponent, gridRows } from './earnings-tables.component';
+import { EarningsTablesComponent, gridRows, sortTaxRows } from './earnings-tables.component';
 
 const TABLES: EarningsTables = {
   monthGrid: {
@@ -141,5 +141,115 @@ describe('EarningsTablesComponent', () => {
     expect(filtered.request.params.get('employer')).toBe('e1');
     filtered.flush(TABLES);
     store.employerId.set(null);
+  });
+});
+
+describe('taxes per year sorting', () => {
+  const base = TABLES.taxesPerYear[0];
+  const row = (year: number, employerId: string, gross: string, taxRatio: string) => ({
+    ...base,
+    year,
+    employerId,
+    gross,
+    taxRatio,
+  });
+  const rows = [
+    row(2026, 'a', '900.00', '0.2500'),
+    row(2025, 'b', '10000.00', '0.1000'),
+    row(2024, 'c', '2000.00', '0.2500'),
+  ];
+
+  it('keeps the API order without a sort', () => {
+    expect(sortTaxRows(rows, null).map((r) => r.employerId)).toEqual(['a', 'b', 'c']);
+  });
+
+  it('compares amounts numerically, not as text', () => {
+    expect(sortTaxRows(rows, { key: 'gross', direction: 'desc' }).map((r) => r.gross)).toEqual([
+      '10000.00',
+      '2000.00',
+      '900.00',
+    ]);
+    expect(sortTaxRows(rows, { key: 'gross', direction: 'asc' }).map((r) => r.gross)).toEqual([
+      '900.00',
+      '2000.00',
+      '10000.00',
+    ]);
+  });
+
+  it('sorts by year and keeps the original order for ties', () => {
+    expect(sortTaxRows(rows, { key: 'year', direction: 'asc' }).map((r) => r.year)).toEqual([
+      2024, 2025, 2026,
+    ]);
+    expect(
+      sortTaxRows(rows, { key: 'taxRatio', direction: 'desc' }).map((r) => r.employerId),
+    ).toEqual(['a', 'c', 'b']);
+  });
+
+  it('does not mutate its input', () => {
+    const copy = JSON.stringify(rows);
+    sortTaxRows(rows, { key: 'gross', direction: 'asc' });
+    expect(JSON.stringify(rows)).toBe(copy);
+  });
+});
+
+describe('taxes per year table headers', () => {
+  it('sorts by a clicked value column (desc, asc, reset) and offers no sort for employer or months', () => {
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: EarningsFilterStore, useValue: fakeFilterStore() },
+      ],
+    });
+    const http = TestBed.inject(HttpTestingController);
+    const fixture = TestBed.createComponent(EarningsTablesComponent);
+    fixture.detectChanges();
+    const base = TABLES.taxesPerYear[0];
+    http.expectOne('/api/earnings/tables').flush({
+      ...TABLES,
+      taxesPerYear: [
+        { ...base, year: 2026, employerId: 'a', gross: '900.00' },
+        { ...base, year: 2025, employerId: 'b', gross: '10000.00' },
+        { ...base, year: 2024, employerId: 'c', gross: '2000.00' },
+      ],
+    });
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    const order = () =>
+      [...root.querySelectorAll('[data-testid^="earnings-taxes-row-"]')].map((r) =>
+        r.getAttribute('data-testid')?.replace('earnings-taxes-row-', ''),
+      );
+    const sort = (key: string) =>
+      root.querySelector(`[data-testid="earnings-taxes-sort-${key}"]`) as HTMLButtonElement;
+    const th = (key: string) => sort(key).closest('th') as HTMLElement;
+
+    expect(order()).toEqual(['2026-a', '2025-b', '2024-c']);
+    expect(th('gross').getAttribute('aria-sort')).toBe('none');
+
+    sort('gross').click();
+    fixture.detectChanges();
+    expect(order()).toEqual(['2025-b', '2024-c', '2026-a']);
+    expect(th('gross').getAttribute('aria-sort')).toBe('descending');
+
+    sort('gross').click();
+    fixture.detectChanges();
+    expect(order()).toEqual(['2026-a', '2024-c', '2025-b']);
+    expect(th('gross').getAttribute('aria-sort')).toBe('ascending');
+
+    sort('gross').click();
+    fixture.detectChanges();
+    expect(order()).toEqual(['2026-a', '2025-b', '2024-c']);
+
+    const sortable = [...root.querySelectorAll('[data-testid^="earnings-taxes-sort-"]')].map((b) =>
+      b.getAttribute('data-testid')?.replace('earnings-taxes-sort-', ''),
+    );
+    expect(sortable).toHaveLength(13);
+    expect(sortable).not.toContain('employerLabel');
+    expect(sortable).not.toContain('monthsEmployed');
+    const taxTable = root.querySelector('[data-testid="earnings-taxes-table"]') as HTMLElement;
+    const headers = [...taxTable.querySelectorAll('thead th')];
+    expect(headers[1].querySelector('button')).toBeNull();
+    expect(headers[2].querySelector('button')).toBeNull();
   });
 });

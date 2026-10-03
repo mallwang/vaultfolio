@@ -102,21 +102,37 @@ function monthGridTable(
       key: `m${i + 1}`,
       label: monthName(i + 1, lang),
       format: 'currencyWhole' as const,
+      secondaryKey: `n${i + 1}`,
     })),
-    { key: 'sum', label: t('earnings.tables.sum'), format: 'currencyWhole' },
+    {
+      key: 'sum',
+      label: t('earnings.tables.sum'),
+      format: 'currencyWhole',
+      secondaryKey: 'netSum',
+    },
   ];
+  // Gross on top, net below, from the same grid logic as the screen.
+  const net = new Map(gridRows(tables, 'net').map((row) => [row.year, row]));
   const rows = gridRows(tables, 'gross')
     .sort((a, b) => b.year - a.year)
-    .map<PdfTableRow>((row) => ({
-      cells: {
-        year: String(row.year),
-        ...Object.fromEntries(row.cells.map((cell, i) => [`m${i + 1}`, cell.value])),
-        sum: row.sum,
-      },
-    }));
+    .map<PdfTableRow>((row) => {
+      const netRow = net.get(row.year);
+      return {
+        cells: {
+          year: String(row.year),
+          ...Object.fromEntries(row.cells.map((cell, i) => [`m${i + 1}`, cell.value])),
+          ...Object.fromEntries(
+            row.cells.map((_, i) => [`n${i + 1}`, netRow?.cells[i].value ?? null]),
+          ),
+          sum: row.sum,
+          netSum: netRow?.sum ?? null,
+        },
+      };
+    });
   return {
     kind: 'table',
     title: t('earnings.export.sectionMonthly'),
+    subtitle: t('earnings.export.sectionMonthlySub'),
     columns,
     rows,
     fontSize: 7,

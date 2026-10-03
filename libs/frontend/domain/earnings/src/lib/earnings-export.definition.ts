@@ -157,6 +157,8 @@ export function createEarningsExportDefinition(): FeatureExportDefinition {
         throw error;
       }
     },
+    // The chart spans the page width in the PDF, so it is captured in a matching wide format.
+    pdfChartSize: { width: 1000, height: 330 },
     getChartOptions: grossChart,
     async fetchData(): Promise<ExportRow[]> {
       try {

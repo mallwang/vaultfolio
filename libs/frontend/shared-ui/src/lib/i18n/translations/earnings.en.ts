@@ -387,7 +387,8 @@ export const earningsEn: TranslationDictionary = {
     pdfInfobox:
       'About this export — Earnings. Gross income per year, totals per employer and over your whole career, the month-by-month gross and all taxes and contributions per year, as shown in the Earnings overview. Employers and years are listed from newest to oldest. Amounts are in EUR; deductions are shown as positive values.',
     sectionEmployers: 'Totals per employer',
-    sectionMonthly: 'Monthly overview',
+    sectionMonthly: 'Monthly overview gross / net',
+    sectionMonthlySub: 'Gross on top, net below',
     careerTotal: 'Career total',
     empty: 'There is no earnings data yet.',
   },

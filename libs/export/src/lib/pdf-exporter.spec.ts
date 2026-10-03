@@ -350,3 +350,76 @@ describe('generic PDF path without sections (regression)', () => {
     },
   );
 });
+
+describe('section PDF layout', () => {
+  const stacked: TableSection = {
+    kind: 'table',
+    title: 'Monthly',
+    columns: [
+      { key: 'year', label: 'Year', format: 'text', width: 30 },
+      { key: 'g', label: 'Jan', format: 'currencyWhole', secondaryKey: 'n' },
+    ],
+    rows: [{ cells: { year: '2026', g: '5000.4', n: '3100.2' } }],
+  };
+
+  it('starts every table section on a new page but not a text section', () => {
+    const doc = buildDocDefinition(
+      sectionResolved([{ kind: 'text', title: 'Note', text: 'x' }, employerTable, stacked]),
+    );
+    const headings = (doc.content as Node[]).filter((n) => n['style'] === 'sectionHeader');
+    expect(headings.map((n) => [n['text'], n['pageBreak']])).toEqual([
+      ['Note', undefined],
+      ['Totals per employer', 'before'],
+      ['Monthly', 'before'],
+    ]);
+  });
+
+  it('stacks the secondary value below the main one in the same cell', () => {
+    const doc = buildDocDefinition(sectionResolved([stacked]));
+    const [table] = tableNodes(doc.content as Content[]);
+    const cell = table['table'].body[1][1] as Node;
+    expect(cell['stack'].map((n: Node) => n['text'])).toEqual(['€5,000', '€3,100']);
+    expect(cell['stack'][1]['color']).toBe('#666666');
+    expect(cell['alignment']).toBe('right');
+    expect(cell['noWrap']).toBe(true);
+  });
+
+  it('shows a dash for a missing secondary value', () => {
+    const doc = buildDocDefinition(
+      sectionResolved([{ ...stacked, rows: [{ cells: { year: '2026', g: '1', n: null } }] }]),
+    );
+    const [table] = tableNodes(doc.content as Content[]);
+    expect((table['table'].body[1][1] as Node)['stack'][1]['text']).toBe('–');
+  });
+
+  it('shows a single dash when the main value is missing', () => {
+    const doc = buildDocDefinition(
+      sectionResolved([{ ...stacked, rows: [{ cells: { year: '2026', g: null, n: '5' } }] }]),
+    );
+    const [table] = tableNodes(doc.content as Content[]);
+    const cell = table['table'].body[1][1] as Node;
+    expect(cell['stack']).toBeUndefined();
+    expect(cell['text']).toBe('–');
+  });
+
+  it('draws the chart across the page width in a section PDF and keeps it narrow otherwise', () => {
+    const imageWidth = (resolved: ResolvedFeatureExport) => {
+      const doc = buildDocDefinition(resolved);
+      const columns = (doc.content as Node[]).find((n) => n['columns']);
+      return columns?.['columns'][0].stack[0].width;
+    };
+    expect(imageWidth(sectionResolved([employerTable], { chartImages: [DUMMY_PNG] }))).toBe(
+      CONTENT_WIDTH,
+    );
+    expect(
+      imageWidth({
+        featureId: 'holdings',
+        title: 'H',
+        infobox: 'i',
+        columns: [{ key: 'name', label: 'Name', format: 'text' }],
+        rows: [],
+        chartImages: [DUMMY_PNG],
+      }),
+    ).toBe(440);
+  });
+});

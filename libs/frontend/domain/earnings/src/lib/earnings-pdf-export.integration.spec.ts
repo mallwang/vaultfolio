@@ -262,13 +262,45 @@ describe('earnings PDF with maximum realistic data', () => {
     expect(text).toContain(fmt('en', total?.totals.gross ?? ''));
   });
 
+  it('starts every table on a new page, with the chart alone on the first', () => {
+    const titles = [
+      'Totals per employer',
+      'Monthly overview gross / net',
+      'All taxes and contributions per year',
+    ];
+    const firstOnPage = (title: string) => en_.pages.findIndex((p) => p[0]?.str === title);
+    const pageOf = titles.map(firstOnPage);
+    expect(pageOf.every((n) => n >= 1)).toBe(true);
+    expect([...pageOf].sort((a, b) => a - b)).toEqual(pageOf);
+    expect(new Set(pageOf).size).toBe(3);
+    const firstPageText = en_.pages[0].map((i) => i.str);
+    expect(firstPageText).toContain('Earnings');
+    expect(firstPageText).not.toContain('Totals per employer');
+    // The employer overview fits one page, so the monthly overview starts right after it.
+    expect(pageOf[1]).toBe(pageOf[0] + 1);
+  });
+
+  it('shows net below gross in the monthly overview', () => {
+    const flat = en_.pages.flat();
+    const gross = flat.find((i) => i.str === fmt('en', String(123456.78 + 2026 + 1), true));
+    expect(gross).toBeDefined();
+    // The same column holds two stacked values; net is not part of this data set, so the second
+    // line is the dash placeholder directly beneath.
+    const below = flat.find(
+      (i) => i.str === '–' && Math.abs(i.right - (gross?.right ?? 0)) < 1 && i.y < (gross?.y ?? 0),
+    );
+    expect(below).toBeDefined();
+  });
+
   it('lists the employer table before the monthly overview before the taxes table', () => {
     const flat = en_.pages.flat();
     const at = (label: string) => flat.findIndex((i) => i.str === label);
     expect(at('Totals per employer')).toBeGreaterThanOrEqual(0);
-    expect(at('Totals per employer')).toBeLessThan(at('Monthly overview'));
-    expect(at('Monthly overview')).toBeLessThan(at('All taxes and contributions per year'));
-    expect(at('Career total')).toBeLessThan(at('Monthly overview'));
+    expect(at('Totals per employer')).toBeLessThan(at('Monthly overview gross / net'));
+    expect(at('Monthly overview gross / net')).toBeLessThan(
+      at('All taxes and contributions per year'),
+    );
+    expect(at('Career total')).toBeLessThan(at('Monthly overview gross / net'));
   });
 
   it('shows every grid amount in whole euros and every tax amount with cents, unbroken', () => {
@@ -293,10 +325,15 @@ describe('earnings PDF with maximum realistic data', () => {
     const text = de_.pages.flat().map((i) => i.str);
     expect(text).toContain('Berufsleben gesamt');
     expect(text).toContain('Summen je Arbeitgeber');
-    expect(text).toContain('Monatsübersicht');
+    expect(text).toContain('Monatsübersicht Brutto / Netto');
     expect(text).toContain(fmt('de', '120345.67'));
     expect(text).toContain('22,1 %');
-    for (const english of ['Career total', 'Monthly overview', 'Totals per employer', 'Employer']) {
+    for (const english of [
+      'Career total',
+      'Monthly overview gross / net',
+      'Totals per employer',
+      'Employer',
+    ]) {
       expect(text).not.toContain(english);
     }
     expect(de_.pages.flat().some((i) => i.str.includes('1,234.56'))).toBe(false);

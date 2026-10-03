@@ -9,6 +9,7 @@ import { CHART_IMAGE_CAPTURE } from './chart-image-capture';
 // Calls through to the real exporter unless a test overrides the implementation.
 const mocks = vi.hoisted(() => ({
   exportFeatureMock: vi.fn(),
+  captureMock: vi.fn(),
   actualExport: undefined as undefined | ((...args: never[]) => unknown),
 }));
 const { exportFeatureMock } = mocks;
@@ -35,6 +36,8 @@ describe('ExportControlComponent', () => {
 
   beforeEach(async () => {
     exportFeatureMock.mockReset();
+    mocks.captureMock.mockReset();
+    mocks.captureMock.mockResolvedValue('data:image/png;base64,x');
     exportFeatureMock.mockImplementation((...args: never[]) => mocks.actualExport?.(...args));
     // PrimeNG's TieredMenu (inside SplitButton) calls matchMedia().addEventListener() on init;
     // jsdom doesn't implement matchMedia, so we stub it.
@@ -49,7 +52,7 @@ describe('ExportControlComponent', () => {
       providers: [
         {
           provide: CHART_IMAGE_CAPTURE,
-          useValue: () => Promise.resolve('data:image/png;base64,x'),
+          useValue: mocks.captureMock,
         },
       ],
     }).compileComponents();
@@ -133,6 +136,23 @@ describe('ExportControlComponent', () => {
       expect(exported[0].infobox).toBe(
         TestBed.inject(I18nService).translate('earnings.export.pdfInfobox'),
       );
+    });
+
+    it('passes the definition chart size to the chart capture', async () => {
+      TestBed.inject(FEATURE_EXPORT_REGISTRY).register(
+        makeDefinition({
+          featureId: 'sized',
+          getChartOptions: () => [{ a: 1 }],
+          pdfChartSize: { width: 1000, height: 330 },
+        }),
+      );
+      const sized = TestBed.createComponent(ExportControlComponent);
+      sized.componentInstance.featureId = 'sized';
+      sized.detectChanges();
+
+      await sized.componentInstance['menuItems']()[0].command?.();
+
+      expect(mocks.captureMock).toHaveBeenCalledWith({ a: 1 }, { width: 1000, height: 330 });
     });
 
     it.each([

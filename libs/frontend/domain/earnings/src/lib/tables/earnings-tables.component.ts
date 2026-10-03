@@ -5,6 +5,7 @@ import {
   type EarningsTables,
   MONTH_GRID_METRICS,
   type MonthGridMetric,
+  type TaxYearRow,
 } from '@vaultfolio/api-contract';
 import { SelectModule } from 'primeng/select';
 import { I18nService, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
@@ -21,6 +22,41 @@ const METRIC_LABEL: Record<MonthGridMetric, string> = {
   social: 'earnings.terms.social',
   payout: 'earnings.terms.payout',
 };
+
+/** Columns of the taxes-per-year table that can be sorted (not employer or months). */
+export type TaxSortKey = Exclude<
+  keyof TaxYearRow,
+  'employerId' | 'employerLabel' | 'monthsEmployed'
+>;
+export interface TaxSort {
+  key: TaxSortKey;
+  direction: 'asc' | 'desc';
+}
+
+const TAX_COLUMNS: { key: TaxSortKey; labelKey: string }[] = [
+  { key: 'gross', labelKey: 'earnings.terms.gross' },
+  { key: 'bonus', labelKey: 'earnings.tables.ofWhichBonus' },
+  { key: 'taxGross', labelKey: 'earnings.terms.taxGross' },
+  { key: 'wageTax', labelKey: 'earnings.terms.wageTax' },
+  { key: 'soli', labelKey: 'earnings.tables.soliShort' },
+  { key: 'churchTax', labelKey: 'earnings.terms.churchTax' },
+  { key: 'health', labelKey: 'earnings.tables.healthShort' },
+  { key: 'care', labelKey: 'earnings.tables.careShort' },
+  { key: 'pension', labelKey: 'earnings.tables.pensionShort' },
+  { key: 'unemployment', labelKey: 'earnings.tables.unemploymentShort' },
+  { key: 'taxRatio', labelKey: 'earnings.tables.taxesPct' },
+  { key: 'socialRatio', labelKey: 'earnings.tables.socialPct' },
+];
+
+/**
+ * Rows ordered by the chosen column (amounts and ratios compare numerically, the year as a number);
+ * without a sort the API order (newest year first) is kept. Ties keep that order.
+ */
+export function sortTaxRows(rows: readonly TaxYearRow[], sort: TaxSort | null): TaxYearRow[] {
+  if (!sort) return [...rows];
+  const factor = sort.direction === 'asc' ? 1 : -1;
+  return [...rows].sort((a, b) => factor * (Number(a[sort.key]) - Number(b[sort.key])));
+}
 
 export interface GridCell {
   period: string;
@@ -134,25 +170,36 @@ export function gridRows(tables: EarningsTables, metric: MonthGridMetric): GridR
         <table data-testid="earnings-taxes-table">
           <thead>
             <tr>
-              <th scope="col">{{ 'earnings.tables.year' | translate }}</th>
+              <th scope="col" [attr.aria-sort]="ariaSort('year')">
+                <button
+                  type="button"
+                  class="sort"
+                  data-testid="earnings-taxes-sort-year"
+                  (click)="sortBy('year')"
+                >
+                  {{ 'earnings.tables.year' | translate
+                  }}<span aria-hidden="true">{{ arrow('year') }}</span>
+                </button>
+              </th>
               <th scope="col">{{ 'earnings.tables.employer' | translate }}</th>
               <th scope="col" class="num">{{ 'earnings.tables.months' | translate }}</th>
-              <th scope="col" class="num">{{ 'earnings.terms.gross' | translate }}</th>
-              <th scope="col" class="num">{{ 'earnings.tables.ofWhichBonus' | translate }}</th>
-              <th scope="col" class="num">{{ 'earnings.terms.taxGross' | translate }}</th>
-              <th scope="col" class="num">{{ 'earnings.terms.wageTax' | translate }}</th>
-              <th scope="col" class="num">{{ 'earnings.tables.soliShort' | translate }}</th>
-              <th scope="col" class="num">{{ 'earnings.terms.churchTax' | translate }}</th>
-              <th scope="col" class="num">{{ 'earnings.tables.healthShort' | translate }}</th>
-              <th scope="col" class="num">{{ 'earnings.tables.careShort' | translate }}</th>
-              <th scope="col" class="num">{{ 'earnings.tables.pensionShort' | translate }}</th>
-              <th scope="col" class="num">{{ 'earnings.tables.unemploymentShort' | translate }}</th>
-              <th scope="col" class="num">{{ 'earnings.tables.taxesPct' | translate }}</th>
-              <th scope="col" class="num">{{ 'earnings.tables.socialPct' | translate }}</th>
+              @for (column of taxColumns; track column.key) {
+                <th scope="col" class="num" [attr.aria-sort]="ariaSort(column.key)">
+                  <button
+                    type="button"
+                    class="sort"
+                    [attr.data-testid]="'earnings-taxes-sort-' + column.key"
+                    (click)="sortBy(column.key)"
+                  >
+                    {{ column.labelKey | translate
+                    }}<span aria-hidden="true">{{ arrow(column.key) }}</span>
+                  </button>
+                </th>
+              }
             </tr>
           </thead>
           <tbody>
-            @for (row of tables()?.taxesPerYear ?? []; track row.year + row.employerId) {
+            @for (row of taxRows(); track row.year + row.employerId) {
               <tr [attr.data-testid]="'earnings-taxes-row-' + row.year + '-' + row.employerId">
                 <th scope="row">{{ row.year }}</th>
                 <td>{{ row.employerLabel }}</td>
@@ -281,6 +328,17 @@ export function gridRows(tables: EarningsTables, metric: MonthGridMetric): GridR
       text-align: right;
       font-variant-numeric: tabular-nums;
     }
+    .sort {
+      padding: 0;
+      border: none;
+      background: none;
+      color: inherit;
+      font: inherit;
+      cursor: pointer;
+    }
+    .sort:hover {
+      color: var(--p-primary-color);
+    }
     .strong,
     .sum th,
     .sum td {
@@ -327,6 +385,12 @@ export class EarningsTablesComponent {
 
   protected readonly tables = signal<EarningsTables | null>(null);
   protected readonly metric = signal<MonthGridMetric>('gross');
+  protected readonly taxColumns = TAX_COLUMNS;
+  protected readonly taxSort = signal<TaxSort | null>(null);
+
+  protected readonly taxRows = computed(() =>
+    sortTaxRows(this.tables()?.taxesPerYear ?? [], this.taxSort()),
+  );
 
   protected readonly metricOptions = computed(() => {
     this.i18n.language();
@@ -365,6 +429,25 @@ export class EarningsTablesComponent {
         .subscribe({ next: (tables) => this.tables.set(tables) });
       onCleanup(() => subscription.unsubscribe());
     });
+  }
+
+  /** First click sorts descending (largest/newest first), the second ascending, the third resets. */
+  protected sortBy(key: TaxSortKey): void {
+    const current = this.taxSort();
+    if (current?.key !== key) this.taxSort.set({ key, direction: 'desc' });
+    else this.taxSort.set(current.direction === 'desc' ? { key, direction: 'asc' } : null);
+  }
+
+  protected ariaSort(key: TaxSortKey): 'ascending' | 'descending' | 'none' {
+    const sort = this.taxSort();
+    if (sort?.key !== key) return 'none';
+    return sort.direction === 'asc' ? 'ascending' : 'descending';
+  }
+
+  protected arrow(key: TaxSortKey): string {
+    const sort = this.taxSort();
+    if (sort?.key !== key) return '';
+    return sort.direction === 'asc' ? ' ▲' : ' ▼';
   }
 
   protected money(value: string): string {

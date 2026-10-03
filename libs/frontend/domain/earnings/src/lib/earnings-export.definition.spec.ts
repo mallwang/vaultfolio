@@ -189,6 +189,11 @@ describe('createEarningsExportDefinition', () => {
       expect(lookup(definition.infoboxKey)).toMatch(/payslip section/i);
     });
 
+    it('captures the chart in a wide format for the full-width PDF chart', () => {
+      const definition = TestBed.runInInjectionContext(createEarningsExportDefinition);
+      expect(definition.pdfChartSize).toEqual({ width: 1000, height: 330 });
+    });
+
     it('requests overview and tables without an employer filter and builds the sections', async () => {
       const definition = TestBed.runInInjectionContext(createEarningsExportDefinition);
       const sections = definition.getPdfSections?.();
@@ -197,7 +202,7 @@ describe('createEarningsExportDefinition', () => {
       const result = await sections;
       expect(result?.map((x) => (x.kind === 'table' ? x.title : x.text))).toEqual([
         'Totals per employer',
-        'Monthly overview',
+        'Monthly overview gross / net',
         'All taxes and contributions per year',
       ]);
     });

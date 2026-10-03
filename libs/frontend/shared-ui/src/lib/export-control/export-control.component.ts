@@ -152,7 +152,9 @@ export class ExportControlComponent {
       const chartImages =
         format === 'pdf' && definition.getChartOptions
           ? await Promise.all(
-              definition.getChartOptions().map((option) => this.captureChartImage(option)),
+              definition
+                .getChartOptions()
+                .map((option) => this.captureChartImage(option, definition.pdfChartSize)),
             )
           : undefined;
 

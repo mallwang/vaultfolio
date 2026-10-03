@@ -119,7 +119,11 @@ const TABLES: EarningsTables = {
       },
       regular: {},
       bonus: {},
-      net: {},
+      net: {
+        '2026-01': '3100.20',
+        '2026-02': '3100.20',
+        '2025-12': '2500.05',
+      },
       taxes: {},
       social: {},
       payout: {},
@@ -164,7 +168,7 @@ describe('buildEarningsPdfSections', () => {
     expect(sections.map((s) => s.kind)).toEqual(['table', 'table', 'table']);
     expect(sections.map((s) => (s.kind === 'table' ? s.title : ''))).toEqual([
       'Totals per employer',
-      'Monthly overview',
+      'Monthly overview gross / net',
       'All taxes and contributions per year',
     ]);
   });
@@ -301,6 +305,23 @@ describe('buildEarningsPdfSections', () => {
       expect(table.rows[1].cells).toMatchObject({ m12: '4000.10', sum: '4000.10' });
     });
 
+    it('puts net below gross in every month cell and in the year sum', () => {
+      expect(table.subtitle).toBe('Gross on top, net below');
+      expect(table.columns.slice(1, 13).map((c) => c.secondaryKey)).toEqual(
+        Array.from({ length: 12 }, (_, i) => `n${i + 1}`),
+      );
+      expect(table.columns[13].secondaryKey).toBe('netSum');
+      expect(table.rows[0].cells).toMatchObject({
+        m1: '5000.40',
+        n1: '3100.20',
+        n3: null,
+        sum: '10000.80',
+        netSum: '6200.40',
+      });
+      // A year without net data keeps its gross and shows no net.
+      expect(table.rows[2].cells).toMatchObject({ m3: '3000.00', n3: null, netSum: '0.00' });
+    });
+
     it('fits the landscape content width', () => {
       // "€1,505,703" at 7 pt is ≈ 34 pt.
       expect(starColumnWidth(table.columns)).toBeGreaterThanOrEqual(40);
@@ -389,7 +410,7 @@ describe('earnings PDF section language', () => {
     const s = buildEarningsPdfSections(overview(), TABLES, translator(de), 'de');
     expect(s.map((x) => (x.kind === 'table' ? x.title : ''))).toEqual([
       'Summen je Arbeitgeber',
-      'Monatsübersicht',
+      'Monatsübersicht Brutto / Netto',
       'Alle Steuern und Abgaben pro Jahr',
     ]);
     expect(
@@ -413,7 +434,7 @@ describe('earnings PDF section language', () => {
     for (const english of [
       'Employer',
       'Career total',
-      'Monthly overview',
+      'Monthly overview gross / net',
       'Gross',
       'Year',
       'Sum',

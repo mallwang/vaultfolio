@@ -36,6 +36,11 @@ export interface PdfTableColumn {
   /** Fixed width in points, `'auto'` or `'*'`; defaults to `'*'` for numeric, `'auto'` for text. */
   width?: number | 'auto' | '*';
   align?: 'left' | 'right';
+  /**
+   * Key of a second value shown below the main one in the same cell, in smaller grey text and the
+   * same format (e.g. net below gross).
+   */
+  secondaryKey?: string;
 }
 
 export interface PdfTableRow {
@@ -110,6 +115,11 @@ export interface FeatureExportDefinition {
   getPdfSections?(): Promise<PdfSection[]>;
   /** PDF-only infobox key, used instead of `infoboxKey` for the PDF. */
   pdfInfoboxKey?: string;
+  /**
+   * Capture size in CSS pixels of the PDF chart images. In a section PDF the first chart is drawn
+   * at the full page width, so a wide size (e.g. 1000×330) avoids a stretched or tiny chart.
+   */
+  pdfChartSize?: { width: number; height: number };
   /**
    * Returns `false` to disable the export button. Omit (or return `true`) when always available.
    * May read Angular signals — the component calls this inside `computed()`.

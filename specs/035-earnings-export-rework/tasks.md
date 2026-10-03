@@ -130,6 +130,17 @@ description: 'Task list for 035 Earnings Export Rework (Phase 1: PDF)'
 
 ---
 
+## Phase 7: Review feedback (2026-10-03)
+
+**Purpose**: Layout and screen changes requested after the first implementation review.
+
+- [x] T030 [US2] Start every PDF table section on a new page (chart alone on page 1) in `libs/export/src/lib/pdf-exporter.ts`, with tests in `libs/export/src/lib/pdf-exporter.spec.ts` and `libs/frontend/domain/earnings/src/lib/earnings-pdf-export.integration.spec.ts`
+- [x] T031 [US1] Draw the "Gross per year" chart across the full page width in a section PDF: `pdfChartSize` on `FeatureExportDefinition`, optional size for `captureChartImage` (`libs/frontend/shared-ui/src/lib/export-control/`), wide capture size in `libs/frontend/domain/earnings/src/lib/earnings-export.definition.ts`
+- [x] T032 [US1] Monthly overview shows gross and net (net below gross in each cell and in the year sum): `secondaryKey` on `PdfTableColumn`, builder in `libs/frontend/domain/earnings/src/lib/earnings-pdf-sections.ts`, title "Monthly overview gross / net" / "Monatsübersicht Brutto / Netto" plus subtitle in `earnings.de.ts` / `earnings.en.ts`
+- [x] T033 On screen, make the columns of "All taxes and contributions per year" sortable (year and all amount/percentage columns; not employer or months) in `libs/frontend/domain/earnings/src/lib/tables/earnings-tables.component.ts` with `data-testid`s `earnings-taxes-sort-<key>` and tests in `earnings-tables.component.spec.ts`
+
+---
+
 ## Dependencies & Execution Order
 
 ### Phase Dependencies

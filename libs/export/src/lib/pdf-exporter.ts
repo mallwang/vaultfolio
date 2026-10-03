@@ -43,6 +43,7 @@ const MISSING = '–';
 const SECTION_FONT_SIZE = 8;
 /** Landscape A4 is 842 pt wide; section PDFs use 28 pt side margins (≈ 786 pt content width). */
 export const SECTION_PAGE_MARGIN = 28;
+const PAGE_CONTENT_WIDTH = 842 - 2 * SECTION_PAGE_MARGIN;
 /**
  * Left/right padding of section table cells. pdfmake adds cell padding on top of the declared
  * column widths, so a table's real width is `sum(content widths) + 2 × padding × columns`.
@@ -104,8 +105,22 @@ function sectionCell(
   fontSize: number,
 ): Content {
   const isText = column.format === 'text';
+  const text = sectionCellText(row.cells[column.key], column, locale);
+  // A period without a main value is one dash, not two stacked ones.
+  const hasMain = text !== MISSING;
+  if (column.secondaryKey && hasMain) {
+    return {
+      stack: [
+        { text, bold: row.emphasis === 'total' },
+        { text: sectionCellText(row.cells[column.secondaryKey], column, locale), color: '#666666' },
+      ],
+      alignment: column.align ?? 'right',
+      noWrap: true,
+      fontSize,
+    } as unknown as Content;
+  }
   return {
-    text: sectionCellText(row.cells[column.key], column, locale),
+    text,
     alignment: column.align ?? (isText ? 'left' : 'right'),
     // Amounts must never break mid-number; only labels (employer names) may wrap.
     noWrap: !isText,
@@ -137,7 +152,9 @@ function sectionContent(section: PdfSection, locale: string): Content[] {
     {
       text: section.title,
       style: 'sectionHeader',
-      margin: [0, 12, 0, section.subtitle ? 0 : 4],
+      // Every table starts on its own page, so a heading is never separated from its table.
+      pageBreak: 'before',
+      margin: [0, 0, 0, section.subtitle ? 0 : 4],
       keepWithNext: true,
     },
     ...(section.subtitle
@@ -223,9 +240,12 @@ export function buildDocDefinition(resolved: ResolvedFeatureExport): TDocumentDe
   if (resolved.chartImages && resolved.chartImages.length > 0) {
     const [mainImage] = resolved.chartImages;
     const sideTable = resolved.chartSideTable;
+    // A section PDF draws its chart across the whole page; the generic layout keeps it narrow
+    // so the allocation table fits beside it.
+    const chartWidth = resolved.pdfSections?.length ? PAGE_CONTENT_WIDTH : 440;
     const chartCol: Content = {
-      stack: [{ image: mainImage, width: 440 } as unknown as Content],
-      width: 440,
+      stack: [{ image: mainImage, width: chartWidth } as unknown as Content],
+      width: chartWidth,
     } as unknown as Content;
 
     if (sideTable) {
