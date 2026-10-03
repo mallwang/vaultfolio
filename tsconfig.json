@@ -77,6 +77,15 @@
     },
     {
       "path": "./libs/requests"
+    },
+    {
+      "path": "./libs/document-text"
+    },
+    {
+      "path": "./libs/retirement"
+    },
+    {
+      "path": "./libs/frontend/document-reader"
     }
   ],
   "compilerOptions": {}

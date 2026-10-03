@@ -34,6 +34,10 @@ infrastructure.
    - 7.4 [Data Check](#74-data-check)
    - 7.5 [Imports, Renaming and Deleting](#75-imports-renaming-and-deleting)
    - 7.6 [Requesting a Parser](#76-requesting-a-parser)
+     7a. [Retirement](#7a-retirement)
+   - 7a.1 [Entering Your Data](#7a1-entering-your-data)
+   - 7a.2 [Overview and Tabs](#7a2-overview-and-tabs)
+   - 7a.3 [Privacy, Export and Deleting](#7a3-privacy-export-and-deleting)
 8. [Settings](#8-settings)
    - 8.1 [Profile](#81-profile)
    - 8.2 [Preferences](#82-preferences)
@@ -363,6 +367,53 @@ never a file. The server checks it again and writes the sample PDF itself. You c
 three open requests and send five per day. When an administrator sets your request to
 _Done_ you receive an e-mail with a link back to the import page. If you delete your
 account, your requests and samples are deleted with it.
+
+---
+
+## 7a. Retirement
+
+**Retirement** (_Altersvorsorge_) brings your statutory, occupational and private provision
+together in one overview. It is available only if an administrator has enabled the Retirement
+domain for your account.
+
+### 7a.1 Entering Your Data
+
+- **Upload a document.** Choose **Upload document** and select the PDF of your DRV pension
+  statement (_Renteninformation_), a statement of an occupational or private pension, or a
+  capital-account statement. The type is detected automatically. The PDF is read in your browser;
+  the file and its text never leave your device — after you review the recognised values, only
+  those figures are saved. Scanned documents need on-device text recognition, which asks for your
+  consent per file. If a document is not recognised, nothing is saved and you can enter the values
+  manually instead.
+- **Enter manually.** Choose **Enter manually**, pick the type (statutory pension, occupational
+  pension, Riester, private pension insurance or Altersvorsorgedepot) and fill in the fields that
+  apply to it. A guaranteed pension above the expected pension is rejected.
+- **Imported entries are read-only.** Values taken from a document cannot be edited; you can add
+  what the document does not print (for example the monthly contribution) and replace the entry
+  with a newer document. Manual entries can be edited at any time.
+
+Guaranteed amounts are shown in bold with a "guaranteed" tag; expected amounts are projections
+and are shown in italics with a "≈" prefix.
+
+### 7a.2 Overview and Tabs
+
+The **Overview** tab shows the expected and guaranteed monthly pension, your current monthly
+savings, the pension start, a guaranteed-vs-expected bar and a card per pillar. Entries older than
+12 months are flagged **Outdated**; entries missing figures needed for the totals are flagged
+**Incomplete**. Capital payouts and capital accounts are not part of the monthly pension, and all
+amounts are gross. The **Statutory**, **Occupational** and **Private** tabs list the contracts of a
+pillar; **Further information** links to external resources (links send no data).
+
+The Dashboard shows a Retirement tile with the key figures; clicking it opens the area.
+
+### 7a.3 Privacy, Export and Deleting
+
+Amounts and contract numbers are stored encrypted; your name, address, tax ID and bank details are
+never requested or stored. The operator of your instance holds the encryption key. If the page says
+_Retirement is unavailable_, the server cannot read the data right now — it is not lost; contact
+the operator. **Export** (toolbar) writes your entries as PDF, Excel, CSV or JSON. At the bottom of
+**Further information** you can delete all your retirement data (the account stays); single
+entries can be deleted on their card.
 
 ---
 

@@ -1,0 +1,16 @@
+{
+  "name": "@vaultfolio/frontend-document-reader",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "library",
+  "sourceRoot": "libs/frontend/document-reader/src",
+  "tags": ["scope:shared"],
+  "targets": {
+    "test": {
+      "executor": "@angular/build:unit-test",
+      "options": {
+        "buildTarget": "frontend:build:development,test",
+        "watch": false
+      }
+    }
+  }
+}

@@ -1,5 +1,7 @@
 import { requestsEn } from './requests.en';
 import { earningsEn } from './earnings.en';
+import { retirementEn } from './retirement.en';
+import { ocrEn } from './ocr.en';
 
 /**
  * Default-language (`en`) dictionary — every other dictionary
@@ -62,6 +64,7 @@ export const en: TranslationDictionary = {
     genericError: 'Sign in failed. Please try again.',
   },
   dashboard: {
+    retirement: 'Retirement',
     earnings: 'Earnings',
     totalValue: 'Total value',
     todaysChange: "Today's change",
@@ -408,10 +411,6 @@ export const en: TranslationDictionary = {
   },
   // Placeholder domains (022-add-domain-placeholders, FR-003): each renders
   // only its name and this "not yet available" copy — no other UI surface.
-  retirementPlaceholder: {
-    title: 'Retirement',
-    body: 'Retirement is not yet available. This area will be built out in a future update.',
-  },
   insurancesPlaceholder: {
     title: 'Insurances',
     body: 'Insurances is not yet available. This area will be built out in a future update.',
@@ -517,6 +516,14 @@ export const en: TranslationDictionary = {
     earningsImports: 'Earnings · Imports',
     earningsImport: 'Import documents',
     earningsRequest: 'Request a parser',
+    retirementOverview: 'Retirement · Overview',
+    retirementStatutory: 'Retirement · Statutory',
+    retirementOccupational: 'Retirement · Occupational',
+    retirementPrivate: 'Retirement · Private',
+    retirementInfo: 'Retirement · Further information',
+    retirementImport: 'Upload retirement document',
+    retirementNew: 'Add retirement entry',
+    retirementEdit: 'Edit retirement entry',
     settings: 'Settings',
     settingsProfile: 'Settings · Profile',
     settingsPreferences: 'Settings · Preferences',
@@ -649,7 +656,17 @@ export const en: TranslationDictionary = {
   retirementExport: {
     title: 'Retirement',
     infobox:
-      'About this export — Retirement. Retirement tracking is not built yet in Vaultfolio, so this file contains no rows today — it will automatically start including your data once that feature ships.',
+      'About this export — Retirement. One row per recorded retirement contract: statutory, occupational and private provision with guaranteed and expected monthly pension, contributions and dates. Amounts are gross; expected values are projections, not guarantees.',
+    columnPillar: 'Pillar',
+    columnType: 'Type',
+    columnProvider: 'Provider',
+    columnNumber: 'Contract number',
+    columnGuaranteed: 'Guaranteed pension (monthly)',
+    columnExpected: 'Expected pension (monthly)',
+    columnContribution: 'Contributions (monthly)',
+    columnPayoutStart: 'Payout start',
+    columnStatementDate: 'Statement date',
+    columnOrigin: 'Origin',
   },
   insurancesExport: {
     title: 'Insurances',
@@ -667,5 +684,7 @@ export const en: TranslationDictionary = {
       'About this export — Wealth Development. Historic wealth development tracking is not built yet in Vaultfolio, so this file contains no rows today — it will automatically start including your data once that feature ships.',
   },
   earnings: earningsEn,
+  retirement: retirementEn,
+  ocr: ocrEn,
   requests: requestsEn,
 };

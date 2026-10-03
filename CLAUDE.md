@@ -56,5 +56,5 @@
 
 ## Current Feature Plan
 
-Active implementation plan: [specs/036-export-modal-dialog/plan.md](specs/036-export-modal-dialog/plan.md)
+Active implementation plan: [specs/037-altersvorsorge-retirement-planning/plan.md](specs/037-altersvorsorge-retirement-planning/plan.md)
 <!-- SPECKIT END -->

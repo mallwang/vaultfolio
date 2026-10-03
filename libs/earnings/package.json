@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "@vaultfolio/api-contract": "*",
-    "decimal.js": "^10.6.0"
+    "decimal.js": "^10.6.0",
+    "@vaultfolio/document-text": "*"
   }
 }

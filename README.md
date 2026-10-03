@@ -243,6 +243,15 @@ Linting, formatting, dependency hygiene (knip), secret scanning, and the git hoo
 automatically are documented separately in
 [docs/development.md](docs/development.md) ([Deutsche Version](docs/development.de.md)).
 
+### Retirement encryption key
+
+The Retirement domain encrypts every stored amount, contract number and supplement with its own
+`RETIREMENT_ENCRYPTION_KEY` (Base64 of exactly 32 random bytes), separate from the Earnings key.
+Generate and back it up the same way as the Earnings key (see above) — a lost or changed key makes
+all stored retirement data permanently unreadable. **Without a valid key the backend still starts**,
+but every `/retirement` route answers `503 RETIREMENT_UNAVAILABLE` (fail closed) and the Retirement
+area shows an "unavailable" state; the other domains are unaffected and stored data is not lost.
+
 ## Deploying with Portainer (or any Docker Hub-based host)
 
 `docker-compose.yml` builds images locally from source, which isn't a great fit for Portainer on

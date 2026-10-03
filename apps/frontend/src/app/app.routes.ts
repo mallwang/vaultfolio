@@ -26,6 +26,14 @@ const lazyParserRequestGuard: CanActivateFn = () => {
   );
 };
 
+/** Same for the Retirement library's `retirementAvailableGuard` (form and import screens). */
+const lazyRetirementAvailableGuard: CanActivateFn = () => {
+  const injector = inject(EnvironmentInjector);
+  return import('@vaultfolio/frontend-domain-retirement').then((m) =>
+    runInInjectionContext(injector, () => m.retirementAvailableGuard()),
+  );
+};
+
 /**
  * Route table: public pages live directly under the base URL with no shell
  * of their own beyond the always-on root header (app.ts); authenticated pages
@@ -179,13 +187,77 @@ export const routes: Routes = [
         ],
       },
       {
+        path: 'retirement/import',
+        title: 'pageTitle.retirementImport',
+        canActivate: [domainGuard('retirement'), lazyRetirementAvailableGuard],
+        loadComponent: () =>
+          import('@vaultfolio/frontend-domain-retirement').then((m) => m.RetirementImportComponent),
+      },
+      {
+        path: 'retirement/new',
+        title: 'pageTitle.retirementNew',
+        canActivate: [domainGuard('retirement'), lazyRetirementAvailableGuard],
+        loadComponent: () =>
+          import('@vaultfolio/frontend-domain-retirement').then((m) => m.RecordFormComponent),
+      },
+      {
+        path: 'retirement/new/:type',
+        title: 'pageTitle.retirementNew',
+        canActivate: [domainGuard('retirement'), lazyRetirementAvailableGuard],
+        loadComponent: () =>
+          import('@vaultfolio/frontend-domain-retirement').then((m) => m.RecordFormComponent),
+      },
+      {
+        path: 'retirement/:id/edit',
+        title: 'pageTitle.retirementEdit',
+        canActivate: [domainGuard('retirement'), lazyRetirementAvailableGuard],
+        loadComponent: () =>
+          import('@vaultfolio/frontend-domain-retirement').then((m) => m.RecordFormComponent),
+      },
+      {
         path: 'retirement',
         title: 'pageTitle.retirement',
         canActivate: [domainGuard('retirement')],
         loadComponent: () =>
-          import('@vaultfolio/frontend-domain-retirement').then(
-            (m) => m.RetirementPlaceholderComponent,
-          ),
+          import('@vaultfolio/frontend-domain-retirement').then((m) => m.RetirementAreaComponent),
+        children: [
+          { path: '', pathMatch: 'full', redirectTo: 'overview' },
+          {
+            path: 'overview',
+            title: 'pageTitle.retirementOverview',
+            loadComponent: () =>
+              import('@vaultfolio/frontend-domain-retirement').then((m) => m.OverviewComponent),
+          },
+          {
+            path: 'statutory',
+            title: 'pageTitle.retirementStatutory',
+            data: { pillar: 'STATUTORY' },
+            loadComponent: () =>
+              import('@vaultfolio/frontend-domain-retirement').then((m) => m.PillarComponent),
+          },
+          {
+            path: 'occupational',
+            title: 'pageTitle.retirementOccupational',
+            data: { pillar: 'OCCUPATIONAL' },
+            loadComponent: () =>
+              import('@vaultfolio/frontend-domain-retirement').then((m) => m.PillarComponent),
+          },
+          {
+            path: 'private',
+            title: 'pageTitle.retirementPrivate',
+            data: { pillar: 'PRIVATE' },
+            loadComponent: () =>
+              import('@vaultfolio/frontend-domain-retirement').then((m) => m.PillarComponent),
+          },
+          {
+            path: 'info',
+            title: 'pageTitle.retirementInfo',
+            loadComponent: () =>
+              import('@vaultfolio/frontend-domain-retirement').then(
+                (m) => m.RetirementInfoComponent,
+              ),
+          },
+        ],
       },
       {
         path: 'insurances',

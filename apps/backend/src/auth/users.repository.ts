@@ -349,6 +349,8 @@ export class UsersRepository {
     ]) {
       await this.database.query(`DELETE FROM ${table} WHERE owner_id = $1`, [id]);
     }
+    // 037-altersvorsorge: purge the user's retirement records on account deletion.
+    await this.database.query('DELETE FROM retirement_records WHERE owner_id = $1', [id]);
     // 033-parser-requests: the user's own requests go with the account (FR-042), including the
     // samples and download audit rows; where the user was an administrator only the reference
     // is cleared so other users' requests keep their history.

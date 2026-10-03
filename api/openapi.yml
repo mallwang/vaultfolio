@@ -1603,6 +1603,260 @@ paths:
         Per employer and year: year-to-date, certificate and completeness
         checks.
       tags: *ref_14
+  /retirement/summary:
+    get:
+      operationId: RetirementController_summary
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetirementSummaryDto'
+        '403': &ref_15
+          description: Domain not entitled.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '503': &ref_16
+          description: RETIREMENT_UNAVAILABLE — key missing/invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+      security: &ref_17
+        - sessionCookie: []
+      summary: 'Derived overview: totals, pillars, pension start, flags.'
+      tags: &ref_18
+        - retirement
+  /retirement/records:
+    get:
+      operationId: RetirementController_list
+      parameters:
+        - name: pillar
+          required: false
+          in: query
+          schema:
+            enum:
+              - STATUTORY
+              - OCCUPATIONAL
+              - PRIVATE
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RetirementRecordDto'
+        '400':
+          description: RETIREMENT_VALIDATION.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '403': *ref_15
+        '503': *ref_16
+      security: *ref_17
+      summary: The caller's retirement records, newest statement first.
+      tags: *ref_18
+    post:
+      operationId: RetirementController_create
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RetirementRecordInputDto'
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetirementRecordDto'
+        '400':
+          description: >-
+            RETIREMENT_VALIDATION / RETIREMENT_UNKNOWN_FIELD /
+            RETIREMENT_CHECK_FAILED (check ids only).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '403': *ref_15
+        '404':
+          description: RETIREMENT_RECORD_NOT_FOUND.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '409':
+          description: RETIREMENT_STATUTORY_EXISTS.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '503': *ref_16
+      security: *ref_17
+      summary: >-
+        Create a record (manual entry or confirmed import); `replaces` swaps one
+        atomically.
+      tags: *ref_18
+  /retirement/records/{id}:
+    get:
+      operationId: RetirementController_get
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetirementRecordDto'
+        '403': *ref_15
+        '404':
+          description: RETIREMENT_RECORD_NOT_FOUND.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '503': *ref_16
+      security: *ref_17
+      summary: One of the caller’s retirement records.
+      tags: *ref_18
+    put:
+      operationId: RetirementController_update
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RetirementManualRecordInputDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetirementRecordDto'
+        '400':
+          description: RETIREMENT_VALIDATION / RETIREMENT_UNKNOWN_FIELD.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '403': *ref_15
+        '404':
+          description: RETIREMENT_RECORD_NOT_FOUND.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '409':
+          description: RETIREMENT_IMPORTED_READONLY.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '503': *ref_16
+      security: *ref_17
+      summary: Replace a manual record; imported records are read-only.
+      tags: *ref_18
+    delete:
+      operationId: RetirementController_delete
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Deleted.
+        '403': *ref_15
+        '404':
+          description: RETIREMENT_RECORD_NOT_FOUND.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '503': *ref_16
+      security: *ref_17
+      summary: Delete one of the caller’s records.
+      tags: *ref_18
+  /retirement/records/{id}/supplement:
+    patch:
+      operationId: RetirementController_updateSupplement
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RetirementSupplementPatchDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetirementRecordDto'
+        '400':
+          description: RETIREMENT_VALIDATION / RETIREMENT_UNKNOWN_FIELD.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '403': *ref_15
+        '404':
+          description: RETIREMENT_RECORD_NOT_FOUND.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '409':
+          description: RETIREMENT_NOT_IMPORTED.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '503': *ref_16
+      security: *ref_17
+      summary: Edit the supplement (and status) of an imported record.
+      tags: *ref_18
+  /retirement:
+    delete:
+      operationId: RetirementController_deleteAll
+      parameters: []
+      responses:
+        '204':
+          description: Deleted.
+        '403': *ref_15
+        '503': *ref_16
+      security: *ref_17
+      summary: Delete all of the caller's retirement data (the account stays).
+      tags: *ref_18
   /requests:
     post:
       operationId: RequestsController_submit
@@ -1652,12 +1906,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-      security: &ref_15
+      security: &ref_19
         - sessionCookie: []
       summary: >-
         Submit a request (e.g. earnings/new-parser: an anonymized layout; the
         server generates the sample PDF).
-      tags: &ref_16
+      tags: &ref_20
         - requests
     get:
       operationId: RequestsController_list
@@ -1682,9 +1936,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-      security: *ref_15
+      security: *ref_19
       summary: List requests, newest first (admin only).
-      tags: *ref_16
+      tags: *ref_20
   /requests/{id}:
     get:
       operationId: RequestsController_detail
@@ -1713,9 +1967,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-      security: *ref_15
+      security: *ref_19
       summary: Request detail (admin only).
-      tags: *ref_16
+      tags: *ref_20
     patch:
       operationId: RequestsController_update
       parameters:
@@ -1755,9 +2009,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-      security: *ref_15
+      security: *ref_19
       summary: Set the status and/or the note of a request (admin only).
-      tags: *ref_16
+      tags: *ref_20
   /requests/{id}/attachment:
     get:
       operationId: RequestsController_attachment
@@ -1788,9 +2042,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-      security: *ref_15
+      security: *ref_19
       summary: Download the anonymized sample PDF; audited (admin only).
-      tags: *ref_16
+      tags: *ref_20
 info:
   title: Vaultfolio API
   description: >-
@@ -1947,7 +2201,7 @@ components:
       properties:
         assetType:
           type: string
-          enum: &ref_17
+          enum: &ref_21
             - ETF
         management:
           type: string
@@ -1973,7 +2227,7 @@ components:
       properties:
         assetType:
           type: string
-          enum: &ref_18
+          enum: &ref_22
             - SHARE
         management:
           type: string
@@ -2003,7 +2257,7 @@ components:
       properties:
         assetType:
           type: string
-          enum: &ref_19
+          enum: &ref_23
             - PRECIOUS_METAL
         management:
           type: string
@@ -2026,7 +2280,7 @@ components:
       properties:
         assetType:
           type: string
-          enum: &ref_20
+          enum: &ref_24
             - CRYPTO
         management:
           type: string
@@ -2053,7 +2307,7 @@ components:
       properties:
         assetType:
           type: string
-          enum: &ref_21
+          enum: &ref_25
             - DEPOSIT_MONEY
         management:
           type: string
@@ -2094,7 +2348,7 @@ components:
       properties:
         assetType:
           type: string
-          enum: *ref_17
+          enum: *ref_21
         management:
           type: string
         isin:
@@ -2119,7 +2373,7 @@ components:
       properties:
         assetType:
           type: string
-          enum: *ref_18
+          enum: *ref_22
         management:
           type: string
         isin:
@@ -2148,7 +2402,7 @@ components:
       properties:
         assetType:
           type: string
-          enum: *ref_19
+          enum: *ref_23
         management:
           type: string
         name:
@@ -2170,7 +2424,7 @@ components:
       properties:
         assetType:
           type: string
-          enum: *ref_20
+          enum: *ref_24
         management:
           type: string
         name:
@@ -2196,7 +2450,7 @@ components:
       properties:
         assetType:
           type: string
-          enum: *ref_21
+          enum: *ref_25
         management:
           type: string
         name:
@@ -2538,7 +2792,7 @@ components:
           nullable: true
         emailLanguage:
           type: string
-          enum: &ref_22
+          enum: &ref_26
             - en
             - de
           nullable: true
@@ -2581,7 +2835,7 @@ components:
       properties:
         emailLanguage:
           type: string
-          enum: *ref_22
+          enum: *ref_26
           nullable: true
       required:
         - emailLanguage
@@ -2633,7 +2887,7 @@ components:
           type: string
         category:
           type: string
-          enum: &ref_23
+          enum: &ref_27
             - GENERAL
             - LEISURE
             - SAVINGS
@@ -2642,7 +2896,7 @@ components:
             - OTHER
         status:
           type: string
-          enum: &ref_24
+          enum: &ref_28
             - ACTIVE
             - DECOMMISSIONED
           description: >-
@@ -2695,11 +2949,11 @@ components:
           type: string
         category:
           type: string
-          enum: *ref_23
+          enum: *ref_27
           description: Omit to default to 'OTHER'.
         status:
           type: string
-          enum: *ref_24
+          enum: *ref_28
           description: Omit to default to 'ACTIVE'.
         provider:
           type: string
@@ -2749,11 +3003,11 @@ components:
           type: string
         category:
           type: string
-          enum: *ref_23
+          enum: *ref_27
           description: Omit to default to 'OTHER'.
         status:
           type: string
-          enum: *ref_24
+          enum: *ref_28
           description: Omit to default to 'ACTIVE'.
         provider:
           type: string
@@ -2946,7 +3200,7 @@ components:
           pattern: ^\d{4}-(0[1-9]|1[0-2])$
         kind:
           type: string
-          enum: &ref_25
+          enum: &ref_29
             - REGULAR
             - CORRECTION
             - PAYOUT_ONLY
@@ -2963,7 +3217,7 @@ components:
             server re-runs every check on the submitted figures.
           items:
             type: string
-            enum: &ref_27
+            enum: &ref_31
               - gross
               - wageTax
               - soli
@@ -3086,7 +3340,7 @@ components:
           maxLength: 255
         sourceType:
           type: string
-          enum: &ref_26
+          enum: &ref_30
             - PAYSLIP_PDF
             - CERTIFICATE_PDF
             - EXPORT_JSON
@@ -3146,7 +3400,7 @@ components:
           nullable: true
         kind:
           type: string
-          enum: *ref_25
+          enum: *ref_29
           nullable: true
         seq:
           type: object
@@ -3307,7 +3561,7 @@ components:
           type: string
         sourceType:
           type: string
-          enum: *ref_26
+          enum: *ref_30
         parserId:
           type: string
         parserVersion:
@@ -3752,7 +4006,7 @@ components:
             saved before figure correction.
           items:
             type: string
-            enum: *ref_27
+            enum: *ref_31
       required:
         - gross
         - taxGross
@@ -3804,7 +4058,7 @@ components:
           pattern: ^\d{4}-(0[1-9]|1[0-2])$
         kind:
           type: string
-          enum: *ref_25
+          enum: *ref_29
         seq:
           type: number
         amounts:
@@ -3826,40 +4080,40 @@ components:
       properties:
         gross:
           type: object
-          additionalProperties: &ref_28
+          additionalProperties: &ref_32
             type: string
-          example: &ref_29
+          example: &ref_33
             2026-09: '5200.00'
           description: period → amount
         regular:
           type: object
-          additionalProperties: *ref_28
-          example: *ref_29
+          additionalProperties: *ref_32
+          example: *ref_33
           description: period → amount
         bonus:
           type: object
-          additionalProperties: *ref_28
-          example: *ref_29
+          additionalProperties: *ref_32
+          example: *ref_33
           description: period → amount
         net:
           type: object
-          additionalProperties: *ref_28
-          example: *ref_29
+          additionalProperties: *ref_32
+          example: *ref_33
           description: period → amount
         taxes:
           type: object
-          additionalProperties: *ref_28
-          example: *ref_29
+          additionalProperties: *ref_32
+          example: *ref_33
           description: period → amount
         social:
           type: object
-          additionalProperties: *ref_28
-          example: *ref_29
+          additionalProperties: *ref_32
+          example: *ref_33
           description: period → amount
         payout:
           type: object
-          additionalProperties: *ref_28
-          example: *ref_29
+          additionalProperties: *ref_32
+          example: *ref_33
           description: period → amount
       required:
         - gross
@@ -4109,6 +4363,605 @@ components:
         - certificate
         - completeness
         - lateCorrections
+    RetirementPensionStartDto:
+      type: object
+      properties:
+        date:
+          type: string
+          example: '2026-04-01'
+          description: YYYY-MM-DD.
+        source:
+          type: string
+          enum:
+            - STATUTORY
+            - EARLIEST_CONTRACT
+      required:
+        - date
+        - source
+    RetirementSummaryItemDto:
+      type: object
+      properties:
+        id:
+          type: string
+        pillar:
+          type: string
+          enum: &ref_34
+            - STATUTORY
+            - OCCUPATIONAL
+            - PRIVATE
+        contractType:
+          type: string
+          enum: &ref_35
+            - STATUTORY_PENSION
+            - DIRECT_INSURANCE
+            - PENSIONSKASSE
+            - DIREKTZUSAGE
+            - UNTERSTUETZUNGSKASSE
+            - PENSIONSFONDS
+            - CAPITAL_ACCOUNT
+            - RIESTER
+            - PRIVATE_PENSION_INSURANCE
+            - ALTERSVORSORGEDEPOT
+        origin:
+          type: string
+          enum: &ref_36
+            - IMPORTED
+            - MANUAL
+        providerLabel:
+          type: string
+          nullable: true
+        guaranteedMonthly:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        expectedMonthly:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        capital:
+          type: string
+          example: '1234.56'
+          description: Capital figure, outside monthly sums.
+          nullable: true
+        payoutStart:
+          type: string
+          example: '2026-04-01'
+          description: YYYY-MM-DD.
+          nullable: true
+        startRelation:
+          type: string
+          enum:
+            - EARLIER
+            - SAME
+            - LATER
+          nullable: true
+        outdated:
+          type: boolean
+        incomplete:
+          type: boolean
+      required:
+        - id
+        - pillar
+        - contractType
+        - origin
+        - providerLabel
+        - guaranteedMonthly
+        - expectedMonthly
+        - capital
+        - payoutStart
+        - startRelation
+        - outdated
+        - incomplete
+    RetirementCapitalSummaryDto:
+      type: object
+      properties:
+        total:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/RetirementSummaryItemDto'
+      required:
+        - total
+        - items
+    RetirementPillarSummaryDto:
+      type: object
+      properties:
+        count:
+          type: number
+        guaranteedMonthly:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        expectedMonthly:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/RetirementSummaryItemDto'
+      required:
+        - count
+        - guaranteedMonthly
+        - expectedMonthly
+        - items
+    RetirementSummaryPillarsDto:
+      type: object
+      properties:
+        statutory:
+          $ref: '#/components/schemas/RetirementPillarSummaryDto'
+        occupational:
+          $ref: '#/components/schemas/RetirementPillarSummaryDto'
+        private:
+          $ref: '#/components/schemas/RetirementPillarSummaryDto'
+      required:
+        - statutory
+        - occupational
+        - private
+    RetirementSummaryFlagsDto:
+      type: object
+      properties:
+        outdatedCount:
+          type: number
+        incompleteCount:
+          type: number
+      required:
+        - outdatedCount
+        - incompleteCount
+    RetirementSummaryDto:
+      type: object
+      properties:
+        expectedMonthly:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        guaranteedMonthly:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        differenceMonthly:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        monthlySavings:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        pensionStart:
+          nullable: true
+          type: object
+          allOf:
+            - $ref: '#/components/schemas/RetirementPensionStartDto'
+        capital:
+          $ref: '#/components/schemas/RetirementCapitalSummaryDto'
+        pillars:
+          $ref: '#/components/schemas/RetirementSummaryPillarsDto'
+        flags:
+          $ref: '#/components/schemas/RetirementSummaryFlagsDto'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/RetirementSummaryItemDto'
+      required:
+        - expectedMonthly
+        - guaranteedMonthly
+        - differenceMonthly
+        - monthlySavings
+        - pensionStart
+        - capital
+        - pillars
+        - flags
+        - items
+    RetirementSupplementDto:
+      type: object
+      properties:
+        contributionMonthly:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        employerContributionMonthly:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        subsidiesYearly:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        expectedMonthly:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        expectedScenario:
+          type: string
+          enum: &ref_39
+            - '0'
+            - '3'
+            - '6'
+            - '9'
+    RetirementImportInfoDto:
+      type: object
+      properties:
+        parserId:
+          type: string
+          example: private-statement
+        parserVersion:
+          type: string
+          example: 1.0.0
+        ocrRead:
+          type: boolean
+          description: The text came from on-device recognition (double-check marker).
+      required:
+        - parserId
+        - parserVersion
+        - ocrRead
+    RetirementRecordDto:
+      type: object
+      properties:
+        id:
+          type: string
+        pillar:
+          type: string
+          enum: *ref_34
+        contractType:
+          type: string
+          enum: *ref_35
+        origin:
+          type: string
+          enum: *ref_36
+        status:
+          type: string
+          enum: &ref_37
+            - ACTIVE
+            - PAID_UP
+            - IN_PAYOUT
+        providerLabel:
+          type: string
+          nullable: true
+        statementDate:
+          type: string
+          example: '2026-04-01'
+          description: YYYY-MM-DD.
+        payoutStart:
+          type: string
+          example: '2026-04-01'
+          description: YYYY-MM-DD.
+          nullable: true
+        identifier:
+          type: string
+          nullable: true
+        figures:
+          description: Figures of the contract type (strict per-type whitelist).
+          oneOf: &ref_38
+            - $ref: '#/components/schemas/RetirementStatutoryFiguresDto'
+            - $ref: '#/components/schemas/RetirementPensionFiguresDto'
+            - $ref: '#/components/schemas/RetirementCapitalAccountFiguresDto'
+            - $ref: '#/components/schemas/RetirementDepotFiguresDto'
+        supplement:
+          nullable: true
+          type: object
+          allOf:
+            - $ref: '#/components/schemas/RetirementSupplementDto'
+        import:
+          nullable: true
+          type: object
+          allOf:
+            - $ref: '#/components/schemas/RetirementImportInfoDto'
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - id
+        - pillar
+        - contractType
+        - origin
+        - status
+        - providerLabel
+        - statementDate
+        - payoutStart
+        - identifier
+        - figures
+        - supplement
+        - import
+        - createdAt
+        - updatedAt
+    RetirementStatutoryFiguresDto:
+      type: object
+      properties:
+        dataPeriodFrom:
+          type: string
+          example: '2026-04-01'
+          description: YYYY-MM-DD.
+        dataPeriodTo:
+          type: string
+          example: '2026-04-01'
+          description: YYYY-MM-DD.
+        fullDisabilityMonthly:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        accruedMonthly:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        projectedMonthly:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        projectedAt1Pct:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        projectedAt2Pct:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        earningsPoints:
+          type: string
+          example: '28.5000'
+          description: Up to 4 decimals.
+        currentPensionValue:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        contributionsOwn:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        contributionsEmployer:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        contributionsPublic:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+      required:
+        - projectedMonthly
+    RetirementScenarioMonthlyDto:
+      type: object
+      properties:
+        '0':
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        '3':
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        '6':
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        '9':
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+    RetirementPensionFiguresDto:
+      type: object
+      properties:
+        guaranteedMonthly:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        expectedMonthly:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        guaranteedCapital:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        scenarioMonthly:
+          $ref: '#/components/schemas/RetirementScenarioMonthlyDto'
+        currentValue:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        contributionsPaid:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        contributionsMain:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        contributionsExtra:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        surrenderValue:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        deathBenefit:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        guaranteePeriodYears:
+          type: number
+          example: 10
+        capitalPayout:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        contributionMonthly:
+          type: string
+          example: '1234.56'
+          description: Manual records only (supplement otherwise).
+        employerContributionMonthly:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        subsidiesYearly:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+    RetirementCapitalAccountFiguresDto:
+      type: object
+      properties:
+        openingBalance:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        accountBalance:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        guaranteedInterestRate:
+          type: string
+          example: '1.2500'
+          description: Percent, up to 4 decimals.
+        interestCredit:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        annualContribution:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        finalBonus:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        expectedMonthly:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        contributionMonthly:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        employerContributionMonthly:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+      required:
+        - accountBalance
+    RetirementDepotFiguresDto:
+      type: object
+      properties:
+        currentValue:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        expectedMonthly:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        contributionMonthly:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+    RetirementRecordInputDto:
+      type: object
+      properties:
+        contractType:
+          type: string
+          enum: *ref_35
+        status:
+          type: string
+          enum: *ref_37
+        providerLabel:
+          type: string
+          maxLength: 80
+          description: Required for occupational and private.
+        statementDate:
+          type: string
+          example: '2026-04-01'
+          description: Statement date, not in the future.
+        payoutStart:
+          type: string
+          example: '2026-04-01'
+          description: YYYY-MM-DD.
+        identifier:
+          type: string
+          maxLength: 40
+          description: Insurance or contract number; stored encrypted.
+        figures:
+          description: Figures of the contract type (strict per-type whitelist).
+          oneOf: *ref_38
+        origin:
+          type: string
+          enum: *ref_36
+        supplement:
+          description: IMPORTED only.
+          allOf:
+            - $ref: '#/components/schemas/RetirementSupplementDto'
+        import:
+          description: Required iff IMPORTED.
+          allOf:
+            - $ref: '#/components/schemas/RetirementImportInfoDto'
+        replaces:
+          type: string
+          description: 'IMPORTED only: id of the record of the same type this one replaces.'
+      required:
+        - contractType
+        - status
+        - statementDate
+        - figures
+        - origin
+    RetirementManualRecordInputDto:
+      type: object
+      properties:
+        contractType:
+          type: string
+          enum: *ref_35
+        status:
+          type: string
+          enum: *ref_37
+        providerLabel:
+          type: string
+          maxLength: 80
+          description: Required for occupational and private.
+        statementDate:
+          type: string
+          example: '2026-04-01'
+          description: Statement date, not in the future.
+        payoutStart:
+          type: string
+          example: '2026-04-01'
+          description: YYYY-MM-DD.
+        identifier:
+          type: string
+          maxLength: 40
+          description: Insurance or contract number; stored encrypted.
+        figures:
+          description: Figures of the contract type (strict per-type whitelist).
+          oneOf: *ref_38
+      required:
+        - contractType
+        - status
+        - statementDate
+        - figures
+    RetirementSupplementPatchDto:
+      type: object
+      properties:
+        contributionMonthly:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        employerContributionMonthly:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        subsidiesYearly:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        expectedMonthly:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        expectedScenario:
+          type: string
+          enum: *ref_39
+        status:
+          type: string
+          enum: *ref_37
     SubmitRequestDto:
       type: object
       properties:
@@ -4174,7 +5027,7 @@ components:
           type: string
         status:
           type: string
-          enum: &ref_30
+          enum: &ref_40
             - OPEN
             - IN_PROGRESS
             - DONE
@@ -4257,7 +5110,7 @@ components:
           type: string
         status:
           type: string
-          enum: *ref_30
+          enum: *ref_40
         note:
           type: string
           nullable: true
@@ -4316,7 +5169,7 @@ components:
       properties:
         status:
           type: string
-          enum: *ref_30
+          enum: *ref_40
         note:
           type: string
           maxLength: 2000

@@ -15,3 +15,4 @@ export * from './account-overview';
 export * from './error-response';
 export * from './earnings';
 export * from './requests';
+export * from './retirement';

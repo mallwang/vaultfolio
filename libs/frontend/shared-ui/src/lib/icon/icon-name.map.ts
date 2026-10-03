@@ -67,6 +67,7 @@ export const ICON_NAME_MAP: Record<string, string> = {
   'credit-card': 'credit_card',
   payments: 'payments',
   'sticky-note': 'sticky_note_2',
+  'content-copy': 'content_copy',
   language: 'language',
   // Account Overview credit-card fields (025-account-overview follow-up): reveal/hide toggle.
   visibility: 'visibility',

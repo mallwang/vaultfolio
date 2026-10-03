@@ -248,6 +248,29 @@ describe('UsersRepository', () => {
     }
   });
 
+  it('037: deleteById purges the retirement records of the user only', async () => {
+    const user = await repository.create({
+      email: 'retirement-purge@example.com',
+      displayName: 'Retirement Purge',
+      passwordHash: 'hash-retirement',
+      role: 'MEMBER',
+    });
+    for (const owner of [user.id, 'someone-else']) {
+      await database.query(
+        `INSERT INTO retirement_records (id, owner_id, pillar, contract_type, origin, status,
+           statement_date, payload_enc, created_at, updated_at)
+         VALUES ($1, $2, 'PRIVATE', 'RIESTER', 'MANUAL', 'ACTIVE', '2026-01-01', 'v1:x', 'n', 'n')`,
+        [`ret-${owner}`, owner],
+      );
+    }
+
+    await repository.deleteById(user.id);
+
+    expect(await database.query('SELECT owner_id FROM retirement_records')).toEqual([
+      { owner_id: 'someone-else' },
+    ]);
+  });
+
   it("033: deleteById removes the user's requests, attachments and audit rows and clears admin references", async () => {
     const member = await repository.create({
       email: 'req-member@example.com',

@@ -13,7 +13,7 @@ import {
   placedWordsPdf,
   textPdf,
 } from '../../testing/synthetic-pdfs';
-import { type PdfJsModule, setPdfJsLoader } from '../pdf/pdf-text-extractor';
+import { type PdfJsModule, setPdfJsLoader } from '@vaultfolio/frontend-document-reader';
 import { extractLayout, layoutFromRecognised } from './layout-extractor';
 
 beforeAll(() => {

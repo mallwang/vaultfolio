@@ -1,0 +1,3202 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Altersvorsorge Mockup</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    />
+    <style>
+      /* Layout: review chrome on top; stage hosts the real app shell (sidebar + header) with the Retirement page:
+     toolbar, five tabs, and per-pillar cards. Teal PrimeNG-like theme as in the current app. All people,
+     employers, contracts, numbers and amounts are invented. */
+      :root {
+        color-scheme: light;
+        --p-bg: #ffffff;
+        --p-surface-2: #f8fafb;
+        --p-text: #1b2a2e;
+        --p-muted: #5d7077;
+        --p-line: #dbe3e6;
+        --p-hover: #f1f5f6;
+        --p-primary: #0d9488;
+        --p-primary-600: #0f766e;
+        --p-primary-soft: #e2f5f2;
+        --p-on-primary: #ffffff;
+        --p-info: #0369a1;
+        --p-info-bg: #e0f2fe;
+        --p-ok: #15803d;
+        --p-ok-bg: #dcfce7;
+        --p-warn: #b45309;
+        --p-warn-bg: #fef3c7;
+        --p-danger: #b91c1c;
+        --p-danger-bg: #fdecec;
+        --p-muted-bg: #eef2f4;
+        --review-bg: #f3f2ee;
+        --review-ink: #2c2a25;
+        --review-muted: #6e6a5e;
+        --review-line: #ddd9d0;
+        --review-accent: #b45f2c;
+        --review-panel: #ffffff;
+        --stage: #d9d4c8;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme='light']) {
+          color-scheme: dark;
+          --p-bg: #11191c;
+          --p-surface-2: #172226;
+          --p-text: #e6eef0;
+          --p-muted: #9ab0b7;
+          --p-line: #2b3b41;
+          --p-hover: #1c2a2f;
+          --p-primary: #2dd4bf;
+          --p-primary-600: #5eead4;
+          --p-primary-soft: #153a38;
+          --p-on-primary: #06201d;
+          --p-info: #7dd3fc;
+          --p-info-bg: rgba(14, 165, 233, 0.16);
+          --p-ok: #4ade80;
+          --p-ok-bg: rgba(34, 197, 94, 0.16);
+          --p-warn: #fbbf24;
+          --p-warn-bg: rgba(245, 158, 11, 0.16);
+          --p-danger: #f87171;
+          --p-danger-bg: rgba(239, 68, 68, 0.16);
+          --p-muted-bg: #1e2c31;
+          --review-bg: #1a1916;
+          --review-ink: #ece8dc;
+          --review-muted: #a39e8e;
+          --review-line: #36332b;
+          --review-accent: #e08a52;
+          --review-panel: #23211c;
+          --stage: #2b2924;
+        }
+      }
+      :root[data-theme='dark'] {
+        color-scheme: dark;
+        --p-bg: #11191c;
+        --p-surface-2: #172226;
+        --p-text: #e6eef0;
+        --p-muted: #9ab0b7;
+        --p-line: #2b3b41;
+        --p-hover: #1c2a2f;
+        --p-primary: #2dd4bf;
+        --p-primary-600: #5eead4;
+        --p-primary-soft: #153a38;
+        --p-on-primary: #06201d;
+        --p-info: #7dd3fc;
+        --p-info-bg: rgba(14, 165, 233, 0.16);
+        --p-ok: #4ade80;
+        --p-ok-bg: rgba(34, 197, 94, 0.16);
+        --p-warn: #fbbf24;
+        --p-warn-bg: rgba(245, 158, 11, 0.16);
+        --p-danger: #f87171;
+        --p-danger-bg: rgba(239, 68, 68, 0.16);
+        --p-muted-bg: #1e2c31;
+        --review-bg: #1a1916;
+        --review-ink: #ece8dc;
+        --review-muted: #a39e8e;
+        --review-line: #36332b;
+        --review-accent: #e08a52;
+        --review-panel: #23211c;
+        --stage: #2b2924;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      [hidden] {
+        display: none !important;
+      }
+      body {
+        margin: 0;
+        background: var(--review-bg);
+        color: var(--review-ink);
+        font-family:
+          Inter,
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      h1,
+      h2,
+      h3,
+      p {
+        text-wrap: balance;
+      }
+      button {
+        font: inherit;
+      }
+
+      /* ===== review chrome ===== */
+      .review-header {
+        padding: 1.5rem 1rem 1rem;
+        border-bottom: 1px solid var(--review-line);
+      }
+      .review-eyebrow {
+        font-size: 0.72rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--review-accent);
+        font-weight: 700;
+        margin: 0 0 0.25rem;
+      }
+      .review-header h1 {
+        margin: 0 0 0.35rem;
+        font-size: 1.35rem;
+        font-weight: 800;
+      }
+      .review-header p {
+        margin: 0;
+        color: var(--review-muted);
+        font-size: 0.9rem;
+        max-width: 72ch;
+        line-height: 1.5;
+      }
+      .review-controls {
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+        padding: 0.75rem 1rem;
+        background: var(--review-panel);
+        border-bottom: 1px solid var(--review-line);
+        position: sticky;
+        top: env(safe-area-inset-top, 0px);
+        z-index: 20;
+      }
+      .control-group {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+      .control-group .label {
+        font-size: 0.72rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--review-muted);
+        font-weight: 700;
+        min-width: 5.2rem;
+      }
+      .segmented {
+        display: inline-flex;
+        border: 1px solid var(--review-line);
+        border-radius: 8px;
+        overflow: hidden;
+        flex-wrap: wrap;
+      }
+      .segmented button {
+        appearance: none;
+        border: none;
+        background: var(--review-panel);
+        color: var(--review-ink);
+        font-size: 0.8rem;
+        font-weight: 600;
+        padding: 0.38rem 0.7rem;
+        cursor: pointer;
+        border-right: 1px solid var(--review-line);
+      }
+      .segmented button:last-child {
+        border-right: none;
+      }
+      .segmented button:hover {
+        background: var(--review-bg);
+      }
+      .segmented button:focus-visible {
+        outline: 2px solid var(--review-accent);
+        outline-offset: -2px;
+      }
+      .segmented button[aria-pressed='true'] {
+        background: var(--review-accent);
+        color: #fff;
+      }
+      .review-stage {
+        padding: 1.25rem 1rem;
+        display: flex;
+        justify-content: center;
+      }
+      .stage-frame {
+        width: 100%;
+        max-width: 1240px;
+        background: var(--stage);
+        border-radius: 14px;
+        padding: 1rem;
+        transition: max-width 0.2s ease;
+        min-width: 0;
+      }
+      .stage-frame[data-viewport='mobile'] {
+        max-width: 400px;
+      }
+      .stage-frame-label {
+        font-size: 0.72rem;
+        color: var(--review-muted);
+        text-align: center;
+        margin: 0 0 0.5rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      .canvas {
+        background: var(--p-bg);
+        color: var(--p-text);
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+      }
+      .review-footer {
+        padding: 0 1rem 2rem;
+        max-width: 1240px;
+        margin: 0 auto;
+        font-size: 0.85rem;
+        color: var(--review-muted);
+        line-height: 1.5;
+      }
+      .review-footer h3 {
+        margin: 0.5rem 0 0.2rem;
+        font-size: 0.8rem;
+        color: var(--review-ink);
+      }
+      .review-footer ul {
+        margin: 0.2rem 0 0.6rem;
+        padding-left: 1.1rem;
+      }
+
+      /* ===== app shell (snapshot of the real shell) ===== */
+      .shell {
+        display: grid;
+        grid-template-columns: 224px 1fr;
+        min-height: 780px;
+      }
+      .stage-frame[data-viewport='mobile'] .shell {
+        grid-template-columns: 1fr;
+      }
+      .sidebar {
+        background: var(--p-bg);
+        border-right: 1px solid var(--p-line);
+        display: flex;
+        flex-direction: column;
+        padding: 1.1rem 0.85rem;
+        gap: 1.5rem;
+      }
+      .stage-frame[data-viewport='mobile'] .sidebar {
+        flex-direction: row;
+        align-items: center;
+        border-right: none;
+        border-bottom: 1px solid var(--p-line);
+        padding: 0.6rem 0.85rem;
+        gap: 0.75rem;
+        overflow-x: auto;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        padding: 0 0.4rem;
+      }
+      .brand__mark {
+        width: 26px;
+        height: 26px;
+        border-radius: 7px;
+        background: linear-gradient(135deg, var(--p-primary), var(--p-primary-600));
+        flex: 0 0 auto;
+      }
+      .brand__name {
+        font-weight: 800;
+        font-size: 0.98rem;
+        letter-spacing: -0.01em;
+      }
+      .stage-frame[data-viewport='mobile'] .brand__name {
+        display: none;
+      }
+      .nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+      }
+      .stage-frame[data-viewport='mobile'] .nav {
+        flex-direction: row;
+        gap: 0.3rem;
+      }
+      .nav__item {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        padding: 0.55rem 0.6rem;
+        border-radius: 8px;
+        font-size: 0.86rem;
+        font-weight: 600;
+        color: var(--p-muted);
+        position: relative;
+        white-space: nowrap;
+      }
+      .nav__item svg {
+        width: 17px;
+        height: 17px;
+        flex: 0 0 auto;
+      }
+      .nav__item--active {
+        background: var(--p-primary-soft);
+        color: var(--p-primary-600);
+      }
+      .nav__item--active::before {
+        content: '';
+        position: absolute;
+        left: -0.85rem;
+        top: 0.35rem;
+        bottom: 0.35rem;
+        width: 3px;
+        border-radius: 2px;
+        background: var(--p-primary);
+      }
+      .stage-frame[data-viewport='mobile'] .nav__item {
+        flex-direction: column;
+        gap: 0.2rem;
+        min-width: 68px;
+        padding: 0.4rem;
+        font-size: 0.64rem;
+        text-align: center;
+      }
+      .stage-frame[data-viewport='mobile'] .nav__item--active::before {
+        display: none;
+      }
+      .main {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+      }
+      .app-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--p-line);
+      }
+      .app-header__crumb {
+        font-size: 0.75rem;
+        color: var(--p-muted);
+        margin: 0 0 0.15rem;
+        font-weight: 600;
+      }
+      .app-header__title {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 800;
+      }
+      .app-header__meta {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+        color: var(--p-muted);
+      }
+      .stage-frame[data-viewport='mobile'] .app-header {
+        padding: 0.8rem 1rem;
+      }
+      .stage-frame[data-viewport='mobile'] .meta-name,
+      .stage-frame[data-viewport='mobile'] .role-badge,
+      .stage-frame[data-viewport='mobile'] .signout span {
+        display: none;
+      }
+      .role-badge {
+        font-size: 0.68rem;
+        font-weight: 700;
+        color: var(--p-primary-600);
+        background: var(--p-primary-soft);
+        padding: 0.15rem 0.5rem;
+        border-radius: 999px;
+      }
+      .avatar {
+        width: 28px;
+        height: 28px;
+        border-radius: 999px;
+        background: var(--p-primary);
+        color: var(--p-on-primary);
+        font-size: 0.72rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .icon-btn {
+        appearance: none;
+        border: none;
+        background: none;
+        color: var(--p-muted);
+        cursor: pointer;
+        border-radius: 999px;
+        width: 30px;
+        height: 30px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .icon-btn:hover {
+        background: var(--p-hover);
+      }
+      .signout {
+        appearance: none;
+        border: none;
+        background: none;
+        color: var(--p-muted);
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.3rem 0.5rem;
+        border-radius: 8px;
+      }
+      .signout:hover {
+        background: var(--p-hover);
+      }
+      svg.i {
+        width: 16px;
+        height: 16px;
+        flex: 0 0 auto;
+      }
+      .content {
+        padding: 1.25rem 1.5rem 2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.1rem;
+        min-width: 0;
+      }
+      .stage-frame[data-viewport='mobile'] .content {
+        padding: 1rem;
+      }
+
+      /* ===== generic controls ===== */
+      .btn {
+        appearance: none;
+        border: 1px solid var(--p-line);
+        background: var(--p-bg);
+        color: var(--p-text);
+        font-size: 0.84rem;
+        font-weight: 600;
+        padding: 0.5rem 0.85rem;
+        border-radius: 8px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        white-space: nowrap;
+      }
+      .btn:hover {
+        background: var(--p-hover);
+      }
+      .btn:focus-visible,
+      .tab:focus-visible,
+      .link-btn:focus-visible,
+      .chip:focus-visible {
+        outline: 2px solid var(--p-primary);
+        outline-offset: 2px;
+      }
+      .btn--primary {
+        background: var(--p-primary);
+        border-color: var(--p-primary);
+        color: var(--p-on-primary);
+      }
+      .btn--primary:hover {
+        background: var(--p-primary-600);
+        border-color: var(--p-primary-600);
+      }
+      .btn--danger {
+        color: var(--p-danger);
+      }
+      .btn--sm {
+        padding: 0.32rem 0.6rem;
+        font-size: 0.78rem;
+      }
+      .link-btn {
+        appearance: none;
+        border: none;
+        background: none;
+        color: var(--p-primary-600);
+        font-weight: 600;
+        font-size: 0.84rem;
+        cursor: pointer;
+        padding: 0.2rem 0;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+      }
+      .link-btn:hover {
+        text-decoration: underline;
+      }
+      .toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.6rem;
+      }
+      .toolbar__left,
+      .toolbar__right {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+      }
+      .tabs {
+        display: flex;
+        gap: 0.25rem;
+        border-bottom: 1px solid var(--p-line);
+        overflow-x: auto;
+      }
+      .tab {
+        appearance: none;
+        border: none;
+        background: none;
+        font-size: 0.86rem;
+        font-weight: 600;
+        color: var(--p-muted);
+        padding: 0.6rem 0.8rem;
+        border-bottom: 2px solid transparent;
+        margin-bottom: -1px;
+        cursor: pointer;
+        white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+      }
+      .tab:hover {
+        color: var(--p-text);
+      }
+      .tab[aria-selected='true'] {
+        color: var(--p-primary-600);
+        border-bottom-color: var(--p-primary);
+      }
+      .badge {
+        font-size: 0.68rem;
+        font-weight: 700;
+        padding: 0.12rem 0.5rem;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        white-space: nowrap;
+        background: var(--p-muted-bg);
+        color: var(--p-muted);
+      }
+      .badge svg.i {
+        width: 11px;
+        height: 11px;
+      }
+      .badge--ok {
+        background: var(--p-ok-bg);
+        color: var(--p-ok);
+      }
+      .badge--warn {
+        background: var(--p-warn-bg);
+        color: var(--p-warn);
+      }
+      .badge--info {
+        background: var(--p-info-bg);
+        color: var(--p-info);
+      }
+      .badge--danger {
+        background: var(--p-danger-bg);
+        color: var(--p-danger);
+      }
+      .num {
+        font-variant-numeric: tabular-nums;
+      }
+      .muted {
+        color: var(--p-muted);
+      }
+      .panel {
+        border: 1px solid var(--p-line);
+        border-radius: 12px;
+        background: var(--p-bg);
+      }
+      .panel__head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        padding: 0.85rem 1rem;
+        border-bottom: 1px solid var(--p-line);
+        flex-wrap: wrap;
+      }
+      .panel__head h2 {
+        margin: 0;
+        font-size: 0.98rem;
+        font-weight: 800;
+      }
+      .panel__head p {
+        margin: 0.1rem 0 0;
+        font-size: 0.78rem;
+        color: var(--p-muted);
+      }
+      .panel__body {
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.9rem;
+      }
+      .note {
+        display: flex;
+        gap: 0.6rem;
+        align-items: flex-start;
+        padding: 0.65rem 0.8rem;
+        border-radius: 10px;
+        font-size: 0.8rem;
+        line-height: 1.45;
+        background: var(--p-info-bg);
+        color: var(--p-text);
+      }
+      .note svg.i {
+        color: var(--p-info);
+        margin-top: 0.1rem;
+      }
+      .note--warn {
+        background: var(--p-warn-bg);
+      }
+      .note--warn svg.i {
+        color: var(--p-warn);
+      }
+      .note--danger {
+        background: var(--p-danger-bg);
+      }
+      .note--danger svg.i {
+        color: var(--p-danger);
+      }
+
+      /* ===== guaranteed vs projection ===== */
+      .tag-g {
+        font-size: 0.64rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--p-ok);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.2rem;
+      }
+      .tag-p {
+        font-size: 0.64rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--p-muted);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.2rem;
+      }
+      .val-g {
+        font-weight: 800;
+      }
+      .val-p {
+        font-weight: 700;
+        font-style: italic;
+        color: var(--p-text);
+      }
+      .val-p::before {
+        content: '≈ ';
+        font-style: normal;
+        color: var(--p-muted);
+        font-weight: 600;
+      }
+
+      /* ===== summary ===== */
+      .kpis {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0.75rem;
+      }
+      .stage-frame[data-viewport='mobile'] .kpis {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .kpi {
+        border: 1px solid var(--p-line);
+        border-radius: 12px;
+        padding: 0.85rem 0.95rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        background: var(--p-bg);
+        min-width: 0;
+      }
+      .kpi__label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--p-muted);
+        display: flex;
+        justify-content: space-between;
+        gap: 0.4rem;
+        align-items: center;
+      }
+      .kpi__value {
+        font-size: 1.45rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      .kpi__value small {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--p-muted);
+        letter-spacing: 0;
+      }
+      .kpi__sub {
+        font-size: 0.74rem;
+        color: var(--p-muted);
+        line-height: 1.35;
+      }
+      .kpi--hero {
+        background: var(--p-primary-soft);
+        border-color: transparent;
+      }
+      .gap-bar {
+        display: flex;
+        height: 14px;
+        border-radius: 999px;
+        overflow: hidden;
+        background: var(--p-muted-bg);
+      }
+      .gap-bar__g {
+        background: var(--p-ok);
+      }
+      .gap-bar__p {
+        background: repeating-linear-gradient(
+          135deg,
+          var(--p-primary) 0 6px,
+          color-mix(in srgb, var(--p-primary) 55%, transparent) 6px 12px
+        );
+      }
+      .gap-legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem 1.2rem;
+        font-size: 0.78rem;
+        color: var(--p-muted);
+      }
+      .gap-legend span::before {
+        content: '';
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 3px;
+        margin-right: 0.35rem;
+        vertical-align: -1px;
+      }
+      .gap-legend .lg-g::before {
+        background: var(--p-ok);
+      }
+      .gap-legend .lg-p::before {
+        background: var(--p-primary);
+      }
+
+      .pillars {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.75rem;
+        align-items: start;
+      }
+      .stage-frame[data-viewport='mobile'] .pillars {
+        grid-template-columns: 1fr;
+      }
+      .pillar {
+        border: 1px solid var(--p-line);
+        border-radius: 12px;
+        background: var(--p-bg);
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+      }
+      .pillar__head {
+        padding: 0.85rem 1rem 0.6rem;
+        display: flex;
+        justify-content: space-between;
+        gap: 0.5rem;
+        align-items: flex-start;
+      }
+      .pillar__title {
+        display: flex;
+        flex-direction: column;
+        gap: 0.1rem;
+      }
+      .pillar__title h3 {
+        margin: 0;
+        font-size: 0.95rem;
+        font-weight: 800;
+      }
+      .pillar__title span {
+        font-size: 0.74rem;
+        color: var(--p-muted);
+      }
+      .pillar__sum {
+        padding: 0 1rem 0.75rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+        border-bottom: 1px solid var(--p-line);
+      }
+      .pillar__sum b {
+        font-size: 1.2rem;
+        font-weight: 800;
+      }
+      .pillar__list {
+        list-style: none;
+        margin: 0;
+        padding: 0.35rem 1rem 0.5rem;
+        display: flex;
+        flex-direction: column;
+      }
+      .pillar__list li {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.6rem;
+        padding: 0.5rem 0;
+        border-bottom: 1px dashed var(--p-line);
+        font-size: 0.82rem;
+        align-items: center;
+      }
+      .pillar__list li:last-child {
+        border-bottom: none;
+      }
+      .pillar__list .li-name {
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+        min-width: 0;
+      }
+      .pillar__list .li-name small {
+        color: var(--p-muted);
+        font-size: 0.72rem;
+        display: flex;
+        gap: 0.3rem;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .pillar__foot {
+        padding: 0.6rem 1rem 0.85rem;
+        border-top: 1px solid var(--p-line);
+      }
+      .pillar--empty {
+        border-style: dashed;
+      }
+      .pillar--empty .empty {
+        padding: 1.1rem 1rem 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+        align-items: flex-start;
+        font-size: 0.82rem;
+        color: var(--p-muted);
+        line-height: 1.45;
+      }
+
+      /* ===== contract cards ===== */
+      .contracts {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.85rem;
+        align-items: start;
+      }
+      .stage-frame[data-viewport='mobile'] .contracts {
+        grid-template-columns: 1fr;
+      }
+      .contract {
+        border: 1px solid var(--p-line);
+        border-radius: 12px;
+        background: var(--p-bg);
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+      }
+      .contract--wide {
+        grid-column: 1 / -1;
+      }
+      .contract__head {
+        padding: 0.9rem 1rem 0.7rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.45rem;
+        border-bottom: 1px solid var(--p-line);
+      }
+      .contract__title {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.6rem;
+        align-items: flex-start;
+      }
+      .contract__title h3 {
+        margin: 0;
+        font-size: 0.95rem;
+        font-weight: 800;
+      }
+      .contract__title small {
+        display: block;
+        font-size: 0.74rem;
+        color: var(--p-muted);
+        font-weight: 500;
+        margin-top: 0.1rem;
+      }
+      .contract__badges {
+        display: flex;
+        gap: 0.35rem;
+        flex-wrap: wrap;
+      }
+      .contract__id {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.76rem;
+        color: var(--p-muted);
+        flex-wrap: wrap;
+      }
+      .contract__id code {
+        font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace;
+        font-size: 0.78rem;
+        color: var(--p-text);
+        background: var(--p-muted-bg);
+        padding: 0.1rem 0.4rem;
+        border-radius: 5px;
+      }
+      .contract__body {
+        padding: 0.8rem 1rem;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.75rem 1rem;
+      }
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+        min-width: 0;
+      }
+      .field__label {
+        font-size: 0.7rem;
+        color: var(--p-muted);
+        font-weight: 600;
+        display: flex;
+        gap: 0.4rem;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .field__value {
+        font-size: 0.95rem;
+      }
+      .field--full {
+        grid-column: 1 / -1;
+      }
+      .scen {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0.4rem;
+      }
+      .scen div {
+        background: var(--p-surface-2);
+        border: 1px solid var(--p-line);
+        border-radius: 8px;
+        padding: 0.35rem 0.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.05rem;
+      }
+      .scen small {
+        font-size: 0.66rem;
+        color: var(--p-muted);
+        font-weight: 700;
+      }
+      .scen b {
+        font-size: 0.82rem;
+        font-weight: 700;
+        font-style: italic;
+      }
+      .contract__foot {
+        padding: 0.65rem 1rem;
+        border-top: 1px solid var(--p-line);
+        display: flex;
+        gap: 0.5rem;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        background: var(--p-surface-2);
+        border-radius: 0 0 12px 12px;
+      }
+      .contract__foot .acts {
+        display: flex;
+        gap: 0.4rem;
+        flex-wrap: wrap;
+      }
+      .contract__foot small {
+        font-size: 0.72rem;
+        color: var(--p-muted);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+      }
+      .contract--outdated {
+        border-color: color-mix(in srgb, var(--p-warn) 55%, var(--p-line));
+      }
+
+      .capital-box {
+        grid-column: 1 / -1;
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.7rem 0.85rem;
+        border-radius: 10px;
+        background: var(--p-info-bg);
+        font-size: 0.8rem;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .capital-box b {
+        font-size: 1.15rem;
+        font-weight: 800;
+      }
+
+      /* ===== import ===== */
+      .dropzone {
+        border: 2px dashed var(--p-line);
+        border-radius: 12px;
+        padding: 1.6rem 1rem;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        background: var(--p-surface-2);
+      }
+      .dropzone svg.i {
+        width: 30px;
+        height: 30px;
+        color: var(--p-primary);
+      }
+      .dropzone strong {
+        font-size: 0.98rem;
+      }
+      .dropzone p {
+        margin: 0;
+        font-size: 0.8rem;
+        color: var(--p-muted);
+        max-width: 62ch;
+        line-height: 1.45;
+      }
+      .steps {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        font-size: 0.78rem;
+        color: var(--p-muted);
+      }
+      .steps span {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.25rem 0.6rem;
+        border-radius: 999px;
+        background: var(--p-muted-bg);
+        font-weight: 600;
+      }
+      .steps span.on {
+        background: var(--p-primary-soft);
+        color: var(--p-primary-600);
+      }
+      .privacy-list {
+        margin: 0;
+        padding-left: 1.1rem;
+        font-size: 0.8rem;
+        color: var(--p-muted);
+        line-height: 1.55;
+      }
+      .file-row {
+        display: flex;
+        align-items: center;
+        gap: 0.7rem;
+        padding: 0.65rem 0.8rem;
+        border: 1px solid var(--p-line);
+        border-radius: 10px;
+        font-size: 0.84rem;
+        flex-wrap: wrap;
+      }
+      .file-row .grow {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.1rem;
+      }
+      .file-row small {
+        color: var(--p-muted);
+        font-size: 0.74rem;
+      }
+      .tbl-wrap {
+        overflow-x: auto;
+        border: 1px solid var(--p-line);
+        border-radius: 10px;
+      }
+      table.fields {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.84rem;
+        min-width: 460px;
+      }
+      table.fields th {
+        text-align: left;
+        font-size: 0.7rem;
+        color: var(--p-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        padding: 0.55rem 0.8rem;
+        background: var(--p-surface-2);
+        border-bottom: 1px solid var(--p-line);
+      }
+      table.fields td {
+        padding: 0.5rem 0.8rem;
+        border-bottom: 1px solid var(--p-line);
+        vertical-align: middle;
+      }
+      table.fields tr:last-child td {
+        border-bottom: none;
+      }
+      table.fields td.r,
+      table.fields th.r {
+        text-align: right;
+      }
+      table.fields tr.need td {
+        background: var(--p-warn-bg);
+      }
+      .input {
+        appearance: none;
+        width: 100%;
+        border: 1px solid var(--p-line);
+        background: var(--p-bg);
+        color: var(--p-text);
+        border-radius: 8px;
+        padding: 0.48rem 0.65rem;
+        font-size: 0.86rem;
+        min-width: 0;
+      }
+      .input:focus-visible {
+        outline: 2px solid var(--p-primary);
+        outline-offset: 1px;
+      }
+      .input--sm {
+        max-width: 9.5rem;
+        text-align: right;
+      }
+      .input[readonly] {
+        background: var(--p-muted-bg);
+        color: var(--p-muted);
+      }
+      .actions {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+      }
+
+      /* ===== form ===== */
+      .chips {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+      .chip {
+        appearance: none;
+        border: 1px solid var(--p-line);
+        background: var(--p-bg);
+        color: var(--p-text);
+        border-radius: 10px;
+        padding: 0.55rem 0.8rem;
+        font-size: 0.84rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.1rem;
+        text-align: left;
+      }
+      .chip small {
+        font-size: 0.7rem;
+        color: var(--p-muted);
+        font-weight: 500;
+      }
+      .chip[aria-pressed='true'] {
+        border-color: var(--p-primary);
+        background: var(--p-primary-soft);
+        box-shadow: inset 0 0 0 1px var(--p-primary);
+      }
+      .chip[disabled] {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+      .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.85rem 1rem;
+      }
+      .stage-frame[data-viewport='mobile'] .form-grid {
+        grid-template-columns: 1fr;
+      }
+      .form-grid .full {
+        grid-column: 1 / -1;
+      }
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+        min-width: 0;
+      }
+      .form-group label {
+        font-size: 0.76rem;
+        font-weight: 700;
+      }
+      .form-group .hint {
+        font-size: 0.72rem;
+        color: var(--p-muted);
+      }
+      .form-section {
+        font-size: 0.74rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--p-muted);
+        font-weight: 800;
+        margin: 0.4rem 0 -0.2rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      /* ===== info cards ===== */
+      .info-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.85rem;
+      }
+      .stage-frame[data-viewport='mobile'] .info-grid {
+        grid-template-columns: 1fr;
+      }
+      .info-card {
+        border: 1px solid var(--p-line);
+        border-radius: 12px;
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+        background: var(--p-bg);
+      }
+      .info-card h3 {
+        margin: 0;
+        font-size: 0.98rem;
+        font-weight: 800;
+      }
+      .info-card p {
+        margin: 0;
+        font-size: 0.82rem;
+        line-height: 1.5;
+        color: var(--p-muted);
+        flex: 1;
+      }
+      .info-card .src {
+        font-size: 0.72rem;
+        color: var(--p-muted);
+        display: flex;
+        gap: 0.4rem;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      /* ===== dashboard ===== */
+      .dash-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.85rem;
+      }
+      .stage-frame[data-viewport='mobile'] .dash-grid {
+        grid-template-columns: 1fr;
+      }
+      .ph-tile {
+        border: 1px dashed var(--p-line);
+        border-radius: 12px;
+        min-height: 190px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--p-muted);
+        font-size: 0.8rem;
+        background: var(--p-surface-2);
+      }
+      .tile {
+        border: 1px solid var(--p-line);
+        border-radius: 12px;
+        background: var(--p-bg);
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+      }
+      .tile__head {
+        padding: 0.85rem 1rem 0.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .tile__head h3 {
+        margin: 0;
+        font-size: 0.92rem;
+        font-weight: 800;
+        display: flex;
+        gap: 0.45rem;
+        align-items: center;
+      }
+      .tile__main {
+        padding: 0 1rem 0.75rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+      }
+      .tile__main b {
+        font-size: 1.6rem;
+        letter-spacing: -0.02em;
+        font-weight: 800;
+      }
+      .tile__rows {
+        padding: 0 1rem 0.75rem;
+        display: flex;
+        flex-direction: column;
+      }
+      .tile__rows div {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.6rem;
+        padding: 0.42rem 0;
+        border-top: 1px dashed var(--p-line);
+        font-size: 0.8rem;
+        align-items: baseline;
+      }
+      .tile__rows div span:first-child {
+        color: var(--p-muted);
+      }
+      .tile__foot {
+        padding: 0.6rem 1rem 0.8rem;
+        margin-top: auto;
+      }
+      .tile--cta {
+        cursor: pointer;
+      }
+      .tile--cta:hover {
+        border-color: var(--p-primary);
+      }
+      .tile .gap-bar {
+        margin: 0 1rem 0.35rem;
+      }
+      .tile .gap-legend {
+        padding: 0 1rem 0.7rem;
+        font-size: 0.72rem;
+      }
+      .tile__empty {
+        padding: 0.2rem 1rem 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+        font-size: 0.82rem;
+        color: var(--p-muted);
+        line-height: 1.45;
+        align-items: flex-start;
+      }
+      .dash-label {
+        font-size: 0.7rem;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: var(--p-muted);
+        font-weight: 800;
+        margin: 0 0 -0.3rem;
+      }
+    </style>
+  </head>
+  <body>
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <defs>
+        <symbol id="i-grid" viewBox="0 0 24 24">
+          <path
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linejoin="round"
+            d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"
+          />
+        </symbol>
+        <symbol id="i-chart" viewBox="0 0 24 24">
+          <path
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M4 20V10M10 20V4M16 20v-8M22 20H2"
+          />
+        </symbol>
+        <symbol id="i-wallet" viewBox="0 0 24 24">
+          <path
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linejoin="round"
+            d="M3 7h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM3 7l12-3v3M17 14h2"
+          />
+        </symbol>
+        <symbol id="i-sun" viewBox="0 0 24 24">
+          <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <circle cx="12" cy="12" r="4" />
+            <path
+              d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"
+            />
+          </g>
+        </symbol>
+        <symbol id="i-out" viewBox="0 0 24 24">
+          <path
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M9 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h4M16 8l4 4-4 4M20 12H9"
+          />
+        </symbol>
+        <symbol id="i-upload" viewBox="0 0 24 24">
+          <path
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M12 16V4M7 9l5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"
+          />
+        </symbol>
+        <symbol id="i-plus" viewBox="0 0 24 24">
+          <path
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            d="M12 5v14M5 12h14"
+          />
+        </symbol>
+        <symbol id="i-lock" viewBox="0 0 24 24">
+          <path
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linejoin="round"
+            d="M6 11h12v9H6zM8 11V8a4 4 0 0 1 8 0v3"
+          />
+        </symbol>
+        <symbol id="i-edit" viewBox="0 0 24 24">
+          <path
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M4 20h4L19 9l-4-4L4 16zM13 7l4 4"
+          />
+        </symbol>
+        <symbol id="i-trash" viewBox="0 0 24 24">
+          <path
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"
+          />
+        </symbol>
+        <symbol id="i-refresh" viewBox="0 0 24 24">
+          <path
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M20 11a8 8 0 0 0-14-4M4 4v4h4M4 13a8 8 0 0 0 14 4M20 20v-4h-4"
+          />
+        </symbol>
+        <symbol id="i-info" viewBox="0 0 24 24">
+          <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 11v5M12 8h.01" />
+          </g>
+        </symbol>
+        <symbol id="i-check" viewBox="0 0 24 24">
+          <path
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M5 12.5l4.5 4.5L19 7"
+          />
+        </symbol>
+        <symbol id="i-warn" viewBox="0 0 24 24">
+          <path
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M12 4l9 16H3zM12 10v4M12 17h.01"
+          />
+        </symbol>
+        <symbol id="i-ext" viewBox="0 0 24 24">
+          <path
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"
+          />
+        </symbol>
+        <symbol id="i-copy" viewBox="0 0 24 24">
+          <path
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linejoin="round"
+            d="M9 9h11v11H9zM5 15V4h11"
+          />
+        </symbol>
+        <symbol id="i-file" viewBox="0 0 24 24">
+          <path
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linejoin="round"
+            d="M6 3h8l5 5v13H6zM14 3v5h5"
+          />
+        </symbol>
+        <symbol id="i-download" viewBox="0 0 24 24">
+          <path
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M12 4v12M7 11l5 5 5-5M4 20h16"
+          />
+        </symbol>
+        <symbol id="i-shield" viewBox="0 0 24 24">
+          <path
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linejoin="round"
+            d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"
+          />
+        </symbol>
+      </defs>
+    </svg>
+
+    <header class="review-header">
+      <p class="review-eyebrow">Non-functional review mockup</p>
+      <h1>Altersvorsorge</h1>
+      <p>
+        Statische Vorschau der Retirement-Domain (Spec 037): Übersicht, drei Säulen, Dokument-Import
+        mit Prüfansicht, manuelle Eingabe, Info-Tab und Dashboard-Kachel. Alle Namen, Verträge,
+        Nummern und Beträge sind erfunden.
+      </p>
+    </header>
+
+    <div class="review-controls">
+      <div class="control-group">
+        <span class="label">Viewport</span>
+        <div class="segmented" id="viewport-toggle">
+          <button type="button" data-viewport="desktop" aria-pressed="true">Desktop</button>
+          <button type="button" data-viewport="mobile" aria-pressed="false">Mobile</button>
+        </div>
+      </div>
+      <div class="control-group">
+        <span class="label">Seite</span>
+        <div class="segmented" id="screen-toggle">
+          <button type="button" data-screen="overview" aria-pressed="true">Übersicht</button>
+          <button type="button" data-screen="statutory" aria-pressed="false">Gesetzlich</button>
+          <button type="button" data-screen="occupational" aria-pressed="false">Betrieblich</button>
+          <button type="button" data-screen="private" aria-pressed="false">Privat</button>
+          <button type="button" data-screen="info" aria-pressed="false">
+            Weiterführende Infos
+          </button>
+          <button type="button" data-screen="empty" aria-pressed="false">Leer</button>
+          <button type="button" data-screen="dashboard" aria-pressed="false">
+            Dashboard-Kachel
+          </button>
+        </div>
+      </div>
+      <div class="control-group">
+        <span class="label">Eingabe</span>
+        <div class="segmented" id="flow-toggle">
+          <button type="button" data-screen="import-upload" aria-pressed="false">
+            Import: Upload
+          </button>
+          <button type="button" data-screen="import-scan" aria-pressed="false">
+            Import: Scan-Einwilligung
+          </button>
+          <button type="button" data-screen="import-review" aria-pressed="false">
+            Import: Prüfen
+          </button>
+          <button type="button" data-screen="import-fail" aria-pressed="false">
+            Import: nicht erkannt
+          </button>
+          <button type="button" data-screen="form" aria-pressed="false">Manuell erfassen</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="review-stage">
+      <div class="stage-frame" id="stage-frame" data-viewport="desktop">
+        <p class="stage-frame-label" id="stage-frame-label">Desktop · 1240px</p>
+        <div class="canvas" id="canvas" data-screen="overview">
+          <div class="shell">
+            <nav class="sidebar" aria-label="Primary">
+              <div class="brand">
+                <span class="brand__mark"></span><span class="brand__name">Vaultfolio</span>
+              </div>
+              <div class="nav">
+                <a class="nav__item" data-nav="dashboard"
+                  ><svg class="i"><use href="#i-grid" /></svg><span>Dashboard</span></a
+                >
+                <a class="nav__item"
+                  ><svg class="i"><use href="#i-chart" /></svg><span>Holdings</span></a
+                >
+                <a class="nav__item"
+                  ><svg class="i"><use href="#i-wallet" /></svg><span>Einkommen</span></a
+                >
+                <a class="nav__item nav__item--active" data-nav="retirement"
+                  ><svg class="i"><use href="#i-shield" /></svg><span>Altersvorsorge</span></a
+                >
+              </div>
+            </nav>
+
+            <div class="main">
+              <div class="app-header">
+                <div>
+                  <p class="app-header__crumb">Vaultfolio</p>
+                  <h1 class="app-header__title" id="page-title">Altersvorsorge</h1>
+                </div>
+                <div class="app-header__meta">
+                  <span class="meta-name">Max Mustermann</span>
+                  <span class="role-badge">Admin</span>
+                  <span class="avatar">MM</span>
+                  <button type="button" class="icon-btn" aria-label="Dunkles Theme">
+                    <svg class="i"><use href="#i-sun" /></svg>
+                  </button>
+                  <button type="button" class="signout">
+                    <svg class="i"><use href="#i-out" /></svg><span>Abmelden</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="content">
+                <!-- ===== Retirement page frame (toolbar + tabs) ===== -->
+                <div
+                  data-show="overview statutory occupational private info empty"
+                  class="page-frame"
+                >
+                  <div class="toolbar">
+                    <div class="toolbar__left">
+                      <button type="button" class="link-btn" data-goto="info-privacy">
+                        <svg class="i"><use href="#i-lock" /></svg>So werden deine Daten geschützt
+                      </button>
+                    </div>
+                    <div class="toolbar__right">
+                      <button type="button" class="link-btn">
+                        <svg class="i"><use href="#i-download" /></svg>Daten exportieren
+                      </button>
+                      <button type="button" class="btn" data-goto="form">
+                        <svg class="i"><use href="#i-plus" /></svg>Manuell erfassen
+                      </button>
+                      <button type="button" class="btn btn--primary" data-goto="import-upload">
+                        <svg class="i"><use href="#i-upload" /></svg>Dokument hochladen
+                      </button>
+                    </div>
+                  </div>
+                  <div class="tabs" role="tablist" style="margin-top: 0.85rem">
+                    <button type="button" class="tab" role="tab" data-tab="overview">
+                      Übersicht
+                    </button>
+                    <button type="button" class="tab" role="tab" data-tab="statutory">
+                      Gesetzlich
+                    </button>
+                    <button type="button" class="tab" role="tab" data-tab="occupational">
+                      Betrieblich <span class="badge">2</span>
+                    </button>
+                    <button type="button" class="tab" role="tab" data-tab="private">
+                      Privat <span class="badge">3</span>
+                    </button>
+                    <button type="button" class="tab" role="tab" data-tab="info">
+                      Weiterführende Informationen
+                    </button>
+                  </div>
+                </div>
+
+                <!-- ================= OVERVIEW ================= -->
+                <section data-show="overview" aria-label="Übersicht">
+                  <div class="kpis">
+                    <div class="kpi kpi--hero">
+                      <div class="kpi__label">
+                        Erwartete Rente gesamt <span class="tag-p">Prognose</span>
+                      </div>
+                      <div class="kpi__value num">
+                        <span class="val-p">2.860 €</span> <small>/ Monat</small>
+                      </div>
+                      <div class="kpi__sub">Alle Säulen, ohne Rentenanpassung und ohne Steuern</div>
+                    </div>
+                    <div class="kpi">
+                      <div class="kpi__label">
+                        Garantierte Rente
+                        <span class="tag-g"
+                          ><svg class="i" style="width: 11px; height: 11px">
+                            <use href="#i-check" /></svg
+                          >garantiert</span
+                        >
+                      </div>
+                      <div class="kpi__value num">403 € <small>/ Monat</small></div>
+                      <div class="kpi__sub">Betrieblich + privat (3 Verträge mit Garantie)</div>
+                    </div>
+                    <div class="kpi">
+                      <div class="kpi__label">Sparbetrag aktuell</div>
+                      <div class="kpi__value num">335 € <small>/ Monat</small></div>
+                      <div class="kpi__sub">150 € betrieblich · 185 € privat</div>
+                    </div>
+                    <div class="kpi">
+                      <div class="kpi__label">Rentenbeginn</div>
+                      <div class="kpi__value num">01.06.2058</div>
+                      <div class="kpi__sub">
+                        Regelaltersrente (gesetzlich) · <b>1 Vertrag</b> beginnt früher
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="panel" style="margin-top: 0.85rem">
+                    <div class="panel__head">
+                      <div>
+                        <h2>Garantiert vs. erwartet</h2>
+                        <p>Monatliche Rente zum Rentenbeginn, brutto</p>
+                      </div>
+                      <span class="badge badge--info"
+                        ><svg class="i"><use href="#i-info" /></svg>Differenz 2.457 € / Monat</span
+                      >
+                    </div>
+                    <div class="panel__body">
+                      <div
+                        class="gap-bar"
+                        role="img"
+                        aria-label="Garantiert 403 Euro von 2.860 Euro erwartet"
+                      >
+                        <div class="gap-bar__g" style="width: 14.1%"></div>
+                        <div class="gap-bar__p" style="width: 85.9%"></div>
+                      </div>
+                      <div class="gap-legend">
+                        <span class="lg-g">Garantiert: 403 €</span
+                        ><span class="lg-p">Zusätzlich erwartet (Prognose): 2.457 €</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="pillars" style="margin-top: 0.85rem">
+                    <article class="pillar">
+                      <div class="pillar__head">
+                        <div class="pillar__title">
+                          <h3>Gesetzliche Rente</h3>
+                          <span>Deutsche Rentenversicherung</span>
+                        </div>
+                        <span class="badge badge--info"
+                          ><svg class="i"><use href="#i-lock" /></svg>Importiert</span
+                        >
+                      </div>
+                      <div class="pillar__sum">
+                        <span class="muted" style="font-size: 0.72rem"
+                          >Erwartete Regelaltersrente</span
+                        ><b class="num val-p">2.150 €</b>
+                      </div>
+                      <ul class="pillar__list">
+                        <li>
+                          <div class="li-name">
+                            Renteninformation 2024<small>Stand 10.05.2024</small>
+                          </div>
+                          <span class="badge badge--warn"
+                            ><svg class="i"><use href="#i-warn" /></svg>Veraltet</span
+                          >
+                        </li>
+                      </ul>
+                      <div class="pillar__foot">
+                        <button type="button" class="link-btn" data-goto="statutory">
+                          Details ansehen
+                        </button>
+                      </div>
+                    </article>
+                    <article class="pillar">
+                      <div class="pillar__head">
+                        <div class="pillar__title">
+                          <h3>Betriebliche Altersvorsorge</h3>
+                          <span>2 Verträge</span>
+                        </div>
+                      </div>
+                      <div class="pillar__sum">
+                        <span class="muted" style="font-size: 0.72rem"
+                          >Garantiert / erwartet pro Monat</span
+                        ><b class="num"
+                          >148 €
+                          <span class="muted" style="font-size: 0.8rem; font-weight: 600">/</span>
+                          <span class="val-p">210 €</span></b
+                        >
+                      </div>
+                      <ul class="pillar__list">
+                        <li>
+                          <div class="li-name">
+                            Beispiel GmbH · Direktversicherung<small
+                              ><span class="badge">Manuell</span></small
+                            >
+                          </div>
+                          <span class="num val-g">148 €</span>
+                        </li>
+                        <li>
+                          <div class="li-name">
+                            Muster AG · Beitragsorientiert<small
+                              ><span class="badge badge--info"
+                                ><svg class="i"><use href="#i-lock" /></svg>Importiert</span
+                              ><span class="badge badge--warn"
+                                ><svg class="i"><use href="#i-warn" /></svg>Veraltet</span
+                              ></small
+                            >
+                          </div>
+                          <span class="muted num">Kapital 6.250 €</span>
+                        </li>
+                      </ul>
+                      <div class="pillar__foot">
+                        <button type="button" class="link-btn" data-goto="occupational">
+                          Details ansehen
+                        </button>
+                      </div>
+                    </article>
+                    <article class="pillar">
+                      <div class="pillar__head">
+                        <div class="pillar__title">
+                          <h3>Private Vorsorge</h3>
+                          <span>3 Verträge</span>
+                        </div>
+                      </div>
+                      <div class="pillar__sum">
+                        <span class="muted" style="font-size: 0.72rem"
+                          >Garantiert / erwartet pro Monat</span
+                        ><b class="num"
+                          >255 €
+                          <span class="muted" style="font-size: 0.8rem; font-weight: 600">/</span>
+                          <span class="val-p">500 €</span></b
+                        >
+                      </div>
+                      <ul class="pillar__list">
+                        <li>
+                          <div class="li-name">
+                            Riester · Beispiel Leben<small
+                              ><span class="badge badge--info"
+                                ><svg class="i"><use href="#i-lock" /></svg>Importiert</span
+                              ></small
+                            >
+                          </div>
+                          <span class="num val-g">165 €</span>
+                        </li>
+                        <li>
+                          <div class="li-name">
+                            Private Rentenversicherung<small
+                              ><span class="badge">Manuell</span></small
+                            >
+                          </div>
+                          <span class="num val-g">90 €</span>
+                        </li>
+                        <li>
+                          <div class="li-name">
+                            Altersvorsorgedepot<small
+                              ><span class="badge">Manuell</span
+                              ><span class="badge badge--warn"
+                                ><svg class="i"><use href="#i-warn" /></svg>Unvollständig</span
+                              ></small
+                            >
+                          </div>
+                          <span class="muted num">Wert 1.200 €</span>
+                        </li>
+                      </ul>
+                      <div class="pillar__foot">
+                        <button type="button" class="link-btn" data-goto="private">
+                          Details ansehen
+                        </button>
+                      </div>
+                    </article>
+                  </div>
+
+                  <div class="note note--warn" style="margin-top: 0.85rem">
+                    <svg class="i"><use href="#i-warn" /></svg>
+                    <div>
+                      <b>2 Einträge sind älter als 12 Monate</b> (Renteninformation 2024, Muster AG)
+                      und werden bei den Summen mit ihrem damaligen Stand gerechnet. Lade ein
+                      aktuelles Dokument hoch, um sie zu ersetzen.
+                    </div>
+                  </div>
+                  <div class="note" style="margin-top: 0.6rem">
+                    <svg class="i"><use href="#i-info" /></svg>
+                    <div>
+                      <b
+                        >Kapitalleistungen (einmalig) werden nicht in die Monatsrente
+                        eingerechnet:</b
+                      >
+                      Muster AG 6.250 €. Beträge sind brutto, ohne Steuer, Sozialabgaben und
+                      Inflation.
+                    </div>
+                  </div>
+                </section>
+
+                <!-- ================= STATUTORY ================= -->
+                <section data-show="statutory" aria-label="Gesetzliche Rente">
+                  <div class="contracts">
+                    <article class="contract contract--wide">
+                      <div class="contract__head">
+                        <div class="contract__title">
+                          <h3>
+                            Renteninformation 2024<small
+                              >Deutsche Rentenversicherung Bund · Brief vom 10.05.2024 · Daten bis
+                              31.12.2023</small
+                            >
+                          </h3>
+                          <div class="contract__badges">
+                            <span class="badge badge--info"
+                              ><svg class="i"><use href="#i-lock" /></svg>Importiert</span
+                            ><span class="badge badge--warn"
+                              ><svg class="i"><use href="#i-warn" /></svg>Älter als 12 Monate</span
+                            >
+                          </div>
+                        </div>
+                        <div class="contract__id">
+                          Versicherungsnummer <code>12 345678 M 123</code
+                          ><button
+                            type="button"
+                            class="icon-btn"
+                            style="width: 24px; height: 24px"
+                            aria-label="Kopieren"
+                          >
+                            <svg class="i" style="width: 13px; height: 13px">
+                              <use href="#i-copy" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                      <div class="contract__body">
+                        <div class="field">
+                          <span class="field__label">Regelaltersrente ab</span
+                          ><span class="field__value num val-g">01.06.2058</span>
+                        </div>
+                        <div class="field">
+                          <span class="field__label"
+                            >Rente bei voller Erwerbsminderung
+                            <span class="tag-p">Prognose</span></span
+                          ><span class="field__value num val-p">1.650,00 € / Monat</span>
+                        </div>
+                        <div class="field">
+                          <span class="field__label"
+                            >Bisher erreichte Anwartschaft (heutiger Stand)
+                            <span class="tag-p">Prognose</span></span
+                          ><span class="field__value num val-p">512,40 € / Monat</span>
+                        </div>
+                        <div class="field">
+                          <span class="field__label"
+                            >Künftige Regelaltersrente (ohne Anpassung)
+                            <span class="tag-p">Prognose</span></span
+                          ><span class="field__value num val-p">2.150,00 € / Monat</span>
+                        </div>
+                        <div class="field field--full">
+                          <span class="field__label"
+                            >Mit jährlicher Rentenanpassung
+                            <span class="tag-p">Prognose laut Schreiben</span></span
+                          >
+                          <div
+                            class="scen"
+                            style="
+                              grid-template-columns: repeat(2, minmax(0, 1fr));
+                              max-width: 22rem;
+                            "
+                          >
+                            <div><small>1 % pro Jahr</small><b class="num">2.980 €</b></div>
+                            <div><small>2 % pro Jahr</small><b class="num">4.120 €</b></div>
+                          </div>
+                        </div>
+                        <div class="field">
+                          <span class="field__label">Entgeltpunkte</span
+                          ><span class="field__value num">13,6240</span>
+                        </div>
+                        <div class="field">
+                          <span class="field__label">Aktueller Rentenwert</span
+                          ><span class="field__value num">37,60 €</span>
+                        </div>
+                        <div class="field">
+                          <span class="field__label">Beiträge von dir</span
+                          ><span class="field__value num">41.200,00 €</span>
+                        </div>
+                        <div class="field">
+                          <span class="field__label">Beiträge Arbeitgeber / öffentliche Kassen</span
+                          ><span class="field__value num">41.150,00 € / 2.800,00 €</span>
+                        </div>
+                      </div>
+                      <div class="contract__foot">
+                        <small
+                          ><svg class="i" style="width: 13px; height: 13px">
+                            <use href="#i-lock" /></svg
+                          >Werte aus Dokument, nicht bearbeitbar</small
+                        >
+                        <div class="acts">
+                          <button type="button" class="btn btn--sm" data-goto="import-upload">
+                            <svg class="i"><use href="#i-refresh" /></svg>Durch neues Dokument
+                            ersetzen
+                          </button>
+                          <button type="button" class="btn btn--sm btn--danger">
+                            <svg class="i"><use href="#i-trash" /></svg>Löschen
+                          </button>
+                        </div>
+                      </div>
+                    </article>
+                  </div>
+                  <div class="note" style="margin-top: 0.85rem">
+                    <svg class="i"><use href="#i-info" /></svg>
+                    <div>
+                      Die gesetzliche Rente zählt in den Summen als <b>Prognose</b>, nicht als
+                      Garantie. Statt eines Imports kannst du die Werte auch
+                      <button type="button" class="link-btn" data-goto="form">
+                        manuell erfassen</button
+                      >; manuelle Einträge bleiben jederzeit bearbeitbar.
+                    </div>
+                  </div>
+                </section>
+
+                <!-- ================= OCCUPATIONAL ================= -->
+                <section data-show="occupational" aria-label="Betriebliche Altersvorsorge">
+                  <div class="contracts">
+                    <article class="contract">
+                      <div class="contract__head">
+                        <div class="contract__title">
+                          <h3>Beispiel GmbH<small>Direktversicherung · aktiv</small></h3>
+                          <div class="contract__badges"><span class="badge">Manuell</span></div>
+                        </div>
+                        <div class="contract__id">
+                          Vertragsnummer <code>DV-7781-204</code
+                          ><button
+                            type="button"
+                            class="icon-btn"
+                            style="width: 24px; height: 24px"
+                            aria-label="Kopieren"
+                          >
+                            <svg class="i" style="width: 13px; height: 13px">
+                              <use href="#i-copy" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                      <div class="contract__body">
+                        <div class="field">
+                          <span class="field__label"
+                            >Garantierte Rente <span class="tag-g">garantiert</span></span
+                          ><span class="field__value num val-g">148,00 € / Monat</span>
+                        </div>
+                        <div class="field">
+                          <span class="field__label"
+                            >Erwartete Rente <span class="tag-p">Prognose</span></span
+                          ><span class="field__value num val-p">210,00 € / Monat</span>
+                        </div>
+                        <div class="field">
+                          <span class="field__label">Auszahlung ab</span
+                          ><span class="field__value num">01.06.2058</span>
+                        </div>
+                        <div class="field">
+                          <span class="field__label">Aktueller Wert</span
+                          ><span class="field__value num">18.400,00 €</span>
+                        </div>
+                        <div class="field">
+                          <span class="field__label">Beitrag / Monat</span
+                          ><span class="field__value num"
+                            >150,00 € <small class="muted">(100 € AN · 50 € AG)</small></span
+                          >
+                        </div>
+                        <div class="field">
+                          <span class="field__label">Stand</span
+                          ><span class="field__value num">15.03.2026</span>
+                        </div>
+                      </div>
+                      <div class="contract__foot">
+                        <small>Zuletzt geändert 02.10.2026</small>
+                        <div class="acts">
+                          <button type="button" class="btn btn--sm" data-goto="form">
+                            <svg class="i"><use href="#i-edit" /></svg>Bearbeiten</button
+                          ><button type="button" class="btn btn--sm btn--danger">
+                            <svg class="i"><use href="#i-trash" /></svg>Löschen
+                          </button>
+                        </div>
+                      </div>
+                    </article>
+
+                    <article class="contract contract--outdated">
+                      <div class="contract__head">
+                        <div class="contract__title">
+                          <h3>
+                            Muster AG<small
+                              >Beitragsorientierte Altersversorgung (Kapitalkonto)</small
+                            >
+                          </h3>
+                          <div class="contract__badges">
+                            <span class="badge badge--info"
+                              ><svg class="i"><use href="#i-lock" /></svg>Importiert</span
+                            ><span class="badge badge--warn"
+                              ><svg class="i"><use href="#i-warn" /></svg>Stand 2019</span
+                            >
+                          </div>
+                        </div>
+                        <div class="contract__id">
+                          Referenz <code>9001-0042-Z7</code
+                          ><button
+                            type="button"
+                            class="icon-btn"
+                            style="width: 24px; height: 24px"
+                            aria-label="Kopieren"
+                          >
+                            <svg class="i" style="width: 13px; height: 13px">
+                              <use href="#i-copy" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                      <div class="contract__body">
+                        <div class="capital-box">
+                          <div>
+                            <span class="muted">Kontostand 01.01.2019</span><br /><b class="num"
+                              >6.250,40 €</b
+                            >
+                          </div>
+                          <div style="text-align: right">
+                            <span class="badge badge--info">Kapital, keine Monatsrente</span>
+                          </div>
+                        </div>
+                        <div class="field">
+                          <span class="field__label"
+                            >Garantiezins <span class="tag-g">garantiert</span></span
+                          ><span class="field__value num val-g">0,90 %</span>
+                        </div>
+                        <div class="field">
+                          <span class="field__label">Beitrag Geschäftsjahr</span
+                          ><span class="field__value num">1.070,00 €</span>
+                        </div>
+                        <div class="field">
+                          <span class="field__label">Erwartete Monatsrente</span
+                          ><span class="field__value muted">nicht angegeben</span>
+                        </div>
+                        <div class="field">
+                          <span class="field__label"
+                            >Schlussüberschuss <span class="tag-p">Prognose</span></span
+                          ><span class="field__value num val-p">0,00 €</span>
+                        </div>
+                      </div>
+                      <div class="contract__foot">
+                        <small
+                          ><svg class="i" style="width: 13px; height: 13px">
+                            <use href="#i-lock" /></svg
+                          >Aus Dokument · Kontoauszug vom 21.01.2019</small
+                        >
+                        <div class="acts">
+                          <button type="button" class="btn btn--sm" data-goto="import-upload">
+                            <svg class="i"><use href="#i-refresh" /></svg>Neues Dokument</button
+                          ><button type="button" class="btn btn--sm btn--danger">
+                            <svg class="i"><use href="#i-trash" /></svg>Löschen
+                          </button>
+                        </div>
+                      </div>
+                    </article>
+                  </div>
+                  <div class="toolbar" style="margin-top: 0.85rem">
+                    <span class="muted" style="font-size: 0.8rem"
+                      >Pro Arbeitgeber ein Vertrag. Weitere ehemalige Arbeitgeber kannst du
+                      jederzeit ergänzen.</span
+                    ><button type="button" class="btn" data-goto="form">
+                      <svg class="i"><use href="#i-plus" /></svg>Betriebsrente hinzufügen
+                    </button>
+                  </div>
+                </section>
+
+                <!-- ================= PRIVATE ================= -->
+                <section data-show="private" aria-label="Private Vorsorge">
+                  <div class="contracts">
+                    <article class="contract contract--wide">
+                      <div class="contract__head">
+                        <div class="contract__title">
+                          <h3>
+                            Riester · Beispiel Leben FörderRente<small
+                              >Fondsgebundene Rentenversicherung · aktiv</small
+                            >
+                          </h3>
+                          <div class="contract__badges">
+                            <span class="badge badge--info"
+                              ><svg class="i"><use href="#i-lock" /></svg>Importiert</span
+                            ><span class="badge badge--ok"
+                              ><svg class="i"><use href="#i-check" /></svg>Aktuell (Stand
+                              01.04.2026)</span
+                            >
+                          </div>
+                        </div>
+                        <div class="contract__id">
+                          Vertragsnummer <code>26 100 482</code
+                          ><button
+                            type="button"
+                            class="icon-btn"
+                            style="width: 24px; height: 24px"
+                            aria-label="Kopieren"
+                          >
+                            <svg class="i" style="width: 13px; height: 13px">
+                              <use href="#i-copy" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                      <div class="contract__body">
+                        <div class="field">
+                          <span class="field__label"
+                            >Garantierte Rente ab 01.06.2058
+                            <span class="tag-g">garantiert</span></span
+                          ><span class="field__value num val-g">165,37 € / Monat</span>
+                        </div>
+                        <div class="field">
+                          <span class="field__label"
+                            >Garantiertes Rentenkapital <span class="tag-g">garantiert</span></span
+                          ><span class="field__value num val-g">65.700,00 €</span>
+                        </div>
+                        <div class="field field--full">
+                          <span class="field__label"
+                            >Mögliche Gesamtrente je nach Wertentwicklung
+                            <span class="tag-p">Prognose laut Anbieter</span></span
+                          >
+                          <div class="scen">
+                            <div><small>0 %</small><b class="num">225 €</b></div>
+                            <div><small>3 %</small><b class="num">340 €</b></div>
+                            <div><small>6 %</small><b class="num">615 €</b></div>
+                            <div><small>9 %</small><b class="num">1.190 €</b></div>
+                          </div>
+                        </div>
+                        <div class="field">
+                          <span class="field__label">Aktueller Fondswert</span
+                          ><span class="field__value num">4.100,20 €</span>
+                        </div>
+                        <div class="field">
+                          <span class="field__label">Bisher gezahlte Beiträge (inkl. Zulagen)</span
+                          ><span class="field__value num">6.420,00 €</span>
+                        </div>
+                        <div class="field">
+                          <span class="field__label">Kündigungswert / Todesfallleistung</span
+                          ><span class="field__value num">3.800 € / 4.200 €</span>
+                        </div>
+                        <div class="field">
+                          <span class="field__label">Rentengarantiezeit</span
+                          ><span class="field__value num">23 Jahre</span>
+                        </div>
+                        <div class="field">
+                          <span class="field__label"
+                            >Beitrag / Monat
+                            <span class="badge badge--warn" style="font-size: 0.6rem"
+                              >manuell ergänzt</span
+                            ></span
+                          ><span class="field__value num">85,00 €</span>
+                        </div>
+                        <div class="field">
+                          <span class="field__label">Zulagen / Jahr</span
+                          ><span class="field__value num">175,00 €</span>
+                        </div>
+                      </div>
+                      <div class="contract__foot">
+                        <small
+                          ><svg class="i" style="width: 13px; height: 13px">
+                            <use href="#i-lock" /></svg
+                          >Aus Dokument · nur ergänzte Felder bearbeitbar</small
+                        >
+                        <div class="acts">
+                          <button type="button" class="btn btn--sm" data-goto="import-upload">
+                            <svg class="i"><use href="#i-refresh" /></svg>Durch neues Dokument
+                            ersetzen</button
+                          ><button type="button" class="btn btn--sm btn--danger">
+                            <svg class="i"><use href="#i-trash" /></svg>Löschen
+                          </button>
+                        </div>
+                      </div>
+                    </article>
+
+                    <article class="contract">
+                      <div class="contract__head">
+                        <div class="contract__title">
+                          <h3>
+                            Private Rentenversicherung<small
+                              >Klassische Rentenversicherung · aktiv</small
+                            >
+                          </h3>
+                          <div class="contract__badges"><span class="badge">Manuell</span></div>
+                        </div>
+                        <div class="contract__id">Vertragsnummer <code>PRV-559-02</code></div>
+                      </div>
+                      <div class="contract__body">
+                        <div class="field">
+                          <span class="field__label"
+                            >Garantierte Rente <span class="tag-g">garantiert</span></span
+                          ><span class="field__value num val-g">90,00 € / Monat</span>
+                        </div>
+                        <div class="field">
+                          <span class="field__label"
+                            >Erwartete Rente <span class="tag-p">Prognose</span></span
+                          ><span class="field__value num val-p">160,00 € / Monat</span>
+                        </div>
+                        <div class="field">
+                          <span class="field__label">Auszahlung ab</span
+                          ><span class="field__value num">01.01.2058</span>
+                        </div>
+                        <div class="field">
+                          <span class="field__label">Beitrag / Monat</span
+                          ><span class="field__value num">100,00 €</span>
+                        </div>
+                      </div>
+                      <div class="contract__foot">
+                        <small>Stand 01.07.2026</small>
+                        <div class="acts">
+                          <button type="button" class="btn btn--sm" data-goto="form">
+                            <svg class="i"><use href="#i-edit" /></svg>Bearbeiten</button
+                          ><button type="button" class="btn btn--sm btn--danger">
+                            <svg class="i"><use href="#i-trash" /></svg>Löschen
+                          </button>
+                        </div>
+                      </div>
+                    </article>
+
+                    <article class="contract">
+                      <div class="contract__head">
+                        <div class="contract__title">
+                          <h3>Altersvorsorgedepot<small>Depot · ab 2027 verfügbar</small></h3>
+                          <div class="contract__badges">
+                            <span class="badge">Manuell</span
+                            ><span class="badge badge--warn"
+                              ><svg class="i"><use href="#i-warn" /></svg>Unvollständig</span
+                            >
+                          </div>
+                        </div>
+                        <div class="contract__id">Depotnummer <code>AVD-000914</code></div>
+                      </div>
+                      <div class="contract__body">
+                        <div class="field">
+                          <span class="field__label">Garantierte Rente</span
+                          ><span class="field__value muted">keine Garantie</span>
+                        </div>
+                        <div class="field">
+                          <span class="field__label">Erwartete Rente</span
+                          ><span class="field__value muted">nicht angegeben</span>
+                        </div>
+                        <div class="field">
+                          <span class="field__label">Aktueller Wert</span
+                          ><span class="field__value num">1.200,00 €</span>
+                        </div>
+                        <div class="field">
+                          <span class="field__label">Beitrag / Monat</span
+                          ><span class="field__value num">0,00 €</span>
+                        </div>
+                      </div>
+                      <div class="contract__foot">
+                        <small>Zählt zu Sparbetrag und Wert, nicht zur Garantierente</small>
+                        <div class="acts">
+                          <button type="button" class="btn btn--sm" data-goto="form">
+                            <svg class="i"><use href="#i-edit" /></svg>Bearbeiten</button
+                          ><button type="button" class="btn btn--sm btn--danger">
+                            <svg class="i"><use href="#i-trash" /></svg>Löschen
+                          </button>
+                        </div>
+                      </div>
+                    </article>
+                  </div>
+                  <div class="toolbar" style="margin-top: 0.85rem">
+                    <span class="muted" style="font-size: 0.8rem"
+                      >Riester, private Rentenversicherung und (ab 2027) Altersvorsorgedepot.</span
+                    ><button type="button" class="btn" data-goto="form">
+                      <svg class="i"><use href="#i-plus" /></svg>Privaten Vertrag hinzufügen
+                    </button>
+                  </div>
+                </section>
+
+                <!-- ================= INFO ================= -->
+                <section data-show="info" aria-label="Weiterführende Informationen">
+                  <div class="info-grid">
+                    <article class="info-card">
+                      <span class="badge badge--info" style="align-self: flex-start"
+                        >Grundlagen</span
+                      >
+                      <h3>Die drei Säulen der Altersvorsorge</h3>
+                      <p>
+                        Erklärt, wie gesetzliche Rente, betriebliche und private Vorsorge
+                        zusammenspielen und welche Ansprüche sich daraus ergeben.
+                      </p>
+                      <div class="src">Deutsche Rentenversicherung</div>
+                      <a
+                        class="btn"
+                        href="https://www.deutsche-rentenversicherung.de/DRV/DE/Rente/Moeglichkeiten-der-Altersvorsorge/Drei-Saeulen-der-AV/DS-Die-drei-Saeulen-der-Altersvorsorge.html"
+                        target="_blank"
+                        rel="noopener"
+                        style="align-self: flex-start; text-decoration: none"
+                        >Seite öffnen <svg class="i"><use href="#i-ext" /></svg
+                      ></a>
+                    </article>
+                    <article class="info-card">
+                      <span class="badge badge--info" style="align-self: flex-start">Rechner</span>
+                      <h3>Rentenlücke berechnen</h3>
+                      <p>
+                        Der Rentenlückenrechner schätzt, wie weit die erwartete Rente vom
+                        gewünschten Einkommen im Alter abweicht.
+                      </p>
+                      <div class="src">Finanzfluss</div>
+                      <a
+                        class="btn"
+                        href="https://www.finanzfluss.de/rechner/rentenluecke-berechnen/"
+                        target="_blank"
+                        rel="noopener"
+                        style="align-self: flex-start; text-decoration: none"
+                        >Rechner öffnen <svg class="i"><use href="#i-ext" /></svg
+                      ></a>
+                    </article>
+                    <article class="info-card">
+                      <span class="badge badge--info" style="align-self: flex-start">Ratgeber</span>
+                      <h3>Rentenlücke verstehen</h3>
+                      <p>
+                        Ratgeber zur gesetzlichen Rente, zur Rentenlücke und zu Möglichkeiten, sie
+                        zu schließen.
+                      </p>
+                      <div class="src">Finanztip</div>
+                      <a
+                        class="btn"
+                        href="https://www.finanztip.de/gesetzliche-rentenversicherung/rentenluecke/"
+                        target="_blank"
+                        rel="noopener"
+                        style="align-self: flex-start; text-decoration: none"
+                        >Ratgeber öffnen <svg class="i"><use href="#i-ext" /></svg
+                      ></a>
+                    </article>
+                  </div>
+                  <div class="note" id="privacy-note" style="margin-top: 0.85rem">
+                    <svg class="i"><use href="#i-lock" /></svg>
+                    <div>
+                      <b>So werden deine Daten geschützt.</b>
+                      <ul class="privacy-list" style="margin-top: 0.3rem">
+                        <li>
+                          Links öffnen in einem neuen Tab. Deine Vorsorgedaten werden dabei nicht
+                          übertragen.
+                        </li>
+                        <li>
+                          Hochgeladene Dokumente werden nur auf deinem Gerät gelesen und nie
+                          gespeichert; gespeichert werden nur die geprüften Werte.
+                        </li>
+                        <li>
+                          Beträge, Versicherungs- und Vertragsnummern werden verschlüsselt abgelegt
+                          und sind nur für dich sichtbar. Der Betreiber der Instanz führt den Server
+                          und verwaltet den Schlüssel.
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- ================= EMPTY ================= -->
+                <section data-show="empty" aria-label="Leerer Zustand">
+                  <div class="panel">
+                    <div
+                      class="panel__body"
+                      style="align-items: center; text-align: center; padding: 2rem 1rem"
+                    >
+                      <svg class="i" style="width: 34px; height: 34px; color: var(--p-primary)">
+                        <use href="#i-shield" />
+                      </svg>
+                      <h2 style="margin: 0; font-size: 1.05rem">
+                        Noch keine Altersvorsorge erfasst
+                      </h2>
+                      <p
+                        class="muted"
+                        style="margin: 0; font-size: 0.84rem; max-width: 58ch; line-height: 1.5"
+                      >
+                        Lade deine Renteninformation oder die Standmitteilung eines Vertrags hoch.
+                        Alternativ trägst du die Werte von Hand ein.
+                      </p>
+                      <div class="actions">
+                        <button type="button" class="btn btn--primary" data-goto="import-upload">
+                          <svg class="i"><use href="#i-upload" /></svg>Dokument hochladen</button
+                        ><button type="button" class="btn" data-goto="form">
+                          <svg class="i"><use href="#i-plus" /></svg>Manuell erfassen
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="pillars" style="margin-top: 0.85rem">
+                    <article class="pillar pillar--empty">
+                      <div class="pillar__head">
+                        <div class="pillar__title">
+                          <h3>Gesetzliche Rente</h3>
+                          <span>Renteninformation der DRV</span>
+                        </div>
+                      </div>
+                      <div class="empty">
+                        Noch keine Daten. Ohne diese Säule fehlt dir der größte Teil der erwarteten
+                        Rente.<button type="button" class="btn btn--sm" data-goto="import-upload">
+                          Renteninformation hinzufügen
+                        </button>
+                      </div>
+                    </article>
+                    <article class="pillar pillar--empty">
+                      <div class="pillar__head">
+                        <div class="pillar__title">
+                          <h3>Betriebliche Altersvorsorge</h3>
+                          <span>Ein Vertrag pro Arbeitgeber</span>
+                        </div>
+                      </div>
+                      <div class="empty">
+                        Noch kein Vertrag erfasst.<button
+                          type="button"
+                          class="btn btn--sm"
+                          data-goto="import-upload"
+                        >
+                          Betriebsrente hinzufügen
+                        </button>
+                      </div>
+                    </article>
+                    <article class="pillar pillar--empty">
+                      <div class="pillar__head">
+                        <div class="pillar__title">
+                          <h3>Private Vorsorge</h3>
+                          <span>Riester, Rentenversicherung, Depot</span>
+                        </div>
+                      </div>
+                      <div class="empty">
+                        Noch kein Vertrag erfasst.<button
+                          type="button"
+                          class="btn btn--sm"
+                          data-goto="import-upload"
+                        >
+                          Privaten Vertrag hinzufügen
+                        </button>
+                      </div>
+                    </article>
+                  </div>
+                </section>
+
+                <!-- ================= IMPORT: UPLOAD ================= -->
+                <section
+                  data-show="import-upload import-scan import-review import-fail"
+                  aria-label="Dokument-Import"
+                >
+                  <div class="toolbar">
+                    <button type="button" class="link-btn" data-goto="overview">
+                      ← Zurück zur Übersicht
+                    </button>
+                    <div class="steps">
+                      <span class="on" data-step="1">1 Dokument wählen</span
+                      ><span data-step="2">2 Prüfen</span><span data-step="3">3 Speichern</span>
+                    </div>
+                  </div>
+                </section>
+
+                <section data-show="import-upload" aria-label="Upload">
+                  <div class="panel">
+                    <div class="panel__head">
+                      <div>
+                        <h2>Dokument hochladen</h2>
+                        <p>
+                          Renteninformation, Betriebsrenten-Kontoauszug oder Standmitteilung eines
+                          Riester-/Privatvertrags (PDF)
+                        </p>
+                      </div>
+                    </div>
+                    <div class="panel__body">
+                      <div class="dropzone" data-testid="retirement-dropzone">
+                        <svg class="i"><use href="#i-upload" /></svg>
+                        <strong>PDF hierher ziehen oder auswählen</strong>
+                        <p>
+                          Die Art des Dokuments wird automatisch erkannt. Du prüfst alle Werte,
+                          bevor etwas gespeichert wird.
+                        </p>
+                        <button type="button" class="btn btn--primary" data-goto="import-scan">
+                          Datei auswählen
+                        </button>
+                      </div>
+                      <div class="note">
+                        <svg class="i"><use href="#i-lock" /></svg>
+                        <div>
+                          <b>Dein Dokument verlässt dein Gerät nicht.</b> Es wird lokal gelesen und
+                          nicht hochgeladen oder gespeichert. Gespeichert werden nur die Werte, die
+                          du bestätigst, inklusive Versicherungs- bzw. Vertragsnummer. Name, Adresse
+                          und Bankdaten werden nicht übernommen.
+                        </div>
+                      </div>
+                      <div class="toolbar">
+                        <span class="muted" style="font-size: 0.8rem">Lieber ohne Dokument?</span
+                        ><button type="button" class="btn" data-goto="form">
+                          Werte manuell eingeben
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- ================= IMPORT: SCAN CONSENT ================= -->
+                <section data-show="import-scan" aria-label="Scan-Einwilligung">
+                  <div class="panel">
+                    <div class="panel__head">
+                      <div><h2>Datei ausgewählt</h2></div>
+                    </div>
+                    <div class="panel__body">
+                      <div class="file-row">
+                        <svg class="i" style="width: 22px; height: 22px; color: var(--p-primary)">
+                          <use href="#i-file" />
+                        </svg>
+                        <div class="grow">
+                          <b>Renteninformation_2024.pdf</b
+                          ><small>2 Seiten · 230 KB · keine Textebene (Scan)</small>
+                        </div>
+                        <span class="badge badge--warn">Texterkennung nötig</span>
+                      </div>
+                      <div class="note note--warn">
+                        <svg class="i"><use href="#i-warn" /></svg>
+                        <div>
+                          <b>Dieses PDF ist ein Scan.</b> Zum Lesen braucht es eine Texterkennung.
+                          Sie läuft vollständig auf deinem Gerät, lädt ihre Daten nur von dieser App
+                          und überträgt oder speichert nichts. Dein Einverständnis gilt nur für
+                          diese Datei.
+                        </div>
+                      </div>
+                      <div class="actions">
+                        <button type="button" class="btn" data-goto="import-upload">
+                          Abbrechen</button
+                        ><button type="button" class="btn btn--primary" data-goto="import-review">
+                          Texterkennung erlauben und fortfahren
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- ================= IMPORT: REVIEW ================= -->
+                <section data-show="import-review" aria-label="Import prüfen">
+                  <div class="panel">
+                    <div class="panel__head">
+                      <div>
+                        <h2>Erkannte Werte prüfen</h2>
+                        <p>Riester · Beispiel Leben FörderRente · Standmitteilung zum 01.04.2026</p>
+                      </div>
+                      <span class="badge badge--ok"
+                        ><svg class="i"><use href="#i-check" /></svg>Plausibilitätsprüfung
+                        bestanden</span
+                      >
+                    </div>
+                    <div class="panel__body">
+                      <div class="note">
+                        <svg class="i"><use href="#i-info" /></svg>
+                        <div>
+                          Erkannte Werte sind schreibgeschützt. Stimmt etwas nicht, brich ab und gib
+                          den Vertrag manuell ein. Ergänze unten, was das Dokument nicht ausweist.
+                        </div>
+                      </div>
+                      <div class="tbl-wrap">
+                        <table class="fields">
+                          <thead>
+                            <tr>
+                              <th>Feld</th>
+                              <th class="r">Erkannter Wert</th>
+                              <th>Art</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td>Vertragsnummer</td>
+                              <td class="r num">26 100 482</td>
+                              <td><span class="badge">Kennung</span></td>
+                            </tr>
+                            <tr>
+                              <td>Garantierte Rente ab 01.06.2058</td>
+                              <td class="r num"><b>165,37 €</b></td>
+                              <td><span class="tag-g">garantiert</span></td>
+                            </tr>
+                            <tr>
+                              <td>Garantiertes Rentenkapital</td>
+                              <td class="r num"><b>65.700,00 €</b></td>
+                              <td><span class="tag-g">garantiert</span></td>
+                            </tr>
+                            <tr>
+                              <td>Mögliche Rente bei 0 / 3 / 6 / 9 %</td>
+                              <td class="r num"><i>225 / 340 / 615 / 1.190 €</i></td>
+                              <td><span class="tag-p">Prognose</span></td>
+                            </tr>
+                            <tr>
+                              <td>Fondswert · Gezahlte Beiträge</td>
+                              <td class="r num">4.100,20 € · 6.420,00 €</td>
+                              <td><span class="badge">Stand</span></td>
+                            </tr>
+                            <tr>
+                              <td>Kündigungswert · Todesfallleistung · Rentengarantiezeit</td>
+                              <td class="r num">3.800 € · 4.200 € · 23 Jahre</td>
+                              <td><span class="badge">Stand</span></td>
+                            </tr>
+                            <tr class="need">
+                              <td>
+                                <label for="in-contrib"
+                                  ><b>Aktueller Beitrag / Monat</b><br /><small class="muted"
+                                    >Steht nicht im Dokument</small
+                                  ></label
+                                >
+                              </td>
+                              <td class="r">
+                                <input
+                                  id="in-contrib"
+                                  class="input input--sm"
+                                  value="85,00"
+                                  inputmode="decimal"
+                                />
+                              </td>
+                              <td><span class="badge badge--warn">Bitte ergänzen</span></td>
+                            </tr>
+                            <tr class="need">
+                              <td>
+                                <label for="in-subs"
+                                  ><b>Zulagen / Jahr</b><br /><small class="muted"
+                                    >Optional</small
+                                  ></label
+                                >
+                              </td>
+                              <td class="r">
+                                <input
+                                  id="in-subs"
+                                  class="input input--sm"
+                                  value="175,00"
+                                  inputmode="decimal"
+                                />
+                              </td>
+                              <td><span class="badge">Optional</span></td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="actions">
+                        <button type="button" class="btn" data-goto="import-upload">
+                          Abbrechen</button
+                        ><button type="button" class="btn btn--primary" data-goto="private">
+                          <svg class="i"><use href="#i-check" /></svg>Bestätigen und speichern
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- ================= IMPORT: FAIL ================= -->
+                <section data-show="import-fail" aria-label="Dokument nicht erkannt">
+                  <div class="panel">
+                    <div class="panel__head">
+                      <div><h2>Dokument nicht erkannt</h2></div>
+                      <span class="badge badge--danger">Nichts gespeichert</span>
+                    </div>
+                    <div class="panel__body">
+                      <div class="file-row">
+                        <svg class="i" style="width: 22px; height: 22px; color: var(--p-muted)">
+                          <use href="#i-file" />
+                        </svg>
+                        <div class="grow">
+                          <b>Kontoauszug_Sonderfall.pdf</b><small>1 Seite · 98 KB</small>
+                        </div>
+                      </div>
+                      <div class="note note--danger">
+                        <svg class="i"><use href="#i-warn" /></svg>
+                        <div>
+                          <b>Wir konnten die Werte nicht eindeutig lesen.</b> Das Layout dieses
+                          Dokuments ist uns nicht bekannt, oder mehrere Werte widersprechen sich (z.
+                          B. Kontostand ≠ Vorjahr + Beitrag + Zins). Es wurde nichts übernommen.
+                        </div>
+                      </div>
+                      <div class="actions">
+                        <button type="button" class="btn" data-goto="import-upload">
+                          Anderes Dokument wählen</button
+                        ><button type="button" class="btn btn--primary" data-goto="form">
+                          Manuell eingeben
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- ================= MANUAL FORM ================= -->
+                <section data-show="form" aria-label="Manuell erfassen">
+                  <div class="toolbar">
+                    <button type="button" class="link-btn" data-goto="overview">
+                      ← Zurück zur Übersicht
+                    </button>
+                  </div>
+                  <div class="panel" style="margin-top: 0.6rem">
+                    <div class="panel__head">
+                      <div>
+                        <h2>Vertrag manuell erfassen</h2>
+                        <p>
+                          Die Felder passen sich der gewählten Art an. Manuelle Einträge kannst du
+                          später jederzeit ändern.
+                        </p>
+                      </div>
+                    </div>
+                    <div class="panel__body">
+                      <div>
+                        <div class="form-section" style="margin-bottom: 0.5rem">
+                          Art der Vorsorge
+                        </div>
+                        <div class="chips" id="type-chips">
+                          <button
+                            type="button"
+                            class="chip"
+                            aria-pressed="false"
+                            data-type="statutory"
+                          >
+                            <span>Gesetzliche Rente</span><small>Renteninformation</small>
+                          </button>
+                          <button
+                            type="button"
+                            class="chip"
+                            aria-pressed="false"
+                            data-type="occupational"
+                          >
+                            <span>Betriebsrente</span><small>pro Arbeitgeber</small>
+                          </button>
+                          <button
+                            type="button"
+                            class="chip"
+                            aria-pressed="true"
+                            data-type="riester"
+                          >
+                            <span>Riester-Rente</span><small>mit Zulagen</small>
+                          </button>
+                          <button type="button" class="chip" aria-pressed="false" data-type="prv">
+                            <span>Private Rentenversicherung</span
+                            ><small>klassisch / fondsgebunden</small>
+                          </button>
+                          <button type="button" class="chip" aria-pressed="false" data-type="avd">
+                            <span>Altersvorsorgedepot</span><small>ab 2027</small>
+                          </button>
+                        </div>
+                      </div>
+
+                      <div class="form-section">Vertrag</div>
+                      <div class="form-grid">
+                        <div class="form-group">
+                          <label for="f-provider">Anbieter</label
+                          ><input id="f-provider" class="input" value="Beispiel Leben" />
+                        </div>
+                        <div class="form-group">
+                          <label for="f-no">Vertragsnummer</label
+                          ><input id="f-no" class="input" value="26 100 482" /><span class="hint"
+                            >Wird angezeigt, damit du den Vertrag nachschlagen kannst.</span
+                          >
+                        </div>
+                        <div class="form-group">
+                          <label for="f-status">Status</label
+                          ><select id="f-status" class="input">
+                            <option>Aktiv</option>
+                            <option>Beitragsfrei</option>
+                            <option>In Auszahlung</option>
+                          </select>
+                        </div>
+                        <div class="form-group">
+                          <label for="f-date">Stand der Angaben</label
+                          ><input id="f-date" class="input" value="01.04.2026" />
+                        </div>
+                      </div>
+
+                      <div class="form-section">
+                        Leistungen <span class="tag-g">garantiert</span>
+                        <span class="tag-p">Prognose</span>
+                      </div>
+                      <div class="form-grid">
+                        <div class="form-group">
+                          <label for="f-gr">Garantierte Rente / Monat</label
+                          ><input id="f-gr" class="input" value="165,37" inputmode="decimal" />
+                        </div>
+                        <div class="form-group">
+                          <label for="f-er">Erwartete Rente / Monat (Prognose)</label
+                          ><input id="f-er" class="input" value="340,00" inputmode="decimal" /><span
+                            class="hint"
+                            >Muss mindestens so hoch sein wie die garantierte Rente.</span
+                          >
+                        </div>
+                        <div class="form-group">
+                          <label for="f-start">Auszahlung ab</label
+                          ><input id="f-start" class="input" value="01.06.2058" />
+                        </div>
+                        <div class="form-group">
+                          <label for="f-cap">Einmalige Kapitalleistung (optional)</label
+                          ><input
+                            id="f-cap"
+                            class="input"
+                            placeholder="z. B. 65.700,00"
+                            inputmode="decimal"
+                          />
+                        </div>
+                      </div>
+
+                      <div class="form-section">Beiträge &amp; Wert</div>
+                      <div class="form-grid">
+                        <div class="form-group">
+                          <label for="f-contrib">Beitrag / Monat</label
+                          ><input id="f-contrib" class="input" value="85,00" inputmode="decimal" />
+                        </div>
+                        <div class="form-group" data-field="riester">
+                          <label for="f-subs">Staatliche Zulagen / Jahr</label
+                          ><input id="f-subs" class="input" value="175,00" inputmode="decimal" />
+                        </div>
+                        <div class="form-group">
+                          <label for="f-val">Aktueller Wert</label
+                          ><input id="f-val" class="input" value="4.100,20" inputmode="decimal" />
+                        </div>
+                        <div class="form-group" data-field="occupational" hidden>
+                          <label for="f-ag">Davon Arbeitgeberanteil / Monat</label
+                          ><input id="f-ag" class="input" value="50,00" inputmode="decimal" />
+                        </div>
+                        <div class="form-group" data-field="occupational" hidden>
+                          <label for="f-rate">Garantiezins (Kapitalkonto)</label
+                          ><input id="f-rate" class="input" value="0,90" inputmode="decimal" />
+                        </div>
+                      </div>
+
+                      <div class="note note--danger" id="form-error" hidden>
+                        <svg class="i"><use href="#i-warn" /></svg>
+                        <div>
+                          <b>Erwartete Rente:</b> Der Wert darf nicht kleiner sein als die
+                          garantierte Rente.
+                        </div>
+                      </div>
+                      <div class="actions">
+                        <button type="button" class="btn" data-goto="overview">Abbrechen</button
+                        ><button type="button" class="btn btn--primary" data-goto="private">
+                          Speichern
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- ================= DASHBOARD ================= -->
+                <section data-show="dashboard" aria-label="Dashboard">
+                  <p class="dash-label">Mit Daten</p>
+                  <div class="dash-grid" style="margin-top: 0.4rem">
+                    <div class="ph-tile">[Kachel Holdings]</div>
+                    <div class="ph-tile">[Kachel Einkommen]</div>
+                    <article
+                      class="tile tile--cta"
+                      data-goto="overview"
+                      tabindex="0"
+                      role="link"
+                      aria-label="Altersvorsorge öffnen"
+                    >
+                      <div class="tile__head">
+                        <h3>
+                          <svg class="i" style="color: var(--p-primary)">
+                            <use href="#i-shield" /></svg
+                          >Altersvorsorge
+                        </h3>
+                        <span class="badge badge--warn"
+                          ><svg class="i"><use href="#i-warn" /></svg>2 veraltet</span
+                        >
+                      </div>
+                      <div class="tile__main">
+                        <span class="muted" style="font-size: 0.72rem"
+                          >Erwartete Rente / Monat <span class="tag-p">Prognose</span></span
+                        ><b class="num val-p">2.860 €</b>
+                      </div>
+                      <div
+                        class="gap-bar"
+                        role="img"
+                        aria-label="Garantiert 403 Euro von 2.860 Euro"
+                      >
+                        <div class="gap-bar__g" style="width: 14.1%"></div>
+                        <div class="gap-bar__p" style="width: 85.9%"></div>
+                      </div>
+                      <div class="gap-legend">
+                        <span class="lg-g">Garantiert 403 €</span
+                        ><span class="lg-p">Differenz 2.457 €</span>
+                      </div>
+                      <div class="tile__rows">
+                        <div><span>Rentenbeginn</span><b class="num">01.06.2058</b></div>
+                        <div><span>Garantierte Rente</span><b class="num">403 € / Monat</b></div>
+                        <div><span>Sparbetrag aktuell</span><b class="num">335 € / Monat</b></div>
+                      </div>
+                      <div class="tile__foot">
+                        <span class="link-btn">Zur Altersvorsorge →</span>
+                      </div>
+                    </article>
+                  </div>
+                  <p class="dash-label" style="margin-top: 1.4rem">Ohne Daten</p>
+                  <div class="dash-grid" style="margin-top: 0.4rem">
+                    <article class="tile">
+                      <div class="tile__head">
+                        <h3>
+                          <svg class="i" style="color: var(--p-primary)">
+                            <use href="#i-shield" /></svg
+                          >Altersvorsorge
+                        </h3>
+                      </div>
+                      <div class="tile__empty">
+                        Erfasse deine Renteninformation und Verträge, um Rentenbeginn, Garantierente
+                        und Sparbetrag auf einen Blick zu sehen.<button
+                          type="button"
+                          class="btn btn--primary btn--sm"
+                          data-goto="import-upload"
+                        >
+                          Altersvorsorge erfassen
+                        </button>
+                      </div>
+                    </article>
+                  </div>
+                </section>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="review-footer">
+      <h3>Was dieses Mockup zeigt</h3>
+      <ul>
+        <li>
+          Nicht funktionsfähig: Buttons wechseln nur zwischen Ansichten, es wird nichts gespeichert
+          oder gelesen.
+        </li>
+        <li>
+          Garantierte Werte (fett, grünes „garantiert") und Prognosen (kursiv, „≈", „Prognose") sind
+          überall gleich gekennzeichnet.
+        </li>
+        <li>
+          Importierte Einträge tragen ein Schloss und sind schreibgeschützt; nur beim Import
+          ergänzte Felder (z. B. Beitrag) sind änderbar. Manuelle Einträge zeigen „Bearbeiten".
+        </li>
+        <li>
+          Die gesetzliche Rente zählt in den Summen nur als Prognose, die Garantierente enthält nur
+          Betriebs- und Privatverträge. Bitte bestätigen oder korrigieren.
+        </li>
+        <li>
+          Optik nähert die aktuelle teal PrimeNG-Optik der App an; endgültige Tokens entstehen bei
+          der Umsetzung.
+        </li>
+      </ul>
+    </footer>
+
+    <script>
+      const canvas = document.getElementById('canvas');
+      const frame = document.getElementById('stage-frame');
+      const frameLabel = document.getElementById('stage-frame-label');
+      const titles = {
+        overview: 'Altersvorsorge',
+        statutory: 'Altersvorsorge',
+        occupational: 'Altersvorsorge',
+        private: 'Altersvorsorge',
+        info: 'Altersvorsorge',
+        empty: 'Altersvorsorge',
+        'import-upload': 'Dokument hochladen',
+        'import-scan': 'Dokument hochladen',
+        'import-review': 'Import prüfen',
+        'import-fail': 'Dokument hochladen',
+        form: 'Vertrag erfassen',
+        dashboard: 'Dashboard',
+      };
+      const tabOf = {
+        overview: 'overview',
+        statutory: 'statutory',
+        occupational: 'occupational',
+        private: 'private',
+        info: 'info',
+        empty: 'overview',
+      };
+      const stepOf = { 'import-upload': 1, 'import-scan': 1, 'import-fail': 1, 'import-review': 2 };
+
+      function setScreen(name) {
+        if (name === 'info-privacy') name = 'info';
+        canvas.setAttribute('data-screen', name);
+        canvas.querySelectorAll('[data-show]').forEach((el) => {
+          el.hidden = !el.getAttribute('data-show').split(' ').includes(name);
+        });
+        document.getElementById('page-title').textContent = titles[name] || 'Altersvorsorge';
+        canvas
+          .querySelectorAll('.tab')
+          .forEach((t) => t.setAttribute('aria-selected', String(t.dataset.tab === tabOf[name])));
+        canvas
+          .querySelectorAll('[data-nav]')
+          .forEach((n) =>
+            n.classList.toggle(
+              'nav__item--active',
+              n.dataset.nav === (name === 'dashboard' ? 'dashboard' : 'retirement'),
+            ),
+          );
+        canvas
+          .querySelectorAll('.steps span')
+          .forEach((s) => s.classList.toggle('on', Number(s.dataset.step) <= (stepOf[name] || 0)));
+        document
+          .querySelectorAll('#screen-toggle button, #flow-toggle button')
+          .forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.screen === name)));
+        window.scrollTo?.({ top: 0 });
+      }
+
+      document.getElementById('viewport-toggle').addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-viewport]');
+        if (!btn) return;
+        const v = btn.dataset.viewport;
+        frame.dataset.viewport = v;
+        frameLabel.textContent = v === 'mobile' ? 'Mobile · 400px' : 'Desktop · 1240px';
+        document
+          .querySelectorAll('#viewport-toggle button')
+          .forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+      });
+      document.querySelectorAll('#screen-toggle, #flow-toggle').forEach((g) =>
+        g.addEventListener('click', (e) => {
+          const b = e.target.closest('button[data-screen]');
+          if (b) setScreen(b.dataset.screen);
+        }),
+      );
+      canvas.addEventListener('click', (e) => {
+        const go = e.target.closest('[data-goto]');
+        if (go) {
+          setScreen(go.dataset.goto);
+          return;
+        }
+        const tab = e.target.closest('.tab');
+        if (tab) setScreen(tab.dataset.tab);
+      });
+      canvas.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && e.target.matches('[data-goto]')) setScreen(e.target.dataset.goto);
+      });
+
+      // manual form: field set per type
+      const typeChips = document.getElementById('type-chips');
+      typeChips.addEventListener('click', (e) => {
+        const chip = e.target.closest('.chip');
+        if (!chip) return;
+        typeChips
+          .querySelectorAll('.chip')
+          .forEach((c) => c.setAttribute('aria-pressed', String(c === chip)));
+        const t = chip.dataset.type;
+        canvas.querySelectorAll('[data-field]').forEach((f) => {
+          f.hidden = f.dataset.field !== t && !(f.dataset.field === 'riester' && t === 'riester');
+        });
+      });
+      // validation preview: expected < guaranteed shows the error note
+      const gr = document.getElementById('f-gr');
+      const er = document.getElementById('f-er');
+      const err = document.getElementById('form-error');
+      const num = (v) => parseFloat(String(v).replace(/\./g, '').replace(',', '.'));
+      function check() {
+        err.hidden = !(num(er.value) < num(gr.value));
+      }
+      gr.addEventListener('input', check);
+      er.addEventListener('input', check);
+
+      setScreen('overview');
+    </script>
+  </body>
+</html>

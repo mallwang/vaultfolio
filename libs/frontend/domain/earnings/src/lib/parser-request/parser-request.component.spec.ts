@@ -3,8 +3,8 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { ParserRequestComponent } from './parser-request.component';
-import { FakeTextRecogniser } from '../pdf/text-recogniser.testing';
-import { TEXT_RECOGNISER } from '../pdf/text-recogniser.token';
+import { FakeTextRecogniser } from '@vaultfolio/frontend-document-reader';
+import { TEXT_RECOGNISER } from '@vaultfolio/frontend-document-reader';
 import { ParserRequestStore } from './parser-request.store';
 import { PLANTED, plantedLayout } from './parser-request.testing';
 

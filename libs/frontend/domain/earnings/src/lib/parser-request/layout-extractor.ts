@@ -5,8 +5,8 @@ import {
   type AnalyzedWord,
   layoutLimitProblem,
 } from '@vaultfolio/earnings';
-import { loadPdfJs, type PdfJsModule } from '../pdf/pdf-text-extractor';
-import { readBytes } from '../pdf/read-blob';
+import { loadPdfJs, type PdfJsModule } from '@vaultfolio/frontend-document-reader';
+import { readBytes } from '@vaultfolio/frontend-document-reader';
 
 /** Why a file cannot be offered as a parser request (FR-004, edge cases). */
 export type LayoutRefusal =

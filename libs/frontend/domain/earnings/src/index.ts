@@ -10,11 +10,3 @@ export { EarningsDashboardWidgetComponent } from './lib/earnings-dashboard-widge
 export { createEarningsExportDefinition } from './lib/earnings-export.definition';
 export { ParserRequestComponent } from './lib/parser-request/parser-request.component';
 export { parserRequestGuard } from './lib/parser-request/parser-request.guard';
-export {
-  MAX_RECOGNITION_PAGES,
-  type RecognitionError,
-  type RecognitionProgress,
-  type RecognitionResult,
-  type TextRecogniser,
-} from './lib/pdf/text-recogniser';
-export { TEXT_RECOGNISER } from './lib/pdf/text-recogniser.token';

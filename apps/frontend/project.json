@@ -26,6 +26,11 @@
             "output": "assets/pdfjs"
           },
           {
+            "glob": "*.wasm",
+            "input": "node_modules/pdfjs-dist/wasm",
+            "output": "assets/pdfjs/wasm"
+          },
+          {
             "glob": "worker.min.js*",
             "input": "node_modules/tesseract.js/dist",
             "output": "assets/tesseract"
@@ -95,6 +100,9 @@
           "exclude": [
             "@vaultfolio/export",
             "@vaultfolio/api-contract",
+            "@vaultfolio/document-text",
+            "@vaultfolio/retirement",
+            "@vaultfolio/frontend-document-reader",
             "@vaultfolio/frontend-admin",
             "@vaultfolio/frontend-domain-access",
             "@vaultfolio/earnings",

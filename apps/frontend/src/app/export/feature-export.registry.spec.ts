@@ -8,7 +8,7 @@ const {
   mockCreateEarnings,
   mockCreateHoldings,
   mockCreateAccountOverview,
-  mockRetirementDef,
+  mockCreateRetirement,
   mockInsurancesDef,
   mockHaushaltsplanerDef,
   mockHistoricDef,
@@ -28,7 +28,7 @@ const {
     mockCreateEarnings: vi.fn(() => mockEarningsDef),
     mockCreateHoldings: vi.fn(() => mockHoldingsDef),
     mockCreateAccountOverview: vi.fn(() => mockAccountDef),
-    mockRetirementDef,
+    mockCreateRetirement: vi.fn(() => mockRetirementDef),
     mockInsurancesDef,
     mockHaushaltsplanerDef,
     mockHistoricDef,
@@ -44,7 +44,7 @@ vi.mock('@vaultfolio/frontend-domain-account-overview', () => ({
   createAccountOverviewExportDefinition: mockCreateAccountOverview,
 }));
 vi.mock('@vaultfolio/frontend-domain-retirement', () => ({
-  RETIREMENT_EXPORT_DEFINITION: mockRetirementDef,
+  createRetirementExportDefinition: mockCreateRetirement,
 }));
 vi.mock('@vaultfolio/frontend-domain-insurances', () => ({
   INSURANCES_EXPORT_DEFINITION: mockInsurancesDef,
@@ -75,17 +75,17 @@ describe('registerFeatureExports', () => {
     expect(register).toHaveBeenCalledTimes(7);
   });
 
-  it('resolves factory-based definitions via runInInjectionContext (holdings, account-overview, earnings)', async () => {
+  it('resolves factory-based definitions via runInInjectionContext (holdings, account-overview, earnings, retirement)', async () => {
     await registerFeatureExports({ register } as never, injector);
     expect(mockCreateHoldings).toHaveBeenCalledTimes(1);
     expect(mockCreateAccountOverview).toHaveBeenCalledTimes(1);
     expect(mockCreateEarnings).toHaveBeenCalledTimes(1);
+    expect(mockCreateRetirement).toHaveBeenCalledTimes(1);
   });
 
   it('registers placeholder constants directly without a factory', async () => {
     await registerFeatureExports({ register } as never, injector);
     const registered = register.mock.calls.map((c) => c[0]);
-    expect(registered).toContain(mockRetirementDef);
     expect(registered).toContain(mockInsurancesDef);
     expect(registered).toContain(mockHaushaltsplanerDef);
     expect(registered).toContain(mockHistoricDef);
