@@ -69,6 +69,17 @@ describe('OverviewComponent', () => {
   it('shows the empty state without records', async () => {
     const el = await open([]);
     expect(byTestId(el, 'retirement-overview-empty')).not.toBeNull();
+    for (const id of [
+      'retirement-kpi-expected',
+      'retirement-kpi-guaranteed',
+      'retirement-kpi-savings',
+      'retirement-kpi-start',
+      'retirement-overview-bar',
+      'retirement-overview-pillar-statutory',
+      'retirement-overview-capital-note',
+    ]) {
+      expect(byTestId(el, id)).toBeNull();
+    }
   });
 
   it('flags outdated and incomplete entries', async () => {

@@ -183,6 +183,7 @@ const NOT_IN_GRID = new Set([
                 severity="secondary"
                 [outlined]="true"
                 [routerLink]="['/app/retirement', record().id, 'edit']"
+                [queryParams]="{ from: record().pillar.toLowerCase() }"
                 data-testid="retirement-card-supplement"
               >
                 {{ 'retirement.card.supplement' | translate }}
@@ -194,7 +195,7 @@ const NOT_IN_GRID = new Set([
               severity="secondary"
               [outlined]="true"
               routerLink="/app/retirement/import"
-              [queryParams]="{ replaces: record().id }"
+              [queryParams]="{ replaces: record().id, from: record().pillar.toLowerCase() }"
               data-testid="retirement-card-replace"
             >
               {{ 'retirement.card.replace' | translate }}
@@ -219,6 +220,7 @@ const NOT_IN_GRID = new Set([
               severity="secondary"
               [outlined]="true"
               [routerLink]="['/app/retirement', record().id, 'edit']"
+              [queryParams]="{ from: record().pillar.toLowerCase() }"
               data-testid="retirement-card-edit"
             >
               {{ 'retirement.card.edit' | translate }}

@@ -9,7 +9,9 @@ import type {
   RetirementSummary,
   RetirementSummaryItem,
 } from '@vaultfolio/api-contract';
-import { I18nService, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
+import { I18nService, IconComponent, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
+import { EmptyStateComponent } from '../empty-state/empty-state.component';
+import { PrivacyInfoComponent } from '../privacy-note/privacy-info.component';
 import { fill, formatDate, formatMoney } from '../retirement-format';
 import { RetirementService } from '../retirement.service';
 
@@ -23,7 +25,15 @@ type PillarKey = 'statutory' | 'occupational' | 'private';
  */
 @Component({
   selector: 'app-retirement-overview',
-  imports: [RouterLink, ButtonModule, MessageModule, TranslatePipe],
+  imports: [
+    RouterLink,
+    ButtonModule,
+    MessageModule,
+    IconComponent,
+    TranslatePipe,
+    EmptyStateComponent,
+    PrivacyInfoComponent,
+  ],
   template: `
     @if (loadFailed()) {
       <p-message severity="error" data-testid="retirement-overview-error">{{
@@ -32,168 +42,175 @@ type PillarKey = 'statutory' | 'occupational' | 'private';
     }
     @if (summary(); as s) {
       @if (isEmpty()) {
-        <div class="empty" data-testid="retirement-overview-empty">
-          <p class="empty__title">{{ 'retirement.overview.empty.title' | translate }}</p>
-          <p class="muted">{{ 'retirement.overview.empty.body' | translate }}</p>
-        </div>
-      }
-
-      <div class="kpis">
-        <div class="tile tile--hero" data-testid="retirement-kpi-expected">
-          <span class="tile__label">{{ 'retirement.overview.kpi.expected' | translate }}</span>
-          <span class="tile__value projection">≈ {{ money(s.expectedMonthly) }}</span>
-          <span class="tile__hint">
-            <span class="tag tag--projection">{{
-              'retirement.labels.projection' | translate
-            }}</span>
-            {{ 'retirement.overview.kpi.expectedHint' | translate }}
-          </span>
-        </div>
-        <div class="tile" data-testid="retirement-kpi-guaranteed">
-          <span class="tile__label">{{ 'retirement.overview.kpi.guaranteed' | translate }}</span>
-          <span class="tile__value guaranteed">{{ money(s.guaranteedMonthly) }}</span>
-          <span class="tile__hint">
-            <span class="tag tag--guaranteed">{{
-              'retirement.labels.guaranteed' | translate
-            }}</span>
-            {{ 'retirement.overview.kpi.guaranteedHint' | translate }}
-          </span>
-        </div>
-        <div class="tile" data-testid="retirement-kpi-savings">
-          <span class="tile__label">{{ 'retirement.overview.kpi.savings' | translate }}</span>
-          <span class="tile__value">{{ money(s.monthlySavings) }}</span>
-          <span class="tile__hint">{{ 'retirement.overview.kpi.savingsHint' | translate }}</span>
-        </div>
-        <div class="tile" data-testid="retirement-kpi-start">
-          <span class="tile__label">{{ 'retirement.overview.kpi.start' | translate }}</span>
-          <span class="tile__value">{{ s.pensionStart ? date(s.pensionStart.date) : '–' }}</span>
-          @if (s.pensionStart; as start) {
+        <app-retirement-empty-state
+          testId="retirement-overview-empty"
+          titleKey="retirement.overview.empty.title"
+          bodyKey="retirement.overview.empty.body"
+        />
+        <app-retirement-privacy-info />
+      } @else {
+        <div class="kpis">
+          <div class="tile tile--hero" data-testid="retirement-kpi-expected">
+            <span class="tile__label">{{ 'retirement.overview.kpi.expected' | translate }}</span>
+            <span class="tile__value projection">≈ {{ money(s.expectedMonthly) }}</span>
             <span class="tile__hint">
-              {{
-                (start.source === 'STATUTORY'
-                  ? 'retirement.overview.kpi.startStatutory'
-                  : 'retirement.overview.kpi.startEarliest'
-                ) | translate
-              }}
+              <span class="tag tag--projection">{{
+                'retirement.labels.projection' | translate
+              }}</span>
+              {{ 'retirement.overview.kpi.expectedHint' | translate }}
             </span>
-          }
-          @if (earlierCount() > 0) {
-            <span class="tile__hint" data-testid="retirement-kpi-start-earlier">{{
-              startNote('startEarlier', earlierCount())
-            }}</span>
-          }
-          @if (laterCount() > 0) {
-            <span class="tile__hint" data-testid="retirement-kpi-start-later">{{
-              startNote('startLater', laterCount())
-            }}</span>
-          }
-        </div>
-      </div>
-
-      <section class="panel" data-testid="retirement-overview-bar">
-        <header class="panel__head">
-          <h3>{{ 'retirement.overview.bar.title' | translate }}</h3>
-          <span class="badge" data-testid="retirement-overview-difference">{{
-            differenceLabel()
-          }}</span>
-        </header>
-        <div
-          class="bar"
-          role="img"
-          [attr.aria-label]="money(s.guaranteedMonthly) + ' / ' + money(s.expectedMonthly)"
-        >
-          <div class="bar__guaranteed" [style.width.%]="guaranteedShare()"></div>
-          <div class="bar__additional"></div>
-        </div>
-        <div class="legend">
-          <span
-            ><i class="swatch swatch--guaranteed"></i
-            >{{ 'retirement.overview.bar.guaranteed' | translate }}</span
-          >
-          <span
-            ><i class="swatch swatch--additional"></i
-            >{{ 'retirement.overview.bar.additional' | translate }}</span
-          >
-        </div>
-      </section>
-
-      <div class="pillars">
-        @for (p of pillarList(); track p.key) {
-          <section class="panel" [attr.data-testid]="'retirement-overview-pillar-' + p.key">
-            <header class="panel__head">
-              <h3>{{ 'retirement.pillars.' + p.key | translate }}</h3>
-              <span class="muted">{{ entriesLabel(p.summary.count) }}</span>
-            </header>
-            @if (p.summary.count === 0) {
-              <p class="muted" [attr.data-testid]="'retirement-overview-pillar-empty-' + p.key">
-                {{ 'retirement.overview.pillar.empty' + p.emptyKey | translate }}
-              </p>
-            } @else {
-              <dl class="subtotals">
-                <div>
-                  <dt>{{ 'retirement.overview.pillar.guaranteed' | translate }}</dt>
-                  <dd class="guaranteed">{{ money(p.summary.guaranteedMonthly) }}</dd>
-                </div>
-                <div>
-                  <dt>{{ 'retirement.overview.pillar.expected' | translate }}</dt>
-                  <dd class="projection">≈ {{ money(p.summary.expectedMonthly) }}</dd>
-                </div>
-              </dl>
-              <ul class="rows">
-                @for (item of p.summary.items; track item.id) {
-                  <li [attr.data-testid]="'retirement-overview-row-' + item.id">
-                    <span class="row__name">
-                      {{
-                        item.providerLabel ?? ('retirement.types.' + item.contractType | translate)
-                      }}
-                      <span class="badge badge--muted">{{
-                        (item.origin === 'IMPORTED'
-                          ? 'retirement.badges.imported'
-                          : 'retirement.badges.manual'
-                        ) | translate
-                      }}</span>
-                      @if (item.outdated) {
-                        <span class="badge badge--warn" data-testid="retirement-badge-outdated">{{
-                          'retirement.badges.outdated' | translate
-                        }}</span>
-                      }
-                      @if (item.incomplete) {
-                        <span class="badge badge--warn" data-testid="retirement-badge-incomplete">{{
-                          'retirement.badges.incomplete' | translate
-                        }}</span>
-                      }
-                    </span>
-                    <span class="row__amount">{{ rowAmount(item) }}</span>
-                  </li>
-                }
-              </ul>
+          </div>
+          <div class="tile" data-testid="retirement-kpi-guaranteed">
+            <span class="tile__label">{{ 'retirement.overview.kpi.guaranteed' | translate }}</span>
+            <span class="tile__value guaranteed">{{ money(s.guaranteedMonthly) }}</span>
+            <span class="tile__hint">
+              <span class="tag tag--guaranteed">{{
+                'retirement.labels.guaranteed' | translate
+              }}</span>
+              {{ 'retirement.overview.kpi.guaranteedHint' | translate }}
+            </span>
+          </div>
+          <div class="tile" data-testid="retirement-kpi-savings">
+            <span class="tile__label">{{ 'retirement.overview.kpi.savings' | translate }}</span>
+            <span class="tile__value">{{ money(s.monthlySavings) }}</span>
+            <span class="tile__hint">{{ 'retirement.overview.kpi.savingsHint' | translate }}</span>
+          </div>
+          <div class="tile" data-testid="retirement-kpi-start">
+            <span class="tile__label">{{ 'retirement.overview.kpi.start' | translate }}</span>
+            <span class="tile__value">{{ s.pensionStart ? date(s.pensionStart.date) : '–' }}</span>
+            @if (s.pensionStart; as start) {
+              <span class="tile__hint">
+                {{
+                  (start.source === 'STATUTORY'
+                    ? 'retirement.overview.kpi.startStatutory'
+                    : 'retirement.overview.kpi.startEarliest'
+                  ) | translate
+                }}
+              </span>
             }
-            <a
-              pButton
-              severity="secondary"
-              [text]="true"
-              [routerLink]="['..', p.key]"
-              [attr.data-testid]="'retirement-overview-details-' + p.key"
+            @if (earlierCount() > 0) {
+              <span class="tile__hint" data-testid="retirement-kpi-start-earlier">{{
+                startNote('startEarlier', earlierCount())
+              }}</span>
+            }
+            @if (laterCount() > 0) {
+              <span class="tile__hint" data-testid="retirement-kpi-start-later">{{
+                startNote('startLater', laterCount())
+              }}</span>
+            }
+          </div>
+        </div>
+
+        @if (hasProjection()) {
+          <section class="panel" data-testid="retirement-overview-bar">
+            <header class="panel__head">
+              <h3>{{ 'retirement.overview.bar.title' | translate }}</h3>
+              <span class="badge" data-testid="retirement-overview-difference">{{
+                differenceLabel()
+              }}</span>
+            </header>
+            <div
+              class="bar"
+              role="img"
+              [attr.aria-label]="money(s.guaranteedMonthly) + ' / ' + money(s.expectedMonthly)"
             >
-              {{ 'retirement.overview.pillar.details' | translate }}
-            </a>
+              <div class="bar__guaranteed" [style.width.%]="guaranteedShare()"></div>
+              <div class="bar__additional"></div>
+            </div>
+            <div class="legend">
+              <span
+                ><i class="swatch swatch--guaranteed"></i
+                >{{ 'retirement.overview.bar.guaranteed' | translate }}</span
+              >
+              <span
+                ><i class="swatch swatch--additional"></i
+                >{{ 'retirement.overview.bar.additional' | translate }}</span
+              >
+            </div>
           </section>
         }
-      </div>
 
-      @if (s.flags.outdatedCount > 0) {
-        <p-message severity="warn" data-testid="retirement-overview-outdated">{{
-          note('outdated', s.flags.outdatedCount)
+        <div class="pillars">
+          @for (p of pillarList(); track p.key) {
+            <section class="panel" [attr.data-testid]="'retirement-overview-pillar-' + p.key">
+              <header class="panel__head">
+                <h3>{{ 'retirement.pillars.' + p.key | translate }}</h3>
+                <span class="muted">{{ entriesLabel(p.summary.count) }}</span>
+              </header>
+              @if (p.summary.count === 0) {
+                <p class="muted" [attr.data-testid]="'retirement-overview-pillar-empty-' + p.key">
+                  {{ 'retirement.overview.pillar.empty' + p.emptyKey | translate }}
+                </p>
+              } @else {
+                <dl class="subtotals">
+                  <div>
+                    <dt>{{ 'retirement.overview.pillar.guaranteed' | translate }}</dt>
+                    <dd class="guaranteed">{{ money(p.summary.guaranteedMonthly) }}</dd>
+                  </div>
+                  <div>
+                    <dt>{{ 'retirement.overview.pillar.expected' | translate }}</dt>
+                    <dd class="projection">≈ {{ money(p.summary.expectedMonthly) }}</dd>
+                  </div>
+                </dl>
+                <ul class="rows">
+                  @for (item of p.summary.items; track item.id) {
+                    <li [attr.data-testid]="'retirement-overview-row-' + item.id">
+                      <span class="row__name">
+                        {{
+                          item.providerLabel ??
+                            ('retirement.types.' + item.contractType | translate)
+                        }}
+                        <span class="badge badge--muted">{{
+                          (item.origin === 'IMPORTED'
+                            ? 'retirement.badges.imported'
+                            : 'retirement.badges.manual'
+                          ) | translate
+                        }}</span>
+                        @if (item.outdated) {
+                          <span class="badge badge--warn" data-testid="retirement-badge-outdated">{{
+                            'retirement.badges.outdated' | translate
+                          }}</span>
+                        }
+                        @if (item.incomplete) {
+                          <span
+                            class="badge badge--warn"
+                            data-testid="retirement-badge-incomplete"
+                            >{{ 'retirement.badges.incomplete' | translate }}</span
+                          >
+                        }
+                      </span>
+                      <span class="row__amount">{{ rowAmount(item) }}</span>
+                    </li>
+                  }
+                </ul>
+              }
+              <a
+                pButton
+                severity="secondary"
+                [text]="true"
+                [routerLink]="['..', p.key]"
+                [attr.data-testid]="'retirement-overview-details-' + p.key"
+              >
+                {{ 'retirement.overview.pillar.details' | translate }}
+              </a>
+            </section>
+          }
+        </div>
+
+        @if (s.flags.outdatedCount > 0) {
+          <p-message severity="warn" data-testid="retirement-overview-outdated">{{
+            note('outdated', s.flags.outdatedCount)
+          }}</p-message>
+        }
+        @if (s.flags.incompleteCount > 0) {
+          <p-message severity="warn" data-testid="retirement-overview-incomplete">{{
+            note('incomplete', s.flags.incompleteCount)
+          }}</p-message>
+        }
+        <p-message severity="info" data-testid="retirement-overview-capital-note">{{
+          'retirement.overview.notes.capital' | translate
         }}</p-message>
       }
-      @if (s.flags.incompleteCount > 0) {
-        <p-message severity="warn" data-testid="retirement-overview-incomplete">{{
-          note('incomplete', s.flags.incompleteCount)
-        }}</p-message>
-      }
-      <p-message severity="info" data-testid="retirement-overview-capital-note">{{
-        'retirement.overview.notes.capital' | translate
-      }}</p-message>
     } @else if (!loadFailed()) {
       <p class="muted" data-testid="retirement-overview-loading">
         {{ 'retirement.overview.loading' | translate }}
@@ -212,8 +229,7 @@ type PillarKey = 'statutory' | 'occupational' | 'private';
       gap: 0.75rem;
     }
     .tile,
-    .panel,
-    .empty {
+    .panel {
       display: flex;
       flex-direction: column;
       gap: 0.375rem;
@@ -349,14 +365,6 @@ type PillarKey = 'statutory' | 'occupational' | 'private';
       align-items: center;
       gap: 0.375rem;
     }
-    .empty {
-      text-align: center;
-      border-style: dashed;
-    }
-    .empty__title {
-      margin: 0;
-      font-weight: 600;
-    }
     a.p-button {
       align-self: flex-start;
       text-decoration: none;
@@ -371,6 +379,9 @@ export class OverviewComponent {
   protected readonly loadFailed = signal(false);
 
   protected readonly isEmpty = computed(() => (this.summary()?.items.length ?? 0) === 0);
+  protected readonly hasProjection = computed(
+    () => Number(this.summary()?.expectedMonthly ?? 0) > 0,
+  );
   protected readonly earlierCount = computed(() => this.countRelation('EARLIER'));
   protected readonly laterCount = computed(() => this.countRelation('LATER'));
 

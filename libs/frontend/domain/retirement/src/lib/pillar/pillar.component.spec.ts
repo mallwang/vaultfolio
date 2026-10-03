@@ -38,8 +38,8 @@ describe('PillarComponent', () => {
   it('shows the empty state and both ways to add the first entry', async () => {
     const el = await open('/private', []);
     expect(byTestId(el, 'retirement-pillar-empty')).not.toBeNull();
-    expect(byTestId(el, 'retirement-pillar-add')).not.toBeNull();
-    expect(byTestId(el, 'retirement-pillar-upload')).not.toBeNull();
+    expect(byTestId(el, 'retirement-empty-manual')).not.toBeNull();
+    expect(byTestId(el, 'retirement-empty-upload')).not.toBeNull();
   });
 
   it('lists a card per record', async () => {

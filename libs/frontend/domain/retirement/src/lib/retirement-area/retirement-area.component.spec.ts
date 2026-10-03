@@ -65,13 +65,34 @@ describe('RetirementAreaComponent', () => {
   it('renders the toolbar actions and the pillar and information tabs', async () => {
     const harness = await open('/retirement/info');
     const el = harness.routeNativeElement as HTMLElement;
-    expect(byTestId(el, 'retirement-privacy-link')?.getAttribute('href')).toContain('#privacy');
+    expect(byTestId(el, 'retirement-privacy-link')).not.toBeNull();
     expect(byTestId(el, 'retirement-manual-button')).not.toBeNull();
     expect(byTestId(el, 'retirement-upload-button')).not.toBeNull();
     for (const tab of ['overview', 'statutory', 'occupational', 'private', 'info']) {
       expect(byTestId(el, `retirement-tab-${tab}`)).not.toBeNull();
     }
     expect(el.textContent).toContain('Further information');
+  });
+
+  it('opens the privacy note as a modal from the toolbar link', async () => {
+    const harness = await open('/retirement/info');
+    const el = harness.routeNativeElement as HTMLElement;
+    expect(document.querySelector('[data-testid="retirement-privacy-note"]')).toBeNull();
+    byTestId(el, 'retirement-privacy-link')?.click();
+    harness.detectChanges();
+    await harness.fixture.whenStable();
+    expect(document.querySelector('[data-testid="retirement-privacy-note"]')).not.toBeNull();
+  });
+
+  it('passes the current pillar tab to manual entry and upload so "Back" returns there', async () => {
+    const harness = await open('/retirement/private');
+    const el = harness.routeNativeElement as HTMLElement;
+    expect(byTestId(el, 'retirement-manual-button')?.getAttribute('href')).toContain(
+      'from=private',
+    );
+    expect(byTestId(el, 'retirement-upload-button')?.getAttribute('href')).toContain(
+      'from=private',
+    );
   });
 
   it('shows the number of entries per pillar and hides empty counters', async () => {

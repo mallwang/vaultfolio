@@ -109,6 +109,9 @@ export const retirementDe: TranslationDictionary = {
       title: 'Links übertragen keine Daten',
       body: 'Die Links im Tab „Weiterführende Informationen“ sind einfache Links. Beim Öffnen wird nichts aus Vaultfolio übertragen.',
     },
+    dangerTitle: 'Alle Altersvorsorge-Daten löschen',
+    dangerSub:
+      'Entfernt dauerhaft alle Einträge zu gesetzlicher, betrieblicher und privater Vorsorge. Ihr Konto und Ihre übrigen Vaultfolio-Daten bleiben erhalten.',
     deleteHint:
       'Sie können einzelne Einträge oder alle Ihre Altersvorsorge-Daten jederzeit löschen.',
     deleteAll: 'Alle meine Altersvorsorge-Daten löschen',
@@ -159,8 +162,13 @@ export const retirementDe: TranslationDictionary = {
     status: 'Status',
     expectedScenario: 'Erwartetes Wertentwicklungsszenario',
   },
+  backTo: {
+    overview: 'Zurück zur Altersvorsorge',
+    statutory: 'Zurück zu „Gesetzlich“',
+    occupational: 'Zurück zu „Betrieblich“',
+    private: 'Zurück zu „Privat“',
+  },
   form: {
-    back: 'Zurück',
     titleNew: 'Altersvorsorge-Eintrag hinzufügen',
     titleEdit: 'Altersvorsorge-Eintrag bearbeiten',
     type: 'Art',
@@ -200,15 +208,15 @@ export const retirementDe: TranslationDictionary = {
     empty: {
       statutory: {
         title: 'Noch keine gesetzliche Rente',
-        body: 'Lade deine Renteninformation hoch oder gib die Werte manuell ein.',
+        body: 'Laden Sie Ihre Renteninformation hoch oder geben Sie die Werte manuell ein.',
       },
       occupational: {
         title: 'Noch keine betriebliche Altersvorsorge',
-        body: 'Lade eine Mitteilung zu deiner Betriebsrente hoch oder erfasse den Vertrag manuell.',
+        body: 'Laden Sie eine Mitteilung zu Ihrer Betriebsrente hoch oder erfassen Sie den Vertrag manuell.',
       },
       private: {
         title: 'Noch keine private Vorsorge',
-        body: 'Lade eine Mitteilung zu Riester, privater Rente oder Sparkonto hoch oder erfasse den Vertrag manuell.',
+        body: 'Laden Sie eine Mitteilung zu Riester, privater Rente oder Sparkonto hoch oder erfassen Sie den Vertrag manuell.',
       },
     },
     add: {
@@ -231,7 +239,6 @@ export const retirementDe: TranslationDictionary = {
     NOT_APPLICABLE: 'Dieses Feld gilt nicht für diese Art.',
   },
   import: {
-    back: 'Zurück',
     title: 'Altersvorsorge-Dokument hochladen',
     dropTitle: 'Dokument hier ablegen',
     dropSub: 'Ein PDF deiner Renteninformation oder der Mitteilung zu Betriebs- oder Privatrente.',
@@ -314,7 +321,7 @@ export const retirementDe: TranslationDictionary = {
     },
     empty: {
       title: 'Noch nichts erfasst',
-      body: 'Lade ein Dokument hoch oder erfasse einen Vertrag manuell, um dein Altersvorsorge-Bild zu sehen.',
+      body: 'Laden Sie ein Dokument hoch oder erfassen Sie einen Vertrag manuell, um Ihr Altersvorsorge-Bild zu sehen.',
     },
     notes: {
       outdated:

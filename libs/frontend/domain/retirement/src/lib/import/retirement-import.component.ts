@@ -9,6 +9,7 @@ import { TagModule } from 'primeng/tag';
 import type { RetirementScenario } from '@vaultfolio/api-contract';
 import { MAX_RECOGNITION_PAGES, OcrConsentComponent } from '@vaultfolio/frontend-document-reader';
 import { I18nService, IconComponent, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
+import { returnLabelKey, returnLink } from '../return-link';
 import { sortFigureKeys } from '../retirement-fields';
 import { displayFigure, fill, formatDate } from '../retirement-format';
 import { type ImportRejection, ImportStore } from './import-store';
@@ -45,10 +46,9 @@ const PILLAR_ROUTE = {
   ],
   providers: [ImportStore],
   template: `
-    <a class="back" routerLink="/app/retirement" data-testid="retirement-import-back">
-      <app-icon name="chevron-left" /> {{ 'retirement.import.back' | translate }}
+    <a class="back" [routerLink]="backLink" data-testid="retirement-import-back">
+      <app-icon name="chevron-left" /> {{ backLabelKey | translate }}
     </a>
-    <h1>{{ 'retirement.import.title' | translate }}</h1>
 
     @switch (store.step()) {
       @case ('idle') {
@@ -109,14 +109,19 @@ const PILLAR_ROUTE = {
       @case ('rejected') {
         <div class="rejected" data-testid="retirement-import-rejected">
           <h2>{{ 'retirement.import.rejectedTitle' | translate }}</h2>
-          <p data-testid="retirement-import-rejection">{{ rejectionText() }}</p>
+          <p class="muted" data-testid="retirement-import-rejection">{{ rejectionText() }}</p>
           @if (store.failedChecks().length > 0) {
             <p class="muted" data-testid="retirement-import-failed-checks">
               {{ 'retirement.import.checks' | translate }}: {{ store.failedChecks().join(', ') }}
             </p>
           }
           <div class="actions">
-            <a pButton routerLink="/app/retirement/new" data-testid="retirement-import-manual">
+            <a
+              pButton
+              routerLink="/app/retirement/new"
+              [queryParams]="fromParams"
+              data-testid="retirement-import-manual"
+            >
               {{ 'retirement.import.manualInstead' | translate }}
             </a>
             <button
@@ -286,7 +291,11 @@ const PILLAR_ROUTE = {
       margin: 0;
     }
     .back {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
       align-self: flex-start;
+      color: var(--p-primary-color);
       text-decoration: none;
     }
     .muted {
@@ -305,11 +314,25 @@ const PILLAR_ROUTE = {
     .dropzone--active {
       border-color: var(--p-primary-color);
     }
-    .review,
-    .rejected {
+    .review {
       display: flex;
       flex-direction: column;
       gap: 0.75rem;
+    }
+    .rejected {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 0.75rem;
+      max-width: 36rem;
+      margin: 2rem auto 0;
+    }
+    .rejected h2 {
+      font-size: 1.2rem;
+    }
+    .rejected .actions {
+      justify-content: center;
     }
     .review__head {
       display: flex;
@@ -362,6 +385,10 @@ export class RetirementImportComponent {
   protected readonly store = inject(ImportStore);
   private readonly i18n = inject(I18nService);
   private readonly router = inject(Router);
+  private readonly from = inject(ActivatedRoute).snapshot.queryParamMap.get('from');
+  protected readonly backLink = returnLink(this.from);
+  protected readonly backLabelKey = returnLabelKey(this.from);
+  protected readonly fromParams = this.from ? { from: this.from } : {};
 
   protected readonly dragging = signal(false);
 

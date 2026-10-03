@@ -37,6 +37,7 @@ import {
   sortFigureKeys,
 } from '../retirement-fields';
 import { parseMoneyInput, toMoneyInput } from '../retirement-format';
+import { returnLabelKey, returnLink } from '../return-link';
 import { RetirementService } from '../retirement.service';
 
 /** Type chips of design.md; "occupational" groups the six occupational contract types. */
@@ -95,8 +96,8 @@ function parseDecimalInput(text: string): string | null {
     TranslatePipe,
   ],
   template: `
-    <a class="back" routerLink="/app/retirement" data-testid="retirement-form-back">
-      <app-icon name="chevron-left" /> {{ 'retirement.form.back' | translate }}
+    <a class="back" [routerLink]="backLink" data-testid="retirement-form-back">
+      <app-icon name="chevron-left" /> {{ backLabelKey | translate }}
     </a>
     <h1 class="title" data-testid="retirement-form-title">
       {{
@@ -289,7 +290,7 @@ function parseDecimalInput(text: string): string | null {
             pButton
             severity="secondary"
             [outlined]="true"
-            routerLink="/app/retirement"
+            [routerLink]="backLink"
             data-testid="retirement-form-cancel"
           >
             {{ 'retirement.form.cancel' | translate }}
@@ -489,6 +490,8 @@ export class RecordFormComponent {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly i18n = inject(I18nService);
+  protected readonly backLink = returnLink(this.route.snapshot.queryParamMap.get('from'));
+  protected readonly backLabelKey = returnLabelKey(this.route.snapshot.queryParamMap.get('from'));
 
   protected readonly chips = CHIPS;
   protected readonly otherSections: readonly FormSection[] = SECTIONS.filter(

@@ -113,6 +113,9 @@ export const retirementEn: TranslationDictionary = {
       title: 'Links send no data',
       body: 'The links on the information tab are plain links. Opening them sends nothing from Vaultfolio.',
     },
+    dangerTitle: 'Delete all retirement data',
+    dangerSub:
+      'Permanently removes all statutory, occupational and private entries. Your account and your other Vaultfolio data are kept.',
     deleteHint: 'You can delete single entries or all of your retirement data at any time.',
     deleteAll: 'Delete all my retirement data',
     deleteAllHeader: 'Delete all retirement data?',
@@ -162,8 +165,13 @@ export const retirementEn: TranslationDictionary = {
     status: 'Status',
     expectedScenario: 'Expected growth scenario',
   },
+  backTo: {
+    overview: 'Back to Retirement',
+    statutory: 'Back to “Statutory”',
+    occupational: 'Back to “Occupational”',
+    private: 'Back to “Private”',
+  },
   form: {
-    back: 'Back',
     titleNew: 'Add retirement entry',
     titleEdit: 'Edit retirement entry',
     type: 'Type',
@@ -233,7 +241,6 @@ export const retirementEn: TranslationDictionary = {
     NOT_APPLICABLE: 'This field does not apply to this type.',
   },
   import: {
-    back: 'Back',
     title: 'Upload retirement document',
     dropTitle: 'Drop a statement here',
     dropSub: 'A PDF of your pension statement, occupational or private pension statement.',

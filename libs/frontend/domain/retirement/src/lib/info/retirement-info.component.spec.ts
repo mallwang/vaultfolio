@@ -37,8 +37,8 @@ describe('RetirementInfoComponent', () => {
     }
   });
 
-  it('includes the privacy note below the cards', () => {
-    expect(render().querySelector('[data-testid="retirement-privacy-note"]')).not.toBeNull();
+  it('includes the delete-all danger zone below the cards', () => {
+    expect(render().querySelector('[data-testid="retirement-danger-zone"]')).not.toBeNull();
   });
 
   it('renders in German', () => {

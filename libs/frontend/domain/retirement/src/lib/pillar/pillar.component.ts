@@ -8,6 +8,7 @@ import { MessageModule } from 'primeng/message';
 import { ConfirmationService } from 'primeng/api';
 import type { RetirementPillar, RetirementRecord } from '@vaultfolio/api-contract';
 import { I18nService, IconComponent, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
+import { EmptyStateComponent } from '../empty-state/empty-state.component';
 import { ContractCardComponent } from '../contract-card/contract-card.component';
 import { fill } from '../retirement-format';
 import { RetirementService } from '../retirement.service';
@@ -35,6 +36,7 @@ const ADD_TYPE: Record<RetirementPillar, string> = {
     IconComponent,
     TranslatePipe,
     ContractCardComponent,
+    EmptyStateComponent,
   ],
   providers: [ConfirmationService],
   template: `
@@ -60,14 +62,13 @@ const ADD_TYPE: Record<RetirementPillar, string> = {
 
     @if (records(); as list) {
       @if (list.length === 0 && !loadFailed()) {
-        <div class="empty" data-testid="retirement-pillar-empty">
-          <p class="empty__title">
-            {{ 'retirement.pillarView.empty.' + pillarKey + '.title' | translate }}
-          </p>
-          <p class="muted">
-            {{ 'retirement.pillarView.empty.' + pillarKey + '.body' | translate }}
-          </p>
-        </div>
+        <app-retirement-empty-state
+          testId="retirement-pillar-empty"
+          [titleKey]="'retirement.pillarView.empty.' + pillarKey + '.title'"
+          [bodyKey]="'retirement.pillarView.empty.' + pillarKey + '.body'"
+          [manualLink]="['/app/retirement/new', addType()]"
+          [from]="pillarKey"
+        />
       }
       <div class="cards">
         @for (record of list; track record.id) {
@@ -76,27 +77,31 @@ const ADD_TYPE: Record<RetirementPillar, string> = {
       </div>
     }
 
-    <div class="add">
-      @if (canAdd()) {
+    @if (records()?.length) {
+      <div class="add">
+        @if (canAdd()) {
+          <a
+            pButton
+            severity="secondary"
+            [outlined]="true"
+            [routerLink]="['/app/retirement/new', addType()]"
+            [queryParams]="{ from: pillarKey }"
+            data-testid="retirement-pillar-add"
+          >
+            <app-icon name="plus" /> {{ 'retirement.pillarView.add.' + pillarKey | translate }}
+          </a>
+        }
         <a
           pButton
-          severity="secondary"
           [outlined]="true"
-          [routerLink]="['/app/retirement/new', addType()]"
-          data-testid="retirement-pillar-add"
+          routerLink="/app/retirement/import"
+          [queryParams]="{ from: pillarKey }"
+          data-testid="retirement-pillar-upload"
         >
-          <app-icon name="plus" /> {{ 'retirement.pillarView.add.' + pillarKey | translate }}
+          <app-icon name="upload" /> {{ 'retirement.toolbar.upload' | translate }}
         </a>
-      }
-      <a
-        pButton
-        [outlined]="true"
-        routerLink="/app/retirement/import"
-        data-testid="retirement-pillar-upload"
-      >
-        <app-icon name="upload" /> {{ 'retirement.toolbar.upload' | translate }}
-      </a>
-    </div>
+      </div>
+    }
   `,
   styles: `
     :host {
@@ -108,20 +113,6 @@ const ADD_TYPE: Record<RetirementPillar, string> = {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(min(28rem, 100%), 1fr));
       gap: 0.75rem;
-    }
-    .empty {
-      padding: 2rem 1rem;
-      text-align: center;
-      border: 1px dashed var(--p-content-border-color);
-      border-radius: var(--p-content-border-radius);
-    }
-    .empty__title {
-      margin: 0 0 0.25rem;
-      font-weight: 600;
-    }
-    .muted {
-      margin: 0;
-      color: var(--p-text-muted-color);
     }
     .add {
       display: flex;

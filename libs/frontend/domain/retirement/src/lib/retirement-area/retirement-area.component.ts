@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { catchError, filter, map, of, startWith, switchMap } from 'rxjs';
@@ -11,6 +11,7 @@ import {
   IconComponent,
   TranslatePipe,
 } from '@vaultfolio/frontend-shared-ui';
+import { PrivacyDialogComponent } from '../privacy-note/privacy-dialog.component';
 import { RetirementService } from '../retirement.service';
 import { RetirementUnavailableComponent } from './retirement-unavailable.component';
 
@@ -45,20 +46,22 @@ const PILLAR_OF_TAB: Partial<Record<TabKey, RetirementPillar>> = {
     IconComponent,
     TranslatePipe,
     RetirementUnavailableComponent,
+    PrivacyDialogComponent,
   ],
   template: `
     @if (unavailable()) {
       <app-retirement-unavailable />
     } @else {
       <div class="toolbar">
-        <a
+        <button
+          type="button"
           class="privacy-link"
-          routerLink="info"
-          fragment="privacy"
           data-testid="retirement-privacy-link"
+          (click)="privacyOpen.set(true)"
         >
           <app-icon name="lock" /> {{ 'retirement.toolbar.howProtected' | translate }}
-        </a>
+        </button>
+        <app-retirement-privacy-dialog [(visible)]="privacyOpen" />
         <div class="toolbar__actions">
           <app-export-control featureId="retirement" />
           <a
@@ -66,11 +69,17 @@ const PILLAR_OF_TAB: Partial<Record<TabKey, RetirementPillar>> = {
             severity="secondary"
             [outlined]="true"
             routerLink="new"
+            [queryParams]="fromParams()"
             data-testid="retirement-manual-button"
           >
             <app-icon name="plus" /> {{ 'retirement.toolbar.manual' | translate }}
           </a>
-          <a pButton routerLink="import" data-testid="retirement-upload-button">
+          <a
+            pButton
+            routerLink="import"
+            [queryParams]="fromParams()"
+            data-testid="retirement-upload-button"
+          >
             <app-icon name="upload" /> {{ 'retirement.toolbar.upload' | translate }}
           </a>
         </div>
@@ -117,6 +126,11 @@ const PILLAR_OF_TAB: Partial<Record<TabKey, RetirementPillar>> = {
       gap: 0.75rem;
     }
     .privacy-link {
+      border: 0;
+      padding: 0;
+      background: none;
+      cursor: pointer;
+      font-family: inherit;
       display: inline-flex;
       align-items: center;
       gap: 0.25rem;
@@ -145,6 +159,7 @@ export class RetirementAreaComponent {
     'info',
   ];
   protected readonly unavailable = this.service.unavailable;
+  protected readonly privacyOpen = signal(false);
 
   /** Reloads on every write; a 503 flips `unavailable` on the service, which swaps the area. */
   private readonly records = toSignal(
@@ -169,6 +184,11 @@ export class RetirementAreaComponent {
       startWith(this.currentTab()),
     ),
     { initialValue: 'overview' },
+  );
+
+  /** Lets "Back" on the manual form / upload lead to the pillar tab they were opened from. */
+  protected readonly fromParams = computed(() =>
+    this.activeTab() in PILLAR_OF_TAB ? { from: this.activeTab() } : {},
   );
 
   protected count(tab: TabKey): number {

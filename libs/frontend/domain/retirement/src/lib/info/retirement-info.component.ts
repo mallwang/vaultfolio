@@ -1,19 +1,17 @@
-import { Component, effect, inject } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { Component } from '@angular/core';
 import { RETIREMENT_RESOURCES } from '@vaultfolio/retirement';
 import { IconComponent, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
-import { PrivacyNoteComponent } from '../privacy-note/privacy-note.component';
+import { DangerZoneComponent } from '../danger-zone/danger-zone.component';
 
 /**
  * "Weiterführende Informationen" tab (Story 4, FR-012): one card per external resource with a
  * category badge, description, source and a plain link that opens in a new tab and carries no
- * user data. The privacy note (FR-016) sits below; the toolbar link jumps to it via the
- * `privacy` fragment.
+ * user data. The "delete all" danger zone (FR-015) sits below; the privacy note (FR-016) is a
+ * modal opened from the toolbar.
  */
 @Component({
   selector: 'app-retirement-info',
-  imports: [IconComponent, TranslatePipe, PrivacyNoteComponent],
+  imports: [IconComponent, TranslatePipe, DangerZoneComponent],
   template: `
     <section class="info" data-testid="retirement-info">
       <p class="intro">{{ 'retirement.info.intro' | translate }}</p>
@@ -43,7 +41,7 @@ import { PrivacyNoteComponent } from '../privacy-note/privacy-note.component';
           </article>
         }
       </div>
-      <app-retirement-privacy-note />
+      <app-retirement-danger-zone />
     </section>
   `,
   styles: `
@@ -107,16 +105,4 @@ import { PrivacyNoteComponent } from '../privacy-note/privacy-note.component';
 })
 export class RetirementInfoComponent {
   protected readonly resources = RETIREMENT_RESOURCES;
-  private readonly fragment = toSignal(inject(ActivatedRoute).fragment, { initialValue: null });
-
-  constructor() {
-    effect(() => {
-      if (this.fragment() === 'privacy') {
-        // Wait for the view to render before scrolling to the note.
-        setTimeout(() =>
-          document.getElementById('retirement-privacy')?.scrollIntoView?.({ behavior: 'smooth' }),
-        );
-      }
-    });
-  }
 }
