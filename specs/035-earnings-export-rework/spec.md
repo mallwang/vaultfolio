@@ -12,7 +12,7 @@
 
 The Earnings domain (032) offers an export through the shared export capability (029). For the PDF format this currently produces a single wide table with one row per payslip part (regular payslip, correction, back-payment) and all of the stored figures. The table is wider than the page, so columns after "Bonus" are cut off, and it is far longer than a reader needs. The reader of an earnings PDF wants the same story the on-screen views tell: how gross income developed per year, what was earned per employer and in total, and where the money went in taxes and contributions.
 
-This spec covers the rework of **all** earnings export formats in two phases. **Phase 1 (this iteration's scope for planning and implementation) is the PDF export.** The other formats (JSON/CSV/Excel, including the earnings part of the full "Export my data" archive) are not yet reviewed; they are listed as Phase 2 and will be specified in detail by amending this spec once the PDF is done.
+This spec covers the rework of **all** earnings export formats in two phases. **Phase 1 (this iteration's scope for planning and implementation) is the PDF export.** The other formats (JSON/CSV/Excel, including the earnings part of the full "Export my data" archive) are reworked in **Phase 2**, specified below (amended 2026-10-03 after Phase 1 was delivered).
 
 ## User Scenarios & Testing _(mandatory)_
 
@@ -65,17 +65,24 @@ A user whose interface is set to German gets a fully German PDF (titles, column 
 
 ---
 
-### User Story 4 - Other export formats reworked (Priority: P3, Phase 2)
+### User Story 4 - CSV, Excel and JSON deliver the same content as the PDF (Priority: P2, Phase 2)
 
-After the PDF is done, the remaining export formats of the earnings development are reviewed and reworked so that they are as useful as the new PDF for their purpose (e.g. machine-readable data for spreadsheets). Their concrete content is intentionally not defined yet.
+A user exports the earnings development as CSV, Excel or JSON and receives the **same set of tables as in the PDF** — Gross per year, per-employer overview with the career total, Monthly overview, All taxes and contributions per year — each in the idiom of its format: Excel as one workbook with one sheet per table, CSV as a ZIP archive with one CSV file per table, JSON as one document with one named section per table. The former per-payslip-part rows are no longer exported.
 
-**Why this priority**: Explicitly deferred by the product owner until the PDF is finished and the other formats have been assessed.
+**Why this priority**: The PDF is delivered; the machine-readable formats should tell the same story and be directly usable in spreadsheets and scripts instead of dumping one row per payslip part.
 
-**Independent Test**: To be defined when this story is detailed; for now, only verifiable that the existing non-PDF exports keep working unchanged while Phase 1 is delivered.
+**Independent Test**: Export Excel, CSV and JSON for the same data and the PDF; confirm all four contain the same tables and the same figures (career total, one year, one employer), the formats differ only in structure, and the "Export my data" archive contains the same earnings output.
 
 **Acceptance Scenarios**:
 
-1. **Given** Phase 1 is delivered, **When** a user exports any non-PDF format, **Then** the result is unchanged compared to before this feature.
+1. **Given** a user with earnings data, **When** they export Excel, **Then** the workbook has one sheet per table in PDF order (Gross per year, employers incl. career total, Monthly overview, Taxes and contributions per year), amounts are numeric cells with currency formatting, and the header row of each sheet is frozen.
+2. **Given** the same data, **When** they export CSV, **Then** they receive one ZIP containing one CSV file per table (same four tables, PDF order reflected in the file names), each with a header row of translated column labels.
+3. **Given** the same data, **When** they export JSON, **Then** they receive one JSON document with one section per table under stable, language-independent keys; amounts are canonical decimal strings, not floats.
+4. **Given** any non-PDF format, **When** a value is shown in the PDF below another one (e.g. net below gross), **Then** it is its own column in the export.
+5. **Given** the per-employer overview, **When** exported as Excel or CSV, **Then** the career total is the closing row; **When** exported as JSON, **Then** it is a separate `careerTotal` entry besides the employer list.
+6. **Given** the figures of any non-PDF export, **When** compared to the PDF and to the on-screen views for the same data, **Then** they match.
+7. **Given** the full "Export my data" archive, **When** it is created, **Then** the earnings entry uses the same new content and structure for JSON, CSV and Excel as the single export.
+8. **Given** the UI language, **When** exporting Excel or CSV, **Then** sheet/file names, column headers, labels and number-independent texts are in that language; JSON keys stay identical in every language.
 
 ---
 
@@ -111,10 +118,20 @@ After the PDF is done, the remaining export formats of the earnings development 
 - **FR-012**: The rework MUST be limited to the earnings export; the PDF output of other features' exports (Holdings, Account Overview, Retirement, Insurances, Budget Planner, Historic Wealth Development) MUST remain unchanged.
 - **FR-013**: The PDF MUST contain only the user's own data and MUST NOT disclose more data than the existing earnings export (no source file names, no document contents).
 
-**Other formats (Phase 2, to be detailed)**
+**Other formats (Phase 2)**
 
-- **FR-014**: Until Phase 2 is specified and delivered, all non-PDF earnings export formats (including the earnings part of the full "Export my data" archive) MUST behave unchanged.
-- **FR-015**: Once Phase 2 starts, the review and rework of the remaining formats MUST be captured by amending this spec before implementation.
+- **FR-014**: While only Phase 1 is delivered, all non-PDF earnings export formats (including the earnings part of the "Export my data" archive) MUST behave unchanged. This requirement is superseded by FR-016 to FR-025 once Phase 2 is delivered.
+- **FR-015**: The Phase 2 rework is captured by this amendment; implementation follows plan.md and tasks.md updated for it.
+- **FR-016**: Earnings CSV, Excel and JSON MUST export the same four tables as the PDF with the same figures, grouping and ordering (employers newest first with career total; years newest first): Gross per year, employer overview, Monthly overview, All taxes and contributions per year. They MUST NOT contain the former per-payslip-part rows, source file names or corrected-figure names.
+- **FR-017**: A single data source MUST feed PDF and all three other formats, so the tables cannot diverge between formats.
+- **FR-018**: **Excel** MUST be one workbook with one sheet per table (translated sheet names, at most 31 characters), numeric cells with currency/percent formatting, a frozen header row per sheet, and the career total as the last row of the employer sheet.
+- **FR-019**: **CSV** MUST be delivered as one ZIP archive with one RFC 4180 CSV file per table; file names and header labels are translated to the UI language; the career total is the last row of the employer file.
+- **FR-020**: **JSON** MUST be one document with one section per table under stable, language-independent keys (e.g. `grossPerYear`, `employers`, `careerTotal`, `monthlyOverview`, `taxesPerYear`) and stable, language-independent field names; amounts are canonical decimal strings, never native floats.
+- **FR-021**: Values that the PDF shows combined in one cell (e.g. net below gross) MUST be separate columns/fields in CSV, Excel and JSON.
+- **FR-022**: In Excel and CSV, column headers, sheet/file names and labels MUST follow the UI language selected at export time; amounts MUST stay machine-readable (no locale-formatted text in numeric columns).
+- **FR-023**: The full "Export my data" archive MUST use the same earnings output as the single export for JSON, CSV and Excel (CSV as the per-table files inside the earnings folder, without a nested ZIP).
+- **FR-024**: Empty data and users without Earnings access MUST produce valid, empty-but-well-formed output (tables with headers only / empty lists), not an error.
+- **FR-025**: The export output of every other feature MUST remain unchanged; the shared export capability (029) is extended backward compatibly.
 
 ### Key Entities
 
@@ -132,7 +149,10 @@ After the PDF is done, the remaining export formats of the earnings development 
 - **SC-003**: The PDF's page count for a 15-year history is at least 70% lower than the former per-payslip-part PDF for the same data.
 - **SC-004**: For test data, 100% of totals in the PDF (per employer, career total, per year) equal the corresponding on-screen figures.
 - **SC-005**: Exports in German and English contain no text in the other language and use the number format of the selected language.
-- **SC-006**: Exports of every other feature and of non-PDF earnings formats are byte-for-byte or content-wise unchanged compared to before this feature (no regression).
+- **SC-006**: Exports of every other feature are byte-for-byte or content-wise unchanged compared to before this feature (no regression).
+- **SC-007**: For test data, 100% of totals in CSV, Excel and JSON (per employer, career total, per year) equal the PDF and the on-screen figures.
+- **SC-008**: Excel, the CSV files and the JSON document contain the same four tables with identical row counts; the Excel workbook opens without repair prompts and the CSV files import into a spreadsheet with correct columns.
+- **SC-009**: The JSON keys of an export in German and in English are identical.
 
 ## Assumptions
 
@@ -141,7 +161,10 @@ After the PDF is done, the remaining export formats of the earnings development 
 - "Monthly overview" is the on-screen year × month table (years as rows, newest first; the twelve month columns stay in calendar order January–December, followed by the year sum). The PDF shows it for gross income, the on-screen default; other metrics are not part of the PDF.
 - The tables always cover all of the user's data, independent of any employer filter currently set on screen.
 - The PDF is always rendered in a light, print-friendly style, independent of the app theme.
-- The full "Export my data" archive keeps using the same earnings export entry; its PDF is not part of the archive today and non-PDF contents are untouched in Phase 1.
+- The full "Export my data" archive keeps using the same earnings export entry; its PDF is not part of the archive today. Its non-PDF contents were untouched in Phase 1 and change in Phase 2 (FR-023).
 - Changes to the shared PDF capability (029) must be backward compatible with all other features' exports.
-- Phase 2 formats are not reviewed yet; their scope will be added by amending this spec.
+- Gross per year is exported as a data table (year, gross) rather than an image; it carries the data behind the PDF chart.
+- The Monthly overview keeps its on-screen shape (one row per year, month columns); where the PDF shows net below gross, the extra values become additional columns. The exact column layout for these (e.g. month columns for gross and for net) is decided in the plan.
+- The CSV download button yields a ZIP; there is no single-file CSV variant for earnings.
+- The structure of the other features' exports is not changed by Phase 2.
 - Existing entitlement/privacy rules for Earnings (owner-only data, no amounts in logs) apply unchanged.
