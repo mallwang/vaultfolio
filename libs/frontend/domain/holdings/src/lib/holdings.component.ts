@@ -316,7 +316,7 @@ import { HoldingsService } from './holdings.service';
     .holdings-panel__header-actions {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 1.25rem;
     }
 
     .holdings-panel__filter {

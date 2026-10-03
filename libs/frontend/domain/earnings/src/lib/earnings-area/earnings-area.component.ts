@@ -149,9 +149,6 @@ import { EarningsUnavailableComponent } from './earnings-unavailable.component';
       color: var(--p-primary-color);
       text-decoration: none;
     }
-    .privacy-link:hover {
-      text-decoration: underline;
-    }
     a.p-button {
       text-decoration: none;
     }

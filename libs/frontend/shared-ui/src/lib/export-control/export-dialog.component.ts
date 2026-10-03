@@ -28,8 +28,8 @@ import { FeatureExportRunner } from './feature-export-runner';
       [dismissableMask]="true"
       [draggable]="false"
       [visible]="visibleSignal()"
-      [style]="{ width: '56rem' }"
-      [breakpoints]="{ '960px': '92vw' }"
+      [style]="{ width: '64rem' }"
+      [breakpoints]="{ '1200px': '92vw' }"
       [pt]="{
         root: { 'data-testid': 'export-dialog' },
         pcCloseButton: { root: { 'data-testid': 'export-dialog-close' } },
@@ -37,56 +37,61 @@ import { FeatureExportRunner } from './feature-export-runner';
       (visibleChange)="onVisibleChange($event)"
     >
       <ng-template #closeicon><app-icon name="close" /></ng-template>
-      <p class="hint">{{ featureTitle() }} · {{ 'export.dialog.hint' | translate }}</p>
-      @if (errorFormat(); as failed) {
-        <div class="error" role="alert" data-testid="export-dialog-error">
-          {{ errorText(failed) }}
-        </div>
-      }
-      <div class="cards">
-        @for (card of cards(); track card.format) {
-          <section class="card" [attr.data-testid]="'export-card-' + card.format">
-            <div class="card__top">
-              <app-export-format-preview [format]="card.format" />
-              <div>
-                <h3 class="card__name">
-                  <app-icon [name]="card.icon" />{{ card.nameKey | translate }}
-                </h3>
-                <p class="card__intro">{{ card.introKey | translate }}</p>
-              </div>
-            </div>
-            <dl class="card__facts">
-              <dt>{{ 'export.dialog.label.file' | translate }}</dt>
-              <dd class="card__file" [attr.data-testid]="'export-filename-' + card.format">
-                {{ card.fileName }}
-              </dd>
-              <dt>{{ 'export.dialog.label.type' | translate }}</dt>
-              <dd>{{ card.typeText }}</dd>
-              <dt>{{ 'export.dialog.label.data' | translate }}</dt>
-              <dd>{{ card.dataText }}</dd>
-              <dt>{{ 'export.dialog.label.goodFor' | translate }}</dt>
-              <dd class="card__good">{{ card.goodForKey | translate }}</dd>
-              <dt>{{ 'export.dialog.label.lessSuited' | translate }}</dt>
-              <dd class="card__less">{{ card.lessSuitedKey | translate }}</dd>
-            </dl>
-            <p-button
-              styleClass="card__button"
-              [fluid]="true"
-              [label]="(card.busy ? 'export.dialog.creating' : card.buttonKey) | translate"
-              [loading]="card.busy"
-              [disabled]="card.busy"
-              [attr.aria-busy]="card.busy"
-              [attr.data-testid]="'export-btn-' + card.format"
-              (onClick)="export(card.format)"
-            />
-          </section>
+      <div class="dialog-body">
+        <p class="hint">{{ featureTitle() }} · {{ 'export.dialog.hint' | translate }}</p>
+        @if (errorFormat(); as failed) {
+          <div class="error" role="alert" data-testid="export-dialog-error">
+            {{ errorText(failed) }}
+          </div>
         }
+        <div class="cards">
+          @for (card of cards(); track card.format) {
+            <section class="card" [attr.data-testid]="'export-card-' + card.format">
+              <div class="card__top">
+                <app-export-format-preview [format]="card.format" />
+                <div>
+                  <h3 class="card__name">
+                    <app-icon [name]="card.icon" />{{ card.nameKey | translate }}
+                  </h3>
+                  <p class="card__intro">{{ card.introKey | translate }}</p>
+                </div>
+              </div>
+              <dl class="card__facts">
+                <dt>{{ 'export.dialog.label.file' | translate }}</dt>
+                <dd class="card__file" [attr.data-testid]="'export-filename-' + card.format">
+                  {{ card.fileName }}
+                </dd>
+                <dt>{{ 'export.dialog.label.type' | translate }}</dt>
+                <dd>{{ card.typeText }}</dd>
+                <dt>{{ 'export.dialog.label.data' | translate }}</dt>
+                <dd>{{ card.dataText }}</dd>
+                <dt>{{ 'export.dialog.label.goodFor' | translate }}</dt>
+                <dd class="card__good">{{ card.goodForKey | translate }}</dd>
+                <dt>{{ 'export.dialog.label.lessSuited' | translate }}</dt>
+                <dd class="card__less">{{ card.lessSuitedKey | translate }}</dd>
+              </dl>
+              <p-button
+                styleClass="card__button"
+                [fluid]="true"
+                [label]="(card.busy ? 'export.dialog.creating' : card.buttonKey) | translate"
+                [loading]="card.busy"
+                [disabled]="card.busy"
+                [attr.aria-busy]="card.busy"
+                [attr.data-testid]="'export-btn-' + card.format"
+                (onClick)="export(card.format)"
+              />
+            </section>
+          }
+        </div>
       </div>
     </p-dialog>
   `,
   styles: `
+    .dialog-body {
+      font-size: 0.875rem;
+    }
     .hint {
-      margin: 0 0 1rem;
+      margin: 0 0 0.75rem;
       color: var(--p-text-muted-color);
     }
     .error {
@@ -99,7 +104,7 @@ import { FeatureExportRunner } from './feature-export-runner';
     .cards {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 1rem;
+      gap: 0.75rem;
     }
     @media (max-width: 640px) {
       .cards {
@@ -109,21 +114,23 @@ import { FeatureExportRunner } from './feature-export-runner';
     .card {
       display: flex;
       flex-direction: column;
-      gap: 0.75rem;
-      padding: 1rem;
+      gap: 0.5rem;
+      padding: 0.75rem;
       border: 1px solid var(--p-content-border-color);
       border-radius: 0.5rem;
     }
     .card__top {
-      display: flex;
-      gap: 0.75rem;
+      display: grid;
+      grid-template-columns: 2fr 3fr;
+      gap: 1rem;
+      align-items: start;
     }
     .card__name {
       display: flex;
       align-items: center;
       gap: 0.4rem;
       margin: 0;
-      font-size: 1.1rem;
+      font-size: 1rem;
     }
     .card__intro {
       margin: 0.25rem 0 0;
@@ -132,8 +139,8 @@ import { FeatureExportRunner } from './feature-export-runner';
     .card__facts {
       display: grid;
       grid-template-columns: max-content 1fr;
-      gap: 0.35rem 0.75rem;
-      margin: 0;
+      gap: 0.25rem 0.75rem;
+      margin: 0 0 0.75rem;
       flex: 1;
     }
     .card__facts dt {
@@ -143,7 +150,6 @@ import { FeatureExportRunner } from './feature-export-runner';
       margin: 0;
     }
     .card__file {
-      font-family: monospace;
       word-break: break-all;
     }
     .card__good::before {

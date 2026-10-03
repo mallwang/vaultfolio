@@ -45,15 +45,17 @@ Jahr;Brutto;Netto
   styles: `
     :host {
       display: block;
-      width: 5.5rem;
-      height: 6.5rem;
-      flex: none;
+      width: 100%;
+      height: 6.25rem;
       overflow: hidden;
-      opacity: 0.55;
       border: 1px solid var(--p-content-border-color);
       border-radius: 0.375rem;
       background: var(--p-content-background);
       pointer-events: none;
+    }
+    .page,
+    .grid {
+      opacity: 0.7;
     }
     .page {
       display: flex;
@@ -103,8 +105,8 @@ Jahr;Brutto;Netto
       margin: 0;
       padding: 0.4rem;
       font-family: monospace;
-      font-size: 0.5rem;
-      line-height: 1.3;
+      font-size: 0.75rem;
+      line-height: 1.4;
       color: var(--p-text-color);
       white-space: pre;
     }

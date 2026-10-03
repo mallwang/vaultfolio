@@ -33,7 +33,7 @@ import { FEATURE_EXPORT_REGISTRY } from './feature-export-registry.token';
         (click)="open()"
       >
         <app-icon name="file-export" />
-        <span>{{ 'export.link' | translate }}</span>
+        <span class="link__label">{{ 'export.link' | translate }}</span>
       </button>
     </span>
     <app-export-dialog
@@ -43,21 +43,29 @@ import { FEATURE_EXPORT_REGISTRY } from './feature-export-registry.token';
     />
   `,
   styles: `
+    :host {
+      display: inline-flex;
+      align-items: center;
+    }
     .wrapper {
       display: inline-flex;
+      align-items: center;
     }
     .link {
       display: inline-flex;
       align-items: center;
-      gap: 0.35rem;
-      padding: 0.25rem 0.1rem;
+      gap: 0.25rem;
+      padding: 0;
+      line-height: 1;
       border: 0;
       background: none;
       font: inherit;
+      font-size: 0.875rem;
+      font-weight: 600;
       color: var(--p-primary-color);
       cursor: pointer;
     }
-    .link:hover:not(:disabled) {
+    .link:hover:not(:disabled) .link__label {
       text-decoration: underline;
     }
     .link:focus-visible {
