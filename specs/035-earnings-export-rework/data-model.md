@@ -32,3 +32,43 @@ Relationships/validation rules:
 - `ResolvedFeatureExport.pdfSections?: PdfSection[]` — PDF only.
 - `FeatureExportDefinition.getPdfSections?(): Promise<PdfSection[]>`, `pdfInfoboxKey?: string`.
 - Absence of both → exact current behaviour (generic table).
+
+---
+
+# Phase 2 additions (amended 2026-10-03)
+
+Still no persistence changes; all in-memory per export.
+
+## ExportTable (new, `libs/export`) — format-neutral table
+
+- `id: string` — stable, language-independent key (JSON section name), e.g. `employers`.
+- `title: string` — translated; Excel sheet name and CSV file name derive from it.
+- `columns: ExportTableColumn[]` — `{ key: string /* stable */; label: string /* translated */; format: 'text' | 'integer' | 'money' | 'ratio' }`.
+- `rows: ExportTableRow[]` — `{ cells: Record<key, string | number | null>; emphasis?: 'total' }`. `money` and `ratio` are canonical decimal strings (ratios as fractions), `integer` a number, missing = `null`.
+- `totalKey?: string` — JSON key for the `emphasis: 'total'` row (`careerTotal`).
+
+`ResolvedFeatureExport.tables?: ExportTable[]` (additive); `FeatureExportDefinition.getExportTables?(): Promise<ExportTable[]>`.
+
+## EarningsReport (new, earnings lib, in-memory)
+
+Result of `buildEarningsReport(overview, tables)`; the only place that sorts, sums and picks the career total:
+
+| Part        | Content                                                                                                   |
+| ----------- | --------------------------------------------------------------------------------------------------------- |
+| `yearly`    | `YearlyPoint[]` newest first                                                                              |
+| `employers` | `CareerEntry[]` newest first, `total: CareerEntry \| null` (the `ALL` entry, or the single employer)      |
+| `monthGrid` | per year (newest first): 12 gross cells, 12 net cells, gross sum, net sum (integer-cent sums, cents kept) |
+| `taxRows`   | `TaxYearRow[]` year desc, then employer recency                                                           |
+
+`earnings-pdf-sections.ts` projects it to `PdfSection[]`; `earnings-export-tables.ts` to `ExportTable[]`.
+
+## Earnings export tables
+
+| `id` (JSON key)               | Rows                             | Columns (stable keys)                                                                                                                                              | Order                             |
+| ----------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------- |
+| `grossPerYear`                | one per year                     | `year`, `monthsEmployed`, `gross`, `regular`, `bonus`, `net`, `taxes`, `social`, `taxRatio`, `socialRatio`                                                         | year desc                         |
+| `employers` (+ `careerTotal`) | one per employer + closing total | `employer`, `gross`, `net`, `netRatio`, `taxes`, `social`, `bonus`                                                                                                 | employer recency desc, total last |
+| `monthlyOverview`             | one per year                     | `year`, `gross01`…`gross12`, `grossTotal`, `net01`…`net12`, `netTotal`                                                                                             | year desc                         |
+| `taxesPerYear`                | one per year × employer          | `year`, `employer`, `months`, `gross`, `bonus`, `taxGross`, `wageTax`, `soli`, `churchTax`, `health`, `care`, `pension`, `unemployment`, `taxRatio`, `socialRatio` | year desc, employer recency       |
+
+Validation rules: career total = sum of employer rows (integer cents); `grossTotal`/`netTotal` = exact sum of the year's months; identical figures in `ExportTable` and `PdfSection` projections (parity test); the old per-payslip columns (employer, period, issued, kind, source, corrected …) exist in no table.

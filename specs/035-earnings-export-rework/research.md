@@ -44,3 +44,66 @@
 
 - **Decision**: Section cells carry typed values (`currency` / `percent` / `integer` / `text`) and the exporter formats them with `resolved.locale` (`de`/`en`), like the generic path. Labels reuse existing `earnings.terms.*` / `earnings.tables.*` / `earnings.overview.wholeCareer` keys (DE "Berufsleben gesamt"); the English "Career total" label is added if the current EN key differs. Ratios use the existing percent formatting.
 - **Rationale**: FR-009/SC-005; avoids duplicating translation strings.
+
+---
+
+# Phase 2 research (CSV / Excel / JSON, amended 2026-10-03)
+
+## 9. One data source for all formats
+
+- **Decision**: Extract the row computation of the Phase 1 builders (employer ordering, career-total row, month grid with gross and net, tax rows, yearly series) into a pure `buildEarningsReport(overview, tables)`. `earnings-pdf-sections.ts` and the new `earnings-export-tables.ts` are thin projections of that report (PDF: combined cells such as net below gross, whole-euro display; export tables: separate columns, stable keys).
+- **Rationale**: FR-017 / SC-007 — PDF and all other formats show the same numbers by construction; a parity test compares both projections cell by cell. No second aggregation path.
+- **Alternatives**: derive the export tables from the `PdfSection[]` (rejected: PDF columns carry display decisions — merged cells, whole euros, `m1..m12` keys — that must not leak into a stable format); keep two independent builders (rejected: drift risk).
+
+## 10. Neutral table model in the shared capability
+
+- **Decision**: Add `ExportTable { id, title, columns: ExportTableColumn[], rows: ExportTableRow[], totalKey? }` (columns typed `text | integer | money | ratio`, `key` stable and language-independent, `label`/`title` already translated) as optional `ResolvedFeatureExport.tables`, supplied by an optional `FeatureExportDefinition.getExportTables()`. When present, JSON/CSV/XLSX serialize the tables instead of `rows`; PDF ignores them (it has `pdfSections`). Absent → exact current behaviour for all other features.
+- **Rationale**: Additive and backward compatible (FR-025); `libs/export` stays framework-free; `ExportControlComponent` and the archive only need to await one more optional function. Money stays a canonical decimal string in the model (Principle III).
+- **Alternatives**: reuse `PdfSection` (rejected, see 9); one `FeatureExportDefinition` per table (rejected: registry and UI assume one per feature).
+
+## 11. Excel: one sheet per table
+
+- **Decision**: `exportXlsx` with `tables` writes one worksheet per table in PDF order. Sheet names = translated titles, stripped of `[]:*?/\`, cut to 31 characters, de-duplicated with a numeric suffix. `money` → numeric cell, number format `#,##0.00 "€"`; `ratio` → numeric fraction, format `0.0%`; `integer` → numeric, `0`; `text` → string; `null` → empty cell. Header row bold and frozen (`views: [{ state: 'frozen', ySplit: 1 }]`); the `emphasis: 'total'` row is bold; column widths from header and content length; an auto-filter covers the header and data rows only, not the total row.
+- **Rationale**: FR-018; numeric cells make the workbook directly usable for sums and charts; Excel renders `#,##0.00` in the user's own locale, so the file needs no locale handling.
+- **Alternatives**: all tables stacked on one sheet (rejected: breaks filtering and pivots); text-formatted amounts (rejected: not machine-readable, FR-022).
+
+## 12. CSV: ZIP with one file per table
+
+- **Decision**: With `tables`, `exportCsv` returns a ZIP blob (`jszip`, lazy-imported like the archive) containing `NN-<slug>.csv` per table, `NN` = two-digit position (PDF order), `<slug>` = ASCII-folded, lower-case, hyphenated translated title (e.g. `01-brutto-pro-jahr.csv`, `02-arbeitgeber.csv`). Each file: UTF-8 **with BOM** (so Excel shows umlauts correctly), RFC 4180 quoting and CRLF as the existing CSV exporter, comma separator, header row of translated labels, money as dot-decimal canonical string (no locale formatting, no currency sign), ratios as fraction strings, empty cell for `null`, the total row last. The generic (non-table) CSV path stays a plain `.csv`. `exportFileExtension(resolved, format)` tells the caller to download `<title>.zip`.
+- **Rationale**: FR-019/FR-022; BOM is the least surprising choice for the primary consumer (German Excel) without touching the field syntax. Locale-independent numbers keep the files importable everywhere.
+- **Alternatives**: single CSV with sections or "long" format (rejected by the product owner in favour of the ZIP); semicolon/comma-decimal CSV for German Excel (rejected: breaks the shared RFC 4180 convention and machine use).
+
+## 13. JSON: object with stable section keys
+
+- **Decision**: With `tables`, `exportJson` writes one object: `{ "<table.id>": [ {<column.key>: value, …}, … ], … }`. A table with `totalKey` moves its `emphasis: 'total'` row out of the list into `"<totalKey>"` (`null` when there is no total). Keys are the stable ids/column keys, never labels; money = canonical decimal string, ratios = fraction string, integers = numbers, missing = `null`. Section order = PDF order. Earnings ids: `grossPerYear`, `employers` (+ `careerTotal`), `monthlyOverview`, `taxesPerYear`. No envelope or version field (YAGNI); additions are non-breaking by adding keys.
+- **Rationale**: FR-020/SC-009 — identical keys in German and English; natural for scripts. Documented in `contracts/export-tables.md`.
+- **Alternatives**: array of `{title, columns, rows}` (rejected: language-dependent, harder to consume); nested months objects for the monthly overview (rejected: a second shape to explain; flat stable keys keep one projection rule).
+
+## 14. Monthly overview shape outside the PDF (open point from the spec)
+
+- **Decision**: Keep the on-screen/PDF shape: one row per year (newest first); columns `year`, `gross01 … gross12`, `grossTotal`, `net01 … net12`, `netTotal` (28 columns). Labels in Excel/CSV: "Brutto Januar" … / "Gross January" …, "Brutto Summe", "Netto Januar" … Month columns are calendar-ordered. Values are the underlying decimals with cents (the PDF's whole-euro rounding is display-only); the year sum is the exact integer-cent sum, as on screen.
+- **Rationale**: Matches the user's mental model and the PDF; one row per year is directly pivotable, and a long form (year, month, gross, net) can be derived trivially by consumers. Missing months are `null`/empty, never `0`.
+- **Alternatives**: long form (rejected: differs from the PDF/screen shape the spec asks to mirror); gross and net as two stacked blocks (rejected: breaks one-row-per-year).
+
+## 15. The other three tables outside the PDF
+
+- **Gross per year**: one row per year, newest first (tables are newest-first throughout), columns `year`, `monthsEmployed`, `gross`, `regular`, `bonus`, `net`, `taxes`, `social`, `taxRatio`, `socialRatio` — the full `YearlyPoint` behind the chart (the chart itself is not exported as an image).
+- **Employers**: `employer`, `gross`, `net`, `netRatio`, `taxes`, `social`, `bonus` as in the PDF; employers newest first; the career total is the last row (`emphasis: 'total'`, JSON `careerTotal`). With one employer the total equals that employer's row, as in the PDF.
+- **Taxes per year**: same columns and ordering as the PDF table (year desc, then employer recency).
+
+## 16. "Export my data" archive
+
+- **Decision**: In `exportAll`, a definition with `getExportTables` gets `tables` (awaited before the formats run; failure counts like a fetch failure today); JSON/XLSX write `earnings/earnings.json` / `earnings/earnings.xlsx` from them; CSV writes the per-table CSV files **flat** into `earnings/` (`earnings/01-brutto-pro-jahr.csv`, …) — no nested ZIP. The earnings PDF in the archive uses `getPdfSections` + chart like the single export (today the archive would otherwise render an empty generic table, because earnings no longer provides per-payslip rows). Other features: `fetchData` path unchanged.
+- **Rationale**: FR-023; a ZIP inside a ZIP is awkward, and the files are identical to the single export's. The shared per-table CSV builder is the only code path (single source).
+- **Alternatives**: nested `earnings.zip` (rejected: awkward for users); dropping the earnings PDF from the archive (rejected: silent loss, out of scope).
+
+## 17. Retiring the per-payslip export
+
+- **Decision**: `toExportRow`, `AMOUNT_COLUMNS`/`COLUMNS` and the `fetchData` implementation in the earnings definition are removed; the definition keeps `columns: []` and `fetchData: async () => []` only to satisfy the still-required interface fields (documented in a one-line comment). Their callers/tests (`earnings-export.definition.spec.ts`, regression tests T022/T023 of Phase 1) are replaced by Phase 2 assertions. Callers of `toExportRow` are checked with CodeGraph before removal (task).
+- **Rationale**: FR-016 (no per-payslip rows, file names or corrected-figure names in any format) and data minimization; dead code is not kept.
+- **Alternatives**: keep the old rows behind a hidden option (rejected: nobody asked, privacy surface).
+
+## 18. Empty and forbidden states
+
+- **Decision**: No data or 403 → `getExportTables()` returns the four tables with columns and zero rows (JSON: empty arrays, `careerTotal: null`; Excel: header-only sheets; CSV: header-only files). 503 propagates (fails visibly), as in the PDF.
+- **Rationale**: FR-024; keeps consumers' schema stable and matches the archive rule that every feature appears even without entitlement.
