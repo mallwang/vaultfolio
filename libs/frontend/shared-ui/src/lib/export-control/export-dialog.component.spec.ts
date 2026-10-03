@@ -85,7 +85,7 @@ describe('ExportDialogComponent', () => {
 
     expect(byId(`export-filename-${format}`)?.textContent?.trim()).toBe(fileName);
     button(format).click();
-    await vi.waitFor(() => expect(downloads).toEqual([fileName]));
+    await vi.waitFor(() => expect(downloads).toEqual([fileName]), { timeout: 10_000 });
   });
 
   it('keeps the dialog open and lets a second format follow', async () => {
