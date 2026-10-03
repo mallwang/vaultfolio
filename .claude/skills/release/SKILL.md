@@ -1,3 +1,8 @@
+---
+name: release
+description: Guided Nx Release for Vaultfolio — dry-run preview, explicit confirmation, then version bump, changelog, tag, push and GitHub Release. Use when asked to cut or publish a release.
+---
+
 # Skill: Guided Release Workflow
 
 Guides the developer through a human-reviewed release using **Nx Release** (`nx release`), Nx's

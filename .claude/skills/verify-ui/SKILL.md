@@ -70,12 +70,9 @@ await page.waitForURL('**/app/dashboard');
 
 ## 4. Navigate and assert
 
-Routes live under `/app/...` (declared in
-[app.routes.ts](../../../apps/frontend/src/app/app.routes.ts)): `app/dashboard`, `app/holdings`,
-`app/holdings/imports`, `app/retirement`, `app/insurances`, `app/haushaltsplaner`,
-`app/historic-wealth-development`, `app/account-overview`, `app/settings` (with `profile` /
-`preferences` sub-tabs), `app/settings/admin` (with `accounts` / `signups` / `invitations` /
-`general` sub-tabs, admin-only).
+Authenticated routes live under `/app/...`; read the current list from
+[app.routes.ts](../../../apps/frontend/src/app/app.routes.ts) instead of assuming one. Sub-tabs
+exist under `holdings`, `earnings`, `settings` and `settings/admin` (admin-only).
 
 Selector conventions, most to least preferred:
 
