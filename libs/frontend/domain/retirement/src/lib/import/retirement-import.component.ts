@@ -8,6 +8,7 @@ import { ProgressBarModule } from 'primeng/progressbar';
 import { SelectModule } from 'primeng/select';
 import { TagModule } from 'primeng/tag';
 import type { RetirementScenario } from '@vaultfolio/api-contract';
+import { needsProviderLabel } from '@vaultfolio/retirement';
 import { MAX_RECOGNITION_PAGES, OcrConsentComponent } from '@vaultfolio/frontend-document-reader';
 import { I18nService, IconComponent, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
 import { returnLabelKey, returnLink } from '../return-link';
@@ -562,9 +563,10 @@ export class RetirementImportComponent {
     return SCENARIOS.map((value) => ({ label: `${value} %`, value }));
   }
 
+  /** Only contract types that carry a provider (not the statutory pension) and lack one in the document. */
   protected readonly needsProviderLabel = computed(() => {
     const record = this.store.record();
-    return !!record && !record.providerLabel;
+    return !!record && !record.providerLabel && needsProviderLabel(record.contractType);
   });
 
   /** The recognised figures, labelled and formatted for the review grid. */

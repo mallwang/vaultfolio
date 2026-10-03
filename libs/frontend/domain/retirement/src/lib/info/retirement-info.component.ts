@@ -52,6 +52,7 @@ import { DangerZoneComponent } from '../danger-zone/danger-zone.component';
     }
     .intro {
       margin: 0;
+      font-size: 0.875rem;
       color: var(--p-text-muted-color);
     }
     .cards {
@@ -89,6 +90,10 @@ import { DangerZoneComponent } from '../danger-zone/danger-zone.component';
       font-size: 0.8125rem;
       color: var(--p-text-muted-color);
     }
+    /* The glyph lives in app-icon's own encapsulated template, so sizing it needs ng-deep. */
+    .link ::ng-deep .material-symbols-outlined {
+      font-size: 1rem;
+    }
     .link {
       display: inline-flex;
       align-items: center;
@@ -96,10 +101,7 @@ import { DangerZoneComponent } from '../danger-zone/danger-zone.component';
       margin-top: auto;
       color: var(--p-primary-color);
       text-decoration: none;
-      font-weight: 500;
-    }
-    .link:hover {
-      text-decoration: underline;
+      font-size: 0.875rem;
     }
   `,
 })

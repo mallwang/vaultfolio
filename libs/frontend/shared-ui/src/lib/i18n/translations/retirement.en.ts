@@ -117,7 +117,7 @@ export const retirementEn: TranslationDictionary = {
     dangerSub:
       'Permanently removes all statutory, occupational and private entries. Your account and your other Vaultfolio data are kept.',
     deleteHint: 'You can delete single entries or all of your retirement data at any time.',
-    deleteAll: 'Delete all my retirement data',
+    deleteAll: 'Delete all retirement data',
     deleteAllHeader: 'Delete all retirement data?',
     deleteAllMessage:
       'All your retirement entries are deleted permanently. Your account stays. This cannot be undone.',
@@ -340,6 +340,8 @@ export const retirementEn: TranslationDictionary = {
       body: 'Upload a statement or enter a contract manually to see your retirement picture.',
     },
     notes: {
+      contracts: '{{n}} contracts recorded',
+      contractsOne: '1 contract recorded',
       outdated: '{{n}} entry/entries older than 12 months — check whether newer statements exist.',
       incomplete: '{{n}} entry/entries lack the figures needed for the totals.',
       capital:
@@ -353,7 +355,12 @@ export const retirementEn: TranslationDictionary = {
     start: 'Pension start',
     guaranteed: 'Guaranteed pension',
     savings: 'Monthly savings',
-    difference: 'Difference to guaranteed {{amount}}',
+    barGuaranteed: '{{amount}} guaranteed ({{share}} % of the expected pension)',
+    barAdditional: '{{amount}} additionally expected – projection, not guaranteed',
+    barHint: 'Hover the bar: it shows how much of the expected pension is guaranteed.',
+    barLabel: 'Guaranteed share of the expected pension',
+    legendGuaranteed: 'Guaranteed',
+    legendAdditional: 'Additionally expected (projection)',
     outdated: '{{n}} outdated',
     emptyTitle: 'Record your retirement provision',
     emptyBody: 'Add your statutory, occupational and private pensions in one place.',

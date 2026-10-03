@@ -81,7 +81,7 @@ const NOT_IN_GRID = new Set([
       @if (record().identifier; as identifier) {
         <p class="identifier">
           <span class="muted">{{ 'retirement.fields.identifier' | translate }}</span>
-          <code data-testid="retirement-card-identifier">{{ identifier }}</code>
+          <span data-testid="retirement-card-identifier">{{ identifier }}</span>
           <button
             type="button"
             class="copy"
@@ -89,7 +89,7 @@ const NOT_IN_GRID = new Set([
             data-testid="retirement-card-copy"
             (click)="copy(identifier)"
           >
-            <app-icon [name]="copied() ? 'check-circle' : 'sticky-note'" />
+            <app-icon [name]="copied() ? 'check-circle' : 'content-copy'" />
           </button>
         </p>
       }
@@ -280,8 +280,13 @@ const NOT_IN_GRID = new Set([
       padding: 0.125rem 0.5rem;
       border-radius: 999px;
       font-size: 0.75rem;
+      line-height: 1.25rem;
       color: var(--p-text-muted-color);
       background: color-mix(in srgb, var(--p-text-muted-color) 14%, transparent);
+    }
+    /* The glyph lives in app-icon's own encapsulated template, so sizing it needs ng-deep. */
+    .badge ::ng-deep .material-symbols-outlined {
+      font-size: 0.875rem;
     }
     .badge--imported {
       color: var(--p-primary-color);
@@ -304,7 +309,11 @@ const NOT_IN_GRID = new Set([
       padding: 0.125rem;
       background: none;
       color: var(--p-primary-color);
+      font-size: 0.875rem;
       cursor: pointer;
+    }
+    .copy ::ng-deep .material-symbols-outlined {
+      font-size: 1rem;
     }
     .capital {
       display: flex;

@@ -6,11 +6,12 @@ import { fill, formatDate, formatMoney } from '../retirement-format';
 import { RetirementService } from '../retirement.service';
 
 /**
- * Dashboard tile (US3): the expected pension as the hero figure (tagged "Prognose"), a mini
- * guaranteed-vs-expected bar with the difference, and the rows pension start, guaranteed pension
- * and monthly savings — the same figures as the overview, from the same summary. The whole tile is
- * a link to the area; without records it invites to record provision, and an unavailable domain
- * (503) degrades to a short note instead of an error.
+ * Dashboard tile (US3), laid out like the earnings widget: a header with the "open" link at the
+ * top right, the expected pension as the hero figure (tagged "Prognose"), the KPIs pension start,
+ * guaranteed pension and monthly savings, and a guaranteed-vs-expected bar whose segments explain
+ * themselves on hover/focus — the same figures as the overview, from the same summary. Only the
+ * "open" link navigates; without records the tile invites to record provision, and an unavailable
+ * domain (503) degrades to a short note instead of an error.
  */
 @Component({
   selector: 'app-retirement-dashboard-widget',
@@ -31,9 +32,14 @@ import { RetirementService } from '../retirement.service';
             </span>
           </a>
         } @else {
-          <a class="tile" routerLink="/app/retirement" data-testid="retirement-widget-open">
+          <div class="tile">
+            <div class="head">
+              <strong>{{ 'retirement.widget.expected' | translate }}</strong>
+              <a routerLink="/app/retirement" data-testid="retirement-widget-open">
+                {{ 'retirement.widget.open' | translate }} <app-icon name="chevron-right" />
+              </a>
+            </div>
             <div class="hero">
-              <span class="muted">{{ 'retirement.widget.expected' | translate }}</span>
               <span class="hero__value" data-testid="retirement-widget-expected">
                 ≈ {{ money(s.expectedMonthly) }}
               </span>
@@ -42,36 +48,77 @@ import { RetirementService } from '../retirement.service';
                 {{ 'retirement.widget.perMonth' | translate }}
               </span>
             </div>
-            <div class="bar" aria-hidden="true">
-              <div class="bar__guaranteed" [style.width.%]="guaranteedShare()"></div>
-              <div class="bar__additional"></div>
-            </div>
-            <span class="muted" data-testid="retirement-widget-difference">{{ difference() }}</span>
-            <dl class="rows">
-              <div>
+            <dl class="kpis">
+              <div class="kpi">
                 <dt>{{ 'retirement.widget.start' | translate }}</dt>
                 <dd data-testid="retirement-widget-start">
                   {{ s.pensionStart ? date(s.pensionStart.date) : '–' }}
                 </dd>
               </div>
-              <div>
+              <div class="kpi">
                 <dt>{{ 'retirement.widget.guaranteed' | translate }}</dt>
-                <dd class="guaranteed" data-testid="retirement-widget-guaranteed">
+                <dd data-testid="retirement-widget-guaranteed">
                   {{ money(s.guaranteedMonthly) }}
                 </dd>
               </div>
-              <div>
+              <div class="kpi">
                 <dt>{{ 'retirement.widget.savings' | translate }}</dt>
                 <dd data-testid="retirement-widget-savings">{{ money(s.monthlySavings) }}</dd>
               </div>
             </dl>
-            @if (s.flags.outdatedCount > 0) {
-              <span class="badge" data-testid="retirement-widget-outdated">{{ outdated() }}</span>
-            }
-            <span class="cta">
-              {{ 'retirement.widget.open' | translate }} <app-icon name="chevron-right" />
-            </span>
-          </a>
+            <div class="chart" data-testid="retirement-widget-chart">
+              <p class="readout" aria-live="polite" data-testid="retirement-widget-readout">
+                {{ readout() }}
+              </p>
+              <div
+                class="bar"
+                role="group"
+                [attr.aria-label]="'retirement.widget.barLabel' | translate"
+              >
+                <div
+                  class="bar__guaranteed"
+                  tabindex="0"
+                  [style.width.%]="guaranteedShare()"
+                  [attr.aria-label]="guaranteedText()"
+                  [attr.title]="guaranteedText()"
+                  data-testid="retirement-widget-bar-guaranteed"
+                  (mouseenter)="hovered.set('guaranteed')"
+                  (focus)="hovered.set('guaranteed')"
+                  (mouseleave)="hovered.set(null)"
+                  (blur)="hovered.set(null)"
+                ></div>
+                <div
+                  class="bar__additional"
+                  tabindex="0"
+                  [attr.aria-label]="additionalText()"
+                  [attr.title]="additionalText()"
+                  data-testid="retirement-widget-bar-additional"
+                  (mouseenter)="hovered.set('additional')"
+                  (focus)="hovered.set('additional')"
+                  (mouseleave)="hovered.set(null)"
+                  (blur)="hovered.set(null)"
+                ></div>
+              </div>
+              <div class="legend">
+                <span class="legend__item">
+                  <i class="swatch swatch--guaranteed"></i>
+                  {{ 'retirement.widget.legendGuaranteed' | translate }}
+                </span>
+                <span class="legend__item">
+                  <i class="swatch swatch--additional"></i>
+                  {{ 'retirement.widget.legendAdditional' | translate }}
+                </span>
+              </div>
+            </div>
+            <div class="foot">
+              <span data-testid="retirement-widget-contracts">{{ contracts() }}</span>
+              @if (s.flags.outdatedCount > 0) {
+                <span class="outdated" data-testid="retirement-widget-outdated">
+                  <app-icon name="warning" /> {{ outdated() }}
+                </span>
+              }
+            </div>
+          </div>
         }
       }
     </div>
@@ -80,7 +127,7 @@ import { RetirementService } from '../retirement.service';
     .tile {
       display: flex;
       flex-direction: column;
-      gap: 0.5rem;
+      gap: 1rem;
       color: inherit;
       text-decoration: none;
     }
@@ -94,6 +141,19 @@ import { RetirementService } from '../retirement.service';
       color: var(--p-text-muted-color);
       font-size: 0.8125rem;
     }
+    .head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+    .head a {
+      display: inline-flex;
+      align-items: center;
+      color: var(--p-primary-color);
+      text-decoration: none;
+      font-size: 0.875rem;
+    }
     .hero {
       display: flex;
       flex-direction: column;
@@ -104,33 +164,78 @@ import { RetirementService } from '../retirement.service';
       font-style: italic;
       font-variant-numeric: tabular-nums;
     }
-    .tag,
-    .badge {
+    .tag {
       display: inline-block;
       padding: 0.0625rem 0.5rem;
       border-radius: 999px;
       font-size: 0.75rem;
-      background: var(--p-surface-100);
+      background: color-mix(in srgb, var(--p-text-muted-color) 14%, transparent);
       color: var(--p-text-color);
     }
     .tag {
       font-style: italic;
     }
-    .badge {
-      align-self: flex-start;
-      background: color-mix(in srgb, var(--p-orange-500) 18%, transparent);
+    .outdated {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      color: var(--p-amber-700);
+      font-weight: 500;
+    }
+    /* The glyph lives in app-icon's own encapsulated template, so shrinking it needs ng-deep. */
+    .outdated ::ng-deep .material-symbols-outlined {
+      font-size: 1rem;
+    }
+    :host-context(.app-dark) .outdated {
+      color: var(--p-amber-400);
+    }
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.75rem;
+      margin: 0;
+    }
+    .kpi dt {
+      font-size: 0.8125rem;
+      color: var(--p-text-muted-color);
+    }
+    .kpi dd {
+      margin: 0;
+      font-size: 1.125rem;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+    .chart {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+    .readout {
+      margin: 0;
+      min-height: 1.1rem;
+      font-size: 0.8125rem;
+      color: var(--p-text-muted-color);
+      font-variant-numeric: tabular-nums;
     }
     .bar {
       display: flex;
-      height: 0.625rem;
+      height: 0.75rem;
       border-radius: 0.3rem;
       overflow: hidden;
     }
-    .bar__guaranteed {
+    .bar__guaranteed,
+    .bar__additional {
+      outline: none;
+    }
+    .bar__guaranteed,
+    .swatch--guaranteed {
       background: var(--p-green-500);
     }
     .bar__additional {
       flex: 1;
+    }
+    .bar__additional,
+    .swatch--additional {
       background: repeating-linear-gradient(
         45deg,
         var(--p-primary-color),
@@ -139,23 +244,39 @@ import { RetirementService } from '../retirement.service';
         transparent 6px
       );
     }
-    .rows {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 0.5rem;
-      margin: 0;
+    .bar__guaranteed:hover,
+    .bar__guaranteed:focus-visible,
+    .bar__additional:hover,
+    .bar__additional:focus-visible {
+      opacity: 0.75;
     }
-    .rows dt {
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem 1rem;
       font-size: 0.75rem;
       color: var(--p-text-muted-color);
     }
-    .rows dd {
-      margin: 0;
-      font-weight: 600;
-      font-variant-numeric: tabular-nums;
+    .legend__item {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
     }
-    .rows dd.guaranteed {
-      font-weight: 700;
+    .swatch {
+      display: inline-block;
+      width: 0.75rem;
+      height: 0.5rem;
+      border-radius: 2px;
+    }
+    .foot {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.25rem 1rem;
+      padding-top: 0.5rem;
+      border-top: 1px solid var(--p-content-border-color);
+      font-size: 0.8125rem;
+      color: var(--p-text-muted-color);
     }
     .cta {
       display: inline-flex;
@@ -179,11 +300,43 @@ export class RetirementDashboardWidgetComponent implements OnInit {
     return Math.min(100, (Number(s.guaranteedMonthly) / expected) * 100);
   });
 
-  protected readonly difference = computed(() =>
-    fill(this.i18n.translate('retirement.widget.difference'), {
+  protected readonly hovered = signal<'guaranteed' | 'additional' | null>(null);
+
+  protected readonly guaranteedText = computed(() => {
+    const s = this.summary();
+    return fill(this.i18n.translate('retirement.widget.barGuaranteed'), {
+      amount: this.money(s?.guaranteedMonthly ?? '0'),
+      share: Math.round(this.guaranteedShare()),
+    });
+  });
+
+  protected readonly additionalText = computed(() =>
+    fill(this.i18n.translate('retirement.widget.barAdditional'), {
       amount: this.money(this.summary()?.differenceMonthly ?? '0'),
     }),
   );
+
+  /** The hovered or focused segment; the overall explanation while nothing is. */
+  protected readonly readout = computed(() => {
+    switch (this.hovered()) {
+      case 'guaranteed':
+        return this.guaranteedText();
+      case 'additional':
+        return this.additionalText();
+      default:
+        return this.i18n.translate('retirement.widget.barHint');
+    }
+  });
+
+  protected readonly contracts = computed(() => {
+    const n = this.summary()?.items.length ?? 0;
+    return fill(
+      this.i18n.translate(
+        n === 1 ? 'retirement.widget.contractsOne' : 'retirement.widget.contracts',
+      ),
+      { n },
+    );
+  });
 
   protected readonly outdated = computed(() =>
     fill(this.i18n.translate('retirement.widget.outdated'), {

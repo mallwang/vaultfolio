@@ -264,7 +264,7 @@ type PillarKey = 'statutory' | 'occupational' | 'private';
       padding: 0.0625rem 0.5rem;
       border-radius: 999px;
       font-size: 0.75rem;
-      background: var(--p-surface-100);
+      background: color-mix(in srgb, var(--p-text-muted-color) 14%, transparent);
       color: var(--p-text-color);
     }
     .tag--guaranteed {
