@@ -340,8 +340,6 @@ export const retirementEn: TranslationDictionary = {
       body: 'Upload a statement or enter a contract manually to see your retirement picture.',
     },
     notes: {
-      contracts: '{{n}} contracts recorded',
-      contractsOne: '1 contract recorded',
       outdated: '{{n}} entry/entries older than 12 months — check whether newer statements exist.',
       incomplete: '{{n}} entry/entries lack the figures needed for the totals.',
       capital:
@@ -361,6 +359,8 @@ export const retirementEn: TranslationDictionary = {
     barLabel: 'Guaranteed share of the expected pension',
     legendGuaranteed: 'Guaranteed',
     legendAdditional: 'Additionally expected (projection)',
+    contracts: '{{n}} contracts recorded',
+    contractsOne: '1 contract recorded',
     outdated: '{{n}} outdated',
     emptyTitle: 'Record your retirement provision',
     emptyBody: 'Add your statutory, occupational and private pensions in one place.',

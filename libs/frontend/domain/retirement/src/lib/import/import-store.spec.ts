@@ -214,7 +214,14 @@ describe('ImportStore', () => {
 
   it('asks for a provider label the statement does not print', async () => {
     const lines = syntheticPrivateStatement().pages[0].lines.map((l) => l.text);
-    await pickText(textDocument([lines.filter((l) => !l.startsWith('Versicherer'))]), 'PRIVATE');
+    await pickText(
+      textDocument([
+        lines.filter(
+          (l) => !l.startsWith('Versicherer') && !l.startsWith('Musterleben Versicherung'),
+        ),
+      ]),
+      'PRIVATE',
+    );
     expect(store.record()?.providerLabel).toBeUndefined();
     expect(store.canConfirm()).toBe(false);
     expect(store.issues().map((i) => i.field)).toContain('providerLabel');
