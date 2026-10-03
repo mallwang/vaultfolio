@@ -26,11 +26,11 @@
   align-items: center;
   gap: 0.25rem;
   padding: 0;
-  line-height: 1;
   border: 0;
   background: none;
   font: inherit;
   font-size: 0.875rem;
+  line-height: 1;
   font-weight: 600;
   color: var(--p-primary-color);
   cursor: pointer;
