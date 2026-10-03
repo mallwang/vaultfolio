@@ -1,23 +1,23 @@
 ---
-description: 'Task list for 035 Earnings Export Rework (Phase 1: PDF)'
+description: 'Task list for 035 Earnings Export Rework (Phase 1: PDF, Phase 2: CSV/Excel/JSON)'
 ---
 
 # Tasks: Earnings Export Rework
 
 **Input**: Design documents from `/specs/035-earnings-export-rework/`
 
-**Prerequisites**: plan.md, spec.md, research.md, data-model.md, contracts/export-pdf-sections.md, quickstart.md
+**Prerequisites**: plan.md, spec.md, research.md, data-model.md, contracts/export-pdf-sections.md, contracts/export-tables.md, quickstart.md
 
 **Tests**: Included. The plan and constitution (Principles III/IV) require exact-value unit tests and an exporter integration test; no tolerance assertions, synthetic data only.
 
-**Scope**: Phase 1 only (PDF). User Story 4 (Phase 2, other formats) is deliberately not tasked — per FR-015 it must first be specified by amending the spec. T022/T023 guard that non-PDF output stays unchanged (FR-014).
+**Scope**: Phase 1 (PDF, T001–T033) is delivered. Phase 2 (User Story 4: CSV, Excel, JSON and the "Export my data" archive, spec amended 2026-10-03) is tasked in phases 8–10 below (T034–T062). T022/T023 guarded that non-PDF output stayed unchanged during Phase 1 (FR-014); Phase 2 deliberately replaces the earnings-specific part of T023 (T055).
 
 **No backend change**: no controller/DTO/route is touched, so no OpenAPI task applies.
 
 ## Format: `[ID] [P?] [Story] Description`
 
 - **[P]**: Can run in parallel (different files, no dependencies)
-- **[Story]**: US1 (income-story PDF), US2 (nothing cut off), US3 (language)
+- **[Story]**: US1 (income-story PDF), US2 (nothing cut off), US3 (language), US4 (CSV/Excel/JSON/archive, Phase 2)
 
 ## Path Conventions
 
@@ -157,7 +157,7 @@ description: 'Task list for 035 Earnings Export Rework (Phase 1: PDF)'
 - **US1 (P1)**: independent after Foundational; delivers the MVP
 - **US2 (P1)**: layout hardening of US1's renderer/builder (same files, so sequential after US1)
 - **US3 (P2)**: formatting/translations; sequential on shared files with US1/US2 but independently testable
-- **US4 (P3, Phase 2)**: not tasked here; requires spec amendment first (FR-015)
+- **US4 (P2, Phase 2)**: tasked in phases 8–10 (see "Phase 2 dependencies" below)
 
 ### Within Each Story
 
@@ -207,3 +207,86 @@ Task: "i18n keys in libs/frontend/shared-ui/src/lib/i18n/translations/earnings.{
 - [P] tasks = different files, no dependencies
 - Only the PDF changes: other features' PDFs and all non-PDF earnings formats must stay byte-for-byte/content-wise unchanged
 - Commit after each task or logical group; use `npm`/`npx` (not pnpm) for Nx commands
+
+---
+
+# Phase 2 — CSV, Excel, JSON and archive (amended 2026-10-03)
+
+Specs: `spec.md` User Story 4, FR-016–FR-025, SC-007–SC-009 · Design: `plan.md`, `research.md` §9–18, `data-model.md` (Phase 2), `contracts/export-tables.md`.
+
+**No backend change** (still no controller/DTO/route): no OpenAPI task applies.
+
+## Phase 8: Phase 2 Foundation (shared model, single report)
+
+**Purpose**: The neutral table types and the one computation both the PDF and the new tables use. After this phase the PDF output must be byte-for-byte what Phase 1 produced.
+
+**⚠️ CRITICAL**: No US4 format work can begin until T035 and T038 are done.
+
+- [ ] T034 Run `npm exec nx test export`, `npm exec nx test frontend-shared-ui` and `npm exec nx test frontend-domain-earnings` and confirm they are green on the Phase 1 baseline (so any later PDF difference is attributable)
+- [ ] T035 Add the types `ExportTableColumnFormat`, `ExportTableColumn`, `ExportTableRow`, `ExportTable`, the optional `tables?` on `ResolvedFeatureExport` and the optional `getExportTables?()` on `FeatureExportDefinition` exactly as in `specs/035-earnings-export-rework/contracts/export-tables.md` in `libs/export/src/lib/feature-export-definition.ts`, and export them from `libs/export/src/index.ts`
+- [ ] T036 [P] Write failing exact-value tests for `buildEarningsReport` in `libs/frontend/domain/earnings/src/lib/earnings-report.spec.ts`: employers ordered by recency with the `ALL` entry (or the single employer) as `total`; career total = sum of employer rows in integer cents; month grid years newest first with 12 gross + 12 net cells, exact integer-cent gross/net sums, missing months stay `null`; tax rows year desc then employer recency; yearly series newest first; no data → empty parts (depends on T034)
+- [ ] T037 Create `libs/frontend/domain/earnings/src/lib/earnings-report.ts` with the pure `buildEarningsReport(overview, tables)` per `data-model.md` (move the ordering/summing logic out of `earnings-pdf-sections.ts`; reuse `gridRows`) so T036 passes (depends on T036)
+- [ ] T038 Refactor `libs/frontend/domain/earnings/src/lib/earnings-pdf-sections.ts` to project from `buildEarningsReport` instead of computing rows itself; the unchanged existing `earnings-pdf-sections.spec.ts` and `earnings-pdf-export.integration.spec.ts` must stay green without edits (PDF unchanged) (depends on T037)
+
+**Checkpoint**: Types and report in place; PDF still identical.
+
+---
+
+## Phase 9: User Story 4 - CSV, Excel and JSON deliver the same content as the PDF (Priority: P2)
+
+**Goal**: Earnings Excel (sheet per table), CSV (ZIP, file per table), JSON (named sections) and the "Export my data" archive carry the PDF's four tables with the same figures; gross and net in separate columns; stable JSON keys; no per-payslip rows.
+
+**Independent Test**: Export all three formats and the PDF for the same synthetic data in DE and EN; figures (career total, one year, one employer) match across formats and the screen; JSON key sets are identical in DE and EN; the archive's `earnings/` folder has the same content.
+
+### Tests for User Story 4 ⚠️ (write first, must fail)
+
+- [ ] T039 [P] [US4] Add exact-value tests in `libs/frontend/domain/earnings/src/lib/earnings-export-tables.spec.ts` for `toExportTables(report, t)`: four tables with ids `grossPerYear`, `employers`, `monthlyOverview`, `taxesPerYear` in PDF order; `employers` has `totalKey: 'careerTotal'` and the total row last with `emphasis: 'total'`; monthly overview has 28 columns with keys `year`, `gross01…gross12`, `grossTotal`, `net01…net12`, `netTotal` and `null` for missing months; money/ratio stay canonical strings (ratios as fractions); column keys identical for DE and EN while labels/titles differ; empty report → four tables with columns and zero rows; **parity test**: every figure in `buildEarningsPdfSections` equals the same figure in `toExportTables` for the same report (FR-017, SC-007)
+- [ ] T040 [P] [US4] Add JSON tests in `libs/export/src/lib/json-exporter.spec.ts`: with `tables` the output is one object keyed by `table.id`, rows keyed by column `key` (not label), the `totalKey` row is moved out of the list (`null` when absent), money stays a string, integers numbers, section order = array order; without `tables` the output is byte-for-byte the existing one
+- [ ] T041 [P] [US4] Add Excel tests in `libs/export/src/lib/xlsx-exporter.spec.ts` (re-read the blob with `exceljs`): one sheet per table in order, sheet names ≤ 31 chars with `[]:*?/\` removed and duplicates suffixed, `money` cells are numbers with format `#,##0.00 "€"`, `ratio` `0.0%`, `integer` numeric, `null` empty, header row bold and frozen, total row bold, header-only sheet for zero rows; without `tables` unchanged
+- [ ] T042 [P] [US4] Add CSV tests in `libs/export/src/lib/csv-exporter.spec.ts` (re-read the ZIP with `jszip`): one `NN-<slug>.csv` per table in order (slug ASCII-folded, lower-case, hyphenated), UTF-8 BOM, RFC 4180 quoting and CRLF, header row of labels, money verbatim dot-decimal strings, `null` empty, total row last, header-only file for zero rows; a shared per-table builder is exported for the archive; without `tables` the plain `.csv` is unchanged
+- [ ] T043 [P] [US4] Add tests in `libs/export/src/lib/export-feature.spec.ts` for `exportFileExtension`: `'zip'` for `csv` with `tables`, otherwise the format itself (`csv` without tables, `xlsx`, `json`, `pdf`), and that `exportFeature(..., 'csv')` returns an `application/zip` blob with `tables`
+- [ ] T044 [P] [US4] Add tests in `libs/frontend/shared-ui/src/lib/export-control/export-control.component.spec.ts`: for `json`/`csv`/`xlsx` a definition with `getExportTables` awaits it, does not call `fetchData`, passes `tables`, and the download name uses `exportFileExtension` (`.zip` for CSV); the PDF path ignores `getExportTables`; a definition without it behaves exactly as before
+- [ ] T045 [P] [US4] Add tests in `libs/export/src/lib/full-export-archive.spec.ts`: a definition with `getExportTables` writes `<id>/<id>.json`, `<id>/<id>.xlsx` from the tables, the CSV table files flat into `<id>/` (no nested ZIP) and its PDF from `getPdfSections`; a failing `getExportTables` records all formats of that feature as failures; other features' entries are unchanged
+
+### Implementation for User Story 4
+
+- [ ] T046 [US4] Create `libs/frontend/domain/earnings/src/lib/earnings-export-tables.ts` with the pure `toExportTables(report, t)` per `data-model.md` ("Earnings export tables"): stable ids/column keys, translated labels/titles, separate gross/net columns, `totalKey: 'careerTotal'`, the 28-column monthly overview, `grossPerYear` from the yearly series (depends on T037, T039)
+- [ ] T047 [P] [US4] Implement the `tables` branch of `exportJson` in `libs/export/src/lib/json-exporter.ts` per `contracts/export-tables.md`; generic path untouched (depends on T035, T040)
+- [ ] T048 [P] [US4] Implement the `tables` branch of `exportXlsx` in `libs/export/src/lib/xlsx-exporter.ts` per `contracts/export-tables.md` (sheet names, number formats, frozen bold header, bold total row, auto-filter over header + data rows, column widths); keep the deferred `import('exceljs')`; generic path untouched (depends on T035, T041)
+- [ ] T049 [P] [US4] Implement in `libs/export/src/lib/csv-exporter.ts`: an exported per-table builder `exportTableCsvFiles(tables): { name: string; content: string }[]` (BOM, RFC 4180, CRLF, `NN-<slug>.csv`) and the `tables` branch of `exportCsv` returning a ZIP via a deferred `import('jszip')`; generic path stays a synchronous plain CSV (depends on T035, T042)
+- [ ] T050 [US4] Add `exportFileExtension(resolved, format)` to `libs/export/src/lib/export-feature.ts`, route `exportFeature` through the (now possibly async) CSV path, and export it plus the CSV table builder from `libs/export/src/index.ts` (depends on T049, T043)
+- [ ] T051 [US4] Wire `ExportControlComponent` in `libs/frontend/shared-ui/src/lib/export-control/export-control.component.ts`: for non-PDF formats, if `getExportTables` exists await it, skip `fetchData()` (rows = `[]`), pass `tables`; use `exportFileExtension` for the download file name; PDF path and definitions without the new function unchanged (depends on T050, T044)
+- [ ] T052 [US4] Extend `exportAll` in `libs/export/src/lib/full-export-archive.ts` and its caller `apps/frontend/src/app/settings/profile/profile.component.ts` per `research.md` §16: resolve `tables` (and `pdfSections`, PDF infobox key, chart size) for definitions that provide them, write JSON/XLSX from the tables, write the CSV table files flat into `<featureId>/`, and render the PDF from the sections; adjust the `ResolveLabels` result type backward compatibly (depends on T050, T045)
+- [ ] T053 [US4] In `libs/frontend/domain/earnings/src/lib/earnings-export.definition.ts`: add `getExportTables()` (`overview()` + `tables()` without employer filter → `buildEarningsReport` → `toExportTables`; 403 → the four tables with zero rows; 503 propagates), build `getPdfSections` on the same report, and retire the per-payslip export (`toExportRow`, `AMOUNT_COLUMNS`/`COLUMNS`, the `fetchData` body) leaving `columns: []` and `fetchData: async () => []` with a one-line comment. First confirm no other caller of `toExportRow` with `npx codegraph callers "toExportRow"` (depends on T046)
+- [ ] T054 [US4] Add the new DE/EN strings to `libs/frontend/shared-ui/src/lib/i18n/translations/earnings.de.ts` and `earnings.en.ts`: table titles/sheet names (Gross per year, Employers, Monthly overview, Taxes and contributions per year), month-column labels for gross and net ("Brutto Januar" … / "Gross January" …, totals), yearly-series column labels (months employed, regular, …); reuse existing `earnings.terms.*`/`earnings.tables.*` keys where they exist; the translation-parity check must pass (depends on T039)
+- [ ] T055 [US4] Replace the earnings part of Phase 1's T023: in `libs/frontend/domain/earnings/src/lib/earnings-export.definition.spec.ts` remove the assertions for the per-payslip rows/columns and add ones for `getExportTables` (four tables, 403 → zero rows, 503 propagates, no employer filter, `fetchData` returns `[]`) and `pdfSections` still produced (depends on T053)
+- [ ] T056 [US4] Add an integration test `libs/frontend/domain/earnings/src/lib/earnings-tables-export.integration.spec.ts` that builds the earnings definition on synthetic maximum-size data (20 years, 8 employers, long names, six-figure amounts) and runs the real `exportFeature` for `json`, `xlsx` and `csv` in DE and EN: JSON key sets identical across languages, career total and one year equal across JSON, XLSX, CSV and the PDF sections (exact values), no cell/field of the old per-payslip shape (no file names, no corrected-figure names), empty data → valid empty output (FR-024, SC-007–SC-009) (depends on T047–T053)
+
+**Checkpoint**: All four formats and the archive emit the same four tables.
+
+---
+
+## Phase 10: Polish & Cross-Cutting (Phase 2)
+
+- [ ] T057 [P] Verify FR-025: other features' CSV/XLSX/JSON, the generic archive entries and every non-earnings PDF are unchanged — the existing specs of `csv-exporter`, `xlsx-exporter`, `json-exporter`, `full-export-archive`, `pdf-exporter` must pass unmodified for the generic path; add a regression test per exporter if a generic-path assertion is missing in `libs/export/src/lib/*.spec.ts`
+- [ ] T058 [P] Sensitive-data check: add assertions in `libs/frontend/domain/earnings/src/lib/earnings-export-tables.spec.ts` that no column/field carries source file names, corrected-figure names, issue dates or payslip kinds, and grep the changed files for `console.`/logger calls (FR-016, Sensitive Personal Data rule)
+- [ ] T059 Invoke the `verify-ui` skill and drive the running app with Playwright using the dedicated test user, following "Phase 2 validation" in `specs/035-earnings-export-rework/quickstart.md`: Excel, CSV ZIP, JSON in DE and EN, compare figures with the PDF and the screen, diff the JSON key sets, the "Export my data" archive's `earnings/` folder, an empty/forbidden account, and another feature's exports unchanged. No new interactive element is added, so no new `data-testid` is expected (T026 reasoning)
+- [ ] T060 Run `npm exec nx run-many -t lint test -p export frontend-shared-ui frontend-domain-earnings frontend` and `npm exec nx affected -t build` and fix any failures
+- [ ] T061 [P] Update documentation: cross-reference `contracts/export-tables.md` from `specs/029-export-data/contracts/export-lib.md`, document the new earnings JSON/CSV/Excel format (including the stable JSON keys) where the export is described under `docs/`, and add the release note "earnings JSON/CSV/Excel format changed (no per-payslip rows)"; note the `libs/export` MINOR bump if the lib keeps a changelog
+- [ ] T062 Run `speckit-sonar-validate` (quality gate for the branch) once the changes are pushed and fix reported issues in the new exporter and report code
+
+---
+
+## Phase 2 dependencies & execution order
+
+- **Phase 8** blocks Phase 9: T034 → T035; T034 → T036 → T037 → T038.
+- **Phase 9 tests** (T039–T045) can be written in parallel once T035 exists; T039 needs T037.
+- **Exporters** T047, T048, T049 are independent files (parallel); T050 follows T049; T051 and T052 follow T050; T046 follows T037/T039; T053 follows T046; T054 follows T039; T055/T056 close the story after T053.
+- **Phase 10** after Phase 9; T059 needs a running app, T062 needs the branch pushed.
+- **Parallel opportunities**: T036 ∥ T035; T039–T045 all [P]; T047 ∥ T048 ∥ T049; T057 ∥ T058 ∥ T061.
+
+## Implementation strategy (Phase 2)
+
+1. **MVP slice**: Phase 8, then JSON (T040, T046, T047, T053 partial) — smallest end-to-end path proving the single-source model and the stable keys.
+2. Add Excel (T041, T048), then CSV ZIP (T042, T049, T050, T051), verifying figures against the PDF each time.
+3. Archive (T045, T052) and the i18n/retirement tasks (T054, T055) last, then integration (T056) and polish (T057–T062).
