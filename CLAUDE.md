@@ -56,5 +56,5 @@
 
 ## Current Feature Plan
 
-Active implementation plan: [specs/034-ocr-fallback-pdf/plan.md](specs/034-ocr-fallback-pdf/plan.md)
+Active implementation plan: [specs/035-earnings-export-rework/plan.md](specs/035-earnings-export-rework/plan.md)
 <!-- SPECKIT END -->

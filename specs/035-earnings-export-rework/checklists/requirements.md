@@ -32,4 +32,3 @@
 ## Notes
 
 - Phase 2 (other export formats) is intentionally undetailed (US4, FR-014/015); the spec is to be amended before that work starts.
-- The exact column set of the employer overview is deferred to planning (Assumptions).

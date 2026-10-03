@@ -6,7 +6,7 @@
 
 **Status**: Draft
 
-**Input**: User description: "Rework all export options of the earnings development ("Einkommensentwicklung"). Phase 1 is the PDF export; the other export formats (e.g. CSV/Excel) are reviewed and reworked afterwards within this same spec. The current PDF is one huge table with a row per payslip part (every month and every correction), cut off after the bonus column and of little use to the reader. New PDF: first the "Gross per year" chart, then a small per-employer overview (newest to oldest) with a closing "Career total" column, then the "Monthly overview" and "All taxes and contributions per year" tables, both newest to oldest; all tables fully visible in landscape; German and English according to the UI language."
+**Input**: User description: "Rework all export options of the earnings development ("Einkommensentwicklung"). Phase 1 is the PDF export; the other export formats (e.g. CSV/Excel) are reviewed and reworked afterwards within this same spec. The current PDF is one huge table with a row per payslip part (every month and every correction), cut off after the bonus column and of little use to the reader. New PDF: first the "Gross per year" chart, then a small per-employer overview (employers newest to oldest) with a closing "Career total" column, then the "Monthly overview" and "All taxes and contributions per year" tables, both newest to oldest; all tables fully visible in landscape; German and English according to the UI language."
 
 ## Background
 
@@ -27,7 +27,7 @@ A user opens the Earnings area and exports a PDF. The first thing they see after
 **Acceptance Scenarios**:
 
 1. **Given** a user with earnings data, **When** they export the PDF, **Then** the document shows, in this order: title/infobox, the "Gross per year" chart, the per-employer overview, the monthly overview, and the taxes-and-contributions-per-year table.
-2. **Given** the PDF, **When** the user reads the per-employer overview, **Then** employers are listed from the most recent to the oldest and a closing "Career total" column shows the amounts summed over all employers and all years.
+2. **Given** the PDF, **When** the user reads the per-employer overview, **Then** employers appear as columns from the most recent to the oldest and a closing "Career total" column shows the amounts summed over all employers and all years.
 3. **Given** the PDF, **When** the user reads the monthly overview and the taxes-per-year table, **Then** years are listed from the newest (e.g. 2026) to the oldest (e.g. 2010).
 4. **Given** the PDF, **When** the user looks for the former per-payslip-part table ("one row per payslip part"), **Then** it is no longer included.
 5. **Given** the figures in the PDF, **When** compared with the on-screen overview, monthly breakdown and taxes-per-year views for the same data, **Then** the totals match.
@@ -99,8 +99,8 @@ After the PDF is done, the remaining export formats of the earnings development 
 
 - **FR-001**: The earnings PDF MUST present its content in this order: title and information box, the "Gross per year" chart, the per-employer overview table, the "Monthly overview" table, the "All taxes and contributions per year" table.
 - **FR-002**: The "Gross per year" chart MUST show the same data as the on-screen chart of the same name and MUST be legible in the PDF (axis labels, values) regardless of the app's current theme.
-- **FR-003**: The per-employer overview MUST contain one row per employer, ordered from the most recent employer to the oldest, with the key income and deduction totals per employer.
-- **FR-004**: The per-employer overview MUST end with a column labelled "Career total" (DE: "Berufsleben gesamt") that sums the respective figure over all employers and all years of the user's data; the column's grand total MUST equal the sum of the employer rows.
+- **FR-003**: The per-employer overview MUST show one column per employer, ordered from the most recent employer to the oldest, with one row per key figure (employment period, months employed, gross, bonus, taxes, social contributions, net, and the average gross per month employed).
+- **FR-004**: The per-employer overview MUST end with a last column labelled "Career total" (DE: "Berufsleben gesamt") that sums each figure over all employers and all years of the user's data; for every summable figure the career total MUST equal the sum of the employer columns.
 - **FR-005**: The "Monthly overview" and the "All taxes and contributions per year" tables MUST list years from newest to oldest.
 - **FR-006**: The PDF MUST NOT contain the former table with one row per payslip part (regular payslip, correction, back-payment), and MUST NOT list source file names or the corrected-figure names.
 - **FR-007**: Every table in the PDF MUST be fully visible on landscape pages: all columns present, no cropping, no overlapping text, values not truncated.
@@ -118,8 +118,8 @@ After the PDF is done, the remaining export formats of the earnings development 
 
 ### Key Entities
 
-- **Employer overview row**: One employer with its totals for the key figures (e.g. gross, bonus, taxes, social contributions, net, payout) over all periods of that employer; ordered newest employer first.
-- **Career total**: The sum of each figure over all employers and all years; shown as the closing column of the employer overview.
+- **Employer overview column**: One employer with its totals for the key figures (gross, bonus, taxes, social contributions, net, average per month employed) over all periods of that employer; columns ordered newest employer first.
+- **Career total**: The sum of each figure over all employers and all years; shown as the closing (last) column of the employer overview.
 - **Yearly figures**: Per year (newest first) the monthly breakdown and the taxes/contributions, matching the on-screen "Monthly overview" and "All taxes and contributions per year" views.
 - **Gross per year series**: One gross value per year, as plotted in the on-screen chart.
 
@@ -137,8 +137,9 @@ After the PDF is done, the remaining export formats of the earnings development 
 ## Assumptions
 
 - The PDF uses the **same figures and groupings** as the on-screen "Gross per year", employer/career overview, "Monthly overview" and "All taxes and contributions per year" views; where the on-screen definition of a column exists, the PDF follows it.
-- The per-employer overview shows a compact set of key figures (not all stored columns) so it fits one landscape row; the exact column set is decided in planning.
-- Months within a year in the "Monthly overview" follow the same newest-to-oldest direction as years, for consistency.
+- The per-employer overview has the key figures as rows and the employers as columns (the career total being the last column), mirroring the on-screen career summary; it shows a compact set of figures, not all stored ones.
+- "Monthly overview" is the on-screen year × month table (years as rows, newest first; the twelve month columns stay in calendar order January–December, followed by the year sum). The PDF shows it for gross income, the on-screen default; other metrics are not part of the PDF.
+- The tables always cover all of the user's data, independent of any employer filter currently set on screen.
 - The PDF is always rendered in a light, print-friendly style, independent of the app theme.
 - The full "Export my data" archive keeps using the same earnings export entry; its PDF is not part of the archive today and non-PDF contents are untouched in Phase 1.
 - Changes to the shared PDF capability (029) must be backward compatible with all other features' exports.
