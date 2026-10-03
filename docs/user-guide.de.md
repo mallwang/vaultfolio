@@ -186,8 +186,8 @@ der Dialog bleibt offen, sodass du mehrere Formate in einem Besuch exportieren k
 | CSV    | Tabellenimport (Excel, LibreOffice usw.)           |
 | JSON   | Strukturierte Rohdaten für Skripte oder Backups    |
 
-Klicke auf die Schaltfläche, um das Formatmenü zu öffnen, und wähle dann dein Format aus. Die
-Datei wird sofort heruntergeladen. Eine leere Holdings-Liste erzeugt eine gültige, aber zeilenlose
+Klicke auf die Schaltfläche einer Karte, um dieses Format herunterzuladen; die Datei wird sofort
+heruntergeladen. Eine leere Holdings-Liste erzeugt eine gültige, aber zeilenlose
 Datei (CSV/JSON/Excel) bzw. ein PDF mit nur dem Kopfbereich.
 
 ---

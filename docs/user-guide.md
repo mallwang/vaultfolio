@@ -185,8 +185,7 @@ export several formats in one visit. The four formats:
 | CSV    | Spreadsheet import (Excel, LibreOffice, etc.) |
 | JSON   | Raw structured data for scripts or backups    |
 
-Click the button label to open the format menu, then select your format. The file downloads
-immediately. An empty holdings list produces a valid but row-free file (CSV/JSON/Excel) or a
+Click a card's button to download that format; the file downloads immediately. An empty holdings list produces a valid but row-free file (CSV/JSON/Excel) or a
 header-only PDF.
 
 ---

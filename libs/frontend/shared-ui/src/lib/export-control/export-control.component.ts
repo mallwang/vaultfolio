@@ -83,7 +83,7 @@ export class ExportControlComponent {
   /** Matches the registered `FeatureExportDefinition.featureId` this control exports. */
   @Input({ required: true }) featureId!: string;
 
-  @ViewChild('openLink') private openLink?: ElementRef<HTMLButtonElement>;
+  @ViewChild('openLink') private readonly openLink?: ElementRef<HTMLButtonElement>;
 
   private readonly registry = inject(FEATURE_EXPORT_REGISTRY);
   private readonly i18n = inject(I18nService);
