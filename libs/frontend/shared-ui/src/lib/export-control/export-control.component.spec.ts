@@ -170,4 +170,56 @@ describe('ExportControlComponent', () => {
       );
     });
   });
+
+  describe('export tables', () => {
+    let calls: string[];
+    let exported: ResolvedFeatureExport[];
+    const tables = [{ id: 't', title: 'T', columns: [], rows: [] }];
+
+    beforeEach(() => {
+      calls = [];
+      exported = [];
+      exportFeatureMock.mockImplementation((resolved: ResolvedFeatureExport) => {
+        exported.push(resolved);
+        return Promise.resolve(new Blob(['x']));
+      });
+      TestBed.inject(FEATURE_EXPORT_REGISTRY).register(
+        makeDefinition({
+          featureId: 'tabled',
+          fetchData: () => {
+            calls.push('fetchData');
+            return Promise.resolve([{ name: 'Gold' }]);
+          },
+          getExportTables: () => {
+            calls.push('getExportTables');
+            return Promise.resolve(tables);
+          },
+        }),
+      );
+      fixture = TestBed.createComponent(ExportControlComponent);
+      fixture.componentInstance.featureId = 'tabled';
+      fixture.detectChanges();
+    });
+
+    it.each([
+      ['Excel', 1, 'Holdings.xlsx'],
+      ['CSV', 2, 'Holdings.zip'],
+      ['JSON', 3, 'Holdings.json'],
+    ])('passes the tables and skips fetchData for %s (%s)', async (_l, index, fileName) => {
+      await fixture.componentInstance['menuItems']()[index].command?.();
+
+      expect(calls).toEqual(['getExportTables']);
+      expect(exported[0].tables).toEqual(tables);
+      expect(exported[0].rows).toEqual([]);
+      expect(downloadedFileNames).toEqual([fileName]);
+    });
+
+    it('ignores the tables for the PDF', async () => {
+      await fixture.componentInstance['menuItems']()[0].command?.();
+
+      expect(calls).toEqual(['fetchData']);
+      expect(exported[0].tables).toBeUndefined();
+      expect(downloadedFileNames).toEqual(['Holdings.pdf']);
+    });
+  });
 });

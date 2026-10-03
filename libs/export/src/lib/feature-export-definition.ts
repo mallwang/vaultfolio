@@ -68,6 +68,34 @@ export type PdfSection =
     }
   | { kind: 'text'; title?: string; text: string };
 
+export type ExportTableColumnFormat = 'text' | 'integer' | 'money' | 'ratio';
+
+export interface ExportTableColumn {
+  /** Stable, language-independent key (JSON field name). */
+  key: string;
+  /** Already translated (CSV/Excel header). */
+  label: string;
+  format: ExportTableColumnFormat;
+}
+
+export interface ExportTableRow {
+  /** `money`/`ratio` are canonical decimal strings (ratio = fraction), `integer` a number. */
+  cells: Record<string, string | number | null>;
+  emphasis?: 'total';
+}
+
+/** Format-neutral table: Excel sheet, CSV file or JSON section, depending on the exporter. */
+export interface ExportTable {
+  /** Stable, language-independent key (JSON section name). */
+  id: string;
+  /** Already translated (sheet name, CSV file name). */
+  title: string;
+  columns: ExportTableColumn[];
+  rows: ExportTableRow[];
+  /** JSON key that receives the `emphasis: 'total'` row. */
+  totalKey?: string;
+}
+
 export type ExportFormat = 'json' | 'csv' | 'xlsx' | 'pdf';
 
 export type ExportColumnFormat = 'text' | 'number' | 'decimal' | 'date' | 'currency';
@@ -118,6 +146,11 @@ export interface FeatureExportDefinition {
    * definition may cache what the charts need. Other formats ignore it.
    */
   getPdfSections?(): Promise<PdfSection[]>;
+  /**
+   * Optional replacement of `fetchData()`/`columns` for JSON, CSV and Excel: when present, those
+   * formats serialize these tables instead of the generic rows. The PDF ignores it.
+   */
+  getExportTables?(): Promise<ExportTable[]>;
   /** PDF-only infobox key, used instead of `infoboxKey` for the PDF. */
   pdfInfoboxKey?: string;
   /**
@@ -150,6 +183,8 @@ export interface ResolvedFeatureExport {
   chartImages?: string[];
   /** Sections rendered instead of the generic table, PDF only. */
   pdfSections?: PdfSection[];
+  /** Tables serialized instead of `rows`, JSON/CSV/Excel only. */
+  tables?: ExportTable[];
   /** Allocation table rendered to the right of the first chart image, PDF only. */
   chartSideTable?: ChartSideTable;
   /** BCP 47 language tag (e.g. 'de', 'en') for locale-aware number/date formatting in PDF. */

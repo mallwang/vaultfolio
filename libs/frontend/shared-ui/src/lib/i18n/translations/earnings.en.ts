@@ -381,15 +381,11 @@ export const earningsEn: TranslationDictionary = {
   export: {
     title: 'Earnings',
     infobox:
-      'About this export — Earnings. One row per payslip section (regular payslip, correction or back-payment) with the figures read from your documents. Amounts are in EUR; deductions are shown as positive values.',
-    columnEmployer: 'Employer',
-    columnPeriod: 'Period',
-    columnIssued: 'Issued',
-    columnKind: 'Kind',
-    columnCorrected: 'Corrected figures',
-    columnSource: 'Source file',
+      'About this export — Earnings. The same four tables as the PDF: gross per year, totals per employer with the career total, the monthly overview (gross and net in separate columns) and all taxes and contributions per year. Years and employers are listed from newest to oldest. Amounts are in EUR; deductions are shown as positive values.',
     pdfInfobox:
       'About this export — Earnings. Gross income per year, totals per employer and over your whole career, the month-by-month gross and all taxes and contributions per year, as shown in the Earnings overview. Employers and years are listed from newest to oldest. Amounts are in EUR; deductions are shown as positive values.',
+    tableEmployers: 'Employers',
+    tableMonthly: 'Monthly overview',
     sectionEmployers: 'Totals per employer',
     sectionMonthly: 'Monthly overview gross / net',
     sectionMonthlySub: 'Gross on top, net below',

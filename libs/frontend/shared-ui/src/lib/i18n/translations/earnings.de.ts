@@ -388,15 +388,11 @@ export const earningsDe: TranslationDictionary = {
   export: {
     title: 'Einkommensentwicklung',
     infobox:
-      'Zu diesem Export – Einkommensentwicklung. Eine Zeile pro Abrechnungsteil (reguläre Abrechnung, Korrektur oder Nachzahlung) mit den aus Ihren Dokumenten gelesenen Werten. Beträge in EUR; Abzüge werden als positive Werte gezeigt.',
-    columnEmployer: 'Arbeitgeber',
-    columnPeriod: 'Zeitraum',
-    columnIssued: 'Abgerechnet',
-    columnKind: 'Art',
-    columnCorrected: 'Korrigierte Werte',
-    columnSource: 'Quelldatei',
+      'Zu diesem Export – Einkommensentwicklung. Dieselben vier Tabellen wie im PDF: Brutto pro Jahr, Summen je Arbeitgeber mit Berufsleben gesamt, die Monatsübersicht (Brutto und Netto in getrennten Spalten) und alle Steuern und Abgaben pro Jahr. Jahre und Arbeitgeber stehen vom neuesten zum ältesten. Beträge in EUR; Abzüge werden als positive Werte gezeigt.',
     pdfInfobox:
       'Zu diesem Export – Einkommensentwicklung. Bruttoeinkommen pro Jahr, Summen je Arbeitgeber und über das gesamte Berufsleben, das Brutto Monat für Monat sowie alle Steuern und Abgaben pro Jahr, wie in der Übersicht der Einkommensentwicklung. Arbeitgeber und Jahre sind vom neuesten zum ältesten sortiert. Beträge in EUR; Abzüge werden als positive Werte gezeigt.',
+    tableEmployers: 'Arbeitgeber',
+    tableMonthly: 'Monatsübersicht',
     sectionEmployers: 'Summen je Arbeitgeber',
     sectionMonthly: 'Monatsübersicht Brutto / Netto',
     sectionMonthlySub: 'Brutto oben, Netto darunter',

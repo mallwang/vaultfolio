@@ -4,6 +4,7 @@ import type { ButtonSeverity } from 'primeng/types/button';
 import {
   FeatureExportRegistry,
   exportFeature,
+  exportFileExtension,
   type ExportFormat,
   type ResolvedFeatureExport,
 } from '@vaultfolio/export';
@@ -148,7 +149,12 @@ export class ExportControlComponent {
         format === 'pdf' && definition.getPdfSections
           ? await definition.getPdfSections()
           : undefined;
-      const rows = pdfSections ? [] : await definition.fetchData();
+      // JSON/CSV/Excel of a definition with tables serialize those instead of the generic rows.
+      const tables =
+        format !== 'pdf' && definition.getExportTables
+          ? await definition.getExportTables()
+          : undefined;
+      const rows = pdfSections || tables ? [] : await definition.fetchData();
       const chartImages =
         format === 'pdf' && definition.getChartOptions
           ? await Promise.all(
@@ -182,6 +188,7 @@ export class ExportControlComponent {
         })),
         rows,
         ...(pdfSections ? { pdfSections } : {}),
+        ...(tables ? { tables } : {}),
         chartImages,
         chartSideTable,
         locale: lang,
@@ -191,7 +198,7 @@ export class ExportControlComponent {
 
       const safeTitle = title.replace(/[/\\:*?"<>|]/g, '_');
       const blob = await exportFeature(resolved, format);
-      triggerDownload(blob, `${safeTitle}.${format}`);
+      triggerDownload(blob, `${safeTitle}.${exportFileExtension(resolved, format)}`);
     } finally {
       this.exporting.set(false);
     }

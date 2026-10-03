@@ -311,9 +311,13 @@ klickst.
 - **Exportieren** bietet deine Einkommensdaten als JSON, CSV, Excel oder PDF an. Das PDF
   ist eine Querformat-Übersicht: Diagramm „Brutto je Jahr“, Summen je Arbeitgeber mit
   Abschlusszeile „Berufsleben gesamt“, Monatsübersicht und alle Steuern und Abgaben pro
-  Jahr (neueste zuerst, immer für dein gesamtes Berufsleben). JSON, CSV und Excel listen
-  jeden Abrechnungsteil auf. Die Daten sind außerdem Teil des vollständigen Archivs
-  **Meine Daten exportieren** in deinem Profil.
+  Jahr (neueste zuerst, immer für dein gesamtes Berufsleben). Excel, CSV und JSON
+  enthalten dieselben vier Tabellen wie das PDF (Brutto je Jahr, Arbeitgeber mit
+  „Berufsleben gesamt“, Monatsübersicht mit Brutto und Netto in getrennten Spalten,
+  Steuern und Abgaben pro Jahr): Excel hat ein Blatt je Tabelle, CSV ist eine ZIP-Datei
+  mit einer Datei je Tabelle, JSON verwendet in jeder Sprache dieselben Feldnamen.
+  Einzelne Abrechnungsteile werden nicht mehr aufgelistet. Die Daten sind außerdem Teil
+  des vollständigen Archivs **Meine Daten exportieren** in deinem Profil.
 
 Das Dashboard zeigt ein Einkommens-Widget mit Brutto, Netto und Nettoquote des
 aktuellen Jahres.

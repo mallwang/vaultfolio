@@ -302,8 +302,12 @@ device. Nothing is saved until you click the import button at the bottom.
 - **Export** offers your earnings as JSON, CSV, Excel or PDF. The PDF is a landscape
   summary: the gross-per-year chart, totals per employer with a closing "Career total"
   row, the monthly overview and all taxes and contributions per year (newest first,
-  always for your whole career). JSON, CSV and Excel list every payslip part. Earnings
-  are also part of the full **Export my data** archive in your profile.
+  always for your whole career). Excel, CSV and JSON carry the same four tables as the
+  PDF (gross per year, employers with the career total, monthly overview with gross and
+  net in separate columns, taxes and contributions per year): Excel has one sheet per
+  table, CSV is a ZIP with one file per table, and JSON uses the same field names in
+  every language. They no longer list individual payslip parts. Earnings are also part
+  of the full **Export my data** archive in your profile.
 
 The dashboard shows an Earnings widget with the current year's gross, net and net
 ratio.

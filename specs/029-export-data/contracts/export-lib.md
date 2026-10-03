@@ -117,3 +117,11 @@ function exportAll(
 `FeatureExportDefinition` may optionally supply `getPdfSections()` / `pdfInfoboxKey` so its PDF
 shows purpose-built sections instead of the generic table; all other formats and features are
 unaffected. See `specs/035-earnings-export-rework/contracts/export-pdf-sections.md`.
+
+## Extension: export tables
+
+`FeatureExportDefinition` may optionally supply `getExportTables()` so JSON, CSV and Excel serialize
+format-neutral tables instead of the generic rows (JSON object with stable keys, Excel sheet per
+table, CSV ZIP with a file per table; flat files in the "Export my data" archive). Other features
+are unaffected. See `specs/035-earnings-export-rework/contracts/export-tables.md`. Release note:
+the earnings JSON/CSV/Excel format changed (no per-payslip rows).

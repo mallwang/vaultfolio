@@ -5,14 +5,9 @@ import {
   type PdfTableColumn,
   type PdfTableRow,
 } from '@vaultfolio/export';
-import type {
-  CareerEntry,
-  EarningsOverview,
-  EarningsTables,
-  TaxYearRow,
-} from '@vaultfolio/api-contract';
+import type { CareerEntry, EarningsOverview, EarningsTables } from '@vaultfolio/api-contract';
 import { monthName } from './earnings-format';
-import { gridRows } from './tables/earnings-tables.component';
+import { buildEarningsReport, type EarningsReport } from './earnings-report';
 
 /**
  * Sections of the earnings PDF (035): the per-employer overview with its career-total row, the
@@ -35,24 +30,13 @@ export function starColumnWidth(columns: readonly PdfTableColumn[]): number {
   const padding = columns.length * 2 * SECTION_CELL_PADDING;
   return (PDF_CONTENT_WIDTH - fixed - padding) / stars;
 }
-const ALL = 'ALL';
 /**
  * Up to this many employers (plus the career-total row) fit on page 1 below the chart; more
  * employers get a page of their own.
  */
 export const MAX_EMPLOYERS_ON_FIRST_PAGE = 6;
 
-/** Most recent employer first: last period, then first period (both descending), then label. */
-function byRecency(a: CareerEntry, b: CareerEntry): number {
-  return (
-    b.lastPeriod.localeCompare(a.lastPeriod) ||
-    b.firstPeriod.localeCompare(a.firstPeriod) ||
-    a.label.localeCompare(b.label)
-  );
-}
-
-function employerRows(career: readonly CareerEntry[], totalLabel: string): PdfTableRow[] {
-  const employers = career.filter((e) => e.key !== ALL).sort(byRecency);
+function employerRows(report: EarningsReport, totalLabel: string): PdfTableRow[] {
   const toRow = (entry: CareerEntry, label: string, emphasis?: 'total'): PdfTableRow => ({
     cells: {
       employer: label,
@@ -65,17 +49,14 @@ function employerRows(career: readonly CareerEntry[], totalLabel: string): PdfTa
     },
     ...(emphasis ? { emphasis } : {}),
   });
-  // The API only returns the `ALL` entry for more than one employer; with a single employer the
-  // career total is that employer's row.
-  const total = career.find((e) => e.key === ALL) ?? (employers.length === 1 ? employers[0] : null);
   return [
-    ...employers.map((e) => toRow(e, e.label)),
-    ...(total ? [toRow(total, totalLabel, 'total')] : []),
+    ...report.employers.map((e) => toRow(e, e.label)),
+    ...(report.total ? [toRow(report.total, totalLabel, 'total')] : []),
   ];
 }
 
 function employerTable(
-  career: readonly CareerEntry[],
+  report: EarningsReport,
   t: Translate,
 ): Extract<PdfSection, { kind: 'table' }> {
   const columns: PdfTableColumn[] = [
@@ -91,14 +72,14 @@ function employerTable(
     kind: 'table',
     title: t('earnings.export.sectionEmployers'),
     columns,
-    rows: employerRows(career, t('earnings.export.careerTotal')),
+    rows: employerRows(report, t('earnings.export.careerTotal')),
     fontSize: 8,
-    startOnNewPage: career.filter((e) => e.key !== ALL).length > MAX_EMPLOYERS_ON_FIRST_PAGE,
+    startOnNewPage: report.employers.length > MAX_EMPLOYERS_ON_FIRST_PAGE,
   };
 }
 
 function monthGridTable(
-  tables: EarningsTables,
+  report: EarningsReport,
   t: Translate,
   lang: string,
 ): Extract<PdfSection, { kind: 'table' }> {
@@ -117,24 +98,16 @@ function monthGridTable(
       secondaryKey: 'netSum',
     },
   ];
-  // Gross on top, net below, from the same grid logic as the screen.
-  const net = new Map(gridRows(tables, 'net').map((row) => [row.year, row]));
-  const rows = gridRows(tables, 'gross')
-    .sort((a, b) => b.year - a.year)
-    .map<PdfTableRow>((row) => {
-      const netRow = net.get(row.year);
-      return {
-        cells: {
-          year: String(row.year),
-          ...Object.fromEntries(row.cells.map((cell, i) => [`m${i + 1}`, cell.value])),
-          ...Object.fromEntries(
-            row.cells.map((_, i) => [`n${i + 1}`, netRow?.cells[i].value ?? null]),
-          ),
-          sum: row.sum,
-          netSum: netRow?.sum ?? null,
-        },
-      };
-    });
+  // Gross on top, net below.
+  const rows = report.monthGrid.map<PdfTableRow>((row) => ({
+    cells: {
+      year: String(row.year),
+      ...Object.fromEntries(row.gross.map((value, i) => [`m${i + 1}`, value])),
+      ...Object.fromEntries(row.net.map((value, i) => [`n${i + 1}`, value])),
+      sum: row.grossSum,
+      netSum: row.netSum,
+    },
+  }));
   return {
     kind: 'table',
     title: t('earnings.export.sectionMonthly'),
@@ -145,11 +118,7 @@ function monthGridTable(
   };
 }
 
-function taxTable(
-  tables: EarningsTables,
-  career: readonly CareerEntry[],
-  t: Translate,
-): Extract<PdfSection, { kind: 'table' }> {
+function taxTable(report: EarningsReport, t: Translate): Extract<PdfSection, { kind: 'table' }> {
   const columns: PdfTableColumn[] = [
     { key: 'year', label: t('earnings.tables.year'), format: 'text', width: 28 },
     { key: 'employer', label: t('earnings.tables.employer'), format: 'text', width: 96 },
@@ -167,37 +136,25 @@ function taxTable(
     { key: 'taxRatio', label: t('earnings.tables.taxesPct'), format: 'percent' },
     { key: 'socialRatio', label: t('earnings.tables.socialPct'), format: 'percent' },
   ];
-  const rank = new Map(
-    career
-      .filter((e) => e.key !== ALL)
-      .sort(byRecency)
-      .map((e, i) => [e.key, i]),
-  );
-  const order = (row: TaxYearRow) => rank.get(row.employerId) ?? Number.MAX_SAFE_INTEGER;
-  const rows = [...tables.taxesPerYear]
-    .sort(
-      (a, b) =>
-        b.year - a.year || order(a) - order(b) || a.employerLabel.localeCompare(b.employerLabel),
-    )
-    .map<PdfTableRow>((row) => ({
-      cells: {
-        year: String(row.year),
-        employer: row.employerLabel,
-        months: row.monthsEmployed,
-        gross: row.gross,
-        bonus: row.bonus,
-        taxGross: row.taxGross,
-        wageTax: row.wageTax,
-        soli: row.soli,
-        churchTax: row.churchTax,
-        health: row.health,
-        care: row.care,
-        pension: row.pension,
-        unemployment: row.unemployment,
-        taxRatio: row.taxRatio,
-        socialRatio: row.socialRatio,
-      },
-    }));
+  const rows = report.taxRows.map<PdfTableRow>((row) => ({
+    cells: {
+      year: String(row.year),
+      employer: row.employerLabel,
+      months: row.monthsEmployed,
+      gross: row.gross,
+      bonus: row.bonus,
+      taxGross: row.taxGross,
+      wageTax: row.wageTax,
+      soli: row.soli,
+      churchTax: row.churchTax,
+      health: row.health,
+      care: row.care,
+      pension: row.pension,
+      unemployment: row.unemployment,
+      taxRatio: row.taxRatio,
+      socialRatio: row.socialRatio,
+    },
+  }));
   return {
     kind: 'table',
     title: t('earnings.tables.taxTitle'),
@@ -220,9 +177,6 @@ export function buildEarningsPdfSections(
   lang: string,
 ): PdfSection[] {
   if (!overview.hasData) return emptyEarningsPdfSections(t);
-  return [
-    employerTable(overview.career, t),
-    monthGridTable(tables, t, lang),
-    taxTable(tables, overview.career, t),
-  ];
+  const report = buildEarningsReport(overview, tables);
+  return [employerTable(report, t), monthGridTable(report, t, lang), taxTable(report, t)];
 }
