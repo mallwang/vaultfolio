@@ -21,7 +21,7 @@ export interface PdfTableRow {
 }
 
 export type PdfSection =
-  | { kind: 'table'; title: string; subtitle?: string; columns: PdfTableColumn[]; rows: PdfTableRow[]; fontSize?: number; emphasizeLastColumn?: boolean }
+  | { kind: 'table'; title: string; subtitle?: string; columns: PdfTableColumn[]; rows: PdfTableRow[]; fontSize?: number }
   | { kind: 'text'; title?: string; text: string };
 
 // FeatureExportDefinition (additions)
@@ -39,7 +39,7 @@ pdfSections?: PdfSection[];
    - if `getPdfSections` exists: awaits it **first**, then `getChartOptions()` / `getChartSideTable()`, and does **not** call `fetchData()` (rows = `[]`);
    - otherwise unchanged.
 2. `exportPdf`: title, meta, infobox, chart images, then — if `pdfSections` is set and non-empty — each section in order (section title, optional subtitle, table); otherwise the existing generic table + sum row. Footer unchanged. Landscape A4.
-3. Table rendering guarantees: all columns inside the content width; explicit column widths (label columns fixed/auto, numeric `*`); numeric cells right-aligned and never wrapped; header row repeated on page break; rows not split across pages; `emphasizeLastColumn` bolds the last column; `emphasis: 'total'` bolds the row.
+3. Table rendering guarantees: all columns inside the content width; explicit column widths (label columns fixed/auto, numeric `*`); numeric cells right-aligned and never wrapped; header row repeated on page break; rows not split across pages; `emphasis: 'total'` bolds the row (career total).
 4. Locale: numbers via `Intl.NumberFormat(resolved.locale)`, EUR; `currencyWhole` has 0 fraction digits; `percent` takes a ratio string/number and renders one decimal.
 5. Non-PDF exporters ignore `pdfSections`. Features not providing the new fields are byte-for-byte unaffected (regression test).
 6. Empty/forbidden: definitions return a single `text` section (translated) instead of empty tables.
