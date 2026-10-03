@@ -58,6 +58,7 @@ export const de: TranslationDictionary = {
     genericError: 'Anmeldung fehlgeschlagen. Bitte erneut versuchen.',
   },
   dashboard: {
+    retirement: 'Altersvorsorge',
     earnings: 'Einkommen',
     totalValue: 'Gesamtwert',
     todaysChange: 'Heutige Veränderung',
@@ -517,6 +518,7 @@ export const de: TranslationDictionary = {
     earningsImports: 'Einkommensentwicklung · Importe',
     earningsImport: 'Dokumente importieren',
     earningsRequest: 'Parser anfragen',
+    retirementOverview: 'Altersvorsorge · Übersicht',
     retirementStatutory: 'Altersvorsorge · Gesetzlich',
     retirementOccupational: 'Altersvorsorge · Betrieblich',
     retirementPrivate: 'Altersvorsorge · Privat',
@@ -658,7 +660,17 @@ export const de: TranslationDictionary = {
   retirementExport: {
     title: 'Altersvorsorge',
     infobox:
-      'Über diesen Export — Altersvorsorge. Die Altersvorsorge-Verfolgung ist in Vaultfolio noch nicht umgesetzt, daher enthält diese Datei heute keine Zeilen — sie wird automatisch Ihre Daten enthalten, sobald diese Funktion verfügbar ist.',
+      'Über diesen Export — Altersvorsorge. Eine Zeile pro erfasstem Vorsorgevertrag: gesetzliche, betriebliche und private Vorsorge mit garantierter und erwarteter Monatsrente, Beiträgen und Terminen. Beträge sind brutto; erwartete Werte sind Prognosen, keine Garantien.',
+    columnPillar: 'Säule',
+    columnType: 'Art',
+    columnProvider: 'Anbieter',
+    columnNumber: 'Vertragsnummer',
+    columnGuaranteed: 'Garantierte Rente (monatlich)',
+    columnExpected: 'Erwartete Rente (monatlich)',
+    columnContribution: 'Beiträge (monatlich)',
+    columnPayoutStart: 'Auszahlungsbeginn',
+    columnStatementDate: 'Stand',
+    columnOrigin: 'Herkunft',
   },
   insurancesExport: {
     title: 'Versicherungen',

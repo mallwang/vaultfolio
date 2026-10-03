@@ -111,6 +111,12 @@ export const retirementDe: TranslationDictionary = {
     },
     deleteHint:
       'Sie können einzelne Einträge oder alle Ihre Altersvorsorge-Daten jederzeit löschen.',
+    deleteAll: 'Alle meine Altersvorsorge-Daten löschen',
+    deleteAllHeader: 'Alle Altersvorsorge-Daten löschen?',
+    deleteAllMessage:
+      'Alle deine Altersvorsorge-Einträge werden endgültig gelöscht. Dein Konto bleibt bestehen. Das kann nicht rückgängig gemacht werden.',
+    deleteAllDone: 'Alle deine Altersvorsorge-Daten wurden gelöscht.',
+    deleteAllFailed: 'Deine Altersvorsorge-Daten konnten nicht gelöscht werden.',
   },
   fields: {
     dataPeriodFrom: 'Datenzeitraum von',
@@ -272,6 +278,65 @@ export const retirementDe: TranslationDictionary = {
       INCOMPLETE: 'Das Dokument enthält nicht die benötigten Werte.',
     },
     checks: 'Fehlgeschlagene Prüfungen',
+  },
+  overview: {
+    title: 'Übersicht',
+    loading: 'Übersicht wird geladen …',
+    kpi: {
+      expected: 'Erwartete Rente gesamt',
+      expectedHint: 'pro Monat, brutto — Prognose',
+      guaranteed: 'Garantierte Rente',
+      guaranteedHint: 'pro Monat, brutto — vertraglich garantiert',
+      savings: 'Aktueller Sparbetrag',
+      savingsHint: 'pro Monat in aktive Verträge',
+      start: 'Rentenbeginn',
+      startStatutory: 'regulärer Beginn der gesetzlichen Rente',
+      startEarliest: 'frühester Vertragsbeginn (noch kein Eintrag zur gesetzlichen Rente)',
+      startEarlier: '{{n}} Vertrag/Verträge beginnen früher',
+      startLater: '{{n}} Vertrag/Verträge beginnen später',
+    },
+    bar: {
+      title: 'Garantiert vs. erwartet',
+      guaranteed: 'Garantiert',
+      additional: 'Zusätzlich erwartet (Prognose)',
+      difference: 'Differenz {{amount}}',
+    },
+    pillar: {
+      details: 'Details ansehen',
+      entries: 'Einträge: {{n}}',
+      emptyStatutory: 'Noch keine gesetzliche Rente erfasst.',
+      emptyOccupational: 'Noch keine Betriebsrente erfasst.',
+      emptyPrivate: 'Noch keine private Vorsorge erfasst.',
+      guaranteed: 'Garantiert',
+      expected: 'Erwartet',
+      capital: 'Kapital',
+      noGuarantee: 'keine Garantie',
+    },
+    empty: {
+      title: 'Noch nichts erfasst',
+      body: 'Lade ein Dokument hoch oder erfasse einen Vertrag manuell, um dein Altersvorsorge-Bild zu sehen.',
+    },
+    notes: {
+      outdated:
+        '{{n}} Eintrag/Einträge älter als 12 Monate — prüfe, ob neuere Auskünfte vorliegen.',
+      incomplete: '{{n}} Eintrag/Einträge ohne die für die Summen nötigen Werte.',
+      capital:
+        'Kapitalauszahlungen und Kapitalkonten sind nicht Teil der Monatsrente. Alle Beträge sind brutto und nominal.',
+    },
+  },
+  widget: {
+    open: 'Zur Altersvorsorge',
+    expected: 'Erwartete Rente',
+    perMonth: 'pro Monat, brutto',
+    start: 'Rentenbeginn',
+    guaranteed: 'Garantierte Rente',
+    savings: 'Sparbetrag',
+    difference: 'Differenz zu garantiert {{amount}}',
+    outdated: '{{n}} veraltet',
+    emptyTitle: 'Altersvorsorge erfassen',
+    emptyBody: 'Erfasse gesetzliche, betriebliche und private Rente an einem Ort.',
+    emptyCta: 'Altersvorsorge erfassen',
+    unavailable: 'Altersvorsorge-Daten sind derzeit nicht verfügbar.',
   },
   errors: {
     loadFailed: 'Die Altersvorsorge-Daten konnten nicht geladen werden.',

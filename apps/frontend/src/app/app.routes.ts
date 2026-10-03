@@ -221,7 +221,13 @@ export const routes: Routes = [
         loadComponent: () =>
           import('@vaultfolio/frontend-domain-retirement').then((m) => m.RetirementAreaComponent),
         children: [
-          { path: '', pathMatch: 'full', redirectTo: 'statutory' },
+          { path: '', pathMatch: 'full', redirectTo: 'overview' },
+          {
+            path: 'overview',
+            title: 'pageTitle.retirementOverview',
+            loadComponent: () =>
+              import('@vaultfolio/frontend-domain-retirement').then((m) => m.OverviewComponent),
+          },
           {
             path: 'statutory',
             title: 'pageTitle.retirementStatutory',

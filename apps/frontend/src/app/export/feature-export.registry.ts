@@ -18,10 +18,10 @@ import { FeatureExportRegistry } from '@vaultfolio/export';
  * registry is fully populated before the app finishes bootstrapping.
  *
  * `createHoldingsExportDefinition`/`createAccountOverviewExportDefinition`/
- * `createEarningsExportDefinition` all call `inject()`
+ * `createEarningsExportDefinition`/`createRetirementExportDefinition` all call `inject()`
  * internally, which only works synchronously inside an active injection context — lost across
  * the `await import(...)` boundary above, hence `runInInjectionContext` re-entering it with the
- * `EnvironmentInjector` captured (synchronously) by the caller before that `await`. The 4
+ * `EnvironmentInjector` captured (synchronously) by the caller before that `await`. The 3
  * placeholder domains export a plain constant instead of a factory, so no injection context is
  * needed for those.
  */
@@ -32,7 +32,7 @@ export async function registerFeatureExports(
   const [
     createHoldingsExportDefinition,
     createAccountOverviewExportDefinition,
-    retirementExportDefinition,
+    createRetirementExportDefinition,
     insurancesExportDefinition,
     haushaltsplanerExportDefinition,
     historicWealthDevelopmentExportDefinition,
@@ -42,7 +42,9 @@ export async function registerFeatureExports(
     import('@vaultfolio/frontend-domain-account-overview').then(
       (m) => m.createAccountOverviewExportDefinition,
     ),
-    import('@vaultfolio/frontend-domain-retirement').then((m) => m.RETIREMENT_EXPORT_DEFINITION),
+    import('@vaultfolio/frontend-domain-retirement').then(
+      (m) => m.createRetirementExportDefinition,
+    ),
     import('@vaultfolio/frontend-domain-insurances').then((m) => m.INSURANCES_EXPORT_DEFINITION),
     import('@vaultfolio/frontend-domain-haushaltsplaner').then(
       (m) => m.HAUSHALTSPLANER_EXPORT_DEFINITION,
@@ -54,7 +56,7 @@ export async function registerFeatureExports(
   ]);
   registry.register(runInInjectionContext(injector, createHoldingsExportDefinition));
   registry.register(runInInjectionContext(injector, createAccountOverviewExportDefinition));
-  registry.register(retirementExportDefinition);
+  registry.register(runInInjectionContext(injector, createRetirementExportDefinition));
   registry.register(insurancesExportDefinition);
   registry.register(haushaltsplanerExportDefinition);
   registry.register(historicWealthDevelopmentExportDefinition);

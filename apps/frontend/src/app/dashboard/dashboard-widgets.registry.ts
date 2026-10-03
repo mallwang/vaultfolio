@@ -21,4 +21,12 @@ export const DASHBOARD_WIDGET_CONTRIBUTIONS: DashboardWidgetContribution[] = [
         (m) => m.EarningsDashboardWidgetComponent,
       ),
   },
+  {
+    domainId: 'retirement',
+    titleKey: 'dashboard.retirement',
+    loadComponent: () =>
+      import('@vaultfolio/frontend-domain-retirement').then(
+        (m) => m.RetirementDashboardWidgetComponent,
+      ),
+  },
 ];

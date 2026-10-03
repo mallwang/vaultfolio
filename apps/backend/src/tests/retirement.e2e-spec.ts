@@ -279,6 +279,38 @@ describe('/retirement', () => {
     });
   });
 
+  describe('summary', () => {
+    it('returns zeros and no pension start for an empty owner', async () => {
+      const response = await s.member.get('/retirement/summary');
+      expect(response.status).toBe(200);
+      expect(response.body).toMatchObject({
+        expectedMonthly: '0.00',
+        guaranteedMonthly: '0.00',
+        monthlySavings: '0.00',
+        pensionStart: null,
+        pillars: { statutory: { count: 0 }, occupational: { count: 0 }, private: { count: 0 } },
+      });
+    });
+
+    it('totals equal the sums of the caller’s own records only', async () => {
+      await create(statutoryPayload());
+      await create(riesterPayload());
+      await create(occupationalPayload());
+      await create(riesterPayload(), s.other);
+      const { body } = await s.member.get('/retirement/summary');
+      const records = (await s.member.get('/retirement/records')).body as RetirementRecord[];
+      expect(body.items).toHaveLength(3);
+      expect(body.items.map((i: { id: string }) => i.id).sort()).toEqual(
+        records.map((r) => r.id).sort(),
+      );
+      const sum = (key: 'guaranteedMonthly' | 'expectedMonthly') =>
+        body.items.reduce((acc: number, i: Record<string, string>) => acc + Number(i[key]), 0);
+      expect(Number(body.guaranteedMonthly)).toBeCloseTo(sum('guaranteedMonthly'), 2);
+      expect(Number(body.expectedMonthly)).toBeCloseTo(sum('expectedMonthly'), 2);
+      expect(body.pensionStart).toMatchObject({ source: 'STATUTORY' });
+    });
+  });
+
   describe('owner isolation', () => {
     it('treats another owner’s record like a missing one on every route', async () => {
       const mine = await create(riesterPayload());
@@ -354,6 +386,7 @@ describe('/retirement without RETIREMENT_ENCRYPTION_KEY', () => {
     const id = 'any-id';
     const { origin: _origin, ...body } = riesterPayload();
     const calls = [
+      await s.member.get('/retirement/summary'),
       await s.member.get('/retirement/records'),
       await s.member.get(`/retirement/records/${id}`),
       await s.member.post('/retirement/records').send(riesterPayload()),

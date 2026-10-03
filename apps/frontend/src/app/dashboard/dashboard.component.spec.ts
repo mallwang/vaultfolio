@@ -50,7 +50,7 @@ const newDomainOnlyUser: SessionUser = {
   email: 'new-domain-only@example.com',
   displayName: 'New Domain Only',
   role: 'MEMBER',
-  domainScopes: ['retirement'],
+  domainScopes: ['insurances'],
 };
 
 describe('DashboardComponent', () => {
@@ -146,6 +146,42 @@ describe('DashboardComponent', () => {
     const el = fixture.nativeElement as HTMLElement;
     expect(el.querySelectorAll('app-dynamic-outlet')).toHaveLength(1);
     expect(el.textContent).toContain('Earnings');
+  });
+
+  // 037-altersvorsorge (T062-T064): the retirement tile renders only for retirement-entitled members.
+  it('shows the retirement tile for a retirement-entitled user', async () => {
+    fakeCurrentUser.setAuthenticated({ ...entitledUser, domainScopes: ['retirement'] });
+    fixture.detectChanges();
+
+    let requests: ReturnType<typeof httpMock.match> = [];
+    await vi.waitFor(
+      () => {
+        fixture.detectChanges();
+        requests = httpMock.match('/api/retirement/summary');
+        expect(requests).toHaveLength(1);
+      },
+      { timeout: 15000 },
+    );
+    requests[0].flush({
+      expectedMonthly: '0.00',
+      guaranteedMonthly: '0.00',
+      differenceMonthly: '0.00',
+      monthlySavings: '0.00',
+      pensionStart: null,
+      capital: { total: '0.00', items: [] },
+      pillars: {
+        statutory: { count: 0, guaranteedMonthly: '0.00', expectedMonthly: '0.00', items: [] },
+        occupational: { count: 0, guaranteedMonthly: '0.00', expectedMonthly: '0.00', items: [] },
+        private: { count: 0, guaranteedMonthly: '0.00', expectedMonthly: '0.00', items: [] },
+      },
+      flags: { outdatedCount: 0, incompleteCount: 0 },
+      items: [],
+    });
+    fixture.detectChanges();
+
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelectorAll('app-dynamic-outlet')).toHaveLength(1);
+    expect(el.querySelector('[data-testid="retirement-widget-empty"]')).not.toBeNull();
   });
 
   it('does not show the earnings widget to a holdings-only user', () => {

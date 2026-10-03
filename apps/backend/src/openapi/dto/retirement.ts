@@ -185,3 +185,64 @@ export class RetirementRecordDto {
   @ApiProperty() createdAt!: string;
   @ApiProperty() updatedAt!: string;
 }
+
+const START_RELATIONS = ['EARLIER', 'SAME', 'LATER'] as const;
+
+export class RetirementSummaryItemDto {
+  @ApiProperty() id!: string;
+  @ApiProperty({ enum: PILLARS }) pillar!: (typeof PILLARS)[number];
+  @ApiProperty({ enum: CONTRACT_TYPES }) contractType!: (typeof CONTRACT_TYPES)[number];
+  @ApiProperty({ enum: ORIGINS }) origin!: (typeof ORIGINS)[number];
+  @ApiProperty({ type: String, nullable: true }) providerLabel!: string | null;
+  @ApiProperty(MONEY) guaranteedMonthly!: string;
+  @ApiProperty(MONEY) expectedMonthly!: string;
+  @ApiProperty({ ...MONEY, nullable: true, description: 'Capital figure, outside monthly sums.' })
+  capital!: string | null;
+  @ApiProperty({ ...DATE, nullable: true }) payoutStart!: string | null;
+  @ApiProperty({ enum: START_RELATIONS, nullable: true })
+  startRelation!: (typeof START_RELATIONS)[number] | null;
+  @ApiProperty() outdated!: boolean;
+  @ApiProperty() incomplete!: boolean;
+}
+
+export class RetirementPillarSummaryDto {
+  @ApiProperty() count!: number;
+  @ApiProperty(MONEY) guaranteedMonthly!: string;
+  @ApiProperty(MONEY) expectedMonthly!: string;
+  @ApiProperty({ type: [RetirementSummaryItemDto] }) items!: RetirementSummaryItemDto[];
+}
+
+export class RetirementPensionStartDto {
+  @ApiProperty(DATE) date!: string;
+  @ApiProperty({ enum: ['STATUTORY', 'EARLIEST_CONTRACT'] }) source!:
+    'STATUTORY' | 'EARLIEST_CONTRACT';
+}
+
+export class RetirementCapitalSummaryDto {
+  @ApiProperty(MONEY) total!: string;
+  @ApiProperty({ type: [RetirementSummaryItemDto] }) items!: RetirementSummaryItemDto[];
+}
+
+export class RetirementSummaryPillarsDto {
+  @ApiProperty({ type: RetirementPillarSummaryDto }) statutory!: RetirementPillarSummaryDto;
+  @ApiProperty({ type: RetirementPillarSummaryDto }) occupational!: RetirementPillarSummaryDto;
+  @ApiProperty({ type: RetirementPillarSummaryDto }) private!: RetirementPillarSummaryDto;
+}
+
+export class RetirementSummaryFlagsDto {
+  @ApiProperty() outdatedCount!: number;
+  @ApiProperty() incompleteCount!: number;
+}
+
+export class RetirementSummaryDto {
+  @ApiProperty(MONEY) expectedMonthly!: string;
+  @ApiProperty(MONEY) guaranteedMonthly!: string;
+  @ApiProperty(MONEY) differenceMonthly!: string;
+  @ApiProperty(MONEY) monthlySavings!: string;
+  @ApiProperty({ type: RetirementPensionStartDto, nullable: true })
+  pensionStart!: RetirementPensionStartDto | null;
+  @ApiProperty({ type: RetirementCapitalSummaryDto }) capital!: RetirementCapitalSummaryDto;
+  @ApiProperty({ type: RetirementSummaryPillarsDto }) pillars!: RetirementSummaryPillarsDto;
+  @ApiProperty({ type: RetirementSummaryFlagsDto }) flags!: RetirementSummaryFlagsDto;
+  @ApiProperty({ type: [RetirementSummaryItemDto] }) items!: RetirementSummaryItemDto[];
+}

@@ -21,7 +21,8 @@ const routes: Routes = [
     path: 'retirement',
     component: RetirementAreaComponent,
     children: [
-      { path: '', pathMatch: 'full', redirectTo: 'statutory' },
+      { path: '', pathMatch: 'full', redirectTo: 'overview' },
+      { path: 'overview', component: StubComponent },
       { path: 'statutory', component: StubComponent },
       { path: 'occupational', component: StubComponent },
       { path: 'private', component: StubComponent },
@@ -67,7 +68,7 @@ describe('RetirementAreaComponent', () => {
     expect(byTestId(el, 'retirement-privacy-link')?.getAttribute('href')).toContain('#privacy');
     expect(byTestId(el, 'retirement-manual-button')).not.toBeNull();
     expect(byTestId(el, 'retirement-upload-button')).not.toBeNull();
-    for (const tab of ['statutory', 'occupational', 'private', 'info']) {
+    for (const tab of ['overview', 'statutory', 'occupational', 'private', 'info']) {
       expect(byTestId(el, `retirement-tab-${tab}`)).not.toBeNull();
     }
     expect(el.textContent).toContain('Further information');

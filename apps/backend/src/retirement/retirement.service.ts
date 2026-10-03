@@ -2,12 +2,14 @@ import { Injectable, Logger } from '@nestjs/common';
 import type {
   RetirementPillar,
   RetirementRecord,
+  RetirementSummary,
   RetirementSupplement,
 } from '@vaultfolio/api-contract';
 import {
   PILLARS,
   failedChecks,
   runChecks,
+  summarize,
   validateRecordInput,
   validateSupplementPatch,
 } from '@vaultfolio/retirement';
@@ -47,6 +49,11 @@ export class RetirementService {
 
   list(ownerId: string, pillar?: RetirementPillar): RetirementRecord[] {
     return this.repository.list(ownerId, pillar);
+  }
+
+  /** Consolidated overview of the owner's records (research R8); empty owner → zeros. */
+  summary(ownerId: string): RetirementSummary {
+    return summarize(this.repository.list(ownerId), new Date());
   }
 
   get(ownerId: string, id: string): RetirementRecord {

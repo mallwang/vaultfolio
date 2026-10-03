@@ -34,6 +34,10 @@ eigenen Infrastruktur.
    - 7.4 [Datenprüfung](#74-datenprüfung)
    - 7.5 [Importe, Umbenennen und Löschen](#75-importe-umbenennen-und-löschen)
    - 7.6 [Parser anfragen](#76-parser-anfragen)
+     7a. [Altersvorsorge](#7a-altersvorsorge)
+   - 7a.1 [Daten erfassen](#7a1-daten-erfassen)
+   - 7a.2 [Übersicht und Tabs](#7a2-übersicht-und-tabs)
+   - 7a.3 [Datenschutz, Export und Löschen](#7a3-datenschutz-export-und-löschen)
 8. [Einstellungen](#8-einstellungen)
    - 8.1 [Profil](#81-profil)
    - 8.2 [Präferenzen](#82-präferenzen)
@@ -379,6 +383,53 @@ Layouts – nie eine Datei. Der Server prüft sie erneut und erzeugt das Muster-
 kannst drei offene Anfragen haben und fünf pro Tag senden. Setzt ein Administrator deine
 Anfrage auf _Erledigt_, erhältst du eine E-Mail mit Link zurück zur Importseite. Löschst du
 dein Konto, werden deine Anfragen und Muster mit gelöscht.
+
+---
+
+## 7a. Altersvorsorge
+
+Die **Altersvorsorge** führt gesetzliche, betriebliche und private Vorsorge in einer Übersicht
+zusammen. Sie ist nur verfügbar, wenn ein Administrator den Bereich Altersvorsorge für dein Konto
+freigeschaltet hat.
+
+### 7a.1 Daten erfassen
+
+- **Dokument hochladen.** Wähle **Dokument hochladen** und das PDF deiner Renteninformation (DRV),
+  einer Mitteilung zu Betriebs- oder Privatrente oder eines Kapitalkontos. Die Art wird automatisch
+  erkannt. Das PDF wird in deinem Browser gelesen; Datei und Text verlassen dein Gerät nie – nach
+  der Prüfung der erkannten Werte werden nur diese Zahlen gespeichert. Gescannte Dokumente brauchen
+  eine Texterkennung auf dem Gerät, dafür wird je Datei deine Zustimmung abgefragt. Wird ein
+  Dokument nicht erkannt, wird nichts gespeichert und du kannst die Werte manuell eingeben.
+- **Manuell erfassen.** Wähle **Manuell erfassen**, die Art (gesetzliche Rente, Betriebsrente,
+  Riester, private Rentenversicherung oder Altersvorsorgedepot) und fülle die passenden Felder aus.
+  Eine garantierte Rente über der erwarteten Rente wird abgelehnt.
+- **Importierte Einträge sind schreibgeschützt.** Werte aus einem Dokument lassen sich nicht ändern;
+  du kannst ergänzen, was das Dokument nicht ausweist (z. B. den Monatsbeitrag), und den Eintrag
+  durch ein neueres Dokument ersetzen. Manuelle Einträge kannst du jederzeit bearbeiten.
+
+Garantierte Beträge erscheinen fett mit „garantiert“-Tag; erwartete Beträge sind Prognosen und
+werden kursiv mit „≈“ dargestellt.
+
+### 7a.2 Übersicht und Tabs
+
+Die **Übersicht** zeigt erwartete und garantierte Monatsrente, den aktuellen Sparbetrag, den
+Rentenbeginn, einen Balken „garantiert vs. erwartet“ und eine Karte je Säule. Einträge, die älter
+als 12 Monate sind, sind als **Veraltet** markiert; fehlen Werte für die Summen, als
+**Unvollständig**. Kapitalauszahlungen und Kapitalkonten zählen nicht zur Monatsrente; alle Beträge
+sind brutto. Die Tabs **Gesetzlich**, **Betrieblich** und **Privat** listen die Verträge einer
+Säule; **Weiterführende Informationen** verlinkt externe Quellen (die Links senden keine Daten).
+
+Das Dashboard zeigt eine Kachel mit den wichtigsten Zahlen; ein Klick öffnet den Bereich.
+
+### 7a.3 Datenschutz, Export und Löschen
+
+Beträge und Vertragsnummern werden verschlüsselt gespeichert; Name, Adresse, Steuer-ID und
+Bankdaten werden nie abgefragt oder gespeichert. Der Betreiber deiner Instanz hält den Schlüssel.
+Meldet die Seite _Altersvorsorge ist nicht verfügbar_, kann der Server die Daten gerade nicht
+lesen – sie sind nicht verloren; wende dich an den Betreiber. Der **Export** (Werkzeugleiste)
+schreibt deine Einträge als PDF, Excel, CSV oder JSON. Unten bei **Weiterführende Informationen**
+kannst du alle deine Altersvorsorge-Daten löschen (das Konto bleibt); einzelne Einträge löschst du
+auf ihrer Karte.
 
 ---
 

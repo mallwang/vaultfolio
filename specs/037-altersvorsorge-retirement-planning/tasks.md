@@ -130,17 +130,17 @@ Nx monorepo: `libs/<lib>/src/lib/`, `apps/backend/src/`, `libs/frontend/domain/r
 
 ### Tests for User Story 2
 
-- [ ] T054 [P] [US2] Write `libs/retirement/src/lib/summary.spec.ts` with fixed exact-decimal expectations from research R8 (guaranteed = Σ occupational+private guarantees; expected = statutory projected + Σ max(expected, guaranteed); savings = Σ (own+employer) of ACTIVE contracts; difference; pension start from statutory else earliest + `EARLIEST_CONTRACT`; `startRelation` EARLIER/SAME/LATER; capital separate; outdated via injected `now` (12-month boundary); incomplete; mockup values 403 / 2 860 / 335 reproduced)
-- [ ] T055 [P] [US2] Extend `apps/backend/src/tests/retirement.e2e-spec.ts` with `GET /retirement/summary` (empty owner → zeros and `pensionStart: null`; totals equal sums; another owner's records excluded; 503 without key)
+- [x] T054 [P] [US2] Write `libs/retirement/src/lib/summary.spec.ts` with fixed exact-decimal expectations from research R8 (guaranteed = Σ occupational+private guarantees; expected = statutory projected + Σ max(expected, guaranteed); savings = Σ (own+employer) of ACTIVE contracts; difference; pension start from statutory else earliest + `EARLIEST_CONTRACT`; `startRelation` EARLIER/SAME/LATER; capital separate; outdated via injected `now` (12-month boundary); incomplete; mockup values 403 / 2 860 / 335 reproduced)
+- [x] T055 [P] [US2] Extend `apps/backend/src/tests/retirement.e2e-spec.ts` with `GET /retirement/summary` (empty owner → zeros and `pensionStart: null`; totals equal sums; another owner's records excluded; 503 without key)
 
 ### Implementation for User Story 2
 
-- [ ] T056 [US2] Implement `summarize(records, now)` in `libs/retirement/src/lib/summary.ts` (pure, exact decimals, capital never added to monthly sums) and export it
-- [ ] T057 [US2] Add `GET /retirement/summary` to `apps/backend/src/retirement/retirement.controller.ts` + service method (decrypt owner rows, `summarize(rows, new Date())`)
-- [ ] T058 [US2] Add the `RetirementSummary` response DTO to `apps/backend/src/openapi/dto/retirement.ts` and the route decorators; run `npx nx run backend:openapi` and commit `api/openapi.yml`; run `npx nx run backend:openapi:check`
-- [ ] T059 [US2] Implement `libs/frontend/domain/retirement/src/lib/overview/` (four KPI tiles, guaranteed-vs-expected stacked bar with difference badge, three pillar cards with sub-totals and entry rows, empty states per pillar, outdated warn note, capital/gross info note, guaranteed vs Prognose styling, responsive layout per design.md) with `data-testid`s and spec
-- [ ] T060 [US2] Add overview translation keys (de/en) and keep parity spec green
-- [ ] T061 [US2] Run `verify-ui`: overview totals match cards, empty-state hints, outdated/incomplete badges, mobile width layout
+- [x] T056 [US2] Implement `summarize(records, now)` in `libs/retirement/src/lib/summary.ts` (pure, exact decimals, capital never added to monthly sums) and export it
+- [x] T057 [US2] Add `GET /retirement/summary` to `apps/backend/src/retirement/retirement.controller.ts` + service method (decrypt owner rows, `summarize(rows, new Date())`)
+- [x] T058 [US2] Add the `RetirementSummary` response DTO to `apps/backend/src/openapi/dto/retirement.ts` and the route decorators; run `npx nx run backend:openapi` and commit `api/openapi.yml`; run `npx nx run backend:openapi:check`
+- [x] T059 [US2] Implement `libs/frontend/domain/retirement/src/lib/overview/` (four KPI tiles, guaranteed-vs-expected stacked bar with difference badge, three pillar cards with sub-totals and entry rows, empty states per pillar, outdated warn note, capital/gross info note, guaranteed vs Prognose styling, responsive layout per design.md) with `data-testid`s and spec
+- [x] T060 [US2] Add overview translation keys (de/en) and keep parity spec green
+- [x] T061 [US2] Run `verify-ui`: overview totals match cards, empty-state hints, outdated/incomplete badges, mobile width layout
 
 **Checkpoint**: Stories 1 and 2 both work independently.
 
@@ -152,10 +152,10 @@ Nx monorepo: `libs/<lib>/src/lib/`, `apps/backend/src/`, `libs/frontend/domain/r
 
 **Independent Test**: With data, the tile's figures equal the overview; with none, the empty state's call to action opens the Retirement page; an unavailable domain degrades gracefully.
 
-- [ ] T062 [P] [US3] Write `libs/frontend/domain/retirement/src/lib/retirement-dashboard-widget/retirement-dashboard-widget.component.spec.ts` (figures equal service summary, empty variant + link, "n veraltet" badge, 503 → graceful degraded state)
-- [ ] T063 [US3] Implement `libs/frontend/domain/retirement/src/lib/retirement-dashboard-widget/` (hero expected pension with Prognose tag, mini guaranteed/expected bar with difference, rows Rentenbeginn / Garantierte Rente / Sparbetrag, whole tile is a link "Zur Altersvorsorge", empty variant "Altersvorsorge erfassen") with `data-testid`s
-- [ ] T064 [US3] Register the widget in `apps/frontend/src/app/dashboard/dashboard-widgets.registry.ts` (`domainId: 'retirement'`, `titleKey: 'dashboard.retirement'`) and add translation keys (de/en)
-- [ ] T065 [US3] Run `verify-ui`: tile with data, empty state, click navigates to the overview
+- [x] T062 [P] [US3] Write `libs/frontend/domain/retirement/src/lib/retirement-dashboard-widget/retirement-dashboard-widget.component.spec.ts` (figures equal service summary, empty variant + link, "n veraltet" badge, 503 → graceful degraded state)
+- [x] T063 [US3] Implement `libs/frontend/domain/retirement/src/lib/retirement-dashboard-widget/` (hero expected pension with Prognose tag, mini guaranteed/expected bar with difference, rows Rentenbeginn / Garantierte Rente / Sparbetrag, whole tile is a link "Zur Altersvorsorge", empty variant "Altersvorsorge erfassen") with `data-testid`s
+- [x] T064 [US3] Register the widget in `apps/frontend/src/app/dashboard/dashboard-widgets.registry.ts` (`domainId: 'retirement'`, `titleKey: 'dashboard.retirement'`) and add translation keys (de/en)
+- [x] T065 [US3] Run `verify-ui`: tile with data, empty state, click navigates to the overview
 
 **Checkpoint**: Stories 1–3 independently functional.
 
@@ -183,10 +183,10 @@ Nx monorepo: `libs/<lib>/src/lib/`, `apps/backend/src/`, `libs/frontend/domain/r
 
 **Independent Test**: Add a private Altersvorsorgedepot; it appears under the private pillar, adds to monthly savings and expected pension, adds zero to guaranteed; submitting `guaranteedMonthly` is rejected.
 
-- [ ] T071 [P] [US5] Add depot cases to `libs/retirement/src/lib/validation.spec.ts` and `summary.spec.ts` (no guaranteed contribution; depot with only `currentValue` flagged incomplete if expected missing) and to `apps/backend/src/tests/retirement.e2e-spec.ts` (`guaranteedMonthly` on depot → 400)
-- [ ] T072 [US5] Ensure the depot field map in `libs/retirement/src/lib/validation.ts` and `libs/retirement/src/lib/summary.ts` matches the spec (only `currentValue`, optional `expectedMonthly`; counts to savings/expected, zero guaranteed) and fix any gap found by T071
-- [ ] T073 [US5] Verify the record form (`record-form/`) offers the depot chip labelled "ab 2027" with only its relevant fields and the card shows "keine Garantie"; add/adjust component spec and translations
-- [ ] T074 [US5] Run `verify-ui`: add a depot, check pillar placement and totals
+- [x] T071 [P] [US5] Add depot cases to `libs/retirement/src/lib/validation.spec.ts` and `summary.spec.ts` (no guaranteed contribution; depot with only `currentValue` flagged incomplete if expected missing) and to `apps/backend/src/tests/retirement.e2e-spec.ts` (`guaranteedMonthly` on depot → 400)
+- [x] T072 [US5] Ensure the depot field map in `libs/retirement/src/lib/validation.ts` and `libs/retirement/src/lib/summary.ts` matches the spec (only `currentValue`, optional `expectedMonthly`; counts to savings/expected, zero guaranteed) and fix any gap found by T071
+- [x] T073 [US5] Verify the record form (`record-form/`) offers the depot chip labelled "ab 2027" with only its relevant fields and the card shows "keine Garantie"; add/adjust component spec and translations
+- [x] T074 [US5] Run `verify-ui`: add a depot, check pillar placement and totals
 
 **Checkpoint**: All five stories independently functional.
 
@@ -194,11 +194,11 @@ Nx monorepo: `libs/<lib>/src/lib/`, `apps/backend/src/`, `libs/frontend/domain/r
 
 ## Phase 8: Polish & Cross-Cutting Concerns
 
-- [ ] T075 [P] Replace the empty `RETIREMENT_EXPORT_DEFINITION` in `libs/frontend/domain/retirement/src/lib/retirement-export.definition.ts` with a factory definition (injects `RetirementService`; table columns pillar, type, provider, number, guaranteed, expected, contribution, payout start, statement date, origin) for PDF/Excel/CSV/JSON (FR-019), update `retirement-export.definition.spec.ts`, and register it lazily in `apps/frontend/src/app/export/feature-export.registry.ts` like Earnings
-- [ ] T076 [P] Add a "delete all my retirement data" action (FR-015) with confirmation in the retirement area/privacy note, wired to `DELETE /retirement`, with `data-testid` and spec; extend e2e if not covered
-- [ ] T077 [P] Document the feature: `RETIREMENT_ENCRYPTION_KEY` and 503 behaviour in `README.md` and `README.de.md`; add upload vs manual entry, read-only imports and supported statement types to `docs/user-guide.md` and `docs/user-guide.de.md`; update `docs/frontend/testid-conventions.md` if new patterns appear
-- [ ] T078 [P] Verify no secrets/personal data in the diff: no real PDFs under `libs/**` or `specs/**` (only `tmp/` locally), no amounts/identifiers in log statements (grep `Logger` calls in `apps/backend/src/retirement/`)
-- [ ] T079 Run the quickstart.md walkthrough (sections 1–4: libs/backend tests, the ten UI flows via `verify-ui`, key handling incl. missing/different key, privacy checks)
+- [x] T075 [P] Replace the empty `RETIREMENT_EXPORT_DEFINITION` in `libs/frontend/domain/retirement/src/lib/retirement-export.definition.ts` with a factory definition (injects `RetirementService`; table columns pillar, type, provider, number, guaranteed, expected, contribution, payout start, statement date, origin) for PDF/Excel/CSV/JSON (FR-019), update `retirement-export.definition.spec.ts`, and register it lazily in `apps/frontend/src/app/export/feature-export.registry.ts` like Earnings
+- [x] T076 [P] Add a "delete all my retirement data" action (FR-015) with confirmation in the retirement area/privacy note, wired to `DELETE /retirement`, with `data-testid` and spec; extend e2e if not covered
+- [x] T077 [P] Document the feature: `RETIREMENT_ENCRYPTION_KEY` and 503 behaviour in `README.md` and `README.de.md`; add upload vs manual entry, read-only imports and supported statement types to `docs/user-guide.md` and `docs/user-guide.de.md`; update `docs/frontend/testid-conventions.md` if new patterns appear
+- [x] T078 [P] Verify no secrets/personal data in the diff: no real PDFs under `libs/**` or `specs/**` (only `tmp/` locally), no amounts/identifiers in log statements (grep `Logger` calls in `apps/backend/src/retirement/`)
+- [x] T079 Run the quickstart.md walkthrough (sections 1–4: libs/backend tests, the ten UI flows via `verify-ui`, key handling incl. missing/different key, privacy checks)
 - [ ] T080 Run gates: `npm exec nx -- run-many -t lint test build`, `npm run format:check`, `npx nx run backend:openapi:check`; then `/speckit-coverage` (≥ 80 % per project) and the Sonar steps
 
 ---

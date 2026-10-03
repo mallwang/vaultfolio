@@ -64,6 +64,7 @@ export const en: TranslationDictionary = {
     genericError: 'Sign in failed. Please try again.',
   },
   dashboard: {
+    retirement: 'Retirement',
     earnings: 'Earnings',
     totalValue: 'Total value',
     todaysChange: "Today's change",
@@ -515,6 +516,7 @@ export const en: TranslationDictionary = {
     earningsImports: 'Earnings · Imports',
     earningsImport: 'Import documents',
     earningsRequest: 'Request a parser',
+    retirementOverview: 'Retirement · Overview',
     retirementStatutory: 'Retirement · Statutory',
     retirementOccupational: 'Retirement · Occupational',
     retirementPrivate: 'Retirement · Private',
@@ -654,7 +656,17 @@ export const en: TranslationDictionary = {
   retirementExport: {
     title: 'Retirement',
     infobox:
-      'About this export — Retirement. Retirement tracking is not built yet in Vaultfolio, so this file contains no rows today — it will automatically start including your data once that feature ships.',
+      'About this export — Retirement. One row per recorded retirement contract: statutory, occupational and private provision with guaranteed and expected monthly pension, contributions and dates. Amounts are gross; expected values are projections, not guarantees.',
+    columnPillar: 'Pillar',
+    columnType: 'Type',
+    columnProvider: 'Provider',
+    columnNumber: 'Contract number',
+    columnGuaranteed: 'Guaranteed pension (monthly)',
+    columnExpected: 'Expected pension (monthly)',
+    columnContribution: 'Contributions (monthly)',
+    columnPayoutStart: 'Payout start',
+    columnStatementDate: 'Statement date',
+    columnOrigin: 'Origin',
   },
   insurancesExport: {
     title: 'Insurances',

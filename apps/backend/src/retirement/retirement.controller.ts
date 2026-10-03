@@ -13,7 +13,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
-import type { RetirementRecord } from '@vaultfolio/api-contract';
+import type { RetirementRecord, RetirementSummary } from '@vaultfolio/api-contract';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { RequestUser } from '../auth/current-user.decorator';
 import { RequiresDomain } from '../auth/domain.decorator';
@@ -23,6 +23,7 @@ import {
   RetirementManualRecordInputDto,
   RetirementRecordDto,
   RetirementRecordInputDto,
+  RetirementSummaryDto,
   RetirementSupplementPatchDto,
 } from '../openapi/dto';
 import { RetirementAvailableGuard } from './retirement-available.guard';
@@ -47,6 +48,13 @@ import { RetirementService, pillarParam } from './retirement.service';
 })
 export class RetirementController {
   constructor(private readonly retirement: RetirementService) {}
+
+  @Get('summary')
+  @ApiOperation({ summary: 'Derived overview: totals, pillars, pension start, flags.' })
+  @ApiResponse({ status: 200, type: RetirementSummaryDto })
+  summary(@CurrentUser() user: RequestUser): RetirementSummary {
+    return this.retirement.summary(user.id);
+  }
 
   @Get('records')
   @ApiOperation({ summary: "The caller's retirement records, newest statement first." })

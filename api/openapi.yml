@@ -1603,6 +1603,34 @@ paths:
         Per employer and year: year-to-date, certificate and completeness
         checks.
       tags: *ref_14
+  /retirement/summary:
+    get:
+      operationId: RetirementController_summary
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetirementSummaryDto'
+        '403': &ref_15
+          description: Domain not entitled.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '503': &ref_16
+          description: RETIREMENT_UNAVAILABLE — key missing/invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+      security: &ref_17
+        - sessionCookie: []
+      summary: 'Derived overview: totals, pillars, pension start, flags.'
+      tags: &ref_18
+        - retirement
   /retirement/records:
     get:
       operationId: RetirementController_list
@@ -1631,23 +1659,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-        '403': &ref_15
-          description: Domain not entitled.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponseDto'
-        '503': &ref_16
-          description: RETIREMENT_UNAVAILABLE — key missing/invalid.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponseDto'
-      security: &ref_17
-        - sessionCookie: []
+        '403': *ref_15
+        '503': *ref_16
+      security: *ref_17
       summary: The caller's retirement records, newest statement first.
-      tags: &ref_18
-        - retirement
+      tags: *ref_18
     post:
       operationId: RetirementController_create
       parameters: []
@@ -4347,6 +4363,198 @@ components:
         - certificate
         - completeness
         - lateCorrections
+    RetirementPensionStartDto:
+      type: object
+      properties:
+        date:
+          type: string
+          example: '2026-04-01'
+          description: YYYY-MM-DD.
+        source:
+          type: string
+          enum:
+            - STATUTORY
+            - EARLIEST_CONTRACT
+      required:
+        - date
+        - source
+    RetirementSummaryItemDto:
+      type: object
+      properties:
+        id:
+          type: string
+        pillar:
+          type: string
+          enum: &ref_34
+            - STATUTORY
+            - OCCUPATIONAL
+            - PRIVATE
+        contractType:
+          type: string
+          enum: &ref_35
+            - STATUTORY_PENSION
+            - DIRECT_INSURANCE
+            - PENSIONSKASSE
+            - DIREKTZUSAGE
+            - UNTERSTUETZUNGSKASSE
+            - PENSIONSFONDS
+            - CAPITAL_ACCOUNT
+            - RIESTER
+            - PRIVATE_PENSION_INSURANCE
+            - ALTERSVORSORGEDEPOT
+        origin:
+          type: string
+          enum: &ref_36
+            - IMPORTED
+            - MANUAL
+        providerLabel:
+          type: string
+          nullable: true
+        guaranteedMonthly:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        expectedMonthly:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        capital:
+          type: string
+          example: '1234.56'
+          description: Capital figure, outside monthly sums.
+          nullable: true
+        payoutStart:
+          type: string
+          example: '2026-04-01'
+          description: YYYY-MM-DD.
+          nullable: true
+        startRelation:
+          type: string
+          enum:
+            - EARLIER
+            - SAME
+            - LATER
+          nullable: true
+        outdated:
+          type: boolean
+        incomplete:
+          type: boolean
+      required:
+        - id
+        - pillar
+        - contractType
+        - origin
+        - providerLabel
+        - guaranteedMonthly
+        - expectedMonthly
+        - capital
+        - payoutStart
+        - startRelation
+        - outdated
+        - incomplete
+    RetirementCapitalSummaryDto:
+      type: object
+      properties:
+        total:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/RetirementSummaryItemDto'
+      required:
+        - total
+        - items
+    RetirementPillarSummaryDto:
+      type: object
+      properties:
+        count:
+          type: number
+        guaranteedMonthly:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        expectedMonthly:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/RetirementSummaryItemDto'
+      required:
+        - count
+        - guaranteedMonthly
+        - expectedMonthly
+        - items
+    RetirementSummaryPillarsDto:
+      type: object
+      properties:
+        statutory:
+          $ref: '#/components/schemas/RetirementPillarSummaryDto'
+        occupational:
+          $ref: '#/components/schemas/RetirementPillarSummaryDto'
+        private:
+          $ref: '#/components/schemas/RetirementPillarSummaryDto'
+      required:
+        - statutory
+        - occupational
+        - private
+    RetirementSummaryFlagsDto:
+      type: object
+      properties:
+        outdatedCount:
+          type: number
+        incompleteCount:
+          type: number
+      required:
+        - outdatedCount
+        - incompleteCount
+    RetirementSummaryDto:
+      type: object
+      properties:
+        expectedMonthly:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        guaranteedMonthly:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        differenceMonthly:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        monthlySavings:
+          type: string
+          example: '1234.56'
+          description: Canonical decimal string (EUR, up to 2 decimal places).
+        pensionStart:
+          nullable: true
+          type: object
+          allOf:
+            - $ref: '#/components/schemas/RetirementPensionStartDto'
+        capital:
+          $ref: '#/components/schemas/RetirementCapitalSummaryDto'
+        pillars:
+          $ref: '#/components/schemas/RetirementSummaryPillarsDto'
+        flags:
+          $ref: '#/components/schemas/RetirementSummaryFlagsDto'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/RetirementSummaryItemDto'
+      required:
+        - expectedMonthly
+        - guaranteedMonthly
+        - differenceMonthly
+        - monthlySavings
+        - pensionStart
+        - capital
+        - pillars
+        - flags
+        - items
     RetirementSupplementDto:
       type: object
       properties:
@@ -4368,7 +4576,7 @@ components:
           description: Canonical decimal string (EUR, up to 2 decimal places).
         expectedScenario:
           type: string
-          enum: &ref_38
+          enum: &ref_39
             - '0'
             - '3'
             - '6'
@@ -4396,31 +4604,16 @@ components:
           type: string
         pillar:
           type: string
-          enum:
-            - STATUTORY
-            - OCCUPATIONAL
-            - PRIVATE
+          enum: *ref_34
         contractType:
           type: string
-          enum: &ref_34
-            - STATUTORY_PENSION
-            - DIRECT_INSURANCE
-            - PENSIONSKASSE
-            - DIREKTZUSAGE
-            - UNTERSTUETZUNGSKASSE
-            - PENSIONSFONDS
-            - CAPITAL_ACCOUNT
-            - RIESTER
-            - PRIVATE_PENSION_INSURANCE
-            - ALTERSVORSORGEDEPOT
+          enum: *ref_35
         origin:
           type: string
-          enum: &ref_37
-            - IMPORTED
-            - MANUAL
+          enum: *ref_36
         status:
           type: string
-          enum: &ref_35
+          enum: &ref_37
             - ACTIVE
             - PAID_UP
             - IN_PAYOUT
@@ -4441,7 +4634,7 @@ components:
           nullable: true
         figures:
           description: Figures of the contract type (strict per-type whitelist).
-          oneOf: &ref_36
+          oneOf: &ref_38
             - $ref: '#/components/schemas/RetirementStatutoryFiguresDto'
             - $ref: '#/components/schemas/RetirementPensionFiguresDto'
             - $ref: '#/components/schemas/RetirementCapitalAccountFiguresDto'
@@ -4668,10 +4861,10 @@ components:
       properties:
         contractType:
           type: string
-          enum: *ref_34
+          enum: *ref_35
         status:
           type: string
-          enum: *ref_35
+          enum: *ref_37
         providerLabel:
           type: string
           maxLength: 80
@@ -4690,10 +4883,10 @@ components:
           description: Insurance or contract number; stored encrypted.
         figures:
           description: Figures of the contract type (strict per-type whitelist).
-          oneOf: *ref_36
+          oneOf: *ref_38
         origin:
           type: string
-          enum: *ref_37
+          enum: *ref_36
         supplement:
           description: IMPORTED only.
           allOf:
@@ -4716,10 +4909,10 @@ components:
       properties:
         contractType:
           type: string
-          enum: *ref_34
+          enum: *ref_35
         status:
           type: string
-          enum: *ref_35
+          enum: *ref_37
         providerLabel:
           type: string
           maxLength: 80
@@ -4738,7 +4931,7 @@ components:
           description: Insurance or contract number; stored encrypted.
         figures:
           description: Figures of the contract type (strict per-type whitelist).
-          oneOf: *ref_36
+          oneOf: *ref_38
       required:
         - contractType
         - status
@@ -4765,10 +4958,10 @@ components:
           description: Canonical decimal string (EUR, up to 2 decimal places).
         expectedScenario:
           type: string
-          enum: *ref_38
+          enum: *ref_39
         status:
           type: string
-          enum: *ref_35
+          enum: *ref_37
     SubmitRequestDto:
       type: object
       properties:
@@ -4834,7 +5027,7 @@ components:
           type: string
         status:
           type: string
-          enum: &ref_39
+          enum: &ref_40
             - OPEN
             - IN_PROGRESS
             - DONE
@@ -4917,7 +5110,7 @@ components:
           type: string
         status:
           type: string
-          enum: *ref_39
+          enum: *ref_40
         note:
           type: string
           nullable: true
@@ -4976,7 +5169,7 @@ components:
       properties:
         status:
           type: string
-          enum: *ref_39
+          enum: *ref_40
         note:
           type: string
           maxLength: 2000

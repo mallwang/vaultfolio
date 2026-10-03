@@ -5,3 +5,4 @@ export * from './lib/resources.js';
 export * from './lib/parsers/types.js';
 export * from './lib/parsers/registry.js';
 export * from './lib/freshness.js';
+export * from './lib/summary.js';

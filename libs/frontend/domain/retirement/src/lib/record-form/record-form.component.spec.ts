@@ -36,6 +36,7 @@ describe('RecordFormComponent', () => {
     const el = harness.routeNativeElement as HTMLElement;
     expect(byTestId(el, 'retirement-form-field-currentValue')).not.toBeNull();
     expect(byTestId(el, 'retirement-form-field-guaranteedMonthly')).toBeNull();
+    expect(el.textContent).toContain('2027');
   });
 
   it('shows the inline error when the guarantee exceeds the expected pension', async () => {

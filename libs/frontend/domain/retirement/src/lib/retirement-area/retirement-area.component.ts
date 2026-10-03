@@ -14,7 +14,7 @@ import {
 import { RetirementService } from '../retirement.service';
 import { RetirementUnavailableComponent } from './retirement-unavailable.component';
 
-type TabKey = 'statutory' | 'occupational' | 'private' | 'info';
+type TabKey = 'overview' | 'statutory' | 'occupational' | 'private' | 'info';
 
 const PILLAR_OF_TAB: Partial<Record<TabKey, RetirementPillar>> = {
   statutory: 'STATUTORY',
@@ -28,8 +28,7 @@ const PILLAR_OF_TAB: Partial<Record<TabKey, RetirementPillar>> = {
  * route rendered into the `<router-outlet>`; the pillar tabs carry a count of their entries.
  * With the key unavailable only the unavailable state renders — no toolbar, tabs or figures.
  *
- * The Overview tab (route `''`) joins with the overview screen in Story 2; until then the area
- * redirects to the first pillar.
+ * The Overview tab is the area's default route.
  *
  * Inline template/styles: consumed cross-package as a lazily loaded route target (see
  * `IconComponent`'s note in `@vaultfolio/frontend-shared-ui`).
@@ -138,7 +137,13 @@ export class RetirementAreaComponent {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 
-  protected readonly tabs: readonly TabKey[] = ['statutory', 'occupational', 'private', 'info'];
+  protected readonly tabs: readonly TabKey[] = [
+    'overview',
+    'statutory',
+    'occupational',
+    'private',
+    'info',
+  ];
   protected readonly unavailable = this.service.unavailable;
 
   /** Reloads on every write; a 503 flips `unavailable` on the service, which swaps the area. */
@@ -163,7 +168,7 @@ export class RetirementAreaComponent {
       map(() => this.currentTab()),
       startWith(this.currentTab()),
     ),
-    { initialValue: 'statutory' },
+    { initialValue: 'overview' },
   );
 
   protected count(tab: TabKey): number {
@@ -176,6 +181,6 @@ export class RetirementAreaComponent {
   }
 
   private currentTab(): string {
-    return this.route.snapshot.firstChild?.url[0]?.path ?? 'statutory';
+    return this.route.snapshot.firstChild?.url[0]?.path ?? 'overview';
   }
 }

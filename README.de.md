@@ -218,6 +218,16 @@ Linting, Formatierung, Dependency-Hygiene (knip), Secret-Scanning und die Git-Ho
 automatisch ausführen, sind separat dokumentiert in
 [docs/development.de.md](docs/development.de.md) ([English](docs/development.md)).
 
+### Schlüssel für die Altersvorsorge
+
+Die Altersvorsorge verschlüsselt jeden gespeicherten Betrag, jede Vertragsnummer und jede Ergänzung
+mit einem eigenen `RETIREMENT_ENCRYPTION_KEY` (Base64 von genau 32 Zufallsbytes), getrennt vom
+Schlüssel der Einkommensentwicklung. Erzeugen und sichern Sie ihn wie diesen (siehe oben) – ein
+verlorener oder geänderter Schlüssel macht alle gespeicherten Altersvorsorge-Daten unwiederbringlich
+unlesbar. **Ohne gültigen Schlüssel startet das Backend trotzdem**, aber jede `/retirement`-Route
+antwortet mit `503 RETIREMENT_UNAVAILABLE` (fail closed) und der Bereich zeigt „nicht verfügbar“;
+die übrigen Bereiche bleiben unberührt, gespeicherte Daten gehen nicht verloren.
+
 ## Mit Portainer deployen (oder einem anderen Docker-Hub-basierten Host)
 
 `docker-compose.yml` baut Images lokal aus dem Quellcode, was für Portainer auf einem NAS nicht
