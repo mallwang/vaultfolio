@@ -6,6 +6,8 @@
 
 **Status**: Draft
 
+**Design**: [design.md](design.md)
+
 **Input**: User description: "Altersvorsorge-Feature (nur Deutschland; Nutzer sind in Deutschland wohnhaft, steuerpflichtig und rentenberechtigt). Ziel: Der Nutzer trägt in erster Linie alle Daten und Ansprüche zur künftigen Rentenphase ein, und diese werden übersichtlich dargestellt. Alle 3 Säulen müssen abbildbar sein: (1) gesetzliche Rente (Werte aus der Renteninformation der Deutschen Rentenversicherung), (2) betriebliche Altersvorsorge (mehrere Verträge, z.B. einer pro Arbeitgeber), (3) private Vorsorge (Riester-Rente, private Rentenversicherungen sowie ab 2027 das Altersvorsorgedepot als Unterpunkt). Zusätzlich ein Tab 'Weiterführende Informationen' mit je einer Card pro Art (Beschreibung + Link) zu DRV, Finanzfluss und Finanztip. Dashboard-Kachel mit erwartetem Rentenbeginn, Summe der monatlichen Garantierente und aktuellem monatlichem Ansparbetrag, sodass die Differenz zur erwarteten monatlichen Rente sichtbar wird."
 
 ## User Scenarios & Testing _(mandatory)_
