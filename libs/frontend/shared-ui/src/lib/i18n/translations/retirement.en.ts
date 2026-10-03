@@ -91,23 +91,23 @@ export const retirementEn: TranslationDictionary = {
     },
   },
   privacy: {
-    title: 'How your data is protected',
-    sub: 'Retirement data is personal and sensitive. This is what happens to it.',
-    stored: {
-      title: 'What is stored',
-      body: 'Only the figures and numbers you confirm: pension amounts, contract details and, if you enter them, insurance or contract numbers. Your name, address, tax ID and bank details are never requested or stored.',
-    },
-    encrypted: {
-      title: 'Amounts and numbers are encrypted',
-      body: 'Amounts and insurance or contract numbers are stored encrypted. Only you can see your entries; other users and administrators cannot.',
-    },
-    operator: {
-      title: 'The operator holds the key',
-      body: 'The instance operator runs the server and holds the encryption key. Choose an operator you trust.',
-    },
+    title: 'Your retirement data',
+    sub: 'Retirement documents contain sensitive data. This is what happens to it.',
     device: {
       title: 'Documents stay on your device',
-      body: 'An uploaded document is read in your browser. The file and its text never leave your device; only the figures you confirm are saved.',
+      body: 'PDFs are read in your browser. The file and its text are never uploaded; only the figures you confirm are sent.',
+    },
+    figures: {
+      title: 'Only figures, no identifiers',
+      body: 'Name, address, tax ID and bank details are never requested or stored. Amounts and, if you enter them, insurance or contract numbers are stored encrypted.',
+    },
+    onlyYou: {
+      title: 'Only you can see it',
+      body: 'Nobody else in Vaultfolio can see your retirement data, administrators included. The operator of this Vaultfolio instance runs the server and holds the encryption key.',
+    },
+    request: {
+      title: 'Optional: request a parser',
+      body: 'If a document is not recognized you may request a parser. Only an anonymized, rebuilt copy is sent — personal data is removed, every number is replaced and unknown words are masked unless you keep them — after you review it and consent. Administrators of this instance can see it; it is deleted 30 days after the request is closed. The original file and your real figures never leave your device.',
     },
     links: {
       title: 'Links send no data',
@@ -242,12 +242,16 @@ export const retirementEn: TranslationDictionary = {
   },
   import: {
     title: 'Upload retirement document',
-    dropTitle: 'Drop a statement here',
-    dropSub: 'A PDF of your pension statement, occupational or private pension statement.',
+    dropTitle: 'Drop pension statements, benefit notices or account statements here',
+    dropSub: 'Files are read on this device. Nothing is saved until you confirm.',
     choose: 'Choose file',
     supported: 'Supported',
-    deviceBanner:
-      'The document is read on this device. The file and its text never leave your browser; only the figures you confirm are saved.',
+    formatChips: {
+      drv: 'Pension statement (Deutsche Rentenversicherung)',
+      private: 'Occupational or private pension statement',
+      capital: 'Capital account statement',
+    },
+    deviceBanner: 'Documents stay on your device — only the figures you confirm are sent.',
     reading: 'Reading document…',
     reviewTitle: 'Check the recognised figures',
     checksPassed: 'Plausibility check passed',
@@ -269,20 +273,32 @@ export const retirementEn: TranslationDictionary = {
     showEntry: 'Show entries',
     another: 'Upload another document',
     recognitionPage: 'Reading page {{page}} of {{total}}',
-    rejectedTitle: 'This document could not be imported',
+    progress: 'Read {{done}} of {{total}} files',
+    removeFile: 'Remove file',
+    statusNEW: 'New',
+    statusREPLACES: 'Replaces',
+    statusREJECTED: 'Rejected',
+    statusREADING: 'Reading',
     manualInstead: 'Enter manually',
     tryAnother: 'Try another document',
     rejection: {
-      UNSUPPORTED_FORMAT: 'Only PDF documents are supported.',
-      UNREADABLE: 'The document could not be read.',
+      UNSUPPORTED_FORMAT:
+        'Rejected: only PDF documents are supported. Nothing from this file will be saved.',
+      UNREADABLE: 'Rejected: the file could not be read. It may be damaged.',
       PASSWORD_PROTECTED:
-        'The document is password protected. Remove the protection and try again.',
-      IMAGE_ONLY: 'No automatically readable text was found in this document.',
-      TOO_MANY_PAGES: 'Text recognition is limited to a few pages; this document has more.',
-      ENGINE_UNAVAILABLE: 'Text recognition could not be started on this device.',
-      UNRECOGNISED: 'This statement layout is not recognised yet.',
-      INCONSISTENT: 'The figures failed a plausibility check, so nothing was saved.',
-      INCOMPLETE: 'The document does not contain the figures needed.',
+        'Rejected: the PDF is password protected. Remove the password and try again.',
+      IMAGE_ONLY:
+        'Rejected: the file was recognised as a PDF but contains no text that can be read automatically (e.g. a scan, or a PDF whose text was converted to graphics). Nothing from this file will be saved.',
+      TOO_MANY_PAGES:
+        'Rejected: text recognition is limited to a few pages; this document has more. Nothing from this file will be saved.',
+      ENGINE_UNAVAILABLE:
+        'Rejected: text recognition could not be started on this device. Nothing from this file will be saved.',
+      UNRECOGNISED:
+        'Rejected: this statement layout is not recognised yet. Nothing from this file will be saved.',
+      INCONSISTENT:
+        'Rejected: the figures failed a plausibility check. Nothing from this file will be saved.',
+      INCOMPLETE:
+        'Rejected: the document does not contain the figures needed. Nothing from this file will be saved.',
     },
     checks: 'Failed checks',
   },

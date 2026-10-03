@@ -87,23 +87,23 @@ export const retirementDe: TranslationDictionary = {
     },
   },
   privacy: {
-    title: 'So werden Ihre Daten geschützt',
-    sub: 'Altersvorsorge-Daten sind persönlich und sensibel. So gehen wir damit um.',
-    stored: {
-      title: 'Was gespeichert wird',
-      body: 'Nur die Werte und Nummern, die Sie bestätigen: Rentenbeträge, Vertragsdaten und – falls Sie sie eintragen – Versicherungs- oder Vertragsnummern. Name, Anschrift, Steuer-ID und Bankdaten werden weder abgefragt noch gespeichert.',
-    },
-    encrypted: {
-      title: 'Beträge und Nummern sind verschlüsselt',
-      body: 'Beträge sowie Versicherungs- und Vertragsnummern werden verschlüsselt gespeichert. Nur Sie sehen Ihre Einträge; andere Nutzer und Administratoren nicht.',
-    },
-    operator: {
-      title: 'Der Betreiber hält den Schlüssel',
-      body: 'Der Betreiber dieser Instanz betreibt den Server und hält den Verschlüsselungsschlüssel. Wählen Sie einen Betreiber, dem Sie vertrauen.',
-    },
+    title: 'Ihre Altersvorsorge-Daten',
+    sub: 'Altersvorsorge-Dokumente enthalten sensible Daten. Das passiert mit ihnen.',
     device: {
       title: 'Dokumente bleiben auf Ihrem Gerät',
-      body: 'Ein hochgeladenes Dokument wird in Ihrem Browser gelesen. Datei und Text verlassen Ihr Gerät nicht; gespeichert werden nur die Werte, die Sie bestätigen.',
+      body: 'PDFs werden in Ihrem Browser gelesen. Die Datei und ihr Text werden nie hochgeladen; gesendet werden nur die Werte, die Sie bestätigen.',
+    },
+    figures: {
+      title: 'Nur Beträge, keine Kennungen',
+      body: 'Name, Anschrift, Steuer-ID und Bankdaten werden weder abgefragt noch gespeichert. Beträge sowie Versicherungs- und Vertragsnummern, falls Sie sie eintragen, werden verschlüsselt gespeichert.',
+    },
+    onlyYou: {
+      title: 'Nur Sie sehen sie',
+      body: 'Niemand sonst in Vaultfolio sieht Ihre Altersvorsorge-Daten, auch keine Administratoren. Der Betreiber dieser Vaultfolio-Instanz betreibt den Server und verwaltet den Schlüssel.',
+    },
+    request: {
+      title: 'Optional: Parser anfragen',
+      body: 'Wird ein Dokument nicht erkannt, können Sie einen Parser anfragen. Gesendet wird nur eine anonymisierte, neu aufgebaute Kopie – personenbezogene Daten werden entfernt, jede Zahl wird ersetzt und unbekannte Wörter werden maskiert, sofern Sie sie nicht behalten – nach Ihrer Prüfung und Einwilligung. Administratoren dieser Instanz können sie sehen; sie wird 30 Tage nach Abschluss der Anfrage gelöscht. Die Originaldatei und Ihre echten Beträge verlassen Ihr Gerät nie.',
     },
     links: {
       title: 'Links übertragen keine Daten',
@@ -240,12 +240,18 @@ export const retirementDe: TranslationDictionary = {
   },
   import: {
     title: 'Altersvorsorge-Dokument hochladen',
-    dropTitle: 'Dokument hier ablegen',
-    dropSub: 'Ein PDF deiner Renteninformation oder der Mitteilung zu Betriebs- oder Privatrente.',
+    dropTitle: 'Renteninformation, Standmitteilungen oder Kontoauszüge hier ablegen',
+    dropSub:
+      'Die Dateien werden auf diesem Gerät gelesen. Gespeichert wird erst, wenn Sie bestätigen.',
     choose: 'Datei auswählen',
     supported: 'Unterstützt',
+    formatChips: {
+      drv: 'Renteninformation (Deutsche Rentenversicherung)',
+      private: 'Standmitteilung Betriebs- oder Privatrente',
+      capital: 'Kapitalkonto-Auszug',
+    },
     deviceBanner:
-      'Das Dokument wird auf diesem Gerät gelesen. Datei und Text verlassen deinen Browser nie; nur die bestätigten Zahlen werden gespeichert.',
+      'Dokumente bleiben auf Ihrem Gerät – gesendet werden nur die Werte, die Sie bestätigen.',
     reading: 'Dokument wird gelesen…',
     reviewTitle: 'Erkannte Werte prüfen',
     checksPassed: 'Plausibilitätsprüfung bestanden',
@@ -268,21 +274,33 @@ export const retirementDe: TranslationDictionary = {
     showEntry: 'Einträge anzeigen',
     another: 'Weiteres Dokument hochladen',
     recognitionPage: 'Seite {{page}} von {{total}} wird gelesen',
-    rejectedTitle: 'Dieses Dokument konnte nicht importiert werden',
+    progress: '{{done}} von {{total}} Dateien gelesen',
+    removeFile: 'Datei entfernen',
+    statusNEW: 'Neu',
+    statusREPLACES: 'Ersetzt',
+    statusREJECTED: 'Abgelehnt',
+    statusREADING: 'Wird gelesen',
     manualInstead: 'Manuell eingeben',
     tryAnother: 'Anderes Dokument versuchen',
     rejection: {
-      UNSUPPORTED_FORMAT: 'Es werden nur PDF-Dokumente unterstützt.',
-      UNREADABLE: 'Das Dokument konnte nicht gelesen werden.',
+      UNSUPPORTED_FORMAT:
+        'Abgelehnt: Es werden nur PDF-Dokumente unterstützt. Aus dieser Datei wird nichts gespeichert.',
+      UNREADABLE:
+        'Abgelehnt: Die Datei konnte nicht gelesen werden. Sie ist möglicherweise beschädigt.',
       PASSWORD_PROTECTED:
-        'Das Dokument ist passwortgeschützt. Entferne den Schutz und versuche es erneut.',
-      IMAGE_ONLY: 'In diesem Dokument wurde kein automatisch lesbarer Text gefunden.',
-      TOO_MANY_PAGES: 'Die Texterkennung ist auf wenige Seiten begrenzt; dieses Dokument hat mehr.',
-      ENGINE_UNAVAILABLE: 'Die Texterkennung konnte auf diesem Gerät nicht gestartet werden.',
-      UNRECOGNISED: 'Dieses Dokument-Layout wird noch nicht erkannt.',
+        'Abgelehnt: Das PDF ist passwortgeschützt. Entfernen Sie das Passwort und versuchen Sie es erneut.',
+      IMAGE_ONLY:
+        'Abgelehnt: Die Datei wurde als PDF erkannt, enthält aber keinen automatisch auswertbaren Text (z. B. ein Scan oder ein PDF mit in Grafik umgewandelter Schrift). Aus dieser Datei wird nichts gespeichert.',
+      TOO_MANY_PAGES:
+        'Abgelehnt: Die Texterkennung ist auf wenige Seiten begrenzt; dieses Dokument hat mehr. Aus dieser Datei wird nichts gespeichert.',
+      ENGINE_UNAVAILABLE:
+        'Abgelehnt: Die Texterkennung konnte auf diesem Gerät nicht gestartet werden. Aus dieser Datei wird nichts gespeichert.',
+      UNRECOGNISED:
+        'Abgelehnt: Dieses Dokument-Layout wird noch nicht erkannt. Aus dieser Datei wird nichts gespeichert.',
       INCONSISTENT:
-        'Die Werte haben eine Plausibilitätsprüfung nicht bestanden, daher wurde nichts gespeichert.',
-      INCOMPLETE: 'Das Dokument enthält nicht die benötigten Werte.',
+        'Abgelehnt: Die Werte haben eine Plausibilitätsprüfung nicht bestanden. Aus dieser Datei wird nichts gespeichert.',
+      INCOMPLETE:
+        'Abgelehnt: Das Dokument enthält nicht die benötigten Werte. Aus dieser Datei wird nichts gespeichert.',
     },
     checks: 'Fehlgeschlagene Prüfungen',
   },

@@ -3,13 +3,13 @@ import { IconComponent, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
 
 interface PrivacyCard {
   icon: string;
-  key: 'stored' | 'encrypted' | 'operator' | 'device' | 'links';
+  key: 'device' | 'figures' | 'onlyYou' | 'request' | 'links';
 }
 
 /**
- * The retirement privacy note (FR-016): what is stored, that amounts and numbers are encrypted,
- * that the instance operator holds the key, that documents are read on the device only and that
- * the external links send no data. Content only: shown inside `PrivacyDialogComponent`, which the
+ * The retirement privacy note (FR-016), laid out like the earnings note: documents are read on the
+ * device only, only figures (no identifiers) are stored encrypted, only the user sees them (the
+ * operator holds the key), the optional parser request, and that the external links send no data. Content only: shown inside `PrivacyDialogComponent`, which the
  * toolbar link "How your data is protected" and the empty state's teaser open. Deleting lives in
  * `DangerZoneComponent` on the information tab.
  */
@@ -71,10 +71,10 @@ interface PrivacyCard {
 })
 export class PrivacyNoteComponent {
   protected readonly cards: PrivacyCard[] = [
-    { icon: 'contract', key: 'stored' },
-    { icon: 'lock', key: 'encrypted' },
-    { icon: 'key', key: 'operator' },
-    { icon: 'shield', key: 'device' },
+    { icon: 'lock', key: 'device' },
+    { icon: 'shield', key: 'figures' },
+    { icon: 'visibility-off', key: 'onlyYou' },
+    { icon: 'send', key: 'request' },
     { icon: 'external-link', key: 'links' },
   ];
 }
