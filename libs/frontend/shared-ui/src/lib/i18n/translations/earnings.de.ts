@@ -391,5 +391,11 @@ export const earningsDe: TranslationDictionary = {
     columnKind: 'Art',
     columnCorrected: 'Korrigierte Werte',
     columnSource: 'Quelldatei',
+    pdfInfobox:
+      'Zu diesem Export – Einkommensentwicklung. Bruttoeinkommen pro Jahr, Summen je Arbeitgeber und über das gesamte Berufsleben, das Brutto Monat für Monat sowie alle Steuern und Abgaben pro Jahr, wie in der Übersicht der Einkommensentwicklung. Arbeitgeber und Jahre sind vom neuesten zum ältesten sortiert. Beträge in EUR; Abzüge werden als positive Werte gezeigt.',
+    sectionEmployers: 'Summen je Arbeitgeber',
+    sectionMonthly: 'Monatsübersicht',
+    careerTotal: 'Berufsleben gesamt',
+    empty: 'Es liegen noch keine Einkommensdaten vor.',
   },
 };

@@ -308,9 +308,12 @@ klickst.
 - **Tabellen** – eine Monatsübersicht pro Jahr (ein Klick auf eine Zelle öffnet das
   Monatsdetail), alle Steuern und Abgaben pro Jahr und deine Lohnsteuerbescheinigungen.
 - Der Filter **Arbeitgeber** oben schränkt jede Ansicht auf einen Arbeitgeber ein.
-- **Exportieren** bietet deine Einkommensdaten als JSON, CSV, Excel oder PDF an. Sie
-  sind außerdem Teil des vollständigen Archivs **Meine Daten exportieren** in deinem
-  Profil.
+- **Exportieren** bietet deine Einkommensdaten als JSON, CSV, Excel oder PDF an. Das PDF
+  ist eine Querformat-Übersicht: Diagramm „Brutto je Jahr“, Summen je Arbeitgeber mit
+  Abschlusszeile „Berufsleben gesamt“, Monatsübersicht und alle Steuern und Abgaben pro
+  Jahr (neueste zuerst, immer für dein gesamtes Berufsleben). JSON, CSV und Excel listen
+  jeden Abrechnungsteil auf. Die Daten sind außerdem Teil des vollständigen Archivs
+  **Meine Daten exportieren** in deinem Profil.
 
 Das Dashboard zeigt ein Einkommens-Widget mit Brutto, Netto und Nettoquote des
 aktuellen Jahres.

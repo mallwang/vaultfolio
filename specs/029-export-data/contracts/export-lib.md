@@ -111,3 +111,9 @@ function exportAll(
   download with the feature-appropriate filename (`<featureId>.<ext>`).
 - Carries no per-feature knowledge itself — the same component instance/selector is what FR-009
   requires to be identical across all 6 features.
+
+## Extension: PDF sections
+
+`FeatureExportDefinition` may optionally supply `getPdfSections()` / `pdfInfoboxKey` so its PDF
+shows purpose-built sections instead of the generic table; all other formats and features are
+unaffected. See `specs/035-earnings-export-rework/contracts/export-pdf-sections.md`.

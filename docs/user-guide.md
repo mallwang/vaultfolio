@@ -299,8 +299,11 @@ device. Nothing is saved until you click the import button at the bottom.
 - **Tables** — a month grid per year (click a cell for the month detail), all taxes
   and contributions per year, and your wage-tax certificates.
 - The **Employer** filter at the top narrows every view to one employer.
-- **Export** offers your earnings as JSON, CSV, Excel or PDF. Earnings are also part of
-  the full **Export my data** archive in your profile.
+- **Export** offers your earnings as JSON, CSV, Excel or PDF. The PDF is a landscape
+  summary: the gross-per-year chart, totals per employer with a closing "Career total"
+  row, the monthly overview and all taxes and contributions per year (newest first,
+  always for your whole career). JSON, CSV and Excel list every payslip part. Earnings
+  are also part of the full **Export my data** archive in your profile.
 
 The dashboard shows an Earnings widget with the current year's gross, net and net
 ratio.

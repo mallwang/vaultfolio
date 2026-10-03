@@ -25,6 +25,39 @@ interface ChartSideTable {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- ECharts option shape is owned by the `echarts` package, not this library.
 export type EChartsOption = Record<string, any>;
 
+/** How a `PdfTableColumn` value is rendered; amounts are formatted with the export locale. */
+export type PdfColumnFormat = 'text' | 'currency' | 'currencyWhole' | 'percent' | 'integer';
+
+export interface PdfTableColumn {
+  key: string;
+  /** Already translated. */
+  label: string;
+  format: PdfColumnFormat;
+  /** Fixed width in points, `'auto'` or `'*'`; defaults to `'*'` for numeric, `'auto'` for text. */
+  width?: number | 'auto' | '*';
+  align?: 'left' | 'right';
+}
+
+export interface PdfTableRow {
+  /** Decimals are canonical strings, formatted at render time. Ratios (`percent`) are fractions. */
+  cells: Record<string, string | number | null>;
+  /** `'total'` renders the row bold (e.g. a career-total row). */
+  emphasis?: 'total';
+}
+
+/** One block of a section-based PDF (rendered after title, infobox and charts). */
+export type PdfSection =
+  | {
+      kind: 'table';
+      title: string;
+      subtitle?: string;
+      columns: PdfTableColumn[];
+      rows: PdfTableRow[];
+      /** Density hint in points; the renderer defaults to 8. */
+      fontSize?: number;
+    }
+  | { kind: 'text'; title?: string; text: string };
+
 export type ExportFormat = 'json' | 'csv' | 'xlsx' | 'pdf';
 
 export type ExportColumnFormat = 'text' | 'number' | 'decimal' | 'date' | 'currency';
@@ -70,6 +103,14 @@ export interface FeatureExportDefinition {
    */
   getChartSideTable?(): ChartSideTable | undefined;
   /**
+   * Optional PDF-only replacement for the generic table: when present, the PDF shows these
+   * sections instead of the `fetchData()` table. Awaited before `getChartOptions()`, so the
+   * definition may cache what the charts need. Other formats ignore it.
+   */
+  getPdfSections?(): Promise<PdfSection[]>;
+  /** PDF-only infobox key, used instead of `infoboxKey` for the PDF. */
+  pdfInfoboxKey?: string;
+  /**
    * Returns `false` to disable the export button. Omit (or return `true`) when always available.
    * May read Angular signals — the component calls this inside `computed()`.
    */
@@ -92,6 +133,8 @@ export interface ResolvedFeatureExport {
   rows: ExportRow[];
   /** Pre-captured PNG data URLs, PDF only. */
   chartImages?: string[];
+  /** Sections rendered instead of the generic table, PDF only. */
+  pdfSections?: PdfSection[];
   /** Allocation table rendered to the right of the first chart image, PDF only. */
   chartSideTable?: ChartSideTable;
   /** BCP 47 language tag (e.g. 'de', 'en') for locale-aware number/date formatting in PDF. */

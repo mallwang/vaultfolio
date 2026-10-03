@@ -1,7 +1,11 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import type { EarningsRecordDetail } from '@vaultfolio/api-contract';
+import type {
+  EarningsOverview,
+  EarningsRecordDetail,
+  EarningsTables,
+} from '@vaultfolio/api-contract';
 import { en } from '@vaultfolio/frontend-shared-ui';
 import { createEarningsExportDefinition } from './earnings-export.definition';
 
@@ -111,5 +115,166 @@ describe('createEarningsExportDefinition', () => {
     expect(definition.columns.filter((c) => typeof lookup(c.labelKey) !== 'string')).toEqual([]);
     expect(typeof lookup(definition.titleKey)).toBe('string');
     expect(typeof lookup(definition.infoboxKey)).toBe('string');
+  });
+
+  describe('PDF sections (035)', () => {
+    const overview: EarningsOverview = {
+      hasData: true,
+      career: [
+        {
+          key: 'e1',
+          label: 'Brightline Software GmbH',
+          firstPeriod: '2025-01',
+          lastPeriod: '2026-09',
+          monthsEmployed: 21,
+          employerCount: 1,
+          totals: {
+            gross: '105000.00',
+            net: '65000.00',
+            taxes: '24000.00',
+            social: '16000.00',
+            bonus: '5000.00',
+          },
+          perMonth: { gross: '0.00', net: '0.00', taxes: '0.00', social: '0.00', bonus: '0.00' },
+          netRatio: '0.6190',
+        },
+      ],
+      latestYear: null,
+      yearly: [
+        {
+          year: 2025,
+          monthsEmployed: 12,
+          gross: '60000.00',
+          regular: '55000.00',
+          bonus: '5000.00',
+          net: '37000.00',
+          taxes: '14000.00',
+          social: '9000.00',
+          taxRatio: '0.2333',
+          socialRatio: '0.1500',
+        },
+      ],
+      monthly: [],
+      employerChanges: [],
+      dataCheckIssues: 0,
+    };
+    const tables: EarningsTables = {
+      monthGrid: {
+        years: [2025],
+        metrics: {
+          gross: { '2025-01': '5000.00' },
+          regular: {},
+          bonus: {},
+          net: {},
+          taxes: {},
+          social: {},
+          payout: {},
+        },
+        bonusPeriods: [],
+        missingPeriods: [],
+      },
+      taxesPerYear: [],
+      certificates: [],
+    };
+
+    function flush(o: EarningsOverview = overview) {
+      http.expectOne('/api/earnings/overview').flush(o);
+      http.expectOne('/api/earnings/tables').flush(tables);
+    }
+
+    it('has its own infobox that does not describe payslip-part rows', () => {
+      const definition = TestBed.runInInjectionContext(createEarningsExportDefinition);
+      expect(definition.pdfInfoboxKey).toBe('earnings.export.pdfInfobox');
+      expect(lookup(definition.pdfInfoboxKey as string)).not.toMatch(/payslip section/i);
+      expect(lookup(definition.infoboxKey)).toMatch(/payslip section/i);
+    });
+
+    it('requests overview and tables without an employer filter and builds the sections', async () => {
+      const definition = TestBed.runInInjectionContext(createEarningsExportDefinition);
+      const sections = definition.getPdfSections?.();
+      flush();
+
+      const result = await sections;
+      expect(result?.map((x) => (x.kind === 'table' ? x.title : x.text))).toEqual([
+        'Totals per employer',
+        'Monthly overview',
+        'All taxes and contributions per year',
+      ]);
+    });
+
+    it('offers the gross-per-year chart in the light palette after the sections were built', async () => {
+      const definition = TestBed.runInInjectionContext(createEarningsExportDefinition);
+      expect(definition.getChartOptions?.()).toEqual([]);
+
+      const sections = definition.getPdfSections?.();
+      flush();
+      await sections;
+
+      const [option] = definition.getChartOptions?.() ?? [];
+      expect(option['xAxis'].data).toEqual(['2025']);
+      expect(option['title'].text).toBe('Gross per year');
+      expect(option['series'].map((x: { name: string }) => x.name)).toEqual([
+        'Regular pay',
+        'Bonus & one-off payments',
+      ]);
+    });
+
+    it('returns only the empty state and no chart without data', async () => {
+      const definition = TestBed.runInInjectionContext(createEarningsExportDefinition);
+      const sections = definition.getPdfSections?.();
+      flush({ ...overview, hasData: false, career: [], yearly: [] });
+
+      expect(await sections).toEqual([{ kind: 'text', text: 'There is no earnings data yet.' }]);
+      expect(definition.getChartOptions?.()).toEqual([]);
+    });
+
+    it('returns the empty state for a member without the Earnings domain', async () => {
+      const definition = TestBed.runInInjectionContext(createEarningsExportDefinition);
+      const sections = definition.getPdfSections?.();
+      const forbidden = { status: 403, statusText: 'Forbidden' };
+      http.expectOne('/api/earnings/overview').flush({ error: 'DOMAIN_NOT_ENTITLED' }, forbidden);
+      http.match('/api/earnings/tables').forEach((r) => r.flush({}, forbidden));
+
+      expect(await sections).toEqual([{ kind: 'text', text: 'There is no earnings data yet.' }]);
+    });
+
+    it('lets an unavailable-key response (503) fail the export instead of exporting wrong figures', async () => {
+      const definition = TestBed.runInInjectionContext(createEarningsExportDefinition);
+      const sections = definition.getPdfSections?.();
+      const unavailable = { status: 503, statusText: 'Service Unavailable' };
+      http
+        .expectOne('/api/earnings/overview')
+        .flush({ error: 'EARNINGS_UNAVAILABLE' }, unavailable);
+      http.match('/api/earnings/tables').forEach((r) => r.flush({}, unavailable));
+
+      await expect(sections).rejects.toMatchObject({ status: 503 });
+    });
+
+    it('leaves the CSV/XLSX/JSON data path unchanged', () => {
+      const definition = TestBed.runInInjectionContext(createEarningsExportDefinition);
+      expect(definition.columns.map((c) => c.key)).toEqual([
+        'employer',
+        'period',
+        'issued',
+        'kind',
+        'gross',
+        'bonus',
+        'taxGross',
+        'svGrossKv',
+        'svGrossRv',
+        'wageTax',
+        'soli',
+        'churchTax',
+        'health',
+        'care',
+        'pension',
+        'unemployment',
+        'net',
+        'other',
+        'payout',
+        'source',
+        'corrected',
+      ]);
+    });
   });
 });

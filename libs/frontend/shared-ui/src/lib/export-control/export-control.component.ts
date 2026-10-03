@@ -142,7 +142,13 @@ export class ExportControlComponent {
 
     this.exporting.set(true);
     try {
-      const rows = await definition.fetchData();
+      // The PDF of a definition with sections shows those instead of the generic table; they are
+      // awaited first because the definition may derive its chart data from the same fetch.
+      const pdfSections =
+        format === 'pdf' && definition.getPdfSections
+          ? await definition.getPdfSections()
+          : undefined;
+      const rows = pdfSections ? [] : await definition.fetchData();
       const chartImages =
         format === 'pdf' && definition.getChartOptions
           ? await Promise.all(
@@ -161,7 +167,11 @@ export class ExportControlComponent {
       const resolved: ResolvedFeatureExport = {
         featureId: definition.featureId,
         title,
-        infobox: this.i18n.translate(definition.infoboxKey),
+        infobox: this.i18n.translate(
+          format === 'pdf' && definition.pdfInfoboxKey
+            ? definition.pdfInfoboxKey
+            : definition.infoboxKey,
+        ),
         columns: definition.columns.map((column) => ({
           key: column.key,
           label: this.i18n.translate(column.labelKey),
@@ -169,6 +179,7 @@ export class ExportControlComponent {
           summable: column.summable,
         })),
         rows,
+        ...(pdfSections ? { pdfSections } : {}),
         chartImages,
         chartSideTable,
         locale: lang,
