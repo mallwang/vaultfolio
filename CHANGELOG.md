@@ -1,3 +1,15 @@
+## 0.0.12 (2026-10-03)
+
+### 🚀 Features
+
+- **earnings:** rework earnings export with career overview and table exports ([#74](https://github.com/mallwang/vaultfolio/pull/74))
+- **export:** replace export menu with a format-card dialog ([#75](https://github.com/mallwang/vaultfolio/pull/75))
+- **retirement:** add Altersvorsorge retirement planning domain ([#76](https://github.com/mallwang/vaultfolio/pull/76))
+
+### 🩹 Fixes
+
+- **earnings:** align chart colors with teal theme and improve dark-mode readability ([#73](https://github.com/mallwang/vaultfolio/pull/73))
+
 ## 0.0.11 (2026-10-02)
 
 ### 🩹 Fixes
