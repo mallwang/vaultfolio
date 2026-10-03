@@ -2,6 +2,7 @@ import {
   PRIVATE_EXPECTED,
   syntheticCapitalAccountStatement,
   syntheticPrivateStatement,
+  syntheticStandmitteilung,
 } from '../testing/statements.fixtures';
 import { privateStatementParser } from './private-statement';
 
@@ -68,6 +69,34 @@ describe('privateStatementParser', () => {
     expect(privateStatementParser.parse(syntheticPrivateStatement('missing-label'))).toEqual({
       ok: false,
       error: 'INCOMPLETE',
+    });
+  });
+
+  it('reads the standardised Standmitteilung of a Riester insurer', () => {
+    const doc = syntheticStandmitteilung();
+    expect(privateStatementParser.detects(doc)).toBe(true);
+    expect(privateStatementParser.parse(doc)).toMatchObject({
+      ok: true,
+      record: {
+        contractType: 'RIESTER',
+        statementDate: '2024-04-01',
+        payoutStart: '2057-04-01',
+        providerLabel: 'Musterleben Lebensversicherung a. G.',
+        identifier: '11 222 333',
+        figures: {
+          guaranteedMonthly: '171.00',
+          guaranteedCapital: '68000.00',
+          scenarioMonthly: { '0': '233.00', '3': '350.00', '6': '637.00', '9': '1230.00' },
+          currentValue: '4200.00',
+          contributionsMain: '3800.00',
+          contributionsExtra: '500.00',
+          contributionsPaid: '4300.00',
+          surrenderValue: '3600.00',
+          deathBenefit: '4100.00',
+          guaranteePeriodYears: 23,
+        },
+        missingSupplement: ['contributionMonthly', 'subsidiesYearly'],
+      },
     });
   });
 });

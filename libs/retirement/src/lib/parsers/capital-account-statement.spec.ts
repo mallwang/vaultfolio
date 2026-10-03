@@ -1,6 +1,7 @@
 import {
   CAPITAL_ACCOUNT_EXPECTED,
   syntheticCapitalAccountStatement,
+  syntheticCapitalAccountStatement2019,
   syntheticPrivateStatement,
 } from '../testing/statements.fixtures';
 import { capitalAccountStatementParser } from './capital-account-statement';
@@ -64,5 +65,26 @@ describe('capitalAccountStatementParser', () => {
     expect(
       capitalAccountStatementParser.parse(syntheticCapitalAccountStatement('missing-label')),
     ).toEqual({ ok: false, error: 'INCOMPLETE' });
+  });
+
+  it('reads the written-out account statement of 2019 (date with month name, rate and credit on one line)', () => {
+    const doc = syntheticCapitalAccountStatement2019();
+    expect(capitalAccountStatementParser.detects(doc)).toBe(true);
+    expect(capitalAccountStatementParser.parse(doc)).toMatchObject({
+      ok: true,
+      record: {
+        contractType: 'CAPITAL_ACCOUNT',
+        statementDate: '2019-01-01',
+        providerLabel: 'Beispiel GmbH',
+        figures: {
+          openingBalance: '2000.00',
+          accountBalance: '3020.00',
+          guaranteedInterestRate: '1.0000',
+          interestCredit: '20.00',
+          annualContribution: '1000.00',
+          finalBonus: '0.00',
+        },
+      },
+    });
   });
 });

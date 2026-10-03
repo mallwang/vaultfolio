@@ -78,6 +78,30 @@ export function dateIn(text: string): string | undefined {
   return m ? isoDate(m[1], m[2], m[3]) : undefined;
 }
 
+const MONTHS = [
+  'Januar',
+  'Februar',
+  'März',
+  'April',
+  'Mai',
+  'Juni',
+  'Juli',
+  'August',
+  'September',
+  'Oktober',
+  'November',
+  'Dezember',
+];
+const LONG_DATE = new RegExp(`(\\d{1,2})\\.\\s?(${MONTHS.join('|')})\\s+(\\d{4})`, 'i');
+
+/** First date written with the month name (`01. Januar 2019`) in `text`, as `YYYY-MM-DD`. */
+export function longDateIn(text: string): string | undefined {
+  const m = LONG_DATE.exec(text);
+  if (!m) return undefined;
+  const month = MONTHS.findIndex((name) => name.toLowerCase() === m[2].toLowerCase()) + 1;
+  return isoDate(m[1].padStart(2, '0'), String(month).padStart(2, '0'), m[3]);
+}
+
 /** Every valid date of `text`, left to right. */
 export function datesIn(text: string): string[] {
   return [...text.matchAll(new RegExp(DATE, 'g'))]
@@ -109,6 +133,19 @@ export function textAfter(lines: readonly string[], label: RegExp): string | und
     .replace(/^[\s:–-]+/, '')
     .trim();
   return text === '' ? undefined : text;
+}
+
+/** First value found by trying each label in turn (the layout of the letter changed over the years). */
+export function firstOf(
+  lines: readonly string[],
+  labels: readonly RegExp[],
+  read: (lines: readonly string[], label: RegExp) => string | undefined,
+): string | undefined {
+  for (const label of labels) {
+    const value = read(lines, label);
+    if (value !== undefined) return value;
+  }
+  return undefined;
 }
 
 /** Reduces `figures` to its present entries (parsers leave out what they did not find). */

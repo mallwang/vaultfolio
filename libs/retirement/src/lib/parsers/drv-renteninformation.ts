@@ -1,10 +1,11 @@
-import { type PdfDocumentText } from '@vaultfolio/document-text';
+import { type PdfDocumentText, toMoney } from '@vaultfolio/document-text';
 import type { RetirementStatutoryFigures } from '@vaultfolio/api-contract';
 import { runChecks, failedChecks } from '../checks';
 import {
   amountAfter,
   dateAfter,
   decimalAfter,
+  firstOf,
   indexOfLabel,
   datesIn,
   present,
@@ -31,9 +32,29 @@ function insuranceNumber(lines: readonly string[]): string | undefined {
 }
 
 function dataPeriod(lines: readonly string[]): { from?: string; to?: string } {
-  const i = indexOfLabel(lines, /gespeicherten Daten/i);
+  const i = indexOfLabel(lines, /gespeicherten(?: Daten)?/i);
   const dates = i < 0 ? [] : datesIn(lines[i]);
   return dates.length >= 2 ? { from: dates[0], to: dates[1] } : {};
+}
+
+/** Whole-euro or cent amount followed by the currency (`etwa 3.790 EUR`, `5.250 Euro`). */
+const EURO_AMOUNT = /(?<![\d.,])(\d{1,3}(?:\.\d{3})+|\d+)(?:,(\d{2}))?\s?(?:EUR|Euro)\b/gi;
+
+function euroAmountsIn(text: string): string[] {
+  return [...text.matchAll(EURO_AMOUNT)].map((m) =>
+    toMoney(`${m[1].replaceAll('.', '')}.${m[2] ?? '00'}`),
+  );
+}
+
+/**
+ * The two "etwa … EUR" variants of the 2024+ letter: they run through the sentence, so the first
+ * amount (1 %) and the second (2 %) are read in order from the line that introduces them.
+ */
+function rawVariants(lines: readonly string[]): [string?, string?] {
+  const i = indexOfLabel(lines, /Rente von etwa/i);
+  if (i < 0) return [];
+  const amounts = euroAmountsIn(lines.slice(i, i + 3).join(' '));
+  return [amounts[0], amounts[1]];
 }
 
 function detects(doc: PdfDocumentText): boolean {
@@ -48,30 +69,62 @@ function detects(doc: PdfDocumentText): boolean {
 function parse(doc: PdfDocumentText): ParseOutcome {
   const lines = readLines(doc);
   const statementDate = dateAfter(lines, /\bDatum\b/i);
-  const payoutStart = dateAfter(lines, /Regelaltersgrenze erreichen Sie am/i);
-  const projected = amountAfter(lines, /ohne (?:weitere )?Rentenanpassung(?: monatlich)?/i);
+  const payoutStart = firstOf(
+    lines,
+    [/Regelaltersgrenze erreichen Sie am/i, /Regelaltersrente würde am/i],
+    dateAfter,
+  );
+  const projected = firstOf(
+    lines,
+    [
+      /ohne (?:weitere )?Rentenanpassung(?: monatlich)?/i,
+      /errechnete Rente in Höhe von/i,
+      /Rentenanpassungen von uns eine monatliche Rente von/i,
+    ],
+    amountAfter,
+  );
   if (!statementDate || !payoutStart || !projected) return { ok: false, error: 'INCOMPLETE' };
 
   const period = dataPeriod(lines);
   const figures: RetirementStatutoryFigures = present({
     dataPeriodFrom: period.from,
     dataPeriodTo: period.to,
-    fullDisabilityMonthly: amountAfter(
+    fullDisabilityMonthly: firstOf(
       lines,
-      /voller Erwerbsminderung(?: beträgt)?(?: monatlich)?/i,
+      [
+        /voller Erwerbsminderung(?: beträgt)?(?: monatlich)?/i,
+        /erwerbsgemindert, bekämen Sie von uns eine monatliche Rente von/i,
+      ],
+      amountAfter,
     ),
-    accruedMonthly: amountAfter(
+    accruedMonthly: firstOf(
       lines,
-      /bisher erreichte Rentenanwartschaft(?: beträgt)?(?: monatlich)?/i,
+      [
+        /bisher erreichte Rentenanwartschaft(?: beträgt)?(?: monatlich)?/i,
+        /einer monatlichen Rente von/i,
+      ],
+      amountAfter,
     ),
     projectedMonthly: projected,
-    projectedAt1Pct: amountAfter(lines, /Rentenanpassung von 1\s?%/i),
-    projectedAt2Pct: amountAfter(lines, /Rentenanpassung von 2\s?%/i),
-    earningsPoints: decimalAfter(lines, /Entgeltpunkte/i),
-    currentPensionValue: amountAfter(lines, /Aktuelle[rn]? Rentenwert/i),
-    contributionsOwn: amountAfter(lines, /Beiträge von Ihnen/i),
-    contributionsEmployer: amountAfter(lines, /Beiträge von Arbeitgebern/i),
-    contributionsPublic: amountAfter(lines, /Beiträge von öffentlichen/i),
+    projectedAt1Pct: amountAfter(lines, /Rentenanpassung von 1\s?%/i) ?? rawVariants(lines)[0],
+    projectedAt2Pct: amountAfter(lines, /Rentenanpassung von 2\s?%/i) ?? rawVariants(lines)[1],
+    earningsPoints: firstOf(lines, [/Entgeltpunkte/i, /folgender Höhe erworben/i], decimalAfter),
+    currentPensionValue: firstOf(
+      lines,
+      [/Aktuelle[rn]? Rentenwert/i, /aktuelle Rentenwert beträgt(?: zurzeit)?/i],
+      amountAfter,
+    ),
+    contributionsOwn: firstOf(lines, [/Beiträge von Ihnen/i, /^Von Ihnen/i], amountAfter),
+    contributionsEmployer: firstOf(
+      lines,
+      [/Beiträge von Arbeitgebern/i, /^Von Ihrem\/n Arbeitgeber/i],
+      amountAfter,
+    ),
+    contributionsPublic: firstOf(
+      lines,
+      [/Beiträge von öffentlichen/i, /^Von öffentlichen Kassen/i],
+      amountAfter,
+    ),
   });
 
   const failed = failedChecks(

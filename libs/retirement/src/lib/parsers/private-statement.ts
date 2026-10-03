@@ -1,11 +1,21 @@
-import { type PdfDocumentText, amountsIn } from '@vaultfolio/document-text';
+import Decimal from 'decimal.js';
+import { type PdfDocumentText, amountsIn, toMoney } from '@vaultfolio/document-text';
 import type {
   RetirementPensionFigures,
   RetirementScenario,
   RetirementScenarioMonthly,
 } from '@vaultfolio/api-contract';
 import { failedChecks, runChecks } from '../checks';
-import { amountAfter, dateAfter, indexOfLabel, present, readLines, textAfter } from './reading';
+import {
+  amountAfter,
+  dateAfter,
+  dateIn,
+  firstOf,
+  indexOfLabel,
+  present,
+  readLines,
+  textAfter,
+} from './reading';
 import type { MissingSupplement, ParseOutcome, StatementParser } from './types';
 
 /**
@@ -22,13 +32,34 @@ const IDENTIFIER = /^[A-Za-z0-9][A-Za-z0-9 \-/.]{0,39}$/;
 function detects(doc: PdfDocumentText): boolean {
   const lines = readLines(doc);
   return (
-    indexOfLabel(lines, /Jährliche Unterrichtung|§\s?155\s?VVG|Altersvorsorgevertrag/i) >= 0 &&
-    indexOfLabel(lines, /Rentenzahlung|Rentenbeginn|Vertragswert|Garantierte/i) >= 0
+    indexOfLabel(
+      lines,
+      /Jährliche Unterrichtung|§\s?155\s?VVG|Altersvorsorgevertrag|Standmitteilung/i,
+    ) >= 0 && indexOfLabel(lines, /Rentenzahlung|Rentenbeginn|Vertragswert|Garantierte/i) >= 0
   );
 }
 
 /** The four printed monthly pensions of the 0/3/6/9 % table (header row + value row). */
 function scenarios(lines: readonly string[]): RetirementScenarioMonthly | undefined {
+  return standardisedScenarios(lines) ?? labelledScenarios(lines);
+}
+
+const SCENARIO_HEADER = /0\s?%\s+3\s?%\s+6\s?%\s+9\s?%/;
+
+/** The standardised table "Mögliche Gesamtrente …": a header row, then one row of four amounts. */
+function standardisedScenarios(lines: readonly string[]): RetirementScenarioMonthly | undefined {
+  const title = indexOfLabel(lines, /Mögliche Gesamtrente/i);
+  if (title < 0) return undefined;
+  const header = lines.findIndex((l, i) => i >= title && i <= title + 2 && SCENARIO_HEADER.test(l));
+  if (header < 0) return undefined;
+  const row = lines.slice(header + 1, header + 4).find((l) => amountsIn(l).length === 4);
+  const amounts = row ? amountsIn(row) : [];
+  return amounts.length === SCENARIOS.length
+    ? (Object.fromEntries(SCENARIOS.map((s, i) => [s, amounts[i]])) as RetirementScenarioMonthly)
+    : undefined;
+}
+
+function labelledScenarios(lines: readonly string[]): RetirementScenarioMonthly | undefined {
   const header = indexOfLabel(lines, /0\s?%\s+3\s?%\s+6\s?%\s+9\s?%/);
   if (header < 0) return undefined;
   const row = lines.slice(header + 1, header + 4).find((l) => /monatliche Rente/i.test(l));
@@ -38,26 +69,55 @@ function scenarios(lines: readonly string[]): RetirementScenarioMonthly | undefi
 }
 
 function contractIdentifier(lines: readonly string[]): string | undefined {
-  const raw = textAfter(lines, /(?:Versicherungsschein|Vertrag)s?-?(?:nummer|Nr\.?)\s*:?/i);
+  const raw =
+    textAfter(lines, /(?:Versicherungsschein|Vertrag)s?-?(?:nummer|Nr\.?)\s*:?/i) ??
+    textAfter(lines, /^für Versicherung\b/i);
   return raw !== undefined && IDENTIFIER.test(raw) ? raw : undefined;
 }
 
 function parse(doc: PdfDocumentText): ParseOutcome {
   const lines = readLines(doc);
-  const riester = indexOfLabel(lines, /Riester|Altersvorsorgevertrag|AltZertG/i) >= 0;
-  const statementDate = dateAfter(lines, /\bStand\b\s*:?/i);
+  const riester = indexOfLabel(lines, /Riester|FörderRente|Altersvorsorgevertrag|AltZertG/i) >= 0;
+  const statementDate = firstOf(lines, [/\bStand\b\s*:?/i, /Standmitteilung zum/i], dateAfter);
   const scenarioMonthly = scenarios(lines);
 
   const figures: RetirementPensionFigures = present({
-    guaranteedMonthly: amountAfter(lines, /Garantierte monatliche Rente/i),
-    guaranteedCapital: amountAfter(lines, /Garantiertes Kapital(?: zu Rentenbeginn)?/i),
+    guaranteedMonthly: firstOf(
+      lines,
+      [/Garantierte monatliche Rente/i, /oder garantierte Rente zum \d{2}\.\d{2}\.\d{4}/i],
+      amountAfter,
+    ),
+    guaranteedCapital: firstOf(
+      lines,
+      [
+        /Garantiertes Kapital(?: zu Rentenbeginn)?/i,
+        /Garantiertes Rentenkapital zum \d{2}\.\d{2}\.\d{4}/i,
+      ],
+      amountAfter,
+    ),
     scenarioMonthly,
-    currentValue: amountAfter(lines, /Aktueller Vertragswert|Fondsguthaben|Deckungskapital/i),
-    contributionsMain: amountAfter(lines, /Eingezahlte Beiträge|Beiträge bisher/i),
+    currentValue: currentValue(lines),
+    contributionsMain: firstOf(
+      lines,
+      [/Eingezahlte Beiträge|Beiträge bisher/i, /^Summe der gezahlten Beiträge/i],
+      amountAfter,
+    ),
     contributionsExtra: amountAfter(lines, /Zuzahlungen|Sonderzahlungen/i),
-    contributionsPaid: amountAfter(lines, /Summe aller bisherigen Einzahlungen|Gesamtbeiträge/i),
-    surrenderValue: amountAfter(lines, /Rückkaufswert/i),
-    deathBenefit: amountAfter(lines, /Todesfallleistung|Leistung bei Tod/i),
+    contributionsPaid: firstOf(
+      lines,
+      [/Summe aller bisherigen Einzahlungen|Gesamtbeiträge/i, /^Insgesamt gezahlte Beiträge/i],
+      amountAfter,
+    ),
+    surrenderValue: firstOf(
+      lines,
+      [/Rückkaufswert/i, /Derzeitige Leistung bei Kündigung/i],
+      amountAfter,
+    ),
+    deathBenefit: firstOf(
+      lines,
+      [/Derzeitige Todesfallleistung/i, /Todesfallleistung|Leistung bei Tod/i],
+      amountAfter,
+    ),
     guaranteePeriodYears: guaranteeYears(lines),
   });
   const hasBenefit =
@@ -71,12 +131,11 @@ function parse(doc: PdfDocumentText): ParseOutcome {
   );
   if (failed.length > 0) return { ok: false, error: 'INCONSISTENT', failedChecks: failed };
 
-  const providerLabel = textAfter(lines, /^(?:Versicherer|Anbieter)\b\s*:?/i);
+  const providerLabel = textAfter(lines, /^(?:Versicherer|Anbieter)\b\s*:?/i) ?? letterhead(lines);
   const identifier = contractIdentifier(lines);
-  const payoutStart = dateAfter(
-    lines,
-    /Beginn der (?:Rentenzahlung|Auszahlung)\s*:?|Rentenbeginn\s*:?/i,
-  );
+  const payoutStart =
+    dateAfter(lines, /Beginn der (?:Rentenzahlung|Auszahlung)\s*:?|Rentenbeginn\s*:?/i) ??
+    tablePayoutStart(lines);
   const missingSupplement: MissingSupplement[] = riester
     ? ['contributionMonthly', 'subsidiesYearly']
     : ['contributionMonthly'];
@@ -100,7 +159,39 @@ function parse(doc: PdfDocumentText): ParseOutcome {
 function guaranteeYears(lines: readonly string[]): number | undefined {
   const text = textAfter(lines, /Rentengarantiezeit/i);
   const m = text === undefined ? null : /(\d{1,2})\s*Jahre/.exec(text);
-  return m ? Number(m[1]) : undefined;
+  if (m) return Number(m[1]);
+  // standardised letter: "Vereinbarter Rentenbeginn … 23 Jahre" under the guarantee-period heading
+  const row = lines.map((l) => /Rentenbeginn\s+(\d{1,2})\s*Jahre/.exec(l)).find((x) => x !== null);
+  return row ? Number(row[1]) : undefined;
+}
+
+/** Date in front of "Vereinbarter Rentenbeginn" in the example-calculation table. */
+function tablePayoutStart(lines: readonly string[]): string | undefined {
+  const line = lines.find((l) => /^\d{2}\.\d{2}\.\d{4}\s+Vereinbarter Rentenbeginn/i.test(l));
+  return line === undefined ? undefined : dateIn(line);
+}
+
+/**
+ * Current value of the contract: the printed "Aktueller Vertragswert", or for hybrid contracts
+ * the conventional reserve plus the total of the fund holdings (the letter prints both parts).
+ */
+function currentValue(lines: readonly string[]): string | undefined {
+  const printed = firstOf(lines, [/Aktueller Vertragswert/i], amountAfter);
+  if (printed !== undefined) return printed;
+  const conventional = firstOf(lines, [/Deckungskapital/i, /Fondsguthaben/i], amountAfter);
+  if (conventional === undefined) return undefined;
+  const funds = amountAfter(lines, /Gesamtwert des Fondsbestands/i);
+  return funds === undefined ? conventional : toMoney(new Decimal(conventional).plus(funds));
+}
+
+/** Provider named in the letterhead: the first line when it is a company name. */
+function letterhead(lines: readonly string[]): string | undefined {
+  const first = lines[0]?.trim();
+  return first !== undefined &&
+    first.length <= 80 &&
+    /(Versicherung|Versicherer|Leben)\b.*\b(AG|a\. ?G\.|SE|VVaG|GmbH)/i.test(first)
+    ? first
+    : undefined;
 }
 
 export const privateStatementParser: StatementParser = {

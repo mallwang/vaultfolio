@@ -84,6 +84,44 @@ function drvLines(): string[] {
   ];
 }
 
+/** Line layout of the Renteninformation since 2024 (amounts in a right-hand column, page 2 text). */
+export function syntheticDrvRenteninformation2024(): PdfDocumentText {
+  return textDocument([
+    [
+      'Versicherungsnummer, Kennzeichen',
+      '12 010190 A 123, 4724, (000-00)',
+      'Datum 10.05.2024',
+      'Ihre Renteninformation',
+      'in dieser Renteninformation haben wir die für Sie vom 01.09.2004 bis zum 31.12.2023 gespeicherten',
+      'Daten und das geltende Rentenrecht berücksichtigt. Ihre Regelaltersrente würde am 01.05.2057',
+      'Rente wegen voller Erwerbsminderung',
+      'Wären Sie heute wegen gesundheitlicher Einschränkungen voll',
+      'erwerbsgemindert, bekämen Sie von uns eine monatliche Rente von: 1.876,72 EUR',
+      'Höhe Ihrer künftigen Regelaltersrente',
+      'Ihre bislang erreichte Rentenanwartschaft entspräche nach heutigem Stand',
+      'einer monatlichen Rente von: 636,18 EUR',
+      'Sollten bis zum Rentenbeginn Beiträge wie im Durchschnitt der letzten fünf',
+      'Rentenanpassungen von uns eine monatliche Rente von: 2.734,46 EUR',
+      'Aufgrund zukünftiger Rentenanpassungen kann die errechnete Rente in Höhe von 2.734,46 EUR',
+      'für Sie gerechnet. Beträgt der jährliche Anpassungssatz 1 Prozent, so ergäbe sich eine',
+      'monatliche Rente von etwa 3.790 EUR. Bei einem jährlichen Anpassungssatz von 2 Prozent ergäbe',
+      'sich eine monatliche Rente von etwa 5.250 EUR.',
+    ],
+    [
+      'Grundlagen der Rentenberechnung',
+      'Versicherten (zurzeit 45.358 EUR) erzielt haben. Daneben können Ihnen aber auch',
+      'Entgeltpunkte für bestimmte Zeiten gutgeschrieben werden, in denen keine Beiträge (z.B. für',
+      'Rente zu ermitteln, werden alle Entgeltpunkte zusammengezählt und mit dem so genannten',
+      'aktuellen Rentenwert vervielfältigt. Der aktuelle Rentenwert beträgt zurzeit 37,60 EUR.',
+      'Von Ihnen 58.492,35 EUR',
+      'Von Ihrem/n Arbeitgeber/n 58.531,76 EUR',
+      'Von öffentlichen Kassen (z.B. Krankenkasse, Agentur für Arbeit) 3.226,00 EUR',
+      'Versicherungszeiten haben Sie bisher insgesamt Entgeltpunkte in',
+      'folgender Höhe erworben: 16,9196',
+    ],
+  ]);
+}
+
 /** DRV "Renteninformation" (statutory pension) — the real sample is a scan, hence `scanned`. */
 export function syntheticDrvRenteninformation(
   variant: StatementVariant = 'valid',
@@ -121,6 +159,50 @@ export const PRIVATE_EXPECTED = {
   deathBenefit: '9000.00',
   guaranteePeriodYears: 10,
 } as const;
+
+/** Standardised "Standmitteilung" layout of a Riester insurer (invented provider, figures, contract). */
+export function syntheticStandmitteilung(): PdfDocumentText {
+  return textDocument([
+    [
+      'Musterleben Lebensversicherung a. G.',
+      'Standmitteilung für Ihre Musterleben FörderRente 11 222 333',
+      'Sehr geehrte Frau Musterfrau,',
+    ],
+    [
+      'Standmitteilung zum 01.04.2024',
+      'für Versicherung 11 222 333',
+      'Garantierte Todesfallleistung 4.000,00 EUR',
+      'Derzeitige Todesfallleistung 4.100,00 EUR',
+      'Garantierte Leistung bei Kündigung 3.500,00 EUR',
+      'Derzeitige Leistung bei Kündigung 3.600,00 EUR',
+      'Garantiertes Rentenkapital zum 01.04.2057 68.000,00 EUR',
+      'oder garantierte Rente zum 01.04.2057 171,00 EUR',
+      'Garantiertes Rentenkapital zum 01.04.2057 bei zum Stichtag angenommener',
+      'Beitragsfreistellung 4.500,00 EUR',
+      'oder garantierte Rente zum 01.04.2057 bei zum Stichtag angenommener',
+      'Beitragsfreistellung 11,00 EUR',
+      'Konventionelles Deckungskapital 3.800,00 EUR',
+      'Eingezahlte Beiträge bis zum 01.04.2024',
+      'Summe der gezahlten Beiträge 3.800,00 EUR',
+      'davon Summe der gezahlten Beiträge für die Hauptversicherung 3.800,00 EUR',
+      'Summe der bereits geleisteten Zuzahlungen 500,00 EUR',
+      'Insgesamt gezahlte Beiträge plus Zuzahlungen 4.300,00 EUR',
+    ],
+    [
+      'Fondsbestand zum 01.04.2024',
+      'Gesamtwert des Fondsbestands 400,00',
+      'Mögliches Rentenkapital in EUR bei einer angenommenen Wertentwicklung',
+      '0% 3% 6% 9%',
+      '01.04.2057 Vereinbarter Rentenbeginn 68.000,00 102.000,00 185.000,00 358.000,00',
+      'Mögliche Gesamtrente in EUR bei einer angenommenen Wertentwicklung von',
+      '0% 3% 6% 9%',
+      '01.04.2057 Vereinbarter Rentenbeginn 233,00 350,00 637,00 1.230,00',
+      'Wird der Rentenbeginn zu einem anderen Termin wahrgenommen, ergeben sich andere Werte.',
+      'Die angegebenen Renten sind mit folgenden Rentengarantiezeiten berechnet:',
+      'Vereinbarter Rentenbeginn 23 Jahre',
+    ],
+  ]);
+}
 
 function privateLines(riester: boolean): string[] {
   return [
@@ -213,6 +295,24 @@ export function syntheticCapitalAccountStatement(
         [/^11\.325,00$/, '11.325,OO'],
       ])
     : doc;
+}
+
+/** Account statement of a contribution-oriented company pension as printed since 2019 (invented data). */
+export function syntheticCapitalAccountStatement2019(): PdfDocumentText {
+  return textDocument([
+    [
+      'Musterkonzern AG, HR Service, Postfach 1, 12345 Musterstadt',
+      'Datum 21.01.2019',
+      'Dieser Kontoauszug weist Ihre Versorgungsanwartschaft gegenüber der Beispiel GmbH aus.',
+      'Kontoauszug zum 01. Januar 2019',
+      'Kontostand (01. Januar 2018) 2.000,00',
+      'Garantiezins (1,00%) für Kalenderjahr 2018 (nachschüssig) 20,00',
+      'Beitrag gemäß Beitragsgruppe für Geschäftsjahr 2017/2018 1.000,00',
+      'Kontozuführung aus Beitrag 1.000,00',
+      'Stand des Versorgungskontos (01. Januar 2019) 3.020,00',
+      'Schlussüberschuss-Gutschrift (für unterstellten Versorgungsfall im Januar 2019) 3 0,00',
+    ],
+  ]);
 }
 
 /** A document no parser knows (an unrelated letter). */

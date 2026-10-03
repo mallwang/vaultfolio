@@ -26,6 +26,11 @@
             "output": "assets/pdfjs"
           },
           {
+            "glob": "*.wasm",
+            "input": "node_modules/pdfjs-dist/wasm",
+            "output": "assets/pdfjs/wasm"
+          },
+          {
             "glob": "worker.min.js*",
             "input": "node_modules/tesseract.js/dist",
             "output": "assets/tesseract"

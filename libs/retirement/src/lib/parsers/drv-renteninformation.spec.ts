@@ -1,6 +1,7 @@
 import {
   DRV_EXPECTED,
   syntheticDrvRenteninformation,
+  syntheticDrvRenteninformation2024,
   syntheticPrivateStatement,
 } from '../testing/statements.fixtures';
 import { drvRenteninformationParser } from './drv-renteninformation';
@@ -66,5 +67,33 @@ describe('drvRenteninformationParser', () => {
     expect(
       drvRenteninformationParser.parse(syntheticDrvRenteninformation('missing-label')),
     ).toEqual({ ok: false, error: 'INCOMPLETE' });
+  });
+
+  it('reads the letter layout since 2024 (column amounts, page 2 text, whole-euro variants)', () => {
+    const doc = syntheticDrvRenteninformation2024();
+    expect(drvRenteninformationParser.detects(doc)).toBe(true);
+    const outcome = drvRenteninformationParser.parse(doc);
+    expect(outcome).toMatchObject({
+      ok: true,
+      record: {
+        statementDate: '2024-05-10',
+        payoutStart: '2057-05-01',
+        identifier: '12 010190 A 123',
+        figures: {
+          dataPeriodFrom: '2004-09-01',
+          dataPeriodTo: '2023-12-31',
+          fullDisabilityMonthly: '1876.72',
+          accruedMonthly: '636.18',
+          projectedMonthly: '2734.46',
+          projectedAt1Pct: '3790.00',
+          projectedAt2Pct: '5250.00',
+          earningsPoints: '16.9196',
+          currentPensionValue: '37.60',
+          contributionsOwn: '58492.35',
+          contributionsEmployer: '58531.76',
+          contributionsPublic: '3226.00',
+        },
+      },
+    });
   });
 });

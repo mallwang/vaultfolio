@@ -1,6 +1,6 @@
 import type { PdfPageText } from '@vaultfolio/document-text';
 import { recognisedWordsToPage, type RecognisedWord } from './ocr-layout';
-import { loadPdfJs } from './pdf-text-extractor';
+import { loadPdfJs, pdfJsWasmUrl } from './pdf-text-extractor';
 import { readBytes } from './read-blob';
 import {
   MAX_RECOGNITION_PAGES,
@@ -106,7 +106,12 @@ class TesseractRecogniser implements TextRecogniser {
       if (signal.aborted) return { error: 'CANCELLED' };
       const pdfjs = await abortable(loadPdfJs(), signal);
       const data = await readBytes(file);
-      const task = pdfjs.getDocument({ data, isEvalSupported: false, disableFontFace: true });
+      const task = pdfjs.getDocument({
+        data,
+        isEvalSupported: false,
+        disableFontFace: true,
+        wasmUrl: pdfJsWasmUrl(),
+      });
       destroyDocument = () => task.destroy().catch(() => undefined);
       const doc = (await abortable(task.promise, signal)) as unknown as RenderableDocument;
       const pageCount = doc.numPages;

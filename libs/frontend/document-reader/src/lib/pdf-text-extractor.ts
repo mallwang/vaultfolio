@@ -9,7 +9,12 @@ export interface PdfJsModule {
   GlobalWorkerOptions: { workerSrc: string };
   /** Operator codes of `getOperatorList()` (used to find shapes drawn over text). */
   OPS?: Record<string, number>;
-  getDocument(src: { data: Uint8Array; isEvalSupported?: boolean; disableFontFace?: boolean }): {
+  getDocument(src: {
+    data: Uint8Array;
+    isEvalSupported?: boolean;
+    disableFontFace?: boolean;
+    wasmUrl?: string;
+  }): {
     promise: Promise<PdfJsDocument>;
     destroy(): Promise<void>;
   };
@@ -40,6 +45,11 @@ let loader: () => Promise<PdfJsModule> = async () => {
   ).href;
   return pdfjs;
 };
+
+/** Same-origin folder of PDF.js' WASM decoders (JBIG2, JPEG 2000, colour management) for rendering scans. */
+export function pdfJsWasmUrl(): string {
+  return new URL('assets/pdfjs/wasm/', document.baseURI).href;
+}
 
 /** The PDF.js module as loaded for this app (or the test build). */
 export function loadPdfJs(): Promise<PdfJsModule> {
