@@ -97,7 +97,7 @@ function sortByStatus(accounts: AccountOverviewEntry[]): AccountOverviewEntry[] 
           </p>
         </div>
         <div class="account-overview-panel__header-actions">
-          <app-export-control featureId="account-overview" severity="info" />
+          <app-export-control featureId="account-overview" />
           @if (accounts().length > 0) {
             <button
               pButton
@@ -155,7 +155,6 @@ function sortByStatus(accounts: AccountOverviewEntry[]): AccountOverviewEntry[] 
                     @if (cardBrandFor(account); as brand) {
                       <p-tag
                         [value]="brand"
-                        severity="info"
                         [attr.data-testid]="'account-overview-row-' + account.id + '-brand'"
                       />
                     }

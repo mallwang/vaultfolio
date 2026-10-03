@@ -174,8 +174,10 @@ Das Löschen kann nicht rückgängig gemacht werden.
 
 ### 4.6 Holdings-Daten exportieren
 
-Der **Export**-Splitbutton (oben rechts im Holdings-Panel, neben **Position hinzufügen**) ermöglicht
-den Download deiner Positionen in vier Formaten:
+Der Link **Daten exportieren** (oben rechts im Holdings-Panel, neben **Position hinzufügen**) öffnet
+einen Dialog mit einer Karte pro Format. Jede Karte zeigt eine Vorschau, den genauen Dateinamen, den
+Inhalt und wofür sich das Format eignet; der Button der Karte lädt genau dieses Format herunter, und
+der Dialog bleibt offen, sodass du mehrere Formate in einem Besuch exportieren kannst. Die vier Formate:
 
 | Format | Verwendungszweck                                   |
 | ------ | -------------------------------------------------- |
@@ -205,8 +207,8 @@ Nutze die Schaltfläche **Konto hinzufügen**, um einen Eintrag zu erstellen. Be
 Löschen funktionieren genauso wie bei Holdings. Das Deaktivieren eines Kontos markiert es als
 inaktiv, ohne es zu löschen – nützlich für das Führen historischer Aufzeichnungen.
 
-Der **Export**-Splitbutton (oben rechts) funktioniert genauso wie bei Holdings – JSON, CSV,
-Excel und PDF stehen zur Verfügung.
+Der Link **Daten exportieren** (oben rechts) funktioniert genauso wie bei Holdings – JSON, CSV,
+Excel und PDF stehen im Export-Dialog zur Verfügung.
 
 ---
 
@@ -308,7 +310,8 @@ klickst.
 - **Tabellen** – eine Monatsübersicht pro Jahr (ein Klick auf eine Zelle öffnet das
   Monatsdetail), Steuern und Abgaben und deine Lohnsteuerbescheinigungen.
 - Der Filter **Arbeitgeber** oben schränkt jede Ansicht auf einen Arbeitgeber ein.
-- **Exportieren** bietet deine Einkommensdaten als JSON, CSV, Excel oder PDF an. Das PDF
+- **Daten exportieren** öffnet einen Dialog, der deine Einkommensdaten als JSON, CSV (ZIP mit vier
+  CSV-Dateien), Excel oder PDF anbietet. Das PDF
   ist eine Querformat-Übersicht: Diagramm „Brutto je Jahr“, Summen je Arbeitgeber mit
   Abschlusszeile „Berufsleben gesamt“, Monatsübersicht sowie Steuern und Abgaben pro
   Jahr (neueste zuerst, immer für dein gesamtes Berufsleben). Excel, CSV und JSON

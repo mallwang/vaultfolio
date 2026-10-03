@@ -95,7 +95,7 @@ import { HoldingsService } from './holdings.service';
           }}
         </h2>
         <div class="holdings-panel__header-actions">
-          <app-export-control featureId="holdings" severity="info" />
+          <app-export-control featureId="holdings" />
           <button
             pButton
             data-testid="holdings-add-holding"

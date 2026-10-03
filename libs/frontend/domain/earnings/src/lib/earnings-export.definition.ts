@@ -98,6 +98,13 @@ export function createEarningsExportDefinition(): FeatureExportDefinition {
     infoboxKey: 'earnings.export.infobox',
     // The PDF shows sections (035) instead of the per-payslip table, so it needs its own text.
     pdfInfoboxKey: 'earnings.export.pdfInfobox',
+    // The CSV is a ZIP of the four tables, which the generic dialog text cannot say.
+    formatDataKeys: {
+      pdf: 'earnings.export.data.pdf',
+      xlsx: 'earnings.export.data.xlsx',
+      csv: 'earnings.export.data.csv',
+      json: 'earnings.export.data.json',
+    },
     // Per-payslip rows are retired (035); the formats are served by `getExportTables`/`getPdfSections`.
     columns: [],
     fetchData: (): Promise<ExportRow[]> => Promise.resolve([]),

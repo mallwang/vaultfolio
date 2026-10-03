@@ -181,6 +181,11 @@ export interface FeatureExportDefinition {
    * May read Angular signals — the component calls this inside `computed()`.
    */
   isEnabled?(): boolean;
+  /**
+   * Optional per-format translation keys that replace the generic "included data" text of a
+   * format card in the export dialog (e.g. Earnings' CSV is a ZIP of four files).
+   */
+  formatDataKeys?: Partial<Record<ExportFormat, string>>;
   /** Translation key for the disabled-state tooltip (shown when `isEnabled()` returns false). */
   disabledTooltipKey?: string;
 }

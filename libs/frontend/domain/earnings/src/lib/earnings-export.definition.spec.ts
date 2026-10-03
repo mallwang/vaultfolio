@@ -35,6 +35,19 @@ describe('createEarningsExportDefinition', () => {
     expect(lookup(definition.infoboxKey)).not.toMatch(/payslip section/i);
   });
 
+  it('overrides the dialog "included data" text of all four formats with translated keys', () => {
+    const definition = TestBed.runInInjectionContext(createEarningsExportDefinition);
+    expect(Object.keys(definition.formatDataKeys ?? {}).sort()).toEqual([
+      'csv',
+      'json',
+      'pdf',
+      'xlsx',
+    ]);
+    for (const key of Object.values(definition.formatDataKeys ?? {})) {
+      expect(typeof lookup(key)).toBe('string');
+    }
+  });
+
   describe('PDF sections (035)', () => {
     const overview: EarningsOverview = {
       hasData: true,
