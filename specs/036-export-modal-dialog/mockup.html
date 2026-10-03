@@ -1,0 +1,966 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Export Modal Mockup</title>
+  </head>
+  <body>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    />
+    <style>
+      /* Layout: review chrome on top, a mocked feature page (toolbar + content) in the stage, with the
+     export modal as an overlay card grid (2x2 desktop, 1 column mobile). Teal theme like the app. */
+      :root {
+        color-scheme: light;
+        --bg: #ffffff;
+        --surface: #f8fafb;
+        --surface-2: #eef2f4;
+        --text: #1b2a2e;
+        --muted: #5d7077;
+        --line: #dbe3e6;
+        --primary: #0d9488;
+        --primary-strong: #0f766e;
+        --primary-soft: #e2f5f2;
+        --on-primary: #ffffff;
+        --ok: #15803d;
+        --bad: #b45309;
+        --danger: #b91c1c;
+        --danger-soft: #fdecec;
+        --scrim: rgba(15, 30, 34, 0.5);
+        --review-bg: #f3f2ee;
+        --review-ink: #2c2a25;
+        --review-muted: #7a7669;
+        --review-line: #ddd9d0;
+        --review-accent: #b45f2c;
+        --review-panel: #ffffff;
+        --stage: #d9d4c8;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme='light']) {
+          color-scheme: dark;
+          --bg: #11191c;
+          --surface: #172226;
+          --surface-2: #1e2c31;
+          --text: #e6eef0;
+          --muted: #9ab0b7;
+          --line: #2b3b41;
+          --primary: #2dd4bf;
+          --primary-strong: #5eead4;
+          --primary-soft: #153a38;
+          --on-primary: #06201d;
+          --ok: #4ade80;
+          --bad: #fbbf24;
+          --danger: #f87171;
+          --danger-soft: #3b1d1d;
+          --scrim: rgba(0, 0, 0, 0.6);
+          --review-bg: #1c1b18;
+          --review-ink: #ece9e0;
+          --review-muted: #a29e90;
+          --review-line: #3a3832;
+          --review-accent: #e08a52;
+          --review-panel: #26251f;
+          --stage: #2d2c27;
+        }
+      }
+      :root[data-theme='dark'] {
+        color-scheme: dark;
+        --bg: #11191c;
+        --surface: #172226;
+        --surface-2: #1e2c31;
+        --text: #e6eef0;
+        --muted: #9ab0b7;
+        --line: #2b3b41;
+        --primary: #2dd4bf;
+        --primary-strong: #5eead4;
+        --primary-soft: #153a38;
+        --on-primary: #06201d;
+        --ok: #4ade80;
+        --bad: #fbbf24;
+        --danger: #f87171;
+        --danger-soft: #3b1d1d;
+        --scrim: rgba(0, 0, 0, 0.6);
+        --review-bg: #1c1b18;
+        --review-ink: #ece9e0;
+        --review-muted: #a29e90;
+        --review-line: #3a3832;
+        --review-accent: #e08a52;
+        --review-panel: #26251f;
+        --stage: #2d2c27;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--review-bg);
+        color: var(--review-ink);
+        font-family:
+          'Inter',
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      h1,
+      h2,
+      h3,
+      p {
+        text-wrap: balance;
+      }
+
+      /* ===== review chrome ===== */
+      .review-header {
+        padding: 1.5rem 1rem 1rem;
+        border-bottom: 1px solid var(--review-line);
+      }
+      .review-eyebrow {
+        font-size: 0.72rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--review-accent);
+        font-weight: 700;
+        margin: 0 0 0.25rem;
+      }
+      .review-header h1 {
+        margin: 0 0 0.35rem;
+        font-size: 1.35rem;
+        font-weight: 700;
+      }
+      .review-header p {
+        margin: 0;
+        color: var(--review-muted);
+        font-size: 0.9rem;
+        max-width: 70ch;
+        line-height: 1.5;
+      }
+      .review-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem 1.25rem;
+        align-items: center;
+        padding: 0.85rem 1rem;
+        background: var(--review-panel);
+        border-bottom: 1px solid var(--review-line);
+        position: sticky;
+        top: env(safe-area-inset-top, 0px);
+        z-index: 30;
+      }
+      .control-group {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+      .control-group .label {
+        font-size: 0.72rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--review-muted);
+        font-weight: 700;
+      }
+      .segmented {
+        display: inline-flex;
+        border: 1px solid var(--review-line);
+        border-radius: 8px;
+        overflow: hidden;
+        flex-wrap: wrap;
+      }
+      .segmented button {
+        appearance: none;
+        border: none;
+        background: var(--review-panel);
+        color: var(--review-ink);
+        font: inherit;
+        font-size: 0.83rem;
+        font-weight: 600;
+        padding: 0.4rem 0.75rem;
+        cursor: pointer;
+        border-right: 1px solid var(--review-line);
+      }
+      .segmented button:last-child {
+        border-right: none;
+      }
+      .segmented button:focus-visible {
+        outline: 2px solid var(--review-accent);
+        outline-offset: -2px;
+      }
+      .segmented button[aria-pressed='true'] {
+        background: var(--review-accent);
+        color: #fff;
+      }
+      .review-stage {
+        padding: 1.5rem 1rem;
+        display: flex;
+        justify-content: center;
+      }
+      .stage-frame {
+        width: 100%;
+        max-width: 1180px;
+        background: var(--stage);
+        border-radius: 14px;
+        padding: 1rem;
+        transition: max-width 0.2s ease;
+      }
+      .stage-frame[data-viewport='mobile'] {
+        max-width: 400px;
+      }
+      .stage-frame-label {
+        font-size: 0.72rem;
+        color: var(--review-muted);
+        text-align: center;
+        margin: 0 0 0.5rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      .canvas {
+        position: relative;
+        background: var(--bg);
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+        color: var(--text);
+        min-height: 720px;
+      }
+      .review-footer {
+        padding: 0 1rem 2rem;
+        max-width: 1180px;
+        margin: 0 auto;
+        font-size: 0.85rem;
+        color: var(--review-muted);
+        line-height: 1.5;
+      }
+      .review-footer h3 {
+        margin: 0.75rem 0 0;
+        font-size: 0.8rem;
+        color: var(--review-ink);
+      }
+      .review-footer ul {
+        margin: 0.25rem 0 0.5rem;
+        padding-left: 1.1rem;
+      }
+
+      /* ===== state visibility ===== */
+      [data-screen] [data-show] {
+        display: none;
+      }
+      [data-screen='open'] [data-show~='open'],
+      [data-screen='closed'] [data-show~='closed'],
+      [data-screen='busy'] [data-show~='busy'],
+      [data-screen='error'] [data-show~='error'],
+      [data-screen='disabled'] [data-show~='disabled'] {
+        display: block;
+      }
+      [data-screen='open'] [data-show~='open'].inline,
+      [data-screen='busy'] [data-show~='busy'].inline,
+      [data-screen='error'] [data-show~='error'].inline {
+        display: inline-flex;
+      }
+      [data-screen='open'] [data-show~='open'].modal-layer,
+      [data-screen='busy'] [data-show~='busy'].modal-layer,
+      [data-screen='error'] [data-show~='error'].modal-layer {
+        display: flex;
+      }
+
+      /* ===== mocked feature page ===== */
+      .app-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.9rem 1.25rem;
+        border-bottom: 1px solid var(--line);
+      }
+      .crumb {
+        margin: 0;
+        font-size: 0.72rem;
+        color: var(--muted);
+      }
+      .app-header h2 {
+        margin: 0;
+        font-size: 1.15rem;
+      }
+      .avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: var(--primary-soft);
+        color: var(--primary-strong);
+        display: grid;
+        place-items: center;
+        font-size: 0.75rem;
+        font-weight: 700;
+      }
+      .page {
+        padding: 1rem 1.25rem;
+        display: grid;
+        gap: 1rem;
+      }
+      .toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem 1rem;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .toolbar__left,
+      .toolbar__actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem 1rem;
+        align-items: center;
+      }
+      .select-mock {
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 0.45rem 0.75rem;
+        font-size: 0.875rem;
+        min-width: 11rem;
+        background: var(--bg);
+      }
+      .text-link {
+        border: 0;
+        padding: 0;
+        background: none;
+        cursor: pointer;
+        font: inherit;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: 0.875rem;
+        color: var(--primary);
+      }
+      .text-link:hover {
+        text-decoration: underline;
+      }
+      .text-link:focus-visible {
+        outline: 2px solid var(--primary);
+        outline-offset: 3px;
+        border-radius: 3px;
+      }
+      .text-link[disabled] {
+        color: var(--muted);
+        opacity: 0.65;
+        cursor: not-allowed;
+        text-decoration: none;
+      }
+      .tooltip {
+        position: absolute;
+        top: calc(100% + 6px);
+        right: 0;
+        background: var(--text);
+        color: var(--bg);
+        font-size: 0.78rem;
+        padding: 0.4rem 0.6rem;
+        border-radius: 6px;
+        white-space: nowrap;
+        z-index: 3;
+      }
+      .has-tooltip {
+        position: relative;
+      }
+      .btn-primary {
+        background: var(--primary);
+        color: var(--on-primary);
+        border: 0;
+        border-radius: 6px;
+        padding: 0.5rem 0.9rem;
+        font: inherit;
+        font-size: 0.875rem;
+        font-weight: 600;
+        display: inline-flex;
+        gap: 0.4rem;
+        align-items: center;
+      }
+      .tabs {
+        display: flex;
+        gap: 1.5rem;
+        border-bottom: 1px solid var(--line);
+        font-size: 0.9rem;
+        color: var(--muted);
+        overflow-x: auto;
+      }
+      .tabs span {
+        padding: 0.6rem 0;
+        white-space: nowrap;
+      }
+      .tabs .on {
+        color: var(--primary-strong);
+        border-bottom: 2px solid var(--primary);
+        font-weight: 600;
+      }
+      .ph {
+        border: 1px dashed var(--line);
+        border-radius: 8px;
+        background: var(--surface);
+        color: var(--muted);
+        display: grid;
+        place-items: center;
+        font-size: 0.8rem;
+        min-height: 120px;
+      }
+      .ph-row {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1rem;
+      }
+      .material-icon {
+        font-size: 1.05em;
+        line-height: 1;
+      }
+
+      /* ===== modal ===== */
+      .modal-layer {
+        position: absolute;
+        inset: 0;
+        background: var(--scrim);
+        align-items: flex-start;
+        justify-content: center;
+        padding: 1.25rem 1rem;
+        overflow-y: auto;
+        z-index: 5;
+      }
+      .modal {
+        background: var(--bg);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        width: 100%;
+        max-width: 920px;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+      }
+      .modal__head {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1.1rem 1.25rem 0.9rem;
+        border-bottom: 1px solid var(--line);
+      }
+      .modal__head h3 {
+        margin: 0;
+        font-size: 1.1rem;
+      }
+      .modal__head p {
+        margin: 0.2rem 0 0;
+        font-size: 0.85rem;
+        color: var(--muted);
+        max-width: 60ch;
+      }
+      .close {
+        border: 0;
+        background: none;
+        color: var(--muted);
+        font-size: 1.3rem;
+        cursor: pointer;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        flex: none;
+      }
+      .close:hover {
+        background: var(--surface-2);
+      }
+      .banner-error {
+        margin: 1rem 1.25rem 0;
+        padding: 0.6rem 0.8rem;
+        border-radius: 8px;
+        background: var(--danger-soft);
+        color: var(--danger);
+        font-size: 0.85rem;
+      }
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
+        padding: 1.1rem 1.25rem 1.25rem;
+      }
+      .stage-frame[data-viewport='mobile'] .cards {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .stage-frame[data-viewport='mobile'] .ph-row {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .card {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--surface);
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        overflow: hidden;
+      }
+      .card__top {
+        display: flex;
+        gap: 0.9rem;
+        padding: 0.9rem 0.9rem 0;
+      }
+      .preview {
+        flex: none;
+        width: 104px;
+        height: 128px;
+        border-radius: 6px;
+        border: 1px solid var(--line);
+        background: var(--bg);
+        position: relative;
+        overflow: hidden;
+        opacity: 0.8;
+      }
+      .preview::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to bottom, transparent 40%, var(--surface) 100%);
+      }
+      .preview .cap {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 4px;
+        z-index: 1;
+        text-align: center;
+        font-size: 0.6rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      .pv-bar {
+        height: 6px;
+        border-radius: 2px;
+        background: var(--line);
+        margin: 5px 7px;
+      }
+      .pv-bar.t {
+        background: var(--primary);
+        width: 55%;
+        height: 8px;
+        margin-top: 9px;
+      }
+      .pv-chart {
+        display: flex;
+        align-items: flex-end;
+        gap: 4px;
+        height: 34px;
+        margin: 8px 7px;
+      }
+      .pv-chart i {
+        flex: 1;
+        background: var(--primary);
+        opacity: 0.55;
+        border-radius: 1px;
+      }
+      .pv-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        margin: 6px;
+        border: 1px solid var(--line);
+      }
+      .pv-grid i {
+        height: 13px;
+        border-right: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
+      }
+      .pv-grid i:nth-child(-n + 4) {
+        background: var(--primary-soft);
+      }
+      .pv-code {
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
+        font-size: 0.52rem;
+        line-height: 1.55;
+        color: var(--muted);
+        padding: 8px;
+        white-space: pre;
+      }
+      .card__title {
+        min-width: 0;
+      }
+      .card__title h4 {
+        margin: 0;
+        font-size: 1rem;
+        display: flex;
+        gap: 0.4rem;
+        align-items: center;
+      }
+      .card__title h4 .material-icon {
+        color: var(--primary);
+      }
+      .card__title p {
+        margin: 0.35rem 0 0;
+        font-size: 0.83rem;
+        color: var(--muted);
+        line-height: 1.45;
+      }
+      .meta {
+        margin: 0;
+        padding: 0.8rem 0.9rem;
+        display: grid;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+        flex: 1;
+      }
+      .meta div {
+        display: grid;
+        grid-template-columns: 5.4rem minmax(0, 1fr);
+        gap: 0.5rem;
+      }
+      .meta dt {
+        color: var(--muted);
+        font-weight: 600;
+      }
+      .meta dd {
+        margin: 0;
+        line-height: 1.4;
+        overflow-wrap: anywhere;
+      }
+      .mono {
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
+        font-size: 0.78rem;
+        background: var(--surface-2);
+        border-radius: 4px;
+        padding: 0.05rem 0.35rem;
+      }
+      .good {
+        color: var(--ok);
+      }
+      .poor {
+        color: var(--bad);
+      }
+      .card__foot {
+        padding: 0 0.9rem 0.9rem;
+      }
+      .btn-export {
+        width: 100%;
+        background: var(--primary);
+        color: var(--on-primary);
+        border: 0;
+        border-radius: 6px;
+        padding: 0.55rem 0.9rem;
+        font: inherit;
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        gap: 0.45rem;
+        align-items: center;
+        justify-content: center;
+      }
+      .btn-export:focus-visible {
+        outline: 2px solid var(--primary-strong);
+        outline-offset: 2px;
+      }
+      .btn-export[disabled] {
+        opacity: 0.75;
+        cursor: progress;
+      }
+      .spin {
+        width: 14px;
+        height: 14px;
+        border: 2px solid currentColor;
+        border-right-color: transparent;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .spin {
+          animation: none;
+        }
+      }
+    </style>
+
+    <header class="review-header">
+      <p class="review-eyebrow">Non-functional review mockup</p>
+      <h1>Export: Link und Modal „Daten exportieren“</h1>
+      <p>
+        Ersetzt den Split-Button. Das Modal zeigt pro Format eine Karte mit Vorschau, Dateiname,
+        Inhalt und Eignung. Jede Karte hat einen eigenen Export-Button, kein „Alles exportieren“.
+        Mit den Schaltern lassen sich Zustände, Feature-Variante und Viewport wechseln.
+      </p>
+    </header>
+
+    <div class="review-controls">
+      <div class="control-group">
+        <span class="label">Viewport</span>
+        <div class="segmented" id="viewport-toggle">
+          <button type="button" data-viewport="desktop" aria-pressed="true">Desktop</button>
+          <button type="button" data-viewport="mobile" aria-pressed="false">Mobile</button>
+        </div>
+      </div>
+      <div class="control-group">
+        <span class="label">Zustand</span>
+        <div class="segmented" id="screen-toggle">
+          <button type="button" data-screen="open" aria-pressed="true">Modal offen</button>
+          <button type="button" data-screen="closed" aria-pressed="false">Nur Link</button>
+          <button type="button" data-screen="busy" aria-pressed="false">Export läuft</button>
+          <button type="button" data-screen="error" aria-pressed="false">Fehler</button>
+          <button type="button" data-screen="disabled" aria-pressed="false">Deaktiviert</button>
+        </div>
+      </div>
+      <div class="control-group">
+        <span class="label">Feature</span>
+        <div class="segmented" id="feature-toggle">
+          <button type="button" data-feature="earnings" aria-pressed="true">
+            Einkommensentwicklung
+          </button>
+          <button type="button" data-feature="holdings" aria-pressed="false">Bestände</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="review-stage">
+      <div class="stage-frame" id="stage-frame" data-viewport="desktop">
+        <p class="stage-frame-label" id="stage-frame-label">Desktop</p>
+        <div class="canvas" data-screen="open" id="canvas">
+          <div class="app-header">
+            <div>
+              <p class="crumb">Vaultfolio</p>
+              <h2 id="page-title">Einkommensentwicklung</h2>
+            </div>
+            <span class="avatar" aria-hidden="true">MA</span>
+          </div>
+
+          <div class="page">
+            <div class="toolbar">
+              <div class="toolbar__left">
+                <div class="select-mock">Alle Arbeitgeber ▾</div>
+                <button type="button" class="text-link">
+                  <span class="material-icon">🔒︎</span> So werden Ihre Daten geschützt
+                </button>
+              </div>
+              <div class="toolbar__actions">
+                <span class="has-tooltip">
+                  <button
+                    type="button"
+                    class="text-link"
+                    data-testid="export-open-link"
+                    data-show="open busy error closed"
+                    style="display: inline-flex"
+                  >
+                    <span class="material-icon">⇩</span> Daten exportieren
+                  </button>
+                  <button
+                    type="button"
+                    class="text-link"
+                    disabled
+                    aria-disabled="true"
+                    data-show="disabled"
+                  >
+                    <span class="material-icon">⇩</span> Daten exportieren
+                  </button>
+                  <span class="tooltip" data-show="disabled"
+                    >Keine Daten zum Exportieren vorhanden</span
+                  >
+                </span>
+                <span class="btn-primary">⤒ Dokumente importieren</span>
+              </div>
+            </div>
+
+            <div class="tabs">
+              <span class="on">Übersicht</span><span>Tabellen</span><span>Datencheck</span
+              ><span>Importe</span>
+            </div>
+            <div class="ph-row">
+              <div class="ph">[Kennzahl]</div>
+              <div class="ph">[Kennzahl]</div>
+              <div class="ph">[Kennzahl]</div>
+            </div>
+            <div class="ph" style="min-height: 260px">[Diagramm Einkommensentwicklung]</div>
+          </div>
+
+          <div class="modal-layer" data-show="open busy error" data-testid="export-dialog">
+            <div class="modal" role="dialog" aria-modal="true" aria-labelledby="dlg-title">
+              <div class="modal__head">
+                <div>
+                  <h3 id="dlg-title">Daten exportieren</h3>
+                  <p>
+                    <span id="feature-name">Einkommensentwicklung</span> · Wählen Sie ein Format.
+                    Sie können mehrere Formate nacheinander exportieren, ohne das Fenster zu
+                    schließen.
+                  </p>
+                </div>
+                <button type="button" class="close" aria-label="Schließen">✕</button>
+              </div>
+              <div class="banner-error" data-show="error" role="alert">
+                Der PDF-Export ist fehlgeschlagen. Bitte versuchen Sie es erneut.
+              </div>
+              <div class="cards" id="cards"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="review-footer">
+      <h3>Hinweise zum Mockup</h3>
+      <ul>
+        <li>
+          Statisches HTML. Farben approximieren das Teal-Theme der App, die echte Umsetzung nutzt
+          PrimeNG (Dialog, Button) und die vorhandenen Theme-Tokens.
+        </li>
+        <li>
+          Die Vorschauen sind generische Beispiele, abgedunkelt und ohne echte Nutzerdaten, bei
+          allen Features identisch.
+        </li>
+        <li>
+          Der Link steht im bisherigen Toolbar-Bereich neben „Dokumente importieren“ und ist wie „So
+          werden Ihre Daten geschützt“ in der Primärfarbe gestaltet.
+        </li>
+        <li>
+          Nicht im Mockup: tatsächliche Download-Logik, Übersetzungen in weitere Sprachen,
+          Fokusführung.
+        </li>
+      </ul>
+    </footer>
+
+    <script>
+      const canvas = document.getElementById('canvas');
+      const stageFrame = document.getElementById('stage-frame');
+      const stageLabel = document.getElementById('stage-frame-label');
+      let feature = 'earnings';
+
+      const FEATURES = {
+        earnings: {
+          title: 'Einkommensentwicklung',
+          base: 'Einkommensentwicklung',
+          csv: 'earnings',
+        },
+        holdings: { title: 'Bestände', base: 'Bestände', csv: 'single' },
+      };
+
+      function formats() {
+        const f = FEATURES[feature];
+        const isEarn = feature === 'earnings';
+        const dataDesc = isEarn
+          ? 'Einkommensentwicklung inkl. Karriere-Überblick, Diagramme und Tabellen'
+          : 'Alle Bestände mit Summenzeile und Verteilungsdiagramm';
+        return [
+          {
+            key: 'pdf',
+            name: 'PDF',
+            icon: '▤',
+            intro: 'Fertig gestaltetes Dokument mit Diagrammen und Tabellen.',
+            file: f.base + '.pdf',
+            type: 'PDF-Dokument (.pdf)',
+            data: dataDesc,
+            good: 'Persönliche Ansicht, Ablage, direkter Ausdruck',
+            poor: 'Weiterverarbeitung in anderen Programmen',
+            preview:
+              '<div class="pv-bar t"></div><div class="pv-bar" style="width:80%"></div><div class="pv-chart"><i style="height:40%"></i><i style="height:60%"></i><i style="height:50%"></i><i style="height:85%"></i><i style="height:100%"></i></div><div class="pv-bar"></div><div class="pv-bar" style="width:70%"></div><div class="pv-bar"></div>',
+          },
+          {
+            key: 'xlsx',
+            name: 'Excel',
+            icon: '▦',
+            intro: 'Tabellenblätter mit Formeln für eigene Auswertungen.',
+            file: f.base + '.xlsx',
+            type: 'Excel-Arbeitsmappe (.xlsx)',
+            data: isEarn
+              ? 'Alle Tabellen der Einkommensentwicklung als Tabellenblätter, inkl. Summen und Formeln'
+              : 'Alle Bestände als Tabellenblatt inkl. Summenzeile',
+            good: 'Eigene Berechnungen, Filtern, Sortieren, Diagramme',
+            poor: 'Schnelles Ansehen oder Ausdrucken',
+            preview: '<div class="pv-grid">' + '<i></i>'.repeat(32) + '</div>',
+          },
+          {
+            key: 'csv',
+            name: 'CSV',
+            icon: '≡',
+            intro: isEarn
+              ? 'Einfache Textdateien, gebündelt in einem ZIP-Archiv.'
+              : 'Einfache Textdatei mit Trennzeichen.',
+            file: isEarn ? f.base + '.zip' : f.base + '.csv',
+            type: isEarn ? 'ZIP-Archiv mit 4 CSV-Dateien (.zip)' : 'CSV-Textdatei (.csv)',
+            data: isEarn
+              ? '4 CSV-Dateien (eine je Tabelle), zusammen gezippt'
+              : 'Eine CSV-Datei mit allen Beständen',
+            good: 'Import in andere Programme und Datenbanken',
+            poor: 'Ansicht ohne Tabellenprogramm, Ausdruck',
+            preview:
+              '<div class="pv-code">Jahr;Brutto;Netto\n2022;58.400;37.120\n2023;61.900;39.480\n2024;64.250;41.060\n2025;66.800;42.900</div>',
+          },
+          {
+            key: 'json',
+            name: 'JSON',
+            icon: '{ }',
+            intro: 'Strukturierte Rohdaten für Entwickler und Datensicherung.',
+            file: f.base + '.json',
+            type: 'JSON-Datei (.json)',
+            data: isEarn
+              ? 'Alle Tabellen als strukturierte Daten, inkl. Summen'
+              : 'Alle Bestände als strukturierte Daten',
+            good: 'Technische Weiterverarbeitung, Datensicherung',
+            poor: 'Lesen oder Ausdrucken durch Menschen',
+            preview:
+              '<div class="pv-code">{\n  "jahre": [\n    {\n      "jahr": 2024,\n      "brutto": "64250.00",\n      "netto": "41060.00"\n    }\n  ]\n}</div>',
+          },
+        ];
+      }
+
+      function render() {
+        const f = FEATURES[feature];
+        document.getElementById('page-title').textContent = f.title;
+        document.getElementById('feature-name').textContent = f.title;
+        const state = canvas.getAttribute('data-screen');
+        document.getElementById('cards').innerHTML = formats()
+          .map((fm) => {
+            const busy = state === 'busy' && fm.key === 'pdf';
+            return `<article class="card" data-testid="export-card-${fm.key}">
+          <div class="card__top">
+            <div class="preview" aria-hidden="true">${fm.preview}<span class="cap">Beispiel</span></div>
+            <div class="card__title">
+              <h4><span class="material-icon">${fm.icon}</span>${fm.name}</h4>
+              <p>${fm.intro}</p>
+            </div>
+          </div>
+          <dl class="meta">
+            <div><dt>Dateiname</dt><dd><span class="mono">${fm.file}</span></dd></div>
+            <div><dt>Format</dt><dd>${fm.type}</dd></div>
+            <div><dt>Enthält</dt><dd>${fm.data}</dd></div>
+            <div><dt>Geeignet für</dt><dd class="good">✓ ${fm.good}</dd></div>
+            <div><dt>Weniger geeignet</dt><dd class="poor">✕ ${fm.poor}</dd></div>
+          </dl>
+          <div class="card__foot">
+            <button type="button" class="btn-export" data-testid="export-btn-${fm.key}" ${busy ? 'disabled aria-busy="true"' : ''}>
+              ${busy ? '<span class="spin"></span> Wird erstellt …' : '⇩ Als ' + fm.name + ' exportieren'}
+            </button>
+          </div>
+        </article>`;
+          })
+          .join('');
+      }
+
+      function pick(groupId, attr, cb) {
+        document.getElementById(groupId).addEventListener('click', (e) => {
+          const btn = e.target.closest('button[' + attr + ']');
+          if (!btn) return;
+          cb(btn.getAttribute(attr));
+          [...document.getElementById(groupId).querySelectorAll('button')].forEach((b) =>
+            b.setAttribute('aria-pressed', String(b === btn)),
+          );
+        });
+      }
+
+      pick('viewport-toggle', 'data-viewport', (v) => {
+        stageFrame.setAttribute('data-viewport', v);
+        stageLabel.textContent = v === 'mobile' ? 'Mobile (400 px)' : 'Desktop';
+      });
+      pick('screen-toggle', 'data-screen', (v) => {
+        canvas.setAttribute('data-screen', v);
+        render();
+      });
+      pick('feature-toggle', 'data-feature', (v) => {
+        feature = v;
+        render();
+      });
+      render();
+    </script>
+  </body>
+</html>

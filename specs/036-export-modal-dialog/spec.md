@@ -6,6 +6,8 @@
 
 **Status**: Draft
 
+**Design**: [design.md](design.md)
+
 **Input**: User description: "Rework the shared export control into a single text/icon link in the primary color labelled 'Daten exportieren', replacing the light-blue split button on all features. Clicking it opens a modal with one card per export format (PDF, Excel, CSV, JSON), each explaining the format, showing a static preview, the expected file name, the data included and what the format is best suited for. Each card has its own export button; no 'Export all'."
 
 ## User Scenarios & Testing _(mandatory)_
