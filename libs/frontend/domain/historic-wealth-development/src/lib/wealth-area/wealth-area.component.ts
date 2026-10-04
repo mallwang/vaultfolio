@@ -15,6 +15,7 @@ import {
 import type { Period } from '@vaultfolio/wealth';
 import { WealthStore } from '../wealth-store';
 import { WealthService } from '../wealth.service';
+import { WealthDangerZoneComponent } from './wealth-danger-zone.component';
 import { WealthUnavailableComponent } from './wealth-unavailable.component';
 
 const TABS = ['development', 'balance'] as const;
@@ -41,6 +42,7 @@ const PERIODS: readonly Period[] = ['1y', '3y', 'all'];
     ExportControlComponent,
     IconComponent,
     TranslatePipe,
+    WealthDangerZoneComponent,
     WealthUnavailableComponent,
   ],
   template: `
@@ -87,6 +89,10 @@ const PERIODS: readonly Period[] = ['1y', '3y', 'all'];
           <router-outlet />
         </p-tabpanels>
       </p-tabs>
+
+      @if (store.snapshots().length > 0 || store.settings().classGroups.length > 0) {
+        <app-wealth-danger-zone />
+      }
     }
   `,
   styles: `

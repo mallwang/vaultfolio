@@ -29,4 +29,12 @@ export const DASHBOARD_WIDGET_CONTRIBUTIONS: DashboardWidgetContribution[] = [
         (m) => m.RetirementDashboardWidgetComponent,
       ),
   },
+  {
+    domainId: 'historic-wealth-development',
+    titleKey: 'dashboard.wealth',
+    loadComponent: () =>
+      import('@vaultfolio/frontend-domain-historic-wealth-development').then(
+        (m) => m.WealthDashboardWidgetComponent,
+      ),
+  },
 ];

@@ -69,6 +69,7 @@ export const de: TranslationDictionary = {
       reset: 'Zurücksetzen',
     },
     retirement: 'Altersvorsorge',
+    wealth: 'Vermögen',
     earnings: 'Einkommen',
     totalValue: 'Gesamtwert',
     todaysChange: 'Heutige Veränderung',

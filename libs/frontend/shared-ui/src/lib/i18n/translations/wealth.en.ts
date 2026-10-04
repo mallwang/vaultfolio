@@ -168,6 +168,7 @@ export const wealthEn: TranslationDictionary = {
     emptyBody: 'Record your first snapshot to follow your net worth.',
     emptyCta: 'Record first snapshot',
     trend: 'Net worth trend',
+    unavailable: 'Wealth data is temporarily unavailable.',
   },
   export: {
     title: 'Wealth development',

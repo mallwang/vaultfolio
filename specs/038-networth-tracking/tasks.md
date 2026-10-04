@@ -136,9 +136,9 @@ description: 'Task list for Vermögensentwicklung (Net-Worth Tracking)'
 
 **Independent Test**: With two snapshots the tile shows latest total and change; hide/reorder persists; no data shows the empty state.
 
-- [ ] T042 [P] [US4] Write `wealth-dashboard-widget` spec: two snapshots (hero, change with percent and date, sparkline polyline, assets and liabilities rows), one snapshot (hint + "Stichtag erfassen"), no data (empty state linking to the page), negative net worth and "n/a" percent
-- [ ] T043 [US4] Create `wealth-dashboard-widget/` (whole tile is a link; sparkline as inline SVG polyline, no ECharts import; uses `latestOf`/`seriesOf` from `@vaultfolio/wealth`) and register a `DashboardWidgetContribution` for domain `historic-wealth-development` in `apps/frontend/src/app/dashboard/dashboard-widgets.registry.ts`; add i18n strings and `data-testid`
-- [ ] T044 [US4] `verify-ui`: dashboard shows the tile, hide and reorder via tile settings, reload keeps the choice, empty-state variant, tile not rendered for users without the domain
+- [x] T042 [P] [US4] Write `wealth-dashboard-widget` spec: two snapshots (hero, change with percent and date, sparkline polyline, assets and liabilities rows), one snapshot (hint + "Stichtag erfassen"), no data (empty state linking to the page), negative net worth and "n/a" percent
+- [x] T043 [US4] Create `wealth-dashboard-widget/` (whole tile is a link; sparkline as inline SVG polyline, no ECharts import; uses `latestOf`/`seriesOf` from `@vaultfolio/wealth`) and register a `DashboardWidgetContribution` for domain `historic-wealth-development` in `apps/frontend/src/app/dashboard/dashboard-widgets.registry.ts`; add i18n strings and `data-testid`
+- [x] T044 [US4] `verify-ui`: dashboard shows the tile, hide and reorder via tile settings, reload keeps the choice, empty-state variant, tile not rendered for users without the domain
 
 **Checkpoint**: Dashboard integration complete
 
@@ -153,17 +153,17 @@ description: 'Task list for Vermögensentwicklung (Net-Worth Tracking)'
 ### Tests for User Story 5
 
 - [x] T045 [P] [US5] Extend `apps/backend/src/tests/wealth.e2e-spec.ts` for settings: `GET /wealth/settings` empty owner → `{ classGroups: [] }`, `PUT /wealth/settings/class-groups` upsert and replace by `(side, classKey)`, group on wrong side → `400 WEALTH_UNKNOWN_FIELD`, owner isolation of settings, ciphertext at rest, settings survive snapshot deletion, `DELETE /wealth` removes snapshots and settings and returns `204`
-- [ ] T046 [P] [US5] Write `balance/` component specs: grouped Aktiva/Passiva with sub-totals, equity row first in Passiva, negative equity, "Keine Positionen" for empty groups, identical "Summe" on both sides, reference-date select, group selector applies to all snapshots, group prompt appears once for a new custom class, no ratios displayed
+- [x] T046 [P] [US5] Write `balance/` component specs: grouped Aktiva/Passiva with sub-totals, equity row first in Passiva, negative equity, "Keine Positionen" for empty groups, identical "Summe" on both sides, reference-date select, group selector applies to all snapshots, group prompt appears once for a new custom class, no ratios displayed
 
 ### Implementation for User Story 5
 
 - [x] T047 [US5] Add `GET /wealth/settings`, `PUT /wealth/settings/class-groups`, `DELETE /wealth` to `apps/backend/src/wealth/wealth.controller.ts` (validate with `validateClassGroup`; `DELETE /wealth` deletes snapshots + settings of the caller) (depends on T020)
 - [x] T048 [US5] OpenAPI: add `@Api...` decorators and DTO classes for the settings and delete-all routes in `apps/backend/src/openapi/dto/wealth.ts`, run `npx nx run backend:openapi`, commit the regenerated `api/openapi.yml`, and run `npx nx run backend:openapi:check`
-- [ ] T049 [P] [US5] Extend `wealth.service.ts` (frontend) with `getSettings`, `upsertClassGroup`, `deleteAll`; keep the settings in a signal store shared by the form and the balance view
-- [ ] T050 [US5] Create `balance/` (`balance-sheet.component`, group selector): reference-date select defaulting to latest snapshot, two columns (stack on mobile, Aktiva first), rows with name/class/amount, group sub-totals and "Summe", info note with group selector ("Übernehmen") and the no-ratios warning (FR-027); liabilities visibly distinct; empty state; wire it into the Bilanz tab from T040
-- [ ] T051 [US5] Add the one-time group prompt to `snapshot-form/` ("Neue Klasse „X" – in welche Bilanzgruppe?") when a new custom class (per side) has no assignment, offering only groups of its side, saved through `upsertClassGroup`; add strings and `data-testid`s
-- [ ] T052 [US5] Add the danger-zone "Alle Vermögensdaten löschen" (confirmation dialog, calls `deleteAll`, returns page/tile to empty state) in `wealth-area/`
-- [ ] T053 [US5] `verify-ui`: quickstart steps 5–6 and 10 — mortgage below zero line, balance sheet totals equal, change "Whisky" group and confirm it moves in other snapshots' balance sheets, delete-all returns to empty
+- [x] T049 [P] [US5] Extend `wealth.service.ts` (frontend) with `getSettings`, `upsertClassGroup`, `deleteAll`; keep the settings in a signal store shared by the form and the balance view
+- [x] T050 [US5] Create `balance/` (`balance-sheet.component`, group selector): reference-date select defaulting to latest snapshot, two columns (stack on mobile, Aktiva first), rows with name/class/amount, group sub-totals and "Summe", info note with group selector ("Übernehmen") and the no-ratios warning (FR-027); liabilities visibly distinct; empty state; wire it into the Bilanz tab from T040
+- [x] T051 [US5] Add the one-time group prompt to `snapshot-form/` ("Neue Klasse „X" – in welche Bilanzgruppe?") when a new custom class (per side) has no assignment, offering only groups of its side, saved through `upsertClassGroup`; add strings and `data-testid`s
+- [x] T052 [US5] Add the danger-zone "Alle Vermögensdaten löschen" (confirmation dialog, calls `deleteAll`, returns page/tile to empty state) in `wealth-area/`
+- [x] T053 [US5] `verify-ui`: quickstart steps 5–6 and 10 — mortgage below zero line, balance sheet totals equal, change "Whisky" group and confirm it moves in other snapshots' balance sheets, delete-all returns to empty
 
 **Checkpoint**: Balance sheet complete
 

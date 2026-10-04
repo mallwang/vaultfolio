@@ -75,6 +75,7 @@ export const en: TranslationDictionary = {
       reset: 'Reset',
     },
     retirement: 'Retirement',
+    wealth: 'Wealth',
     earnings: 'Earnings',
     totalValue: 'Total value',
     todaysChange: "Today's change",

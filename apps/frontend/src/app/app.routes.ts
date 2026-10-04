@@ -321,6 +321,14 @@ export const routes: Routes = [
                 (m) => m.DevelopmentComponent,
               ),
           },
+          {
+            path: 'balance',
+            title: 'pageTitle.wealthBalance',
+            loadComponent: () =>
+              import('@vaultfolio/frontend-domain-historic-wealth-development').then(
+                (m) => m.BalanceSheetComponent,
+              ),
+          },
         ],
       },
       {

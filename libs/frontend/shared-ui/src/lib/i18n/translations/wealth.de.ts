@@ -167,6 +167,7 @@ export const wealthDe: TranslationDictionary = {
     emptyBody: 'Erfasse deinen ersten Stichtag, um dein Nettovermögen zu verfolgen.',
     emptyCta: 'Ersten Stichtag erfassen',
     trend: 'Verlauf des Nettovermögens',
+    unavailable: 'Vermögensdaten sind vorübergehend nicht verfügbar.',
   },
   export: {
     title: 'Vermögensentwicklung',
