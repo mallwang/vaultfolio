@@ -393,6 +393,33 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       'CREATE INDEX IF NOT EXISTS retirement_records_owner_pillar_idx ON retirement_records (owner_id, pillar)',
     );
 
+    // 038-networth-tracking: one row per wealth snapshot and one settings row per owner. Entry
+    // names, classes, amounts, notes and group assignments live only inside the AES-256-GCM
+    // `payload_enc`; the snapshot date is the only plain business column (ordering and the
+    // one-snapshot-per-date rule). Brand-new tables, so `IF NOT EXISTS` is enough.
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS wealth_snapshots (
+        id            TEXT PRIMARY KEY,
+        owner_id      TEXT NOT NULL,
+        snapshot_date TEXT NOT NULL CHECK (snapshot_date GLOB '[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]'),
+        payload_enc   TEXT NOT NULL,
+        key_version   INTEGER NOT NULL DEFAULT 1,
+        created_at    TEXT NOT NULL,
+        updated_at    TEXT NOT NULL
+      )
+    `);
+    db.exec(
+      'CREATE UNIQUE INDEX IF NOT EXISTS wealth_snapshots_owner_date_uidx ON wealth_snapshots (owner_id, snapshot_date)',
+    );
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS wealth_settings (
+        owner_id    TEXT PRIMARY KEY,
+        payload_enc TEXT NOT NULL,
+        key_version INTEGER NOT NULL DEFAULT 1,
+        updated_at  TEXT NOT NULL
+      )
+    `);
+
     // 033-parser-requests: generic requests (feature + type, status workflow) with an optional
     // generated attachment and an admin download audit. Brand-new tables, so `IF NOT EXISTS` is
     // enough. No monetary values and no personal identifiers of any document are stored here.

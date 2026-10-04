@@ -154,8 +154,12 @@ describe('app.routes', () => {
 
     it.each(NEW_DOMAIN_IDS)('resolves /app/%s to itself', async (id) => {
       await router.navigateByUrl(`/app/${id}`);
-      // the retirement area opens on its overview tab (037)
-      expect(location.path()).toBe(id === 'retirement' ? '/app/retirement/overview' : `/app/${id}`);
+      // the retirement area opens on its overview tab (037), the wealth area on its development tab (038)
+      const opened: Record<string, string> = {
+        retirement: '/app/retirement/overview',
+        'historic-wealth-development': '/app/historic-wealth-development/development',
+      };
+      expect(location.path()).toBe(opened[id] ?? `/app/${id}`);
     });
   });
 

@@ -26,6 +26,14 @@ const lazyParserRequestGuard: CanActivateFn = () => {
   );
 };
 
+/** Same for the Wealth library's `wealthAvailableGuard` (snapshot form screens). */
+const lazyWealthAvailableGuard: CanActivateFn = () => {
+  const injector = inject(EnvironmentInjector);
+  return import('@vaultfolio/frontend-domain-historic-wealth-development').then((m) =>
+    runInInjectionContext(injector, () => m.wealthAvailableGuard()),
+  );
+};
+
 /** Same for the Retirement library's `retirementAvailableGuard` (form and import screens). */
 const lazyRetirementAvailableGuard: CanActivateFn = () => {
   const injector = inject(EnvironmentInjector);
@@ -278,13 +286,50 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'historic-wealth-development/new',
+        title: 'pageTitle.wealthNew',
+        canActivate: [domainGuard('historic-wealth-development'), lazyWealthAvailableGuard],
+        loadComponent: () =>
+          import('@vaultfolio/frontend-domain-historic-wealth-development').then(
+            (m) => m.SnapshotFormComponent,
+          ),
+      },
+      {
+        path: 'historic-wealth-development/:id/edit',
+        title: 'pageTitle.wealthEdit',
+        canActivate: [domainGuard('historic-wealth-development'), lazyWealthAvailableGuard],
+        loadComponent: () =>
+          import('@vaultfolio/frontend-domain-historic-wealth-development').then(
+            (m) => m.SnapshotFormComponent,
+          ),
+      },
+      {
         path: 'historic-wealth-development',
         title: 'pageTitle.wealthDevelopment',
         canActivate: [domainGuard('historic-wealth-development')],
         loadComponent: () =>
           import('@vaultfolio/frontend-domain-historic-wealth-development').then(
-            (m) => m.HistoricWealthDevelopmentPlaceholderComponent,
+            (m) => m.WealthAreaComponent,
           ),
+        children: [
+          { path: '', pathMatch: 'full', redirectTo: 'development' },
+          {
+            path: 'development',
+            title: 'pageTitle.wealthDevelopment',
+            loadComponent: () =>
+              import('@vaultfolio/frontend-domain-historic-wealth-development').then(
+                (m) => m.DevelopmentComponent,
+              ),
+          },
+          {
+            path: 'balance',
+            title: 'pageTitle.wealthBalance',
+            loadComponent: () =>
+              import('@vaultfolio/frontend-domain-historic-wealth-development').then(
+                (m) => m.BalanceSheetComponent,
+              ),
+          },
+        ],
       },
       {
         path: 'account-overview',

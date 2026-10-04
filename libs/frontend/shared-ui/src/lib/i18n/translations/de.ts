@@ -1,6 +1,7 @@
 import { requestsDe } from './requests.de';
 import { earningsDe } from './earnings.de';
 import { retirementDe } from './retirement.de';
+import { wealthDe } from './wealth.de';
 import { ocrDe } from './ocr.de';
 import type { TranslationDictionary } from './en';
 
@@ -33,7 +34,7 @@ export const de: TranslationDictionary = {
     retirement: 'Altersvorsorge',
     insurances: 'Versicherungen',
     haushaltsplaner: 'Haushaltsplaner',
-    historicWealthDevelopment: 'Vermögensentwicklung',
+    historicWealthDevelopment: 'Vermögen',
     accountOverview: 'Kontoübersicht',
     klaro: 'Klaro',
     earnings: 'Einkommensentwicklung',
@@ -68,6 +69,7 @@ export const de: TranslationDictionary = {
       reset: 'Zurücksetzen',
     },
     retirement: 'Altersvorsorge',
+    wealth: 'Vermögen',
     earnings: 'Einkommen',
     totalValue: 'Gesamtwert',
     todaysChange: 'Heutige Veränderung',
@@ -426,10 +428,6 @@ export const de: TranslationDictionary = {
     title: 'Haushaltsplaner',
     body: 'Der Haushaltsplaner ist noch nicht verfügbar. Dieser Bereich wird in einem zukünftigen Update ausgebaut.',
   },
-  historicWealthDevelopmentPlaceholder: {
-    title: 'Vermögensentwicklung',
-    body: 'Die Vermögensentwicklung ist noch nicht verfügbar. Dieser Bereich wird in einem zukünftigen Update ausgebaut.',
-  },
   accountOverviewPlaceholder: {
     title: 'Kontoübersicht',
     body: 'Die Kontoübersicht ist noch nicht verfügbar. Dieser Bereich wird in einem zukünftigen Update ausgebaut.',
@@ -514,7 +512,10 @@ export const de: TranslationDictionary = {
     retirement: 'Altersvorsorge',
     insurances: 'Versicherungen',
     haushaltsplaner: 'Haushaltsplaner',
-    wealthDevelopment: 'Vermögensentwicklung',
+    wealthDevelopment: 'Vermögen',
+    wealthBalance: 'Vermögen · Bilanz',
+    wealthNew: 'Stichtag erfassen',
+    wealthEdit: 'Stichtag bearbeiten',
     accountOverview: 'Kontoübersicht',
     klaro: 'Klaro',
     earnings: 'Einkommensentwicklung',
@@ -691,13 +692,9 @@ export const de: TranslationDictionary = {
     infobox:
       'Über diesen Export — Haushaltsplaner. Die Haushaltsplanung ist in Vaultfolio noch nicht umgesetzt, daher enthält diese Datei heute keine Zeilen — sie wird automatisch Ihre Daten enthalten, sobald diese Funktion verfügbar ist.',
   },
-  historicWealthDevelopmentExport: {
-    title: 'Vermögensentwicklung',
-    infobox:
-      'Über diesen Export — Vermögensentwicklung. Die historische Vermögensentwicklung ist in Vaultfolio noch nicht umgesetzt, daher enthält diese Datei heute keine Zeilen — sie wird automatisch Ihre Daten enthalten, sobald diese Funktion verfügbar ist.',
-  },
   earnings: earningsDe,
   retirement: retirementDe,
+  wealth: wealthDe,
   ocr: ocrDe,
   requests: requestsDe,
 };

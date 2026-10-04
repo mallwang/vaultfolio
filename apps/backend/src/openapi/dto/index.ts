@@ -16,3 +16,4 @@ export * from './error-response';
 export * from './earnings';
 export * from './requests';
 export * from './retirement';
+export * from './wealth';

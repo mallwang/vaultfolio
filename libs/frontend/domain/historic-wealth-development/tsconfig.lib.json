@@ -17,6 +17,12 @@
     },
     {
       "path": "../../../export/tsconfig.lib.json"
+    },
+    {
+      "path": "../../../api-contract/tsconfig.lib.json"
+    },
+    {
+      "path": "../../../wealth/tsconfig.lib.json"
     }
   ]
 }

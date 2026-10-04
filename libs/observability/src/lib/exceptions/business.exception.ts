@@ -9,6 +9,8 @@ export interface BusinessExceptionBody {
   message: string;
   /** Only for field-level validation errors. */
   details?: ErrorResponseDetail[];
+  /** Only for duplicate-resource conflicts: the id of the existing resource. */
+  existingId?: string;
 }
 
 /**
@@ -19,10 +21,12 @@ export interface BusinessExceptionBody {
  */
 export abstract class BusinessException extends HttpException {
   readonly details?: ErrorResponseDetail[];
+  readonly existingId?: string;
 
   protected constructor(body: BusinessExceptionBody, status: number) {
     super({ error: body.error, message: body.message }, status);
     this.details = body.details;
+    this.existingId = body.existingId;
   }
 }
 

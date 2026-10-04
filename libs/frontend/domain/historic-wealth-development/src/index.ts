@@ -1,2 +1,11 @@
-export { HistoricWealthDevelopmentPlaceholderComponent } from './lib/historic-wealth-development-placeholder/historic-wealth-development-placeholder.component.js';
-export { HISTORIC_WEALTH_DEVELOPMENT_EXPORT_DEFINITION } from './lib/historic-wealth-development-export.definition.js';
+export { WealthService, wealthErrorOf } from './lib/wealth.service';
+export type { WealthApiError } from './lib/wealth.service';
+export { WealthStore } from './lib/wealth-store';
+export { WealthAreaComponent } from './lib/wealth-area/wealth-area.component';
+export { wealthAvailableGuard } from './lib/wealth-area/wealth-available.guard';
+export { DevelopmentComponent } from './lib/development/development.component';
+export { SnapshotFormComponent } from './lib/snapshot-form/snapshot-form.component';
+export { createWealthExportDefinition } from './lib/wealth-export.definition';
+export { WealthDashboardWidgetComponent } from './lib/wealth-dashboard-widget/wealth-dashboard-widget.component';
+export { BalanceSheetComponent } from './lib/balance/balance-sheet.component';
+export { WealthDangerZoneComponent } from './lib/wealth-area/wealth-danger-zone.component';

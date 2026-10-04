@@ -3,13 +3,9 @@ import { DASHBOARD_WIDGET_CONTRIBUTIONS } from './dashboard-widgets.registry';
 // 022-add-domain-placeholders, US2 (FR-005): the placeholder domains
 // contribute nothing to the Dashboard — locks in that a future domain
 // addition doesn't accidentally start contributing a widget without a
-// deliberate registry entry. (`retirement` left this list in 037, US3.)
-const NEW_DOMAIN_IDS = [
-  'insurances',
-  'haushaltsplaner',
-  'historic-wealth-development',
-  'account-overview',
-];
+// deliberate registry entry. (`retirement` left this list in 037, US3; `historic-wealth-development`
+// in 038, US4.)
+const NEW_DOMAIN_IDS = ['insurances', 'haushaltsplaner', 'account-overview'];
 
 describe('DASHBOARD_WIDGET_CONTRIBUTIONS', () => {
   it('contains no entry for any of any placeholder domain (FR-005)', () => {
@@ -19,11 +15,12 @@ describe('DASHBOARD_WIDGET_CONTRIBUTIONS', () => {
     }
   });
 
-  it('only holdings, earnings and retirement contribute a Dashboard widget', () => {
+  it('only holdings, earnings, retirement and wealth contribute a Dashboard widget', () => {
     expect(DASHBOARD_WIDGET_CONTRIBUTIONS.map((c) => c.domainId)).toEqual([
       'holdings',
       'earnings',
       'retirement',
+      'historic-wealth-development',
     ]);
   });
 

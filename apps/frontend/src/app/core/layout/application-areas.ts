@@ -88,7 +88,7 @@ export const APPLICATION_AREAS: ApplicationArea[] = [
   },
   {
     id: 'historic-wealth-development',
-    label: 'Wealth Development',
+    label: 'Wealth',
     labelKey: 'nav.historicWealthDevelopment',
     path: 'historic-wealth-development',
     icon: 'trending-up',

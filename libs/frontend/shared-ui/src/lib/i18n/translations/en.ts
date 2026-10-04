@@ -1,6 +1,7 @@
 import { requestsEn } from './requests.en';
 import { earningsEn } from './earnings.en';
 import { retirementEn } from './retirement.en';
+import { wealthEn } from './wealth.en';
 import { ocrEn } from './ocr.en';
 
 /**
@@ -39,7 +40,7 @@ export const en: TranslationDictionary = {
     retirement: 'Retirement',
     insurances: 'Insurances',
     haushaltsplaner: 'Budget Planner',
-    historicWealthDevelopment: 'Wealth Development',
+    historicWealthDevelopment: 'Wealth',
     accountOverview: 'Account Overview',
     klaro: 'Klaro',
     earnings: 'Earnings',
@@ -74,6 +75,7 @@ export const en: TranslationDictionary = {
       reset: 'Reset',
     },
     retirement: 'Retirement',
+    wealth: 'Wealth',
     earnings: 'Earnings',
     totalValue: 'Total value',
     todaysChange: "Today's change",
@@ -425,10 +427,6 @@ export const en: TranslationDictionary = {
     title: 'Budget Planner',
     body: 'Budget Planner is not yet available. This area will be built out in a future update.',
   },
-  historicWealthDevelopmentPlaceholder: {
-    title: 'Wealth Development',
-    body: 'Wealth Development is not yet available. This area will be built out in a future update.',
-  },
   accountOverviewPlaceholder: {
     title: 'Account Overview',
     body: 'Account Overview is not yet available. This area will be built out in a future update.',
@@ -512,7 +510,10 @@ export const en: TranslationDictionary = {
     retirement: 'Retirement',
     insurances: 'Insurances',
     haushaltsplaner: 'Budget Planner',
-    wealthDevelopment: 'Wealth Development',
+    wealthDevelopment: 'Wealth',
+    wealthBalance: 'Wealth · Balance sheet',
+    wealthNew: 'Record wealth snapshot',
+    wealthEdit: 'Edit wealth snapshot',
     accountOverview: 'Account Overview',
     klaro: 'Klaro',
     earnings: 'Earnings',
@@ -687,13 +688,9 @@ export const en: TranslationDictionary = {
     infobox:
       'About this export — Budget Planner. Household budgeting is not built yet in Vaultfolio, so this file contains no rows today — it will automatically start including your data once that feature ships.',
   },
-  historicWealthDevelopmentExport: {
-    title: 'Wealth Development',
-    infobox:
-      'About this export — Wealth Development. Historic wealth development tracking is not built yet in Vaultfolio, so this file contains no rows today — it will automatically start including your data once that feature ships.',
-  },
   earnings: earningsEn,
   retirement: retirementEn,
+  wealth: wealthEn,
   ocr: ocrEn,
   requests: requestsEn,
 };

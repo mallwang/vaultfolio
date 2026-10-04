@@ -1,6 +1,18 @@
 <!--
 Sync Impact Report
-- Version change: 3.8.0 → 3.9.0 (MINOR: Retirement domain gets concrete scope, 037-altersvorsorge-
+- Version change: 3.9.0 → 3.10.0 (MINOR: Historic Wealth Development domain gets concrete scope,
+  038-networth-tracking; its manual entry data joins the Sensitive Personal Data rules; no
+  principle removed or redefined)
+- Modified sections:
+  - Product Scope intro: Historic Wealth Development is now specified (038), no longer a bare
+    placeholder.
+  - Product Scope → In Scope: Historic Wealth Development bullets (manual snapshots of assets and
+    liabilities, balance-sheet view, dashboard tile, PDF export).
+  - Product Scope → Sensitive Personal Data: applies to Historic Wealth Development (entry names,
+    classes, amounts and notes are encrypted at rest, owner-only, whitelist-only, kept out of logs).
+- Added/removed principles and sections: none
+- Templates requiring updates: none
+- Previous: 3.8.0 → 3.9.0 (MINOR: Retirement domain gets concrete scope, 037-altersvorsorge-
   retirement-planning; it joins the Sensitive Personal Data rules with one narrow relaxation for
   insurance/contract numbers; no principle removed or redefined)
 - Modified sections:
@@ -190,7 +202,8 @@ domains per the Frontend domain libraries Stack Decision below. **Holdings** (in
 is the first fully-built domain; **Retirement**, **Insurances**, **Haushaltsplaner** (household/
 budget planning), **Historic Wealth Development**, and **Account Overview** are planned domains
 (registered today as placeholders — see 022-add-domain-placeholders; Retirement is specified in
-037-altersvorsorge-retirement-planning), as is **Earnings**
+037-altersvorsorge-retirement-planning; Historic Wealth Development is specified in
+038-networth-tracking), as is **Earnings**
 (employment income history — see 032-earnings-domain). The scope rules below apply
 per domain as noted; a rule scoped to "the Holdings domain" does not extend to other domains unless
 stated.
@@ -231,6 +244,13 @@ stated.
   user's own Renteninformation document, interpreted on the user's device under the Sensitive
   Personal Data rules. Figures of an imported record are read-only (delete or replace by a newer
   import only); manually entered records stay editable by the user.
+
+- Historic Wealth Development domain: a user's net worth over time from manually recorded
+  snapshots (Stichtage) of assets and liabilities, each entry with a name, a class and an amount —
+  with an overview and chart, a personal balance-sheet view (Aktiva/Passiva with equity as the
+  balancing figure), a dashboard tile, and a PDF/data export. Data enters by manual UI entry only;
+  there is no bank, broker or Holdings import. Its manual entry data (entry names, classes,
+  amounts, notes) falls under the Sensitive Personal Data rules.
 
 ### Out of Scope
 
@@ -273,7 +293,7 @@ provider is unreachable, since a user's recorded holdings are the source of trut
 
 ### Sensitive Personal Data
 
-The Earnings and Retirement domains, and any future domain holding comparably sensitive personal
+The Earnings, Retirement and Historic Wealth Development domains, and any future domain holding comparably sensitive personal
 data (e.g., salary, tax, or health-related records), MUST follow these rules in addition to the rest of this
 constitution:
 
@@ -419,4 +439,4 @@ alignment with the Core Principles; unresolved violations MUST be justified in t
 Complexity Tracking section or the plan MUST be revised to comply. Reviewers MUST treat this
 constitution as authoritative over informal team conventions.
 
-**Version**: 3.9.0 | **Ratified**: 2026-08-13 | **Last Amended**: 2026-10-03
+**Version**: 3.10.0 | **Ratified**: 2026-08-13 | **Last Amended**: 2026-10-04

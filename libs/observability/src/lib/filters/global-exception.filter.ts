@@ -91,6 +91,9 @@ function buildErrorResponse(
     if (exception.details) {
       body.details = exception.details;
     }
+    if (exception.existingId) {
+      body.existingId = exception.existingId;
+    }
     return { status, body };
   }
 
