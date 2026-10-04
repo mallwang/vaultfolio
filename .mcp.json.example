@@ -1,0 +1,32 @@
+{
+  "mcpServers": {
+    "sonarqube": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "SONARQUBE_TOKEN",
+        "-e",
+        "SONARQUBE_ORG",
+        "-e",
+        "SONARQUBE_CLOUD_URL",
+        "mcp/sonarqube"
+      ],
+      "env": {
+        "SONARQUBE_ORG": "mallwang",
+        "SONARQUBE_CLOUD_URL": "https://sonarcloud.io",
+        "SONARQUBE_TOKEN": "${SONARQUBE_TOKEN}"
+      }
+    },
+    "codegraph": {
+      "command": "npx",
+      "args": ["codegraph", "serve", "--mcp"],
+      "env": {
+        "CODEGRAPH_TELEMETRY": "0",
+        "CODEGRAPH_MCP_TOOLS": "explore,node,search,callers,callees,impact,files,status"
+      }
+    }
+  }
+}

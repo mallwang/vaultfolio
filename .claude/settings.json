@@ -13,6 +13,14 @@
   "sandbox": {
     "network": {
       "allowedDomains": ["www.google-analytics.com"]
+    },
+    "filesystem": {
+      "denyRead": ["./.env", "./apps/frontend/src/environments/environment.local.ts"]
     }
-  }
+  },
+  "permissions": {
+    "allow": ["Bash(npx nx release --skip-publish)"],
+    "deny": ["Read(./.env)", "Read(./apps/frontend/src/environments/environment.local.ts)"]
+  },
+  "enabledMcpjsonServers": ["sonarqube", "codegraph"]
 }

@@ -23,37 +23,35 @@ npm run dev   # nx run-many -t serve -p backend frontend
   on first boot can take a few seconds.
 - If something is already listening on 4200/3000, reuse it instead of starting a second copy.
 
-If `.env` doesn't exist yet, copy it and set a password before first boot (see
-[README.md](../../../README.md#authentication)):
+## 2. Credentials: the dedicated test account
+
+Every route except `/health` requires a signed-in session. Use the dedicated test account, **never**
+the bootstrap admin from `.env` (that file is off-limits, see [CLAUDE.md](../../../CLAUDE.md)).
+Email `claude@allwang.family`; the password is not committed. It lives in the gitignored repo-root
+`.env.local` (only these two variables, nothing else):
 
 ```bash
-cp .env.example .env   # then fill in BOOTSTRAP_ADMIN_PASSWORD
+VAULTFOLIO_TEST_EMAIL=claude@allwang.family
+VAULTFOLIO_TEST_PASSWORD=...
 ```
 
-## 2. Read the login credentials from `.env`
-
-Every route except `/health` requires a signed-in session. Read `BOOTSTRAP_ADMIN_EMAIL` /
-`BOOTSTRAP_ADMIN_PASSWORD` out of the repo-root `.env` at script time — never hardcode or guess a
-password:
+The script template loads that file itself with `process.loadEnvFile()`, so you never need to read
+or print the values. In your own script:
 
 ```js
-import { readFileSync } from 'node:fs';
-
-function readEnv(key) {
-  const line = readFileSync('.env', 'utf8')
-    .split('\n')
-    .find((l) => l.startsWith(`${key}=`));
-  if (!line) throw new Error(`${key} not set in .env`);
-  return line.slice(key.length + 1).trim();
+try {
+  process.loadEnvFile('.env.local');
+} catch {
+  /* fall back to shell variables */
 }
-
-const ADMIN_EMAIL = readEnv('BOOTSTRAP_ADMIN_EMAIL');
-const ADMIN_PASSWORD = readEnv('BOOTSTRAP_ADMIN_PASSWORD');
+const EMAIL = process.env.VAULTFOLIO_TEST_EMAIL;
+const PASSWORD = process.env.VAULTFOLIO_TEST_PASSWORD;
+if (!EMAIL || !PASSWORD)
+  throw new Error('Set VAULTFOLIO_TEST_EMAIL / VAULTFOLIO_TEST_PASSWORD in .env.local');
 ```
 
-These credentials are only seeded once, on first boot against an empty `./data` DB. If sign-in
-fails with them, the DB was likely seeded earlier with different values — ask the user rather than
-resetting `./data` yourself.
+If they are missing, ask the user — don't guess a password or read `.env`. The test account's seeded
+data (50-year Earnings career) must be kept; don't delete it after verifying.
 
 ## 3. Sign in
 
@@ -62,8 +60,8 @@ has stable, non-translated ids — prefer those over the (i18n'd) label text or 
 
 ```js
 await page.goto('http://localhost:4200/sign-in');
-await page.locator('#email').fill(ADMIN_EMAIL);
-await page.locator('#password').fill(ADMIN_PASSWORD);
+await page.locator('#email').fill(EMAIL);
+await page.locator('#password').fill(PASSWORD);
 await page.locator('form button[type="submit"]').click();
 await page.waitForURL('**/app/dashboard');
 ```
@@ -103,7 +101,7 @@ scratchpad directory, edit the "EDIT ME" section, and run with:
 node /path/to/scratchpad/verify.mjs
 ```
 
-It launches headless Chromium, reads admin credentials from `.env`, signs in, and leaves you a
+It launches headless Chromium, reads the test-account credentials from `.env.local`, signs in, and leaves you a
 `page` to drive. Close the browser in a `finally` block so a failed assertion doesn't leak a
 process.
 
