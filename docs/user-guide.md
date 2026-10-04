@@ -442,19 +442,26 @@ account. Nothing is imported from banks, brokers or Holdings.
   real estate, vehicles, collectibles; mortgage, loan, other debt) are offered, and classes you
   typed before are suggested again. When you type a **new** class, you are asked once which balance
   group it belongs to.
-- **Copy from existing snapshot** prefills names and classes with blank amounts, so you can bring
-  earlier reference dates over quickly; remove entries that did not exist back then. Snapshots may
-  be recorded in any order — everything is sorted by date. The same action is available on each
-  table row (_Copy as template_).
+- **Copy from existing snapshot** prefills names and classes, so you can bring earlier reference
+  dates over quickly; remove entries that did not exist back then. The **Also copy amounts**
+  checkbox next to it (on by default) takes over the old amounts too, so you can compare while you
+  type; untick it to start with blank amounts. Snapshots may be recorded in any order — everything
+  is sorted by date. The same action is available on each table row (_Copy as template_).
+- Drag the handle at the left of an entry to reorder the entries within the assets or the
+  liabilities panel; with the handle focused, the up and down arrow keys move it too.
 - There is one snapshot per date. If the date is taken you are offered to open the existing one.
   Snapshots can be edited and deleted at any time.
 
 ### 7b.2 Development, Balance Sheet and Tile
 
 The **Development** tab shows net worth, change since the previous snapshot (absolute and percent;
-_n/a_ when the previous net worth was not positive), assets and liabilities, a chart with one
+_n/a_ when the previous net worth was not positive; green for an increase, red for a decrease, grey
+for no change), assets and liabilities, a chart with one
 column per snapshot (assets stacked by class above the zero line, liabilities hatched below it, net
-worth as a line; click the legend to hide a class) and the snapshot table, newest first. The
+worth as a line; click the legend to hide a class) and the snapshot table, newest first. Besides
+the change in € and %, the table shows the change **p.a.**: the percent change since the previous
+snapshot extrapolated to a year based on the days between the two dates (_n/a_ unless both net
+worths are positive). Over short intervals this figure swings widely. The
 **period** filter (1 year, 3 years, all) applies to the chart, the table, the changes and the PDF.
 With one snapshot you see the composition and a hint to add a second; without snapshots, an
 invitation to record the first.

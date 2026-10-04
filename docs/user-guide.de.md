@@ -460,20 +460,29 @@ Brokern oder aus den Beständen übernommen.
   Immobilien, Fahrzeuge, Sammlerstücke; Immobiliendarlehen, Kredit, Sonstige Schulden) werden
   angeboten, ebenso bereits verwendete eigene Klassen. Tippst du eine **neue** Klasse, wirst du
   einmal gefragt, in welche Bilanzgruppe sie gehört.
-- **Aus bestehendem Stichtag kopieren** übernimmt Namen und Klassen mit leeren Beträgen, damit du
-  frühere Stichtage schnell nachtragen kannst; entferne Positionen, die es damals noch nicht gab.
-  Stichtage können in beliebiger Reihenfolge erfasst werden – alles wird nach Datum sortiert. Dieselbe
-  Aktion gibt es in jeder Tabellenzeile (_Als Vorlage kopieren_).
+- **Aus bestehendem Stichtag kopieren** übernimmt Namen und Klassen, damit du frühere Stichtage
+  schnell nachtragen kannst; entferne Positionen, die es damals noch nicht gab. Die Checkbox
+  **Beträge übernehmen** daneben (standardmäßig an) übernimmt auch die alten Beträge, sodass du beim
+  Eintragen vergleichen kannst; ohne Haken beginnst du mit leeren Beträgen. Stichtage können in
+  beliebiger Reihenfolge erfasst werden – alles wird nach Datum sortiert. Dieselbe Aktion gibt es in
+  jeder Tabellenzeile (_Als Vorlage kopieren_).
+- Ziehe den Griff links neben einer Position, um die Positionen innerhalb der Vermögenswerte bzw.
+  Verbindlichkeiten umzusortieren; bei fokussiertem Griff verschieben auch die Pfeiltasten hoch und
+  runter die Position.
 - Pro Datum gibt es einen Stichtag. Ist das Datum vergeben, kannst du den bestehenden öffnen.
   Stichtage lassen sich jederzeit bearbeiten und löschen.
 
 ### 7b.2 Entwicklung, Bilanz und Kachel
 
 Der Tab **Entwicklung** zeigt Nettovermögen, Veränderung zum vorherigen Stichtag (absolut und
-prozentual; _k. A._, wenn das vorherige Nettovermögen nicht positiv war), Vermögenswerte und
+prozentual; _k. A._, wenn das vorherige Nettovermögen nicht positiv war; grün bei Zunahme, rot bei
+Abnahme, grau bei keiner Veränderung), Vermögenswerte und
 Verbindlichkeiten, ein Diagramm mit einer Säule je Stichtag (Vermögenswerte nach Klasse gestapelt
 über der Nulllinie, Verbindlichkeiten schraffiert darunter, Nettovermögen als Linie; die Legende
-blendet Klassen aus) und die Stichtagstabelle, neueste zuerst. Der **Zeitraum**-Filter (1 Jahr,
+blendet Klassen aus) und die Stichtagstabelle, neueste zuerst. Neben der Veränderung in € und %
+zeigt die Tabelle die Veränderung **p. a.**: die prozentuale Veränderung seit dem vorherigen
+Stichtag, anhand der Tage zwischen beiden Daten auf ein Jahr hochgerechnet (_k. A._, wenn nicht
+beide Nettovermögen positiv sind). Bei kurzen Abständen schwankt dieser Wert stark. Der **Zeitraum**-Filter (1 Jahr,
 3 Jahre, Alle) gilt für Diagramm, Tabelle, Veränderungen und PDF. Bei nur einem Stichtag siehst du
 die Zusammensetzung und den Hinweis auf einen zweiten; ohne Stichtage eine Einladung zum ersten.
 
