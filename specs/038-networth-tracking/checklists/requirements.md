@@ -31,4 +31,4 @@
 
 ## Notes
 
-- Clarified 2026-10-04: liabilities as negative entries (net worth); CSV/Excel import out of scope for v1.
+- Clarified 2026-10-04: liabilities as a separate side with positive amounts (net worth); balance sheet view added; CSV/Excel import out of scope for v1.
