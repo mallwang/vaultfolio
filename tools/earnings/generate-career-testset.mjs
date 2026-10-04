@@ -4,13 +4,17 @@
  * 50 years (1977-01 … 2026-09), 10 employers (one with a very long name), a gap of 8 months, a
  * December bonus in most years and mid-year employer changes. All names and figures are INVENTED.
  *
- *   node tools/earnings/generate-career-testset.mjs [out.json]
+ *   node tools/earnings/generate-career-testset.mjs [out.json] [--profile demo]
+ *
+ * `--profile demo` writes a realistic, edge-case-free career instead: 3 employers, 2014-01 … 2026-09,
+ * no gap, plausible salaries (for the Member demo account).
  *
  * Import the result via Earnings → Import. Every record balances (net = gross − taxes − social).
  */
 import { writeFileSync } from 'node:fs';
 
-const EMPLOYERS = [
+const DEMO = process.argv.includes('demo') && process.argv.includes('--profile');
+const LOAD_EMPLOYERS = [
   ['Rheinland Kohle und Stahl AG', 72],
   ['Stadtwerke Musterstadt', 48],
   ['Hanseatische Speditions- und Lagerhaus-Gesellschaft mbH', 96],
@@ -25,16 +29,23 @@ const EMPLOYERS = [
   ['Brightline Software GmbH', 54],
   ['Testfirma', 43],
 ];
-const START_YEAR = 1977;
-const START_SALARY = 1500; // monthly gross in 1977
-const END_SALARY = 7600; // monthly gross in 2026
+const DEMO_EMPLOYERS = [
+  ['Nordlicht Elektronik GmbH', 40],
+  ['Brightline Software GmbH', 52],
+  ['Musterstadt Informationssysteme AG', 61],
+];
+const EMPLOYERS = DEMO ? DEMO_EMPLOYERS : LOAD_EMPLOYERS;
+const START_YEAR = DEMO ? 2014 : 1977;
+const START_SALARY = DEMO ? 3300 : 1500; // monthly gross in the first year
+const END_SALARY = DEMO ? 5900 : 7600; // monthly gross in 2026
+const SPAN = 2026 - START_YEAR;
 
 const cents = (v) => Math.round(v * 100);
 const pad = (n) => String(n).padStart(2, '0');
 
 /** Piecewise-exponential salary growth with a small per-employer step. */
 function salary(year, employerIndex) {
-  const growth = Math.pow(END_SALARY / START_SALARY, (year - START_YEAR) / 49);
+  const growth = Math.pow(END_SALARY / START_SALARY, (year - START_YEAR) / SPAN);
   return START_SALARY * growth * (1 + 0.03 * ((employerIndex * 7) % 5));
 }
 
@@ -96,7 +107,8 @@ EMPLOYERS.forEach(([employer, months, gapAfter], employerIndex) => {
   index += gapAfter ?? 0;
 });
 
-const out = process.argv[2] ?? 'career-testset.json';
+const positional = process.argv.slice(2).find((a) => !a.startsWith('--') && a !== 'demo');
+const out = positional ?? (DEMO ? 'career-demo.json' : 'career-testset.json');
 writeFileSync(
   out,
   JSON.stringify({

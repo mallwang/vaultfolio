@@ -112,6 +112,11 @@ The header is always visible. It contains:
 > see in the UI. To change the language of emails you receive from Vaultfolio, go
 > to **Settings → Preferences**.
 
+> **Several accounts in one browser:** Signing out reloads the page, so nothing of your data stays
+> behind for the next person who signs in. A browser has one Vaultfolio session at a time, shared
+> by all its tabs: if you sign in with another account in a second tab (or accept an invitation
+> there), the first tab reloads and shows that account as soon as you return to it.
+
 ---
 
 ## 3. Dashboard

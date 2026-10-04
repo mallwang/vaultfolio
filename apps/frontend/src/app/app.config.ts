@@ -21,6 +21,7 @@ import { routes } from './app.routes';
 import { AuthService } from './auth/auth.service';
 import { authInterceptor } from './auth/auth.interceptor';
 import { CurrentUserStore } from './auth/current-user.store';
+import { SessionBoundary } from './auth/session-boundary';
 import { VaultfolioTitleStrategy } from './core/title.strategy';
 import { httpErrorInterceptor } from './core/http-error.interceptor';
 import { GlobalErrorHandler } from './core/global-error-handler';
@@ -83,6 +84,9 @@ export const appConfig: ApplicationConfig = {
         }),
       );
     }),
+    // Another tab may sign a different user in on the shared session cookie — re-check whenever
+    // this tab becomes active again (see `SessionBoundary`).
+    provideAppInitializer(() => inject(SessionBoundary).watch()),
     // FR-008/FR-009/FR-012: populate the shared FeatureExportRegistry once at bootstrap, the
     // same way DASHBOARD_WIDGET_CONTRIBUTIONS/SETTINGS_TAB_CONTRIBUTIONS wire per-domain
     // contributions in — but as an app initializer (not a bare constant import) since two of the

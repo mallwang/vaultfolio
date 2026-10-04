@@ -114,6 +114,12 @@ Die Kopfzeile ist immer sichtbar. Sie enthält:
 > siehst. Um die Sprache der E-Mails zu ändern, die du von Vaultfolio erhältst, gehe zu
 > **Einstellungen → Präferenzen**.
 
+> **Mehrere Konten in einem Browser:** Beim Abmelden wird die Seite neu geladen, sodass nichts von
+> deinen Daten für die nächste Person zurückbleibt, die sich anmeldet. Ein Browser hat immer nur
+> eine Vaultfolio-Sitzung, die sich alle Tabs teilen: Meldest du dich in einem zweiten Tab mit
+> einem anderen Konto an (oder nimmst dort eine Einladung an), lädt der erste Tab neu und zeigt
+> dieses Konto, sobald du zu ihm zurückkehrst.
+
 ---
 
 ## 3. Dashboard

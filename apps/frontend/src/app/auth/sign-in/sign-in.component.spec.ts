@@ -9,7 +9,7 @@ describe('SignInComponent', () => {
   let fixture: ComponentFixture<SignInComponent>;
   let httpMock: HttpTestingController;
 
-  const mockCurrentUser = { setAuthenticated: vi.fn() };
+  const mockCurrentUser = { setAuthenticated: vi.fn(), current: () => null };
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({

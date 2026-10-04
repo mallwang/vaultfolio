@@ -2,10 +2,11 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { provideHttpClient } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { Router, provideRouter } from '@angular/router';
+import { provideRouter } from '@angular/router';
 import type { SessionUser } from '@vaultfolio/api-contract';
 import { AppHeaderComponent } from './app-header.component';
 import { CurrentUserStore } from '../../../auth/current-user.store';
+import { PAGE_LOADER } from '../../../auth/session-boundary';
 import { FakeCurrentUserStore } from '../../../auth/testing/current-user-store.testing';
 import { ThemeService, I18nService } from '@vaultfolio/frontend-shared-ui';
 
@@ -19,8 +20,8 @@ const user: SessionUser = {
 
 describe('AppHeaderComponent (integration)', () => {
   let fakeCurrentUser: FakeCurrentUserStore;
+  const pageLoader = { assign: vi.fn(), reload: vi.fn() };
   let httpMock: HttpTestingController;
-  let router: Router;
 
   beforeEach(async () => {
     localStorage.clear();
@@ -37,11 +38,11 @@ describe('AppHeaderComponent (integration)', () => {
         provideHttpClientTesting(),
         provideRouter([]),
         { provide: CurrentUserStore, useValue: fakeCurrentUser },
+        { provide: PAGE_LOADER, useValue: pageLoader },
       ],
     }).compileComponents();
 
     httpMock = TestBed.inject(HttpTestingController);
-    router = TestBed.inject(Router);
   });
 
   afterEach(() => {
@@ -59,12 +60,10 @@ describe('AppHeaderComponent (integration)', () => {
     expect(compiled.textContent).toContain('Admin');
   });
 
-  it('clears Auth Status and navigates to /sign-in when sign-out succeeds, hiding identity content afterward', async () => {
+  it('clears Auth Status and loads /sign-in afresh when sign-out succeeds, hiding identity content afterward', async () => {
     fakeCurrentUser.setAuthenticated(user);
     const fixture = TestBed.createComponent(AppHeaderComponent);
     await fixture.whenStable();
-    const navigateSpy = vi.spyOn(router, 'navigateByUrl');
-
     const signOutButton = (fixture.nativeElement as HTMLElement).querySelector(
       'p-button button',
     ) as HTMLButtonElement;
@@ -75,7 +74,7 @@ describe('AppHeaderComponent (integration)', () => {
     fixture.detectChanges();
 
     expect(fakeCurrentUser.status()).toBe('unauthenticated');
-    expect(navigateSpy).toHaveBeenCalledWith('/sign-in');
+    expect(pageLoader.assign).toHaveBeenCalledWith('/sign-in');
 
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('.app-header__meta')).toBeFalsy();

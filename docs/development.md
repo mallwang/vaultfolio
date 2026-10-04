@@ -169,6 +169,29 @@ send an **anonymized, rebuilt layout** so the parser can be written.
   `libs/frontend/admin/src/lib/requests/payload-views/`; the table, API and mail mechanism need no
   change.
 
+## Synthetic test data (limit tests and demo accounts)
+
+Three throw-away generators fill a test account with invented data. They are for local and demo
+use only — never point them at an account with real data.
+
+| Domain     | Script                                                                         | Load-test set (default)                             | `--profile demo`                          |
+| ---------- | ------------------------------------------------------------------------------ | --------------------------------------------------- | ----------------------------------------- |
+| Earnings   | [generate-career-testset.mjs](../tools/earnings/generate-career-testset.mjs)   | 589 months 1977–2026, 10 employers, a gap           | 153 months 2014–2026, 3 employers         |
+| Wealth     | [seed-wealth-testset.mjs](../tools/wealth/seed-wealth-testset.mjs)             | 597 monthly snapshots, up to 27 entries, edge cases | 129 snapshots 2016–2026, realistic        |
+| Retirement | [seed-retirement-testset.mjs](../tools/retirement/seed-retirement-testset.mjs) | 81 records over every contract type                 | statutory pension + 5 plausible contracts |
+
+- **Wealth and Retirement** upload through the REST API (there is no bulk import):
+  `node tools/wealth/seed-wealth-testset.mjs --email <e> --password <p> [--base http://localhost:3000] [--profile demo] [--replace]`.
+  Against a deployment use its API prefix, e.g. `--base https://<host>/api`. Without `--replace` the
+  script refuses a non-empty account; with it, `DELETE /wealth` (or `/retirement`) runs first.
+  `--out file.json` writes the data without uploading. The account needs the domain scope (admins
+  have all of them).
+- **Earnings** has no matching API format: generate the `earnings-export` JSON with
+  `node tools/earnings/generate-career-testset.mjs out.json [--profile demo]` and import it in the UI
+  (Earnings → Import), or drive that page with Playwright (`data-testid="earnings-import-input"`).
+- The output is deterministic, so a reset is reproducible. Passwords on the command line end up in
+  the shell history — use the dedicated test accounts only.
+
 ## CI pipeline overview
 
 [.github/workflows/ci.yml](../.github/workflows/ci.yml) runs on every PR and on push to `main`:

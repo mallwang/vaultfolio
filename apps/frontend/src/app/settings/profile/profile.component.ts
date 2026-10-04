@@ -1,6 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
 import type { ProfileErrorResponse, ProfileSummary } from '@vaultfolio/api-contract';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
@@ -18,6 +17,7 @@ import {
   TranslatePipe,
 } from '@vaultfolio/frontend-shared-ui';
 import { CurrentUserStore } from '../../auth/current-user.store';
+import { SessionBoundary } from '../../auth/session-boundary';
 import { ProfileService } from './profile.service';
 
 /** Mirrors `libs/domain/auth/password-policy.ts` — a client-side hint only (scope:frontend can't depend on scope:domain libs). */
@@ -59,8 +59,8 @@ function errorOf(error: unknown): { status?: number; body?: ProfileErrorResponse
 export class ProfileComponent implements OnInit {
   private readonly profileService = inject(ProfileService);
   private readonly currentUser = inject(CurrentUserStore);
+  private readonly sessionBoundary = inject(SessionBoundary);
   private readonly messageService = inject(MessageService);
-  private readonly router = inject(Router);
   private readonly translate = inject(TranslatePipe);
   private readonly featureExportRegistry = inject(FEATURE_EXPORT_REGISTRY);
   private readonly i18n = inject(I18nService);
@@ -341,10 +341,7 @@ export class ProfileComponent implements OnInit {
     this.deleting.set(true);
     this.deleteErrorMessage.set(null);
     this.profileService.deleteAccount().subscribe({
-      next: () => {
-        this.currentUser.setUnauthenticated();
-        void this.router.navigateByUrl('/sign-in');
-      },
+      next: () => this.sessionBoundary.leave(),
       error: (error: unknown) => {
         this.deleting.set(false);
         const { status } = errorOf(error);

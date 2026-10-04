@@ -1,3 +1,4 @@
+import { CURRENT_USER_SOURCE } from '@vaultfolio/frontend-domain-access';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
@@ -23,7 +24,11 @@ describe('createWealthExportDefinition', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: CURRENT_USER_SOURCE, useValue: { current: () => ({ id: 'user-1' }) } },
+      ],
     });
     http = TestBed.inject(HttpTestingController);
     definition = TestBed.runInInjectionContext(() => createWealthExportDefinition());

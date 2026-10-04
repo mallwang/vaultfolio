@@ -16,7 +16,7 @@ function buildFixture(token: string): {
       provideHttpClientTesting(),
       provideRouter([]),
       { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => token } } } },
-      { provide: CurrentUserStore, useValue: { setAuthenticated: vi.fn() } },
+      { provide: CurrentUserStore, useValue: { setAuthenticated: vi.fn(), current: () => null } },
     ],
   }).compileComponents();
 

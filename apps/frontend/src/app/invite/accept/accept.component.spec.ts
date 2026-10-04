@@ -1,3 +1,6 @@
+import type { SessionUser } from '@vaultfolio/api-contract';
+import { CurrentUserStore } from '../../auth/current-user.store';
+import { PAGE_LOADER } from '../../auth/session-boundary';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
@@ -18,6 +21,7 @@ function withToken(token: string) {
 describe('AcceptComponent', () => {
   let fixture: ComponentFixture<AcceptComponent>;
   let httpMock: HttpTestingController;
+  const pageLoader = { assign: vi.fn(), reload: vi.fn() };
 
   async function setup(token = TOKEN) {
     await TestBed.configureTestingModule({
@@ -27,6 +31,7 @@ describe('AcceptComponent', () => {
         provideHttpClientTesting(),
         provideRouter([]),
         withToken(token),
+        { provide: PAGE_LOADER, useValue: pageLoader },
       ],
     }).compileComponents();
 
@@ -115,6 +120,24 @@ describe('AcceptComponent', () => {
         domainScopes: [],
       });
       expect(spy).toHaveBeenCalledWith('/app/dashboard');
+    });
+
+    it('loads the dashboard afresh when another account was still shown in this browser', () => {
+      TestBed.inject(CurrentUserStore).setAuthenticated({ id: 'admin-1' } as SessionUser);
+      const spy = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
+      fixture.componentInstance['displayName'].set('Alice');
+      fixture.componentInstance['password'].set('validpassword');
+      fixture.componentInstance['confirmPassword'].set('validpassword');
+      fixture.componentInstance['submit']();
+      httpMock.expectOne(`/api/invitations/token/${TOKEN}/accept`).flush({
+        id: 'u-1',
+        email: 'invited@example.com',
+        displayName: 'Alice',
+        role: 'MEMBER',
+        domainScopes: [],
+      });
+      expect(pageLoader.assign).toHaveBeenCalledWith('/app/dashboard');
+      expect(spy).not.toHaveBeenCalled();
     });
 
     it('navigates to /invite/expired on 410', () => {

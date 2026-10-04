@@ -4,22 +4,30 @@
 // Requires the app already running: `npm run dev` (frontend :4200, backend :3000).
 
 import { chromium } from 'playwright';
-import { readFileSync } from 'node:fs';
 
 const REPO_ROOT = '/home/markus/projects/vaultfolio';
 const FRONTEND_URL = 'http://localhost:4200';
 
-function readEnv(key) {
-  const line = readFileSync(`${REPO_ROOT}/.env`, 'utf8')
-    .split('\n')
-    .find((l) => l.startsWith(`${key}=`));
-  if (!line) throw new Error(`${key} not set in ${REPO_ROOT}/.env`);
-  return line.slice(key.length + 1).trim();
+// Test-account credentials live in the gitignored repo-root .env.local (never in .env).
+// Already-exported variables win over the file.
+try {
+  process.loadEnvFile(`${REPO_ROOT}/.env.local`);
+} catch {
+  /* no .env.local — fall back to variables from the shell */
+}
+
+function requireEnv(key) {
+  const value = process.env[key];
+  if (!value)
+    throw new Error(
+      `${key} not set (test-account credentials; put them in .env.local, see verify-ui skill)`,
+    );
+  return value;
 }
 
 async function signIn(page) {
-  const email = readEnv('BOOTSTRAP_ADMIN_EMAIL');
-  const password = readEnv('BOOTSTRAP_ADMIN_PASSWORD');
+  const email = requireEnv('VAULTFOLIO_TEST_EMAIL');
+  const password = requireEnv('VAULTFOLIO_TEST_PASSWORD');
   await page.goto(`${FRONTEND_URL}/sign-in`);
   await page.locator('#email').fill(email);
   await page.locator('#password').fill(password);

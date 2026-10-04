@@ -18,6 +18,7 @@ import { filter, map, startWith } from 'rxjs';
 import { APPLICATION_AREAS } from '../application-areas';
 import { AuthService } from '../../../auth/auth.service';
 import { CurrentUserStore } from '../../../auth/current-user.store';
+import { SessionBoundary } from '../../../auth/session-boundary';
 
 /**
  * design.md's "Header language switcher" — CSS class per language, not part
@@ -52,6 +53,7 @@ export class AppHeaderComponent {
   private readonly router = inject(Router);
   private readonly authService = inject(AuthService);
   private readonly currentUser = inject(CurrentUserStore);
+  private readonly sessionBoundary = inject(SessionBoundary);
   // Eagerly injected (research.md #3): this component is always rendered at
   // the app root, so constructing ThemeService here resolves/applies the
   // initial theme before any routed page content paints.
@@ -111,16 +113,11 @@ export class AppHeaderComponent {
 
   protected signOut(): void {
     this.authService.signOut().subscribe({
-      next: () => this.completeSignOut(),
+      next: () => this.sessionBoundary.leave(),
       // Even if the request fails (e.g. session already expired), clear
       // local state and send the user to sign-in rather than leaving them
       // stuck on a page that thinks they're still authenticated.
-      error: () => this.completeSignOut(),
+      error: () => this.sessionBoundary.leave(),
     });
-  }
-
-  private completeSignOut(): void {
-    this.currentUser.setUnauthenticated();
-    void this.router.navigateByUrl('/sign-in');
   }
 }

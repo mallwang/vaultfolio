@@ -1,3 +1,4 @@
+import { CURRENT_USER_SOURCE } from '@vaultfolio/frontend-domain-access';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
@@ -24,7 +25,12 @@ describe('BalanceSheetComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: CURRENT_USER_SOURCE, useValue: { current: () => ({ id: 'user-1' }) } },
+      ],
     });
     http = TestBed.inject(HttpTestingController);
   });
