@@ -8,6 +8,9 @@ import { fill, formatDate } from '../wealth-format';
 import { WealthStore } from '../wealth-store';
 import { WealthService } from '../wealth.service';
 import { SnapshotTableComponent } from './snapshot-table.component';
+import { WealthChartPanelComponent } from './wealth-chart-panel.component';
+import { WealthKpisComponent } from './wealth-kpis.component';
+import { WealthSingleComponent } from './wealth-single.component';
 import { WealthEmptyStateComponent } from './wealth-empty-state.component';
 
 /**
@@ -22,17 +25,48 @@ import { WealthEmptyStateComponent } from './wealth-empty-state.component';
     MessageModule,
     TranslatePipe,
     SnapshotTableComponent,
+    WealthChartPanelComponent,
     WealthEmptyStateComponent,
+    WealthKpisComponent,
+    WealthSingleComponent,
   ],
+  styles: `
+    .stack {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .panel {
+      border: 1px solid var(--p-content-border-color);
+      border-radius: var(--p-content-border-radius, 0.5rem);
+      background: var(--p-content-background);
+      padding: 1rem;
+    }
+    h2 {
+      margin: 0 0 0.5rem;
+      font-size: 1rem;
+    }
+  `,
   template: `
     @if (store.loaded()) {
       @if (store.snapshots().length === 0) {
         <app-wealth-empty-state />
       } @else {
-        <app-wealth-snapshot-table
-          [snapshots]="store.periodSnapshots()"
-          (remove)="askDelete($event)"
-        />
+        <div class="stack">
+          <app-wealth-kpis [snapshots]="store.periodSnapshots()" />
+          @if (store.periodSnapshots().length > 1) {
+            <app-wealth-chart-panel [snapshots]="store.periodSnapshots()" />
+          } @else {
+            <app-wealth-single [snapshot]="store.periodSnapshots()[0]" />
+          }
+          <section class="panel">
+            <h2>{{ 'wealth.table.title' | translate }}</h2>
+            <app-wealth-snapshot-table
+              [snapshots]="store.periodSnapshots()"
+              (remove)="askDelete($event)"
+            />
+          </section>
+        </div>
       }
     }
 

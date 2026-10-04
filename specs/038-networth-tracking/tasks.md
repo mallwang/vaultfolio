@@ -106,8 +106,8 @@ description: 'Task list for Vermögensentwicklung (Net-Worth Tracking)'
 
 - [x] T032 [P] [US2] Add specs for the copy flow in the snapshot-form spec: choosing a source prefills names/sides/classes with blank amounts (`copyTemplateOf`), removing a copied entry excludes it from the snapshot and totals, a blank amount blocks saving with a field message
 - [x] T033 [US2] Implement "Aus bestehendem Stichtag kopieren" select in `snapshot-form/` using `copyTemplateOf` from `@vaultfolio/wealth` (prefill rows, focus first amount), plus a row action "als Vorlage kopieren" in the snapshot table that opens `/new` with the source preselected (query param); add i18n keys and `data-testid`s
-- [ ] T034 [US2] Ensure the table and all lists sort by `snapshotDate` using the lib regardless of creation order; add a unit test with out-of-order input
-- [ ] T035 [US2] `verify-ui`: create one snapshot, then three past snapshots by copying, out of order; confirm ordering, prefilled fields and removal of an entry
+- [x] T034 [US2] Ensure the table and all lists sort by `snapshotDate` using the lib regardless of creation order; add a unit test with out-of-order input
+- [x] T035 [US2] `verify-ui`: create one snapshot, then three past snapshots by copying, out of order; confirm ordering, prefilled fields and removal of an entry
 
 **Checkpoint**: Backfill workflow works (SC-002)
 
@@ -119,12 +119,12 @@ description: 'Task list for Vermögensentwicklung (Net-Worth Tracking)'
 
 **Independent Test**: With four snapshots across classes verify the total series, per-class breakdown, changes versus previous snapshot, period filter and class toggles; zero and one snapshot show their states.
 
-- [ ] T036 [P] [US3] Write `charts/wealth-charts.spec.ts`: option builder produces stacked asset series per class, one liability series with decal pattern and distinct color below zero, net-worth line, zero for absent classes, legend selection state, and an accessible text summary
-- [ ] T037 [P] [US3] Write `development/` component specs: KPIs (net worth, change with "n/a" percent when previous ≤ 0, assets, liabilities), table newest-first with oldest row showing "–" and newest highlighted, period filter narrows chart/table/changes, single-snapshot state with hint and composition bar, empty state with call to action, 120-snapshot fixture renders
-- [ ] T038 [US3] Create `charts/wealth-charts.ts`: single ECharts option builder (stacked bars by class upward, liabilities as hatched negative-stack series with distinct color, net-worth line with markers), light/dark theme aware, exposing `getChartOptions`-compatible output reused for the PDF (wide ≈ 1000×330 capture) (depends on T008)
-- [ ] T039 [US3] Create `development/` components: KPI tiles, chart panel (native ECharts legend toggles; text summary for assistive tech), snapshot table (Stichtag, assets, liabilities, net, change, percent, row actions edit/copy/delete), single-snapshot view, empty state; period filter (`1y`/`3y`/`all`) shared state in `wealth-area/` via signals; liabilities visibly distinct in table (FR-022); `data-testid`s for repeated rows and toolbar controls
-- [ ] T040 [US3] Create `wealth-area/` tabs (Entwicklung, Bilanz placeholder route for US5), toolbar with period filter, "Daten exportieren" link to the existing export dialog and "+ Stichtag erfassen"; wire `/historic-wealth-development` in `apps/frontend/src/app/app.routes.ts`; add all DE/EN strings
-- [ ] T041 [US3] `verify-ui`: check four-snapshot overview, toggles, period filter, one-snapshot and empty states, mobile width (table scrolls in its container), light and dark theme; seed 120 snapshots in the throw-away script to confirm readability and < 2 s render
+- [x] T036 [P] [US3] Write `charts/wealth-charts.spec.ts`: option builder produces stacked asset series per class, one liability series with decal pattern and distinct color below zero, net-worth line, zero for absent classes, legend selection state, and an accessible text summary
+- [x] T037 [P] [US3] Write `development/` component specs: KPIs (net worth, change with "n/a" percent when previous ≤ 0, assets, liabilities), table newest-first with oldest row showing "–" and newest highlighted, period filter narrows chart/table/changes, single-snapshot state with hint and composition bar, empty state with call to action, 120-snapshot fixture renders
+- [x] T038 [US3] Create `charts/wealth-charts.ts`: single ECharts option builder (stacked bars by class upward, liabilities as hatched negative-stack series with distinct color, net-worth line with markers), light/dark theme aware, exposing `getChartOptions`-compatible output reused for the PDF (wide ≈ 1000×330 capture) (depends on T008)
+- [x] T039 [US3] Create `development/` components: KPI tiles, chart panel (native ECharts legend toggles; text summary for assistive tech), snapshot table (Stichtag, assets, liabilities, net, change, percent, row actions edit/copy/delete), single-snapshot view, empty state; period filter (`1y`/`3y`/`all`) shared state in `wealth-area/` via signals; liabilities visibly distinct in table (FR-022); `data-testid`s for repeated rows and toolbar controls
+- [x] T040 [US3] Create `wealth-area/` tabs (Entwicklung, Bilanz placeholder route for US5), toolbar with period filter, "Daten exportieren" link to the existing export dialog and "+ Stichtag erfassen"; wire `/historic-wealth-development` in `apps/frontend/src/app/app.routes.ts`; add all DE/EN strings
+- [x] T041 [US3] `verify-ui`: check four-snapshot overview, toggles, period filter, one-snapshot and empty states, mobile width (table scrolls in its container), light and dark theme; seed 120 snapshots in the throw-away script to confirm readability and < 2 s render
 
 **Checkpoint**: Core value delivered (P1 stories complete)
 
