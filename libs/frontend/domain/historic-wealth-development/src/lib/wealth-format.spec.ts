@@ -29,8 +29,8 @@ describe('wealth-format', () => {
   });
 
   it('formats an ISO date in UTC without shifting the day', () => {
-    expect(formatDate('2026-09-30', 'en')).toBe('Sep 30, 2026');
-    expect(formatDate('2026-01-01', 'de')).toContain('2026');
+    expect(formatDate('2026-09-30', 'en')).toBe('September 30, 2026');
+    expect(formatDate('2026-01-01', 'de')).toBe('1. Januar 2026');
   });
 
   it('fills placeholders', () => {

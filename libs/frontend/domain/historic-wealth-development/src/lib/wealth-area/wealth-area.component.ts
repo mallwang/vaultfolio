@@ -100,6 +100,8 @@ const PERIODS: readonly Period[] = ['1y', '3y', 'all'];
       display: flex;
       flex-direction: column;
       gap: 1rem;
+      max-width: 1300px;
+      margin: 0 auto;
     }
     .toolbar {
       display: flex;

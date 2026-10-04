@@ -46,7 +46,7 @@ describe('WealthDashboardWidgetComponent', () => {
   const q = (el: HTMLElement, id: string) => el.querySelector(`[data-testid="${id}"]`);
   const txt = (el: HTMLElement, id: string) => q(el, id)?.textContent?.replace(/\s+/g, ' ').trim();
 
-  it('shows the latest net worth, change with percent and date, sparkline and rows', async () => {
+  it('shows the latest net worth, change with percent, reference date, composition bar and rows', async () => {
     const el = await render([
       snap('a', '2025-01-15', '1000.00'),
       snap('b', '2025-06-15', '1200.00', '100.00'),
@@ -54,10 +54,9 @@ describe('WealthDashboardWidgetComponent', () => {
     expect(txt(el, 'wealth-widget-net')).toContain('1,100.00');
     expect(txt(el, 'wealth-widget-change')).toContain('+€100.00');
     expect(txt(el, 'wealth-widget-change')).toContain('+10.0%');
-    expect(txt(el, 'wealth-widget-change')).toContain('Jan 15, 2025');
-    expect(
-      q(el, 'wealth-widget-sparkline')?.querySelector('polyline')?.getAttribute('points'),
-    ).toBeTruthy();
+    expect(txt(el, 'wealth-widget-change')).toContain('January 15, 2025');
+    expect(txt(el, 'wealth-widget-date')).toBe('As of June 15, 2025');
+    expect(q(el, 'wealth-widget-composition')?.children.length).toBe(1);
     expect(txt(el, 'wealth-widget-assets')).toContain('1,200.00');
     expect(txt(el, 'wealth-widget-liabilities')).toContain('100.00');
     expect(q(el, 'wealth-widget-link')?.getAttribute('href')).toBe(
@@ -68,7 +67,6 @@ describe('WealthDashboardWidgetComponent', () => {
   it('shows a hint for one snapshot', async () => {
     const el = await render([snap('a', '2025-01-15', '1000.00')]);
     expect(q(el, 'wealth-widget-hint')).not.toBeNull();
-    expect(q(el, 'wealth-widget-sparkline')).toBeNull();
   });
 
   it('shows the empty state linking to the page', async () => {

@@ -40,12 +40,12 @@ export function formatShare(part: string, total: string, lang: string): string {
   }).format(Number(part) / whole);
 }
 
-/** `YYYY-MM-DD` → locale date (`30. Sept. 2026`), rendered in UTC so the day never shifts. */
+/** `YYYY-MM-DD` → locale date with the month written out (`30. September 2026`), rendered in UTC so the day never shifts. */
 export function formatDate(iso: string, lang: string): string {
   const [y, m, d] = iso.split('-').map(Number);
   return new Intl.DateTimeFormat(lang, {
     day: 'numeric',
-    month: 'short',
+    month: 'long',
     year: 'numeric',
     timeZone: 'UTC',
   }).format(Date.UTC(y, m - 1, d));
@@ -79,4 +79,13 @@ export function parseAmountInput(text: string): string | null {
     if (dots.length > 1 || afterLast === 3) normalized = compact.replace(/\./g, '');
   }
   return /^\d+(\.\d+)?$/.test(normalized) ? normalized : null;
+}
+
+/** Direction of a change (`delta` as decimal string) for the green / red / grey coloring. */
+export type ChangeTone = 'up' | 'down' | 'flat';
+
+export function changeTone(delta: string | null | undefined): ChangeTone {
+  const value = Number(delta);
+  if (delta === null || delta === undefined || Number.isNaN(value) || value === 0) return 'flat';
+  return value > 0 ? 'up' : 'down';
 }

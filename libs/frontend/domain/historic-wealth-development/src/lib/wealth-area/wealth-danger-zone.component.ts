@@ -2,7 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { MessageModule } from 'primeng/message';
-import { TranslatePipe } from '@vaultfolio/frontend-shared-ui';
+import { IconComponent, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
 import { WealthStore } from '../wealth-store';
 import { WealthService } from '../wealth.service';
 
@@ -12,22 +12,19 @@ import { WealthService } from '../wealth.service';
  */
 @Component({
   selector: 'app-wealth-danger-zone',
-  imports: [ButtonModule, DialogModule, MessageModule, TranslatePipe],
+  imports: [ButtonModule, DialogModule, IconComponent, MessageModule, TranslatePipe],
   template: `
     <section class="danger" data-testid="wealth-danger-zone">
-      <div>
-        <h2>{{ 'wealth.danger.title' | translate }}</h2>
-        <p>{{ 'wealth.danger.body' | translate }}</p>
-      </div>
+      <h2>{{ 'wealth.danger.title' | translate }}</h2>
+      <p>{{ 'wealth.danger.body' | translate }}</p>
       <button
         type="button"
         pButton
         severity="danger"
-        [outlined]="true"
         data-testid="wealth-delete-all"
         (click)="open.set(true)"
       >
-        {{ 'wealth.danger.button' | translate }}
+        <app-icon name="trash" /> {{ 'wealth.danger.button' | translate }}
       </button>
     </section>
     <p-dialog
@@ -67,23 +64,27 @@ import { WealthService } from '../wealth.service';
     </p-dialog>
   `,
   styles: `
+    :host {
+      display: block;
+      /* Same inset as the tab panel's content, so the box lines up with the cards above. */
+      margin-inline: 1rem;
+    }
     .danger {
       display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 1rem;
-      margin-top: 1.5rem;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+      box-sizing: border-box;
       padding: 1rem;
-      border: 1px solid color-mix(in srgb, var(--p-red-500) 40%, transparent);
-      border-radius: var(--p-content-border-radius, 0.5rem);
+      border: 1px solid var(--p-red-400);
+      border-radius: var(--p-content-border-radius);
     }
     h2 {
       margin: 0;
-      font-size: 1rem;
+      font-size: 1.1rem;
     }
     p {
-      margin: 0.25rem 0 0;
+      margin: 0;
       color: var(--p-text-muted-color);
       font-size: 0.875rem;
     }

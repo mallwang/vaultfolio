@@ -4,7 +4,7 @@ import { ButtonModule } from 'primeng/button';
 import type { WealthSnapshot } from '@vaultfolio/api-contract';
 import { I18nService, IconComponent, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
 import { changesOf, totalsOf } from '@vaultfolio/wealth';
-import { formatDate, formatMoney, formatPct } from '../wealth-format';
+import { changeTone, formatDate, formatMoney, formatPct } from '../wealth-format';
 
 const AREA_PATH = '/app/historic-wealth-development';
 
@@ -35,6 +35,7 @@ const AREA_PATH = '/app/historic-wealth-development';
             <th scope="col" class="num">{{ 'wealth.table.net' | translate }}</th>
             <th scope="col" class="num">{{ 'wealth.table.change' | translate }}</th>
             <th scope="col" class="num">{{ 'wealth.table.percent' | translate }}</th>
+            <th scope="col" class="num">{{ 'wealth.table.perYear' | translate }}</th>
             <th scope="col" class="actions">
               <span class="sr-only">{{ 'wealth.table.actions' | translate }}</span>
             </th>
@@ -47,8 +48,9 @@ const AREA_PATH = '/app/historic-wealth-development';
               <td class="num">{{ row.assets }}</td>
               <td class="num liability">{{ row.liabilities }}</td>
               <td class="num strong">{{ row.net }}</td>
-              <td class="num" [class.negative]="row.negative">{{ row.delta }}</td>
-              <td class="num" [class.negative]="row.negative">{{ row.pct }}</td>
+              <td class="num" [class]="'num ' + row.tone">{{ row.delta }}</td>
+              <td class="num" [class]="'num ' + row.tone">{{ row.pct }}</td>
+              <td class="num" [class]="'num ' + row.toneYear">{{ row.pctPerYear }}</td>
               <td class="actions">
                 <a
                   pButton
@@ -126,8 +128,14 @@ const AREA_PATH = '/app/historic-wealth-development';
     .liability {
       color: var(--p-red-600);
     }
-    .negative {
+    .down {
       color: var(--p-red-600);
+    }
+    .up {
+      color: var(--p-green-600);
+    }
+    .flat {
+      color: var(--p-text-muted-color);
     }
     tr.latest {
       background: color-mix(in srgb, var(--p-primary-color) 8%, transparent);
@@ -181,7 +189,9 @@ export class SnapshotTableComponent {
           net: formatMoney(totals.net, lang),
           delta: change?.delta == null ? none : formatMoney(change.delta, lang, { signed: true }),
           pct: change?.delta == null ? none : formatPct(change.pct, lang, na),
-          negative: change?.delta != null && Number(change.delta) < 0,
+          pctPerYear: change?.delta == null ? none : formatPct(change.pctPerYear, lang, na),
+          tone: changeTone(change?.delta),
+          toneYear: changeTone(change?.pctPerYear),
         };
       });
   });

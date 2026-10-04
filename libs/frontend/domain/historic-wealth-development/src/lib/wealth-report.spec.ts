@@ -44,7 +44,7 @@ describe('buildWealthPdfSections', () => {
     expect(tables(sections).map((s) => s.title)).toEqual([
       'Latest snapshot by class',
       'Snapshots',
-      'Balance sheet as of Jun 30, 2025',
+      'Balance sheet as of June 30, 2025',
     ]);
   });
 
@@ -71,7 +71,7 @@ describe('buildWealthPdfSections', () => {
 
   it('lists snapshots newest first with the oldest change empty', () => {
     const rows = tables(sections)[1].rows;
-    expect(rows.map((r) => r.cells['date'])).toEqual(['Jun 30, 2025', 'Jan 31, 2025']);
+    expect(rows.map((r) => r.cells['date'])).toEqual(['June 30, 2025', 'January 31, 2025']);
     expect(rows[0].cells).toMatchObject({ net: '1100.00', delta: '500.00' });
     expect(rows[1].cells['delta']).toBeNull();
   });

@@ -8,10 +8,13 @@ import {
   signal,
   untracked,
 } from '@angular/core';
+import { CdkDrag, CdkDragHandle, CdkDropList, type CdkDragDrop } from '@angular/cdk/drag-drop';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { AutoCompleteModule, type AutoCompleteCompleteEvent } from 'primeng/autocomplete';
 import { ButtonModule } from 'primeng/button';
+import { CheckboxModule } from 'primeng/checkbox';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { SelectModule } from 'primeng/select';
@@ -69,9 +72,14 @@ function todayIso(): string {
 @Component({
   selector: 'app-wealth-snapshot-form',
   imports: [
+    CdkDrag,
+    CdkDragHandle,
+    CdkDropList,
     FormsModule,
     RouterLink,
+    AutoCompleteModule,
     ButtonModule,
+    CheckboxModule,
     InputTextModule,
     MessageModule,
     SelectModule,
@@ -100,6 +108,7 @@ function todayIso(): string {
                 <span>{{ 'wealth.form.date' | translate }}</span>
                 <input
                   pInputText
+                  fluid
                   type="date"
                   [ngModel]="date()"
                   (ngModelChange)="setDate($event)"
@@ -114,23 +123,37 @@ function todayIso(): string {
                 }
               </label>
               @if (mode() === 'create') {
-                <label class="field">
-                  <span>{{ 'wealth.form.copyFrom' | translate }}</span>
-                  <p-select
-                    [options]="copyOptions()"
-                    optionLabel="label"
-                    optionValue="value"
-                    [ngModel]="copySource()"
-                    (ngModelChange)="copyFromSnapshot($event)"
-                    [showClear]="false"
-                    data-testid="wealth-form-copy-from"
-                  />
-                </label>
+                <div class="copy">
+                  <label class="field">
+                    <span>{{ 'wealth.form.copyFrom' | translate }}</span>
+                    <p-select
+                      [options]="copyOptions()"
+                      optionLabel="label"
+                      optionValue="value"
+                      [ngModel]="copySource()"
+                      (ngModelChange)="copyFromSnapshot($event)"
+                      [showClear]="false"
+                      fluid
+                      data-testid="wealth-form-copy-from"
+                    />
+                  </label>
+                  <label class="check">
+                    <p-checkbox
+                      [binary]="true"
+                      [ngModel]="copyAmounts()"
+                      (ngModelChange)="setCopyAmounts($event)"
+                      name="copyAmounts"
+                      data-testid="wealth-form-copy-amounts"
+                    />
+                    {{ 'wealth.form.copyAmounts' | translate }}
+                  </label>
+                </div>
               }
               <label class="field field--wide">
                 <span>{{ 'wealth.form.note' | translate }}</span>
                 <input
                   pInputText
+                  fluid
                   type="text"
                   maxlength="500"
                   [ngModel]="note()"
@@ -164,19 +187,31 @@ function todayIso(): string {
                     | translate
                 }}
               </h2>
-              <div class="rows">
+              <div class="rows" cdkDropList (cdkDropListDropped)="onDrop(side, $event)">
                 <div class="row row--head" aria-hidden="true">
+                  <span></span>
                   <span>{{ 'wealth.form.name' | translate }}</span>
                   <span>{{ 'wealth.form.class' | translate }}</span>
                   <span>{{ 'wealth.form.amount' | translate }}</span>
                   <span></span>
                 </div>
-                @for (row of rowsOf(side); track row.key) {
-                  <div class="row" [attr.data-testid]="'wealth-form-row-' + row.key">
+                @for (row of rowsOf(side); track row.key; let i = $index) {
+                  <div class="row" cdkDrag [attr.data-testid]="'wealth-form-row-' + row.key">
+                    <button
+                      type="button"
+                      class="handle"
+                      cdkDragHandle
+                      [attr.aria-label]="'wealth.form.move' | translate"
+                      [attr.data-testid]="'wealth-form-handle-' + row.key"
+                      (keydown)="onHandleKeydown($event, side, i)"
+                    >
+                      <app-icon name="drag-handle" />
+                    </button>
                     <label class="cell">
                       <span class="cell__label">{{ 'wealth.form.name' | translate }}</span>
                       <input
                         pInputText
+                        fluid
                         type="text"
                         maxlength="100"
                         [ngModel]="row.name"
@@ -191,16 +226,18 @@ function todayIso(): string {
                     </label>
                     <label class="cell">
                       <span class="cell__label">{{ 'wealth.form.class' | translate }}</span>
-                      <input
-                        pInputText
-                        type="text"
-                        maxlength="50"
-                        [attr.list]="'wealth-classes-' + side"
+                      <p-autocomplete
+                        [suggestions]="classSuggestions()"
+                        (completeMethod)="filterClasses(side, $event)"
+                        [dropdown]="true"
+                        [maxlength]="50"
+                        fluid
                         [ngModel]="row.classText"
-                        (ngModelChange)="patchRow(row.key, { classText: $event })"
-                        (change)="commitClass(row.key)"
+                        (ngModelChange)="patchRow(row.key, { classText: $event ?? '' })"
+                        (onSelect)="commitClass(row.key)"
+                        (onBlur)="commitClass(row.key)"
                         [name]="'class-' + row.key"
-                        [attr.aria-invalid]="!!rowError(row.key, 'class')"
+                        [invalid]="!!rowError(row.key, 'class')"
                         [attr.data-testid]="'wealth-form-class-' + row.key"
                       />
                       @if (rowError(row.key, 'class'); as message) {
@@ -239,11 +276,6 @@ function todayIso(): string {
                   </div>
                 }
               </div>
-              <datalist [id]="'wealth-classes-' + side">
-                @for (label of suggestionLabels(side); track label) {
-                  <option [value]="label"></option>
-                }
-              </datalist>
               @if (side === 'ASSET' && entriesError(); as message) {
                 <small class="error" data-testid="wealth-form-entries-error">{{ message }}</small>
               }
@@ -251,7 +283,6 @@ function todayIso(): string {
                 <button
                   type="button"
                   pButton
-                  severity="secondary"
                   [outlined]="true"
                   size="small"
                   [attr.data-testid]="'wealth-form-add-' + side.toLowerCase()"
@@ -358,6 +389,8 @@ function todayIso(): string {
   styles: `
     :host {
       display: block;
+      max-width: 1300px;
+      margin-inline: auto;
     }
     .back {
       display: inline-flex;
@@ -405,6 +438,21 @@ function todayIso(): string {
       font-size: 0.875rem;
       min-width: 0;
     }
+    /* The native date input is 2px taller than the p-select beside it; pin both to one height. */
+    input[type='date'] {
+      height: 2.1875rem;
+    }
+    .copy {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .check {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.875rem;
+    }
     .field--wide {
       grid-column: 1 / -1;
     }
@@ -415,13 +463,47 @@ function todayIso(): string {
     }
     .row {
       display: grid;
-      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 0.8fr) 2.5rem;
+      grid-template-columns: 1.5rem minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 0.8fr) 2.5rem;
       gap: 0.5rem;
       align-items: start;
     }
     .row--head {
       font-size: 0.75rem;
       color: var(--p-text-muted-color);
+    }
+    .handle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 2.1875rem;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: var(--p-text-muted-color);
+      cursor: grab;
+    }
+    .handle:hover,
+    .handle:focus-visible {
+      color: var(--p-primary-color);
+    }
+    .cdk-drag-preview {
+      box-sizing: border-box;
+      display: grid;
+      grid-template-columns: 1.5rem minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 0.8fr) 2.5rem;
+      gap: 0.5rem;
+      padding: 0.25rem;
+      border-radius: 0.5rem;
+      background: var(--p-content-background);
+      box-shadow: 0 4px 16px rgb(0 0 0 / 0.2);
+    }
+    .cdk-drag-placeholder {
+      opacity: 0.3;
+    }
+    .cdk-drag-animating {
+      transition: transform 200ms ease;
+    }
+    .rows.cdk-drop-list-dragging .row:not(.cdk-drag-placeholder) {
+      transition: transform 200ms ease;
     }
     .cell__label {
       display: none;
@@ -522,6 +604,10 @@ function todayIso(): string {
       .row {
         grid-template-columns: minmax(0, 1fr) 2.5rem;
       }
+      .handle {
+        grid-row: 2;
+        grid-column: 2;
+      }
       .row--head {
         display: none;
       }
@@ -558,6 +644,8 @@ export class SnapshotFormComponent implements OnInit {
   protected readonly note = signal('');
   protected readonly rows = signal<Row[]>([]);
   protected readonly copySource = signal<string | null>(null);
+  /** Whether copying a snapshot also takes over its amounts (to compare against them). */
+  protected readonly copyAmounts = signal(true);
   /** `entries[i]` of the last submission → row key, so API/lib issues land on the right row. */
   private submittedKeys: number[] = [];
   private readonly issues = signal<ValidationIssue[]>([]);
@@ -683,12 +771,53 @@ export class SnapshotFormComponent implements OnInit {
     this.rows.update((rows) => rows.filter((row) => row.key !== key));
   }
 
+  protected onDrop(side: Side, event: CdkDragDrop<unknown>): void {
+    this.moveRow(side, event.previousIndex, event.currentIndex);
+  }
+
+  /** Keyboard alternative to dragging: arrow keys on the focused handle move the row. */
+  protected onHandleKeydown(event: KeyboardEvent, side: Side, index: number): void {
+    const step = { ArrowUp: -1, ArrowDown: 1 }[event.key];
+    if (!step) return;
+    event.preventDefault();
+    this.moveRow(side, index, index + step);
+  }
+
+  /** Reorders within one side; the order of the two sides relative to each other is irrelevant. */
+  private moveRow(side: Side, from: number, to: number): void {
+    const sideRows = this.rowsOf(side);
+    if (from === to || to < 0 || to >= sideRows.length) return;
+    const [moved] = sideRows.splice(from, 1);
+    sideRows.splice(to, 0, moved);
+    const other = this.rows().filter((row) => row.side !== side);
+    this.rows.set(side === 'ASSET' ? [...sideRows, ...other] : [...other, ...sideRows]);
+  }
+
   protected copyFromSnapshot(id: string | null): void {
     this.copySource.set(id);
     if (!id) return;
     const source = this.store.snapshots().find((s) => s.id === id);
     if (!source) return;
-    this.rows.set(copyTemplateOf(source).map((entry) => this.rowOf(entry, '')));
+    const amounts = this.copyAmounts();
+    this.rows.set(
+      copyTemplateOf(source).map((entry, index) =>
+        this.rowOf(entry, amounts ? this.amountText(source.entries[index].amount) : ''),
+      ),
+    );
+  }
+
+  protected setCopyAmounts(value: boolean): void {
+    this.copyAmounts.set(value);
+    this.copyFromSnapshot(this.copySource());
+  }
+
+  protected readonly classSuggestions = signal<string[]>([]);
+
+  protected filterClasses(side: Side, event: AutoCompleteCompleteEvent): void {
+    const query = event.query.trim().toLowerCase();
+    this.classSuggestions.set(
+      this.suggestionLabels(side).filter((label) => label.toLowerCase().includes(query)),
+    );
   }
 
   protected suggestionLabels(side: Side): string[] {

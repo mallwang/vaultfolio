@@ -1,5 +1,5 @@
 import type { WealthSnapshot } from '@vaultfolio/api-contract';
-import { sparklinePoints, widgetFiguresOf } from './widget-figures';
+import { widgetFiguresOf } from './widget-figures';
 
 const snap = (id: string, date: string, assets: string, liabilities = '0.00'): WealthSnapshot => ({
   id,
@@ -42,7 +42,6 @@ describe('widgetFiguresOf', () => {
       delta: '100.00',
       pct: '50.00',
       previousDate: '2025-02-01',
-      trend: [100, 200, 300],
     });
   });
 
@@ -55,15 +54,9 @@ describe('widgetFiguresOf', () => {
     expect(f.delta).toBe('20.00');
     expect(f.pct).toBeNull();
   });
-});
 
-describe('sparklinePoints', () => {
-  it('scales into the box with the minimum at the bottom and maximum at the top', () => {
-    expect(sparklinePoints([0, 10], 100, 20)).toBe('0.0,18.0 100.0,2.0');
-  });
-
-  it('draws a flat line in the middle and needs two values', () => {
-    expect(sparklinePoints([5, 5, 5], 100, 20)).toBe('0.0,18.0 50.0,18.0 100.0,18.0');
-    expect(sparklinePoints([5], 100, 20)).toBe('');
+  it('lists the asset classes of the latest snapshot for the composition bar', () => {
+    const f = widgetFiguresOf([snap('a', '2025-01-01', '100.00', '30.00')]);
+    expect(f.composition).toEqual([{ key: 'ASSET:std:cash', weight: 100 }]);
   });
 });

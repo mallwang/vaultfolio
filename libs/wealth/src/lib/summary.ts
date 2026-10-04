@@ -16,6 +16,11 @@ export interface Change {
   pct: string | null;
   /** The same change as a fraction with four decimals (`"0.1250"` = 12.5 %), for exports; `null` like `pct`. */
   ratio: string | null;
+  /**
+   * The change annualised over the days since the previous snapshot (`(1 + ratio)^(365 / days) − 1`,
+   * percent with two decimals); `null` unless both net worths are > 0 and the dates differ.
+   */
+  pctPerYear: string | null;
 }
 
 export interface Series {
@@ -100,8 +105,14 @@ export function seriesOf(snapshots: readonly WealthSnapshot[]): Series {
   };
 }
 
-function changeBetween(id: string, previous: Totals | null, current: Totals): Change {
-  if (!previous) return { id, delta: null, pct: null, ratio: null };
+const DAY_MS = 86_400_000;
+
+function daysBetween(from: string, to: string): number {
+  return Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / DAY_MS);
+}
+
+function changeBetween(id: string, previous: Totals | null, current: Totals, days: number): Change {
+  if (!previous) return { id, delta: null, pct: null, ratio: null, pctPerYear: null };
   const prevNet = new Decimal(previous.net);
   const delta = new Decimal(current.net).minus(prevNet);
   return {
@@ -109,6 +120,15 @@ function changeBetween(id: string, previous: Totals | null, current: Totals): Ch
     delta: money(delta),
     pct: prevNet.gt(0) ? delta.div(prevNet).times(100).toFixed(2) : null,
     ratio: prevNet.gt(0) ? delta.div(prevNet).toFixed(4) : null,
+    pctPerYear:
+      prevNet.gt(0) && new Decimal(current.net).gt(0) && days > 0
+        ? new Decimal(current.net)
+            .div(prevNet)
+            .pow(new Decimal(365).div(days))
+            .minus(1)
+            .times(100)
+            .toFixed(2)
+        : null,
   };
 }
 
@@ -116,7 +136,12 @@ function changeBetween(id: string, previous: Totals | null, current: Totals): Ch
 export function changesOf(snapshots: readonly WealthSnapshot[]): Change[] {
   const sorted = sortedByDate(snapshots);
   return sorted.map((snapshot, index) =>
-    changeBetween(snapshot.id, index > 0 ? totalsOf(sorted[index - 1]) : null, totalsOf(snapshot)),
+    changeBetween(
+      snapshot.id,
+      index > 0 ? totalsOf(sorted[index - 1]) : null,
+      totalsOf(snapshot),
+      index > 0 ? daysBetween(sorted[index - 1].snapshotDate, snapshot.snapshotDate) : 0,
+    ),
   );
 }
 

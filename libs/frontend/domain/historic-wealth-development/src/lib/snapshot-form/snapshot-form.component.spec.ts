@@ -37,7 +37,10 @@ describe('SnapshotFormComponent', () => {
     el.querySelector(`[data-testid="${id}"]`) as HTMLInputElement | null;
 
   function type(el: HTMLElement, id: string, value: string): void {
-    const input = byId(el, id) as HTMLInputElement;
+    const host: HTMLElement | null = byId(el, id);
+    const input = (
+      host instanceof HTMLInputElement ? host : host?.querySelector('input')
+    ) as HTMLInputElement;
     input.value = value;
     input.dispatchEvent(new Event('input'));
   }
@@ -147,18 +150,22 @@ describe('SnapshotFormComponent', () => {
     const el = harness.routeNativeElement as HTMLElement;
     expect(byId(el, 'wealth-form-title')?.textContent).toContain('Edit');
     expect(byId(el, 'wealth-form-name-1')?.value).toBe('Bar');
-    expect(byId(el, 'wealth-form-class-1')?.value).toBe('Cash');
+    expect(
+      (byId(el, 'wealth-form-class-1')?.querySelector('input') as HTMLInputElement).value,
+    ).toBe('Cash');
     byId(el, 'wealth-form-save')?.click();
     const req = http.expectOne('/api/wealth/snapshots/s-old');
     expect(req.request.method).toBe('PUT');
     expect(req.request.body.entries).toHaveLength(2);
   });
 
-  it('prefills names and classes with blank amounts when copying from a snapshot', async () => {
+  it('prefills names and classes with blank amounts when copying without amounts', async () => {
     const { harness, el } = await open('/app/historic-wealth-development/new', [existing]);
     const component = harness.routeDebugElement?.componentInstance as unknown as {
       copyFromSnapshot(id: string | null): void;
+      setCopyAmounts(value: boolean): void;
     };
+    component.setCopyAmounts(false);
     component.copyFromSnapshot('s-old');
     harness.detectChanges();
     await harness.fixture.whenStable();
@@ -174,5 +181,17 @@ describe('SnapshotFormComponent', () => {
     byId(el, 'wealth-form-remove-4')?.click();
     harness.detectChanges();
     expect(el.querySelector('[data-testid="wealth-form-row-4"]')).toBeNull();
+  });
+
+  it('also takes over the amounts of the copied snapshot by default', async () => {
+    const { harness, el } = await open('/app/historic-wealth-development/new', [existing]);
+    const component = harness.routeDebugElement?.componentInstance as unknown as {
+      copyFromSnapshot(id: string | null): void;
+    };
+    component.copyFromSnapshot('s-old');
+    harness.detectChanges();
+    await harness.fixture.whenStable();
+    expect(byId(el, 'wealth-form-name-3')?.value).toBe('Bar');
+    expect(byId(el, 'wealth-form-amount-3')?.value).not.toBe('');
   });
 });

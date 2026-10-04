@@ -2,7 +2,7 @@ import { Component, computed, inject, input } from '@angular/core';
 import type { WealthSnapshot } from '@vaultfolio/api-contract';
 import { I18nService, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
 import { changesOf, sortedByDate, totalsOf } from '@vaultfolio/wealth';
-import { fill, formatDate, formatMoney, formatPct } from '../wealth-format';
+import { changeTone, fill, formatDate, formatMoney, formatPct } from '../wealth-format';
 
 /**
  * Four KPI tiles (design.md "Entwicklung"): net worth of the latest snapshot in the period (hero,
@@ -21,14 +21,13 @@ import { fill, formatDate, formatMoney, formatPct } from '../wealth-format';
       </section>
       <section class="tile" data-testid="wealth-kpi-change">
         <h3>{{ 'wealth.kpi.change' | translate }}</h3>
-        <p
-          class="value"
-          [class.negative]="figures().negative"
-          data-testid="wealth-kpi-change-value"
-        >
+        <p class="value" [class]="figures().tone" data-testid="wealth-kpi-change-value">
           {{ figures().delta }}
         </p>
-        <p class="sub" data-testid="wealth-kpi-change-pct">{{ figures().pct }}</p>
+        <p class="value value--pct" [class]="figures().tone" data-testid="wealth-kpi-change-pct">
+          {{ figures().pct }}
+        </p>
+        <p class="sub" data-testid="wealth-kpi-change-since">{{ figures().since }}</p>
       </section>
       <section class="tile" data-testid="wealth-kpi-assets">
         <h3>{{ 'wealth.kpi.assets' | translate }}</h3>
@@ -77,9 +76,15 @@ import { fill, formatDate, formatMoney, formatPct } from '../wealth-format';
       font-size: 0.8rem;
       color: var(--p-text-muted-color);
     }
-    .negative,
-    .liability {
+    .liability,
+    .down {
       color: var(--p-red-600);
+    }
+    .up {
+      color: var(--p-green-600);
+    }
+    .flat {
+      color: var(--p-text-muted-color);
     }
     .value {
       overflow-wrap: anywhere;
@@ -118,10 +123,13 @@ export class WealthKpisComponent {
         date: formatDate(latest.snapshotDate, lang),
       }),
       delta: change.delta === null ? none : formatMoney(change.delta, lang, { signed: true }),
-      pct: previous
-        ? `${formatPct(change.pct, lang, na)} · ${fill(this.i18n.translate('wealth.kpi.sincePrevious'), { date: formatDate(previous.snapshotDate, lang) })}`
-        : none,
-      negative: change.delta !== null && Number(change.delta) < 0,
+      pct: previous ? formatPct(change.pct, lang, na) : none,
+      since: previous
+        ? fill(this.i18n.translate('wealth.kpi.sincePrevious'), {
+            date: formatDate(previous.snapshotDate, lang),
+          })
+        : '',
+      tone: changeTone(change.delta),
       assets: formatMoney(totals.assets, lang),
       liabilities: formatMoney(totals.liabilities, lang),
     };

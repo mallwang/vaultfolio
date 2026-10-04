@@ -192,6 +192,7 @@ interface ClassOption {
       font-size: 0.875rem;
     }
     .sheet {
+      --amount-width: 8rem;
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 1rem;
@@ -208,8 +209,8 @@ interface ClassOption {
       font-size: 1rem;
     }
     h3 {
-      display: flex;
-      justify-content: space-between;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
       gap: 1rem;
       margin: 0.75rem 0 0.25rem;
       font-size: 0.9rem;
@@ -217,7 +218,7 @@ interface ClassOption {
     }
     .row {
       display: grid;
-      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) auto;
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) var(--amount-width);
       gap: 0.5rem;
       font-size: 0.875rem;
       padding: 0.125rem 0;

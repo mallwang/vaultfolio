@@ -11,8 +11,8 @@ export interface WidgetFigures {
   delta: string | null;
   pct: string | null;
   previousDate: string | null;
-  /** Net worth per snapshot, ascending, for the sparkline. */
-  trend: number[];
+  /** Asset classes of the latest snapshot in the overview's order, for the composition bar. */
+  composition: { key: string; weight: number }[];
 }
 
 const EMPTY: WidgetFigures = {
@@ -24,7 +24,7 @@ const EMPTY: WidgetFigures = {
   delta: null,
   pct: null,
   previousDate: null,
-  trend: [],
+  composition: [],
 };
 
 /** Everything the dashboard tile shows, from the same lib functions as the overview (SC-005). */
@@ -42,21 +42,16 @@ export function widgetFiguresOf(snapshots: readonly WealthSnapshot[]): WidgetFig
     delta: latest.change.delta,
     pct: latest.change.pct,
     previousDate: previous?.snapshotDate ?? null,
-    trend: seriesOf(sorted).net.map(Number),
+    composition: compositionOf(latest.snapshot),
   };
 }
 
-/** SVG polyline points (`x,y …`) scaling the trend into a `width` × `height` box. */
-export function sparklinePoints(values: readonly number[], width: number, height: number): string {
-  if (values.length < 2) return '';
-  const min = Math.min(...values);
-  const span = Math.max(...values) - min || 1;
-  const pad = 2;
-  return values
-    .map((v, i) => {
-      const x = (i / (values.length - 1)) * width;
-      const y = pad + (1 - (v - min) / span) * (height - 2 * pad);
-      return `${x.toFixed(1)},${y.toFixed(1)}`;
-    })
-    .join(' ');
+/** Asset classes with their amounts, in the same order the overview's composition bar uses. */
+function compositionOf(
+  snapshot: Parameters<typeof seriesOf>[0][number],
+): WidgetFigures['composition'] {
+  const byClass = seriesOf([snapshot]).byClass;
+  return Object.keys(byClass)
+    .filter((key) => key.startsWith('ASSET:'))
+    .map((key) => ({ key, weight: Number(byClass[key][0]) }));
 }
