@@ -187,12 +187,12 @@ description: 'Task list for Vermögensentwicklung (Net-Worth Tracking)'
 
 ## Phase 9: Polish & Cross-Cutting Concerns
 
-- [ ] T059 [P] Update `README.md` and `README.de.md` (feature list, `WEALTH_ENCRYPTION_KEY` in the environment-variable tables) and `docs/user-guide.md` / `docs/user-guide.de.md` (snapshots, copy as template, balance sheet, tile, PDF, danger zone)
-- [ ] T060 [P] Add the new `data-testid`s to `docs/frontend/testid-conventions.md` where the conventions require a listing
-- [ ] T061 Accessibility pass (FR-020): keyboard reachability of form, table actions, legend toggles and balance selectors; accessible names for icon buttons and chart text summary; fix findings
-- [ ] T062 Security/privacy pass (FR-019, SC-007): grep backend logs and error messages of `apps/backend/src/wealth/` for names/classes/amounts, confirm `payload_enc` never leaves the repository, confirm nothing wealth-related in `docs/` fixtures is real personal data
-- [ ] T063 Run `npx nx run-many -t lint,test --projects=wealth,frontend-domain-historic-wealth-development,frontend,backend,api-contract,shared-ui`, the backend wealth e2e, `npx nx run backend:openapi:check`, then the coverage audit (`/speckit-coverage`) and fix projects below 80 %
-- [ ] T064 Walk through `specs/038-networth-tracking/quickstart.md` end to end (including operations: no `WEALTH_ENCRYPTION_KEY` → unavailable page and `503`, rest of app unaffected)
+- [x] T059 [P] Update `README.md` and `README.de.md` (feature list, `WEALTH_ENCRYPTION_KEY` in the environment-variable tables) and `docs/user-guide.md` / `docs/user-guide.de.md` (snapshots, copy as template, balance sheet, tile, PDF, danger zone)
+- [x] T060 [P] Add the new `data-testid`s to `docs/frontend/testid-conventions.md` where the conventions require a listing
+- [x] T061 Accessibility pass (FR-020): keyboard reachability of form, table actions, legend toggles and balance selectors; accessible names for icon buttons and chart text summary; fix findings
+- [x] T062 Security/privacy pass (FR-019, SC-007): grep backend logs and error messages of `apps/backend/src/wealth/` for names/classes/amounts, confirm `payload_enc` never leaves the repository, confirm nothing wealth-related in `docs/` fixtures is real personal data
+- [x] T063 Run `npx nx run-many -t lint,test --projects=wealth,frontend-domain-historic-wealth-development,frontend,backend,api-contract,shared-ui`, the backend wealth e2e, `npx nx run backend:openapi:check`, then the coverage audit (`/speckit-coverage`) and fix projects below 80 %
+- [x] T064 Walk through `specs/038-networth-tracking/quickstart.md` end to end (including operations: no `WEALTH_ENCRYPTION_KEY` → unavailable page and `503`, rest of app unaffected)
 
 ---
 

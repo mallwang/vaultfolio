@@ -295,6 +295,7 @@ function todayIso(): string {
                       optionLabel="label"
                       optionValue="value"
                       [ngModel]="promptChoice(prompt.key, side)"
+                      [ariaLabel]="'wealth.balance.groupTarget' | translate"
                       (ngModelChange)="choosePromptGroup(prompt.key, $event)"
                       [attr.data-testid]="'wealth-form-group-select-' + prompt.index"
                     />
@@ -314,7 +315,7 @@ function todayIso(): string {
           }
         </div>
 
-        <aside class="summary" data-testid="wealth-form-summary">
+        <aside class="summary" aria-live="polite" data-testid="wealth-form-summary">
           <dl>
             <div>
               <dt>{{ 'wealth.form.sumAssets' | translate }}</dt>

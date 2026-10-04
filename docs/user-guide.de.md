@@ -38,6 +38,10 @@ eigenen Infrastruktur.
    - 7a.1 [Daten erfassen](#7a1-daten-erfassen)
    - 7a.2 [Übersicht und Tabs](#7a2-übersicht-und-tabs)
    - 7a.3 [Datenschutz, Export und Löschen](#7a3-datenschutz-export-und-löschen)
+     7b. [Vermögen](#7b-vermögen)
+   - 7b.1 [Stichtage erfassen](#7b1-stichtage-erfassen)
+   - 7b.2 [Entwicklung, Bilanz und Kachel](#7b2-entwicklung-bilanz-und-kachel)
+   - 7b.3 [Export, Datenschutz und Löschen](#7b3-export-datenschutz-und-löschen)
 8. [Einstellungen](#8-einstellungen)
    - 8.1 [Profil](#81-profil)
    - 8.2 [Präferenzen](#82-präferenzen)
@@ -437,6 +441,60 @@ lesen – sie sind nicht verloren; wende dich an den Betreiber. Der **Export** (
 schreibt deine Einträge als PDF, Excel, CSV oder JSON. Unten bei **Weiterführende Informationen**
 kannst du alle deine Altersvorsorge-Daten löschen (das Konto bleibt); einzelne Einträge löschst du
 auf ihrer Karte.
+
+---
+
+## 7b. Vermögen
+
+**Vermögen** (_Vermögensentwicklung_) zeigt, wie sich dein Nettovermögen über die Zeit entwickelt –
+aus Stichtagen, die du von Hand erfasst. Der Bereich steht nur zur Verfügung, wenn eine
+Administration die Domäne Vermögen für dein Konto freigeschaltet hat. Es wird nichts von Banken,
+Brokern oder aus den Beständen übernommen.
+
+### 7b.1 Stichtage erfassen
+
+- Ein **Stichtag** ist ein Referenzdatum mit beliebig vielen Positionen. Jede Position hat einen
+  Namen, eine Klasse und einen Betrag; das Feld (Vermögenswerte oder Verbindlichkeiten) bestimmt
+  die Seite – Beträge gibst du immer positiv ein (`12.000,50` und `12000.50` funktionieren beide).
+- Die Klasse ist Freitext. Vorschläge (Bargeld, Bankguthaben, Edelmetalle, Aktien & Fonds, Krypto,
+  Immobilien, Fahrzeuge, Sammlerstücke; Immobiliendarlehen, Kredit, Sonstige Schulden) werden
+  angeboten, ebenso bereits verwendete eigene Klassen. Tippst du eine **neue** Klasse, wirst du
+  einmal gefragt, in welche Bilanzgruppe sie gehört.
+- **Aus bestehendem Stichtag kopieren** übernimmt Namen und Klassen mit leeren Beträgen, damit du
+  frühere Stichtage schnell nachtragen kannst; entferne Positionen, die es damals noch nicht gab.
+  Stichtage können in beliebiger Reihenfolge erfasst werden – alles wird nach Datum sortiert. Dieselbe
+  Aktion gibt es in jeder Tabellenzeile (_Als Vorlage kopieren_).
+- Pro Datum gibt es einen Stichtag. Ist das Datum vergeben, kannst du den bestehenden öffnen.
+  Stichtage lassen sich jederzeit bearbeiten und löschen.
+
+### 7b.2 Entwicklung, Bilanz und Kachel
+
+Der Tab **Entwicklung** zeigt Nettovermögen, Veränderung zum vorherigen Stichtag (absolut und
+prozentual; _k. A._, wenn das vorherige Nettovermögen nicht positiv war), Vermögenswerte und
+Verbindlichkeiten, ein Diagramm mit einer Säule je Stichtag (Vermögenswerte nach Klasse gestapelt
+über der Nulllinie, Verbindlichkeiten schraffiert darunter, Nettovermögen als Linie; die Legende
+blendet Klassen aus) und die Stichtagstabelle, neueste zuerst. Der **Zeitraum**-Filter (1 Jahr,
+3 Jahre, Alle) gilt für Diagramm, Tabelle, Veränderungen und PDF. Bei nur einem Stichtag siehst du
+die Zusammensetzung und den Hinweis auf einen zweiten; ohne Stichtage eine Einladung zum ersten.
+
+Der Tab **Bilanz** ordnet die Positionen eines gewählten Stichtags in _Aktiva_ und _Passiva_ mit
+Zwischensummen; das Eigenkapital ist das Nettovermögen, beide Seiten ergeben also stets dieselbe
+Summe. Mit der Klassenauswahl verschiebst du eine Klasse in eine andere Bilanzgruppe – die Änderung
+gilt für alle Stichtage. Kennzahlen werden nicht berechnet.
+
+Das Dashboard zeigt eine Vermögens-Kachel mit dem aktuellen Nettovermögen, der Veränderung und
+einem kleinen Verlauf; sie lässt sich wie jede Kachel ausblenden und umsortieren, ein Klick öffnet
+den Bereich.
+
+### 7b.3 Export, Datenschutz und Löschen
+
+**Daten exportieren** schreibt einen PDF-Bericht (Kennzahlen, Diagramm, letzter Stichtag nach Klasse,
+alle Stichtage und die Bilanz; er folgt dem Zeitraum-Filter) oder alle Positionen und Summen als
+Excel, CSV oder JSON. Positionsnamen, Klassen, Beträge und Notizen werden verschlüsselt gespeichert
+und nie in Logs geschrieben. Unten auf der Seite entfernt **Alle Vermögensdaten löschen** jeden
+Stichtag und jede Einstellung (das Konto bleibt); einzelne Stichtage löschst du in ihrer
+Tabellenzeile. Steht dort _Vermögensdaten sind vorübergehend nicht verfügbar_, kann der Server die
+Daten gerade nicht lesen – sie sind nicht verloren; wende dich an den Betreiber.
 
 ---
 

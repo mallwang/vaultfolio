@@ -38,6 +38,10 @@ infrastructure.
    - 7a.1 [Entering Your Data](#7a1-entering-your-data)
    - 7a.2 [Overview and Tabs](#7a2-overview-and-tabs)
    - 7a.3 [Privacy, Export and Deleting](#7a3-privacy-export-and-deleting)
+     7b. [Wealth](#7b-wealth)
+   - 7b.1 [Recording Snapshots](#7b1-recording-snapshots)
+   - 7b.2 [Development, Balance Sheet and Tile](#7b2-development-balance-sheet-and-tile)
+   - 7b.3 [Export, Privacy and Deleting](#7b3-export-privacy-and-deleting)
 8. [Settings](#8-settings)
    - 8.1 [Profile](#81-profile)
    - 8.2 [Preferences](#82-preferences)
@@ -420,6 +424,57 @@ _Retirement is unavailable_, the server cannot read the data right now — it is
 the operator. **Export** (toolbar) writes your entries as PDF, Excel, CSV or JSON. At the bottom of
 **Further information** you can delete all your retirement data (the account stays); single
 entries can be deleted on their card.
+
+---
+
+## 7b. Wealth
+
+**Wealth** (_Vermögensentwicklung_) shows how your net worth develops over time, from snapshots you
+record by hand. It is available only if an administrator has enabled the Wealth domain for your
+account. Nothing is imported from banks, brokers or Holdings.
+
+### 7b.1 Recording Snapshots
+
+- A **snapshot** (_Stichtag_) is a reference date with any number of entries. Each entry has a
+  name, a class and an amount; the panel decides whether it is an **asset** or a **liability** —
+  amounts are always entered as positive numbers (`12.000,50` and `12000.50` both work).
+- The class is free text. Suggestions (cash, bank balances, precious metals, shares & funds, crypto,
+  real estate, vehicles, collectibles; mortgage, loan, other debt) are offered, and classes you
+  typed before are suggested again. When you type a **new** class, you are asked once which balance
+  group it belongs to.
+- **Copy from existing snapshot** prefills names and classes with blank amounts, so you can bring
+  earlier reference dates over quickly; remove entries that did not exist back then. Snapshots may
+  be recorded in any order — everything is sorted by date. The same action is available on each
+  table row (_Copy as template_).
+- There is one snapshot per date. If the date is taken you are offered to open the existing one.
+  Snapshots can be edited and deleted at any time.
+
+### 7b.2 Development, Balance Sheet and Tile
+
+The **Development** tab shows net worth, change since the previous snapshot (absolute and percent;
+_n/a_ when the previous net worth was not positive), assets and liabilities, a chart with one
+column per snapshot (assets stacked by class above the zero line, liabilities hatched below it, net
+worth as a line; click the legend to hide a class) and the snapshot table, newest first. The
+**period** filter (1 year, 3 years, all) applies to the chart, the table, the changes and the PDF.
+With one snapshot you see the composition and a hint to add a second; without snapshots, an
+invitation to record the first.
+
+The **Balance sheet** tab groups the entries of a chosen snapshot into _Aktiva_ and _Passiva_ with
+sub-totals; equity is the net worth, so both sides always add up to the same total. Use the class
+selector to move a class to another balance group — the change applies to all snapshots. No ratios
+are calculated.
+
+The Dashboard shows a Wealth tile with the latest net worth, the change and a small trend; it can be
+hidden and reordered like every tile, and clicking it opens the area.
+
+### 7b.3 Export, Privacy and Deleting
+
+**Export data** writes a PDF report (key figures, chart, latest snapshot by class, all snapshots and
+the balance sheet; it follows the period filter) or all entries and totals as Excel, CSV or JSON.
+Entry names, classes, amounts and notes are stored encrypted and are never written to logs. At the
+bottom of the page **Delete all wealth data** removes every snapshot and setting (the account stays);
+single snapshots are deleted from their table row. If the page says _Wealth data is temporarily
+unavailable_, the server cannot read the data right now — it is not lost; contact the operator.
 
 ---
 

@@ -25,7 +25,14 @@ describe('DashboardLayoutStore', () => {
   const ids = () => store.visibleTiles().map((t) => t.id);
 
   it('shows every tile in default order, with a placeholder for a missing entitlement', () => {
-    expect(ids()).toEqual(['totalValue', 'todaysChange', 'holdings', 'earnings', 'retirement']);
+    expect(ids()).toEqual([
+      'totalValue',
+      'todaysChange',
+      'holdings',
+      'earnings',
+      'retirement',
+      'historic-wealth-development',
+    ]);
     expect(store.visibleTiles().find((t) => t.id === 'earnings')?.entitled).toBe(false);
   });
 
@@ -33,9 +40,22 @@ describe('DashboardLayoutStore', () => {
     store.moveVisible(0, 2);
     store.setTileVisible('todaysChange', false);
 
-    expect(ids()).toEqual(['holdings', 'totalValue', 'earnings', 'retirement']);
+    expect(ids()).toEqual([
+      'holdings',
+      'totalValue',
+      'earnings',
+      'retirement',
+      'historic-wealth-development',
+    ]);
     expect(JSON.parse(localStorage.getItem('vaultfolio.dashboard-layout.u1') ?? '')).toEqual({
-      order: ['todaysChange', 'holdings', 'totalValue', 'earnings', 'retirement'],
+      order: [
+        'todaysChange',
+        'holdings',
+        'totalValue',
+        'earnings',
+        'retirement',
+        'historic-wealth-development',
+      ],
       hidden: ['todaysChange'],
     });
 

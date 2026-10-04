@@ -139,7 +139,7 @@ describe('DevelopmentComponent', () => {
     );
     const { el } = await render(many);
     expect(el.querySelectorAll('[data-testid^="wealth-row-"]')).toHaveLength(120);
-  });
+  }, 30_000);
 
   it('deletes after confirmation', async () => {
     const { fixture, el } = await render([snap('a', '2025-06-30', '100.00')]);

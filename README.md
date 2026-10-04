@@ -31,11 +31,12 @@ Holdings tracking (manual entry, CRUD, CSV/JSON import, distribution-by-type cha
 the frontend has grown into a multi-domain app shell — authentication/sessions, admin (accounts,
 invitations, sign-ups), self-service signup, profile/password/preferences settings, multi-language
 UI, theme switching, and a dashboard — with holdings as the first of several planned domains
-(retirement, insurances, household planning, historic wealth development, account overview exist
-today as placeholders). Broader capabilities (live market data, valuation) are still to come.
+(insurances, household planning and account overview exist today as placeholders). Broader capabilities (live market data, valuation) are still to come.
 
 The **Earnings** domain (payslips and wage-tax certificates) is built as well — see
-[Earnings domain](#earnings-domain).
+[Earnings domain](#earnings-domain). So is **Wealth** (historic wealth development): manual
+snapshots of assets and liabilities, a development chart, a balance sheet, a dashboard tile and a
+PDF/data export — see [docs/user-guide.md](docs/user-guide.md#7b-wealth).
 
 For a full walkthrough of the UI, see [docs/user-guide.md](docs/user-guide.md)
 ([Deutsche Version](docs/user-guide.de.md)).
@@ -251,6 +252,16 @@ Generate and back it up the same way as the Earnings key (see above) — a lost 
 all stored retirement data permanently unreadable. **Without a valid key the backend still starts**,
 but every `/retirement` route answers `503 RETIREMENT_UNAVAILABLE` (fail closed) and the Retirement
 area shows an "unavailable" state; the other domains are unaffected and stored data is not lost.
+
+### Wealth encryption key
+
+The Historic Wealth Development domain ("Wealth") encrypts every stored snapshot — entry names,
+classes, amounts and notes — with its own `WEALTH_ENCRYPTION_KEY` (Base64 of exactly 32 random
+bytes), separate from the Earnings and Retirement keys. Generate and back it up the same way as the
+Earnings key (see above) — a lost or changed key makes all stored wealth data permanently
+unreadable. **Without a valid key the backend still starts**, but every `/wealth` route answers
+`503 WEALTH_UNAVAILABLE` (fail closed) and the Wealth area shows an "unavailable" state; the other
+domains are unaffected and stored data is not lost.
 
 ## Deploying with Portainer (or any Docker Hub-based host)
 

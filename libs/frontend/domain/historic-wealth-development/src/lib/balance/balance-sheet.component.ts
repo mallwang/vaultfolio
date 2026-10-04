@@ -138,6 +138,7 @@ interface ClassOption {
                 [ngModel]="classChoice()"
                 (ngModelChange)="chooseClass($event)"
                 [placeholder]="'wealth.balance.groupClass' | translate"
+                [ariaLabel]="'wealth.balance.groupClass' | translate"
                 data-testid="wealth-balance-class"
               />
               <p-select
@@ -147,6 +148,7 @@ interface ClassOption {
                 [ngModel]="groupChoice()"
                 (ngModelChange)="groupChoice.set($event)"
                 [placeholder]="'wealth.balance.groupTarget' | translate"
+                [ariaLabel]="'wealth.balance.groupTarget' | translate"
                 [disabled]="!classChoice()"
                 data-testid="wealth-balance-group-select"
               />
