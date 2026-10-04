@@ -32,7 +32,9 @@ function money(value: Decimal): string {
 }
 
 /** Ascending by snapshot date, independent of creation order. Does not mutate the input. */
-export function sortedByDate(snapshots: readonly WealthSnapshot[]): WealthSnapshot[] {
+export function sortedByDate<T extends Pick<WealthSnapshot, 'snapshotDate'>>(
+  snapshots: readonly T[],
+): T[] {
   return [...snapshots].sort((a, b) => a.snapshotDate.localeCompare(b.snapshotDate));
 }
 
@@ -60,10 +62,10 @@ function yearsBefore(date: string, years: number): string {
 }
 
 /** Snapshots within the period, measured back from the latest snapshot's date (ascending). */
-export function filterPeriod(
-  snapshots: readonly WealthSnapshot[],
+export function filterPeriod<T extends Pick<WealthSnapshot, 'snapshotDate'>>(
+  snapshots: readonly T[],
   period: Period,
-): WealthSnapshot[] {
+): T[] {
   const sorted = sortedByDate(snapshots);
   if (period === 'all' || sorted.length === 0) return sorted;
   const cutoff = yearsBefore(sorted[sorted.length - 1].snapshotDate, PERIOD_YEARS[period]);

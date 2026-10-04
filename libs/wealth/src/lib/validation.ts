@@ -157,7 +157,7 @@ function checkClass(
     return null;
   }
   if ('standard' in value) {
-    const id = value.standard;
+    const id = value['standard'];
     if (!isStandardClassId(id)) {
       issues.push({ field: `${field}.standard`, code: 'INVALID_VALUE' });
       return null;
@@ -168,7 +168,13 @@ function checkClass(
     }
     return { standard: id };
   }
-  const custom = checkText(value.custom, MAX_CUSTOM_CLASS_LENGTH, `${field}.custom`, issues, true);
+  const custom = checkText(
+    value['custom'],
+    MAX_CUSTOM_CLASS_LENGTH,
+    `${field}.custom`,
+    issues,
+    true,
+  );
   return custom === null ? null : { custom };
 }
 
@@ -180,14 +186,14 @@ function checkEntry(value: unknown, index: number, issues: Issues): WealthEntry 
   }
   const before = issues.length;
   rejectUnknown(value, ENTRY_FIELDS, path, issues);
-  const side = checkSide(value.side, `${path}.side`, issues);
-  const classRef = checkClass(value.class, side, `${path}.class`, issues);
-  const name = checkText(value.name, MAX_NAME_LENGTH, `${path}.name`, issues, true);
+  const side = checkSide(value['side'], `${path}.side`, issues);
+  const classRef = checkClass(value['class'], side, `${path}.class`, issues);
+  const name = checkText(value['name'], MAX_NAME_LENGTH, `${path}.name`, issues, true);
   let amount: string | null = null;
-  if (value.amount === undefined || value.amount === null || value.amount === '') {
+  if (value['amount'] === undefined || value['amount'] === null || value['amount'] === '') {
     issues.push({ field: `${path}.amount`, code: 'REQUIRED' });
   } else {
-    amount = normalizeMoney(value.amount);
+    amount = normalizeMoney(value['amount']);
     if (amount === null) issues.push({ field: `${path}.amount`, code: 'INVALID_AMOUNT' });
   }
   if (issues.length > before || !side || !classRef || name === null || amount === null) return null;
@@ -206,21 +212,21 @@ export function validateSnapshotInput(
   if (!isRecord(input)) return { ok: false, issues: [{ field: '', code: 'INVALID_VALUE' }] };
   rejectUnknown(input, SNAPSHOT_FIELDS, '', issues);
 
-  const snapshotDate = checkDate(input.snapshotDate, today, 'snapshotDate', issues);
-  const note = checkText(input.note, MAX_NOTE_LENGTH, 'note', issues, false);
+  const snapshotDate = checkDate(input['snapshotDate'], today, 'snapshotDate', issues);
+  const note = checkText(input['note'], MAX_NOTE_LENGTH, 'note', issues, false);
 
   const entries: WealthEntry[] = [];
-  if (!Array.isArray(input.entries)) {
+  if (!Array.isArray(input['entries'])) {
     issues.push({
       field: 'entries',
-      code: input.entries === undefined ? 'REQUIRED' : 'INVALID_VALUE',
+      code: input['entries'] === undefined ? 'REQUIRED' : 'INVALID_VALUE',
     });
-  } else if (input.entries.length === 0) {
+  } else if (input['entries'].length === 0) {
     issues.push({ field: 'entries', code: 'REQUIRED' });
-  } else if (input.entries.length > MAX_ENTRIES) {
+  } else if (input['entries'].length > MAX_ENTRIES) {
     issues.push({ field: 'entries', code: 'LIMIT_EXCEEDED' });
   } else {
-    input.entries.forEach((raw: unknown, index: number) => {
+    input['entries'].forEach((raw: unknown, index: number) => {
       const entry = checkEntry(raw, index, issues);
       if (entry) entries.push(entry);
     });
@@ -228,7 +234,7 @@ export function validateSnapshotInput(
 
   if (issues.length > 0 || snapshotDate === null) return { ok: false, issues };
   const value: WealthSnapshotInput = { snapshotDate, entries };
-  if (note !== null) value.note = note;
+  if (note !== null) value['note'] = note;
   return { ok: true, value };
 }
 
@@ -236,13 +242,13 @@ export function validateClassGroup(input: unknown): ValidationResult<ClassGroupA
   const issues: Issues = [];
   if (!isRecord(input)) return { ok: false, issues: [{ field: '', code: 'INVALID_VALUE' }] };
   rejectUnknown(input, ASSIGNMENT_FIELDS, '', issues);
-  const side = checkSide(input.side, 'side', issues);
-  const classRef = checkClass(input.class, side, 'class', issues);
+  const side = checkSide(input['side'], 'side', issues);
+  const classRef = checkClass(input['class'], side, 'class', issues);
   let group: ClassGroupAssignment['group'] | null = null;
-  if (input.group === undefined || input.group === null || input.group === '') {
+  if (input['group'] === undefined || input['group'] === null || input['group'] === '') {
     issues.push({ field: 'group', code: 'REQUIRED' });
-  } else if (side && (groupsOf(side) as readonly unknown[]).includes(input.group)) {
-    group = input.group as ClassGroupAssignment['group'];
+  } else if (side && (groupsOf(side) as readonly unknown[]).includes(input['group'])) {
+    group = input['group'] as ClassGroupAssignment['group'];
   } else {
     issues.push({ field: 'group', code: side ? 'UNKNOWN_FIELD' : 'INVALID_VALUE' });
   }

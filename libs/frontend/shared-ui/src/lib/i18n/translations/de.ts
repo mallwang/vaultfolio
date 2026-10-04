@@ -1,6 +1,7 @@
 import { requestsDe } from './requests.de';
 import { earningsDe } from './earnings.de';
 import { retirementDe } from './retirement.de';
+import { wealthDe } from './wealth.de';
 import { ocrDe } from './ocr.de';
 import type { TranslationDictionary } from './en';
 
@@ -33,7 +34,7 @@ export const de: TranslationDictionary = {
     retirement: 'Altersvorsorge',
     insurances: 'Versicherungen',
     haushaltsplaner: 'Haushaltsplaner',
-    historicWealthDevelopment: 'Vermögensentwicklung',
+    historicWealthDevelopment: 'Vermögen',
     accountOverview: 'Kontoübersicht',
     klaro: 'Klaro',
     earnings: 'Einkommensentwicklung',
@@ -514,7 +515,10 @@ export const de: TranslationDictionary = {
     retirement: 'Altersvorsorge',
     insurances: 'Versicherungen',
     haushaltsplaner: 'Haushaltsplaner',
-    wealthDevelopment: 'Vermögensentwicklung',
+    wealthDevelopment: 'Vermögen',
+    wealthBalance: 'Vermögen · Bilanz',
+    wealthNew: 'Stichtag erfassen',
+    wealthEdit: 'Stichtag bearbeiten',
     accountOverview: 'Kontoübersicht',
     klaro: 'Klaro',
     earnings: 'Einkommensentwicklung',
@@ -698,6 +702,7 @@ export const de: TranslationDictionary = {
   },
   earnings: earningsDe,
   retirement: retirementDe,
+  wealth: wealthDe,
   ocr: ocrDe,
   requests: requestsDe,
 };

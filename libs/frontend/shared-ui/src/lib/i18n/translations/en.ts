@@ -1,6 +1,7 @@
 import { requestsEn } from './requests.en';
 import { earningsEn } from './earnings.en';
 import { retirementEn } from './retirement.en';
+import { wealthEn } from './wealth.en';
 import { ocrEn } from './ocr.en';
 
 /**
@@ -39,7 +40,7 @@ export const en: TranslationDictionary = {
     retirement: 'Retirement',
     insurances: 'Insurances',
     haushaltsplaner: 'Budget Planner',
-    historicWealthDevelopment: 'Wealth Development',
+    historicWealthDevelopment: 'Wealth',
     accountOverview: 'Account Overview',
     klaro: 'Klaro',
     earnings: 'Earnings',
@@ -512,7 +513,10 @@ export const en: TranslationDictionary = {
     retirement: 'Retirement',
     insurances: 'Insurances',
     haushaltsplaner: 'Budget Planner',
-    wealthDevelopment: 'Wealth Development',
+    wealthDevelopment: 'Wealth',
+    wealthBalance: 'Wealth · Balance sheet',
+    wealthNew: 'Record wealth snapshot',
+    wealthEdit: 'Edit wealth snapshot',
     accountOverview: 'Account Overview',
     klaro: 'Klaro',
     earnings: 'Earnings',
@@ -694,6 +698,7 @@ export const en: TranslationDictionary = {
   },
   earnings: earningsEn,
   retirement: retirementEn,
+  wealth: wealthEn,
   ocr: ocrEn,
   requests: requestsEn,
 };
