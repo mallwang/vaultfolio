@@ -11,3 +11,4 @@ export * from './lib/error-response.js';
 export * from './lib/earnings.js';
 export * from './lib/requests.js';
 export * from './lib/retirement.js';
+export * from './lib/wealth.js';

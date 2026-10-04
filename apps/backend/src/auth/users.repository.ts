@@ -351,6 +351,9 @@ export class UsersRepository {
     }
     // 037-altersvorsorge: purge the user's retirement records on account deletion.
     await this.database.query('DELETE FROM retirement_records WHERE owner_id = $1', [id]);
+    // 038-networth-tracking: purge the user's wealth snapshots and settings (FR-021).
+    await this.database.query('DELETE FROM wealth_snapshots WHERE owner_id = $1', [id]);
+    await this.database.query('DELETE FROM wealth_settings WHERE owner_id = $1', [id]);
     // 033-parser-requests: the user's own requests go with the account (FR-042), including the
     // samples and download audit rows; where the user was an administrator only the reference
     // is cleared so other users' requests keep their history.

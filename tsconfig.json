@@ -85,6 +85,9 @@
       "path": "./libs/retirement"
     },
     {
+      "path": "./libs/wealth"
+    },
+    {
       "path": "./libs/frontend/document-reader"
     }
   ],

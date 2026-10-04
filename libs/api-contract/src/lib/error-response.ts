@@ -23,4 +23,6 @@ export interface ErrorResponse {
   correlationId: string;
   /** Only present for field-level validation errors; non-empty when present. */
   details?: ErrorResponseDetail[];
+  /** Only for `WEALTH_SNAPSHOT_DATE_EXISTS`: id of the snapshot already holding that date. */
+  existingId?: string;
 }

@@ -35,4 +35,11 @@ export class ErrorResponseDto {
     type: [ErrorResponseDetailDto],
   })
   details?: ErrorResponseDetailDto[];
+
+  @ApiPropertyOptional({
+    description:
+      'Only for WEALTH_SNAPSHOT_DATE_EXISTS: id of the snapshot already holding the date.',
+    format: 'uuid',
+  })
+  existingId?: string;
 }
