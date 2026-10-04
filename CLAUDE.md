@@ -56,5 +56,5 @@
 
 ## Current Feature Plan
 
-Active implementation plan: [specs/037-altersvorsorge-retirement-planning/plan.md](specs/037-altersvorsorge-retirement-planning/plan.md)
+Active implementation plan: [specs/038-networth-tracking/plan.md](specs/038-networth-tracking/plan.md)
 <!-- SPECKIT END -->
