@@ -1,3 +1,11 @@
+## 0.0.13 (2026-10-04)
+
+### 🚀 Features
+
+- **dashboard:** add drag-and-drop tile order and per-tile visibility ([#77](https://github.com/mallwang/vaultfolio/pull/77))
+- **export:** add retirement PDF report with KPI tiles, bar sections and logo ([#78](https://github.com/mallwang/vaultfolio/pull/78))
+- **wealth:** add net-worth tracking with snapshots, balance sheet and export ([#79](https://github.com/mallwang/vaultfolio/pull/79))
+
 ## 0.0.12 (2026-10-03)
 
 ### 🚀 Features
