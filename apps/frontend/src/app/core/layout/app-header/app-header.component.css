@@ -27,6 +27,11 @@
   letter-spacing: 0.02em;
 }
 
+.app-header__version {
+  font-weight: 400;
+  margin-left: 0.25rem;
+}
+
 .app-header__title {
   margin: 0;
   font-size: 1.1rem;

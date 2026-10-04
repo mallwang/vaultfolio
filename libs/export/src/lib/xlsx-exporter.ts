@@ -80,12 +80,21 @@ async function toBlob(workbook: { xlsx: { writeBuffer(): Promise<unknown> } }): 
   });
 }
 
-const TABLE_NUM_FMT = { money: '#,##0.00 "€"', ratio: '0.0%', integer: '0' } as const;
+const TABLE_NUM_FMT = {
+  money: '#,##0.00 "€"',
+  ratio: '0.0%',
+  integer: '0',
+  // German day.month.year, whatever the language of the export.
+  date: 'dd.mm.yyyy',
+} as const;
 
 function tableCellValue(value: string | number | null, column: ExportTableColumn) {
   if (value === null) return null;
+  if (column.format === 'text') return String(value);
+  // ISO dates parse as UTC midnight, which Excel stores as the plain calendar day.
+  if (column.format === 'date') return new Date(`${value}T00:00:00Z`);
   // Decimal strings become native numbers only here, at final serialization (Principle III).
-  return column.format === 'text' ? String(value) : Number(value);
+  return Number(value);
 }
 
 /** Sheet names: no `[]:*?/\`, at most 31 characters, unique within the workbook. */
@@ -162,9 +171,13 @@ function cellFormula(
     const letter = letters.get(column.key);
     return `SUM(${letter}${firstData}:${letter}${lastData})`;
   }
-  return column.formula?.replace(
-    /\{(\w+)\}/g,
-    (_, key: string) => `${letters.get(key)}${rowNumber}`,
+  if (!column.formula) return undefined;
+  // `{prev:key}` needs a data row above; the first data row keeps its plain value.
+  if (column.formula.includes('{prev:') && (!firstData || rowNumber <= firstData)) return undefined;
+  return column.formula.replace(
+    /\{(prev:)?(\w+)\}/g,
+    (_, prev: string | undefined, key: string) =>
+      `${letters.get(key)}${rowNumber - (prev ? 1 : 0)}`,
   );
 }
 
@@ -216,7 +229,9 @@ function addTableSheets(
     // The filter covers the header and the data rows, not a closing total row; a two-row header
     // with merged cells has no single header row to filter on.
     const dataRows = table.rows.filter((row) => row.emphasis !== 'total').length;
-    if (headerRows === 1 && dataRows > 0 && columns.length > 0) {
+    // Emphasis rows between data rows (a balance sheet's group headers) make a filter meaningless.
+    const totalsOnlyAtEnd = table.rows.slice(0, dataRows).every((row) => row.emphasis !== 'total');
+    if (headerRows === 1 && dataRows > 0 && columns.length > 0 && totalsOnlyAtEnd) {
       sheet.autoFilter = {
         from: { row: 1, column: 1 },
         to: { row: 1 + dataRows, column: columns.length },

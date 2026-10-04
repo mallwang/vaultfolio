@@ -408,6 +408,7 @@ export const de: TranslationDictionary = {
   },
   healthStatus: {
     title: 'Systemstatus',
+    version: 'Version',
     backend: 'Backend',
     database: 'Datenbank',
     checkedAt: 'Geprüft um',

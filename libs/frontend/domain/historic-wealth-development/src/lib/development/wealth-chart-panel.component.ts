@@ -14,7 +14,7 @@ import {
   wealthChartColors,
   wealthChartOption,
 } from '../charts/wealth-charts';
-import { formatDate, formatMoney } from '../wealth-format';
+import { formatDate, formatMoney, percentFormat } from '../wealth-format';
 
 /** Chart panel: stacked asset classes, hanging liabilities and the net-worth line. */
 @Component({
@@ -70,6 +70,7 @@ export class WealthChartPanelComponent {
     return {
       money: (v) => formatMoney(String(v), lang),
       moneyWhole: (v) => formatMoney(String(v), lang, { whole: true }),
+      percentWhole: (r) => percentFormat(lang).format(r),
       date: (iso) => formatDate(iso, lang),
     };
   });

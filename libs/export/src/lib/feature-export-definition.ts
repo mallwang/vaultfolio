@@ -41,6 +41,10 @@ export interface PdfTableColumn {
    * same format (e.g. net below gross).
    */
   secondaryKey?: string;
+  /** Footnote number shown as a superscript after the label; the text is in the table's `footnotes`. */
+  footnote?: number;
+  /** Renders a missing value as an empty cell instead of a dash. */
+  blankWhenMissing?: boolean;
 }
 
 export interface PdfTableRow {
@@ -65,6 +69,8 @@ export type PdfSection =
        * the next page if it does not fit). Defaults to `true`: every table starts a new page.
        */
       startOnNewPage?: boolean;
+      /** Already translated; entry `n` (1-based) belongs to the column with `footnote: n`, printed below the table. */
+      footnotes?: string[];
     }
   | { kind: 'text'; title?: string; text: string }
   | { kind: 'kpis'; tiles: PdfKpiTile[] }
@@ -93,7 +99,7 @@ export interface PdfBarSegment {
   color: string;
 }
 
-export type ExportTableColumnFormat = 'text' | 'integer' | 'money' | 'ratio';
+export type ExportTableColumnFormat = 'text' | 'integer' | 'money' | 'ratio' | 'date';
 
 export interface ExportTableColumn {
   /** Stable, language-independent key (JSON field name). */
@@ -104,7 +110,8 @@ export interface ExportTableColumn {
   /**
    * Excel only: formula written instead of the value in every row of the column, as a template
    * whose `{key}` placeholders refer to the cell of that column in the same row, e.g.
-   * `IF({gross}=0,0,{taxes}/{gross})`. The row's value is kept as the cached result, so viewers
+   * `IF({gross}=0,0,{taxes}/{gross})`. `{prev:key}` refers to the cell of that column in the row
+   * above; a template using it is not written in the first data row. The row's value is kept as the cached result, so viewers
    * that do not recalculate still show it. CSV and JSON ignore this and carry the value.
    */
   formula?: string;
@@ -122,7 +129,10 @@ export interface ExportTableColumn {
 }
 
 export interface ExportTableRow {
-  /** `money`/`ratio` are canonical decimal strings (ratio = fraction), `integer` a number. */
+  /**
+   * `money`/`ratio` are canonical decimal strings (ratio = fraction), `integer` a number, `date` an
+   * ISO `YYYY-MM-DD` string (a real date cell with a German format in Excel, verbatim elsewhere).
+   */
   cells: Record<string, string | number | null>;
   emphasis?: 'total';
 }

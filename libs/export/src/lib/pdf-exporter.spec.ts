@@ -236,6 +236,40 @@ describe('PDF sections', () => {
     expect(content.some((n) => n['text'] === 'sub line')).toBe(true);
   });
 
+  it('marks footnoted headers with a superscript and prints the footnotes below the table', () => {
+    const table: TableSection = {
+      ...employerTable,
+      columns: employerTable.columns.map((c) => {
+        const footnote = { gross: 1, ratio: 2 }[c.key];
+        return footnote ? { ...c, footnote } : c;
+      }),
+      footnotes: ['First note', 'Second note'],
+    };
+    const doc = buildDocDefinition(sectionResolved([table]));
+    const [node] = tableNodes(doc.content as Content[]);
+    expect(node['table'].body[0].map((cell: Node) => cell['text'])).toEqual([
+      'Employer',
+      'Gross¹',
+      'Net ratio²',
+      'Months',
+      'Whole',
+    ]);
+    const notes = (doc.content as Node[]).filter((n) => /^[¹²] /.test(String(n['text'])));
+    expect(notes.map((n) => n['text'])).toEqual(['¹ First note', '² Second note']);
+  });
+
+  it('leaves missing values blank for columns flagged blankWhenMissing', () => {
+    const table: TableSection = {
+      ...employerTable,
+      columns: employerTable.columns.map((c) =>
+        c.key === 'ratio' ? { ...c, blankWhenMissing: true } : c,
+      ),
+    };
+    const doc = buildDocDefinition(sectionResolved([table]));
+    const [node] = tableNodes(doc.content as Content[]);
+    expect(node['table'].body[2][2]['text']).toBe('');
+  });
+
   it('renders a text section as a paragraph', () => {
     const doc = buildDocDefinition(sectionResolved([{ kind: 'text', text: 'Nothing here yet.' }]));
     expect((doc.content as Node[]).some((n) => n['text'] === 'Nothing here yet.')).toBe(true);

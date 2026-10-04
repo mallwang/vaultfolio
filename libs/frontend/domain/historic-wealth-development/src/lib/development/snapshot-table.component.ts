@@ -1,6 +1,7 @@
 import { Component, computed, inject, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
+import { TooltipModule } from 'primeng/tooltip';
 import type { WealthSnapshot } from '@vaultfolio/api-contract';
 import { I18nService, IconComponent, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
 import { changesOf, totalsOf } from '@vaultfolio/wealth';
@@ -18,7 +19,7 @@ const AREA_PATH = '/app/historic-wealth-development';
  */
 @Component({
   selector: 'app-wealth-snapshot-table',
-  imports: [RouterLink, ButtonModule, IconComponent, TranslatePipe],
+  imports: [RouterLink, ButtonModule, TooltipModule, IconComponent, TranslatePipe],
   template: `
     <div class="scroll">
       <table data-testid="wealth-table">
@@ -34,8 +35,30 @@ const AREA_PATH = '/app/historic-wealth-development';
             <th scope="col" class="num">{{ 'wealth.table.liabilities' | translate }}</th>
             <th scope="col" class="num">{{ 'wealth.table.net' | translate }}</th>
             <th scope="col" class="num">{{ 'wealth.table.change' | translate }}</th>
-            <th scope="col" class="num">{{ 'wealth.table.percent' | translate }}</th>
-            <th scope="col" class="num">{{ 'wealth.table.perYear' | translate }}</th>
+            <th scope="col" class="num">
+              <span
+                class="hint"
+                tabindex="0"
+                [pTooltip]="'wealth.table.percentHint' | translate"
+                tooltipPosition="bottom"
+                data-testid="wealth-percent-hint"
+              >
+                {{ 'wealth.table.percent' | translate }}
+                <app-icon name="info" />
+              </span>
+            </th>
+            <th scope="col" class="num">
+              <span
+                class="hint"
+                tabindex="0"
+                [pTooltip]="'wealth.table.perYearHint' | translate"
+                tooltipPosition="bottom"
+                data-testid="wealth-per-year-hint"
+              >
+                {{ 'wealth.table.perYear' | translate }}
+                <app-icon name="info" />
+              </span>
+            </th>
             <th scope="col" class="actions">
               <span class="sr-only">{{ 'wealth.table.actions' | translate }}</span>
             </th>
@@ -114,6 +137,16 @@ const AREA_PATH = '/app/historic-wealth-development';
       font-size: 0.75rem;
       font-weight: 600;
       color: var(--p-text-muted-color);
+    }
+    .hint {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      cursor: help;
+    }
+    /* The glyph lives in app-icon's own encapsulated template, so sizing it needs ng-deep. */
+    .hint ::ng-deep .material-symbols-outlined {
+      font-size: 0.9em;
     }
     .num {
       text-align: end;

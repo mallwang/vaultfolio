@@ -6,6 +6,7 @@ import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
 import { TooltipModule } from 'primeng/tooltip';
 import {
+  APP_VERSION,
   IconComponent,
   ThemeService,
   I18nService,
@@ -47,6 +48,7 @@ interface LanguageOption {
   styleUrl: './app-header.component.css',
 })
 export class AppHeaderComponent {
+  protected readonly appVersion = inject(APP_VERSION);
   private readonly router = inject(Router);
   private readonly authService = inject(AuthService);
   private readonly currentUser = inject(CurrentUserStore);

@@ -24,3 +24,4 @@ export { ExportControlComponent } from './lib/export-control/export-control.comp
 export { FEATURE_EXPORT_REGISTRY } from './lib/export-control/feature-export-registry.token';
 export { captureChartImage, CHART_IMAGE_CAPTURE } from './lib/export-control/chart-image-capture';
 export { routeTabs } from './lib/route-tabs/route-tabs';
+export { APP_VERSION } from './lib/app-version.token';

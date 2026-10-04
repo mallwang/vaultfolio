@@ -55,7 +55,11 @@ export const wealthEn: TranslationDictionary = {
     net: 'Net worth',
     change: 'Change',
     percent: '%',
+    percentHint:
+      'Change of the net worth since the previous snapshot in percent of its value, regardless of the time between the two dates.',
     perYear: 'p.a.',
+    perYearHint:
+      'Annualised development of the net worth since the previous snapshot, compounded: (end / start)^(365 / days) − 1. It shows how your total net worth developed, including deposits, withdrawals and debt changes – not the return on your investments. For short intervals the figure can be extreme.',
     actions: 'Actions',
     edit: 'Edit',
     copy: 'Copy as template',
@@ -178,12 +182,12 @@ export const wealthEn: TranslationDictionary = {
   export: {
     data: {
       pdf: 'Key figures, development chart, latest snapshot by class, all snapshots and the balance sheet as a report',
-      xlsx: 'Every entry and the totals per snapshot as two sheets',
-      csv: '2 CSV files (entries and totals) in a ZIP archive',
-      json: 'Every entry and the totals per snapshot in structured form',
+      xlsx: 'Every entry, the totals per snapshot (with formulas) and the current balance sheet as three sheets',
+      csv: '3 CSV files (entries, totals and current balance sheet) in a ZIP archive',
+      json: 'Every entry, the totals per snapshot and the current balance sheet in structured form',
     },
     infobox:
-      'About this export — Wealth. Every entry of every snapshot (date, side, class, name, amount, balance group) and the totals per snapshot with the change since the previous one. Amounts are in EUR; liabilities are listed as positive values on their own side.',
+      'About this export — Wealth. Every entry of every snapshot (date, side, class, name, amount, balance group) and the totals per snapshot with the change since the previous one (absolute, percent and per year), plus the balance sheet of the latest snapshot. Amounts are in EUR; liabilities are listed as positive values on their own side.',
     pdfInfobox:
       'About this export — Wealth. Key figures, the development of your net worth in the chosen period, the latest snapshot by class, all snapshots and the balance sheet of the latest snapshot, as shown in the Wealth overview. Amounts are in EUR; liabilities are listed separately from assets.',
     title: 'Wealth development',
@@ -200,6 +204,8 @@ export const wealthEn: TranslationDictionary = {
     balanceAssets: 'Assets',
     balancePassiva: 'Liabilities & equity',
     balanceTotal: 'Total',
+    balanceSheet: 'Balance sheet',
+    balanceSheetAt: 'Balance sheet {{date}}',
     side: { ASSET: 'Asset', LIABILITY: 'Liability' },
     unavailable: 'There are no snapshots to export yet.',
     entriesTable: 'Entries',

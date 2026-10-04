@@ -15,6 +15,8 @@ export interface WealthChartLabels {
 export interface WealthChartFormat {
   money(value: number): string;
   moneyWhole(value: number): string;
+  /** A ratio (`0.384`) as a whole-number percentage (`38 %`). */
+  percentWhole(ratio: number): string;
   date(iso: string): string;
 }
 
@@ -141,7 +143,15 @@ export function wealthChartOption(
     tooltip: {
       trigger: 'axis',
       axisPointer: { type: 'shadow' },
-      valueFormatter: (value) => format.money(Number(value)),
+      // Every figure carries its share of the snapshot's total assets in brackets; the liability
+      // series is plotted negative, so the share uses the absolute value.
+      valueFormatter: (value, dataIndex) => {
+        const amount = format.money(Number(value));
+        const assets = Number(series.assets[dataIndex]);
+        return assets > 0
+          ? `${amount} (${format.percentWhole(Math.abs(Number(value)) / assets)})`
+          : amount;
+      },
     },
     xAxis: {
       type: 'category',

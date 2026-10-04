@@ -78,7 +78,9 @@ function sectionCellText(
   column: PdfTableColumn,
   locale: string,
 ): string {
-  if (value === null || value === undefined || value === '') return MISSING;
+  if (value === null || value === undefined || value === '') {
+    return column.blankWhenMissing ? '' : MISSING;
+  }
   if (column.format === 'text') return String(value);
   const n = typeof value === 'number' ? value : Number(value);
   if (Number.isNaN(n)) return String(value);
@@ -108,6 +110,13 @@ export function sectionColumnWidth(column: PdfTableColumn): number | 'auto' | '*
   return column.width ?? (column.format === 'text' ? 'auto' : '*');
 }
 
+const SUPERSCRIPT_DIGITS = '⁰¹²³⁴⁵⁶⁷⁸⁹';
+
+/** `12` → `¹²`; Unicode superscripts because pdfmake has no raised-text style. */
+function superscriptOf(n: number): string {
+  return [...String(n)].map((digit) => SUPERSCRIPT_DIGITS[Number(digit)]).join('');
+}
+
 function sectionCell(
   row: PdfTableRow,
   column: PdfTableColumn,
@@ -117,7 +126,7 @@ function sectionCell(
   const isText = column.format === 'text';
   const text = sectionCellText(row.cells[column.key], column, locale);
   // A period without a main value is one dash, not two stacked ones.
-  const hasMain = text !== MISSING;
+  const hasMain = text !== MISSING && text !== '';
   if (column.secondaryKey && hasMain) {
     return {
       stack: [
@@ -237,7 +246,7 @@ function sectionContent(section: PdfSection, locale: string, contentWidth: numbe
   }
   const fontSize = section.fontSize ?? SECTION_FONT_SIZE;
   const header = section.columns.map((column) => ({
-    text: column.label,
+    text: column.footnote ? `${column.label}${superscriptOf(column.footnote)}` : column.label,
     style: 'tableHeader',
     fontSize,
     alignment: column.align ?? (column.format === 'text' ? 'left' : 'right'),
@@ -267,8 +276,14 @@ function sectionContent(section: PdfSection, locale: string, contentWidth: numbe
         body: [header, ...body],
       },
       layout: SECTION_TABLE_LAYOUT,
-      margin: [0, 0, 0, 8],
+      margin: [0, 0, 0, section.footnotes?.length ? 4 : 8],
     },
+    ...(section.footnotes ?? []).map((text, index) => ({
+      text: `${superscriptOf(index + 1)} ${text}`,
+      fontSize: 7,
+      color: '#666666',
+      margin: [0, 0, 0, 2],
+    })),
   ] as unknown as Content[];
 }
 

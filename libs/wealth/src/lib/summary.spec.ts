@@ -147,6 +147,8 @@ describe('changesOf', () => {
     ]);
     expect(changes[0].pctPerYear).toBeNull();
     expect(changes[1].pctPerYear).toBe('10.00');
+    expect(changes[1].ratioPerYear).toBe('0.1000');
+    expect(changes[0].ratioPerYear).toBeNull();
     expect(changes[2].pctPerYear).toBe('0.00');
     const [, halfYear] = changesOf([
       snap('x', '2025-01-01', ['100.00']),

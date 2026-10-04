@@ -220,4 +220,41 @@ describe('exportXlsx with tables', () => {
     expect(sheet.views[0]).toMatchObject({ state: 'frozen', ySplit: 2 });
     expect(sheet.autoFilter).toBeUndefined();
   });
+
+  it('writes date cells in German format and {prev:key} formulas from the second data row on', async () => {
+    const table: ExportTable = {
+      id: 't',
+      title: 'D',
+      columns: [
+        { key: 'date', label: 'Datum', format: 'date' },
+        { key: 'net', label: 'Netto', format: 'money' },
+        { key: 'delta', label: 'Delta', format: 'money', formula: '{net}-{prev:net}' },
+      ],
+      rows: [
+        { cells: { date: '2025-01-31', net: '100.00', delta: null } },
+        { cells: { date: '2025-06-30', net: '150.00', delta: '50.00' } },
+      ],
+    };
+    const sheet = (await readWorkbook(await exportXlsx(withTables([table])))).worksheets[0];
+
+    expect(sheet.getCell('A2').value).toEqual(new Date('2025-01-31T00:00:00Z'));
+    expect(sheet.getCell('A2').numFmt).toBe('dd.mm.yyyy');
+    expect(sheet.getCell('C2').value).toBeNull();
+    expect(sheet.getCell('C3').value).toEqual({ formula: 'B3-B2', result: 50 });
+  });
+
+  it('keeps the filter off when emphasis rows sit between data rows', async () => {
+    const table: ExportTable = {
+      id: 't',
+      title: 'B',
+      columns: [{ key: 'label', label: 'Label', format: 'text' }],
+      rows: [
+        { cells: { label: 'Header' }, emphasis: 'total' },
+        { cells: { label: 'Entry' } },
+        { cells: { label: 'Sum' }, emphasis: 'total' },
+      ],
+    };
+    const sheet = (await readWorkbook(await exportXlsx(withTables([table])))).worksheets[0];
+    expect(sheet.autoFilter).toBeUndefined();
+  });
 });
