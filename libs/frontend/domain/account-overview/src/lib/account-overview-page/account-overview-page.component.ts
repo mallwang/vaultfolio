@@ -129,174 +129,185 @@ function sortByStatus(accounts: AccountOverviewEntry[]): AccountOverviewEntry[] 
         </div>
       } @else {
         @for (group of groups(); track group.category) {
-          <p-card class="account-group">
+          <p-card
+            class="account-group"
+            [attr.data-testid]="'account-overview-group-' + group.category"
+          >
             <ng-template #header>
               <div class="account-group__header">
                 <h3>{{ group.labelKey | translate }}</h3>
                 <p-tag [value]="group.accounts.length.toString()" [rounded]="true" />
               </div>
             </ng-template>
-            @for (account of group.accounts; track account.id) {
-              <div class="account-row" [attr.data-testid]="'account-overview-row-' + account.id">
-                <div class="account-row__avatar">{{ initialsFor(account.name) }}</div>
-                <div class="account-row__body">
-                  <div class="account-row__title">
-                    <span class="account-row__name">{{ account.name }}</span>
-                    <p-tag
-                      [value]="'accountStatus.' + account.status | translate"
-                      [severity]="account.status === 'ACTIVE' ? 'success' : 'warn'"
-                      [rounded]="true"
-                      class="status-badge"
-                      [attr.data-testid]="'account-overview-row-' + account.id + '-status'"
-                    />
-                    @if (account.provider) {
-                      <span class="account-row__provider">{{ account.provider }}</span>
-                    }
-                    @if (cardBrandFor(account); as brand) {
+            <div class="account-group__grid">
+              @for (account of group.accounts; track account.id) {
+                <div class="account-row" [attr.data-testid]="'account-overview-row-' + account.id">
+                  <div class="account-row__avatar">{{ initialsFor(account.name) }}</div>
+                  <div class="account-row__body">
+                    <div class="account-row__title">
+                      <span class="account-row__name">{{ account.name }}</span>
                       <p-tag
-                        [value]="brand"
-                        [attr.data-testid]="'account-overview-row-' + account.id + '-brand'"
+                        [value]="'accountStatus.' + account.status | translate"
+                        [severity]="account.status === 'ACTIVE' ? 'success' : 'warn'"
+                        [rounded]="true"
+                        class="status-badge"
+                        [attr.data-testid]="'account-overview-row-' + account.id + '-status'"
                       />
-                    }
-                  </div>
-                  @if (account.purpose) {
-                    <p class="account-row__purpose">{{ account.purpose }}</p>
-                  }
-                  @if (
-                    account.category === 'CREDIT_CARD' && (account.cardNumber || account.validUntil)
-                  ) {
-                    <div class="account-row__card-badges">
-                      @if (account.cardNumber) {
-                        <p-tag severity="secondary" class="card-badge">
-                          <span
-                            class="card-number"
-                            [attr.data-testid]="
-                              'account-overview-row-' + account.id + '-card-number'
-                            "
-                          >
-                            {{
-                              isRevealed(account.id)
-                                ? account.cardNumber
-                                : maskCardNumber(account.cardNumber)
-                            }}
-                          </span>
-                          <button
-                            type="button"
-                            class="card-badge__reveal"
-                            [attr.data-testid]="'account-overview-row-' + account.id + '-reveal'"
-                            [attr.aria-label]="
-                              (isRevealed(account.id)
-                                ? 'accountOverview.hideCardNumber'
-                                : 'accountOverview.revealCardNumber'
-                              ) | translate
-                            "
-                            [pTooltip]="
-                              (isRevealed(account.id)
-                                ? 'accountOverview.hideCardNumber'
-                                : 'accountOverview.revealCardNumber'
-                              ) | translate
-                            "
-                            tooltipPosition="top"
-                            (click)="toggleReveal(account.id)"
-                          >
-                            <app-icon
-                              [name]="isRevealed(account.id) ? 'visibility-off' : 'visibility'"
-                            />
-                          </button>
-                        </p-tag>
+                      @if (account.provider) {
+                        <span class="account-row__provider">{{ account.provider }}</span>
                       }
-                      @if (account.validUntil) {
+                      @if (cardBrandFor(account); as brand) {
                         <p-tag
-                          [value]="account.validUntil"
-                          severity="secondary"
-                          class="card-badge"
-                          [attr.data-testid]="'account-overview-row-' + account.id + '-valid-until'"
+                          [value]="brand"
+                          [attr.data-testid]="'account-overview-row-' + account.id + '-brand'"
                         />
                       }
                     </div>
-                  }
-                  @if (
-                    account.website || account.cardUsage || account.requiredMinimum || account.notes
-                  ) {
-                    <div class="account-row__chips">
-                      @if (account.website) {
-                        <a
-                          [href]="account.website"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          class="chip chip--link"
-                          [pTooltip]="'accountOverview.websiteLabel' | translate"
-                          tooltipPosition="top"
-                        >
-                          <app-icon name="language" class="chip__icon" />
-                          {{ account.website }}
-                        </a>
-                      }
-                      @if (account.cardUsage) {
-                        <span
-                          class="chip"
-                          [pTooltip]="'accountOverview.cardUsageLabel' | translate"
-                          tooltipPosition="top"
-                        >
-                          <app-icon name="credit-card" class="chip__icon" />
-                          {{ account.cardUsage }}
-                        </span>
-                      }
-                      @if (account.requiredMinimum) {
-                        <span
-                          class="chip"
-                          [pTooltip]="'accountOverview.requiredMinimumLabel' | translate"
-                          tooltipPosition="top"
-                        >
-                          <app-icon name="payments" class="chip__icon" />
-                          {{ account.requiredMinimum | localeNumber: currencyFormat }}
-                        </span>
-                      }
-                      @if (account.notes) {
-                        <span
-                          class="chip"
-                          [pTooltip]="'accountOverview.notesLabel' | translate"
-                          tooltipPosition="top"
-                        >
-                          <app-icon name="sticky-note" class="chip__icon" />
-                          {{ account.notes }}
-                        </span>
-                      }
-                    </div>
-                  }
+                    @if (account.purpose) {
+                      <p class="account-row__purpose">{{ account.purpose }}</p>
+                    }
+                    @if (
+                      account.category === 'CREDIT_CARD' &&
+                      (account.cardNumber || account.validUntil)
+                    ) {
+                      <div class="account-row__card-badges">
+                        @if (account.cardNumber) {
+                          <p-tag severity="secondary" class="card-badge">
+                            <span
+                              class="card-number"
+                              [attr.data-testid]="
+                                'account-overview-row-' + account.id + '-card-number'
+                              "
+                            >
+                              {{
+                                isRevealed(account.id)
+                                  ? account.cardNumber
+                                  : maskCardNumber(account.cardNumber)
+                              }}
+                            </span>
+                            <button
+                              type="button"
+                              class="card-badge__reveal"
+                              [attr.data-testid]="'account-overview-row-' + account.id + '-reveal'"
+                              [attr.aria-label]="
+                                (isRevealed(account.id)
+                                  ? 'accountOverview.hideCardNumber'
+                                  : 'accountOverview.revealCardNumber'
+                                ) | translate
+                              "
+                              [pTooltip]="
+                                (isRevealed(account.id)
+                                  ? 'accountOverview.hideCardNumber'
+                                  : 'accountOverview.revealCardNumber'
+                                ) | translate
+                              "
+                              tooltipPosition="top"
+                              (click)="toggleReveal(account.id)"
+                            >
+                              <app-icon
+                                [name]="isRevealed(account.id) ? 'visibility-off' : 'visibility'"
+                              />
+                            </button>
+                          </p-tag>
+                        }
+                        @if (account.validUntil) {
+                          <p-tag
+                            [value]="account.validUntil"
+                            severity="secondary"
+                            class="card-badge"
+                            [attr.data-testid]="
+                              'account-overview-row-' + account.id + '-valid-until'
+                            "
+                          />
+                        }
+                      </div>
+                    }
+                    @if (
+                      account.website ||
+                      account.cardUsage ||
+                      account.requiredMinimum ||
+                      account.notes
+                    ) {
+                      <div class="account-row__chips">
+                        @if (account.website) {
+                          <a
+                            [href]="account.website"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="chip chip--link"
+                            [pTooltip]="'accountOverview.websiteLabel' | translate"
+                            tooltipPosition="top"
+                          >
+                            <app-icon name="language" class="chip__icon" />
+                            {{ account.website }}
+                          </a>
+                        }
+                        @if (account.cardUsage) {
+                          <span
+                            class="chip"
+                            [pTooltip]="'accountOverview.cardUsageLabel' | translate"
+                            tooltipPosition="top"
+                          >
+                            <app-icon name="credit-card" class="chip__icon" />
+                            {{ account.cardUsage }}
+                          </span>
+                        }
+                        @if (account.requiredMinimum) {
+                          <span
+                            class="chip"
+                            [pTooltip]="'accountOverview.requiredMinimumLabel' | translate"
+                            tooltipPosition="top"
+                          >
+                            <app-icon name="payments" class="chip__icon" />
+                            {{ account.requiredMinimum | localeNumber: currencyFormat }}
+                          </span>
+                        }
+                        @if (account.notes) {
+                          <span
+                            class="chip"
+                            [pTooltip]="'accountOverview.notesLabel' | translate"
+                            tooltipPosition="top"
+                          >
+                            <app-icon name="sticky-note" class="chip__icon" />
+                            {{ account.notes }}
+                          </span>
+                        }
+                      </div>
+                    }
+                  </div>
+                  <div class="account-row__actions">
+                    <button
+                      pButton
+                      type="button"
+                      iconOnly
+                      severity="secondary"
+                      [text]="true"
+                      [attr.data-testid]="'account-overview-row-' + account.id + '-edit'"
+                      [attr.aria-label]="'accountOverview.editAccount' | translate"
+                      [pTooltip]="'accountOverview.editAccount' | translate"
+                      tooltipPosition="top"
+                      (click)="openEditDialog(account)"
+                    >
+                      <app-icon name="pencil" />
+                    </button>
+                    <button
+                      pButton
+                      type="button"
+                      iconOnly
+                      severity="danger"
+                      [text]="true"
+                      [attr.data-testid]="'account-overview-row-' + account.id + '-delete'"
+                      [attr.aria-label]="'accountOverview.deleteAccount' | translate"
+                      [pTooltip]="'accountOverview.deleteAccount' | translate"
+                      tooltipPosition="top"
+                      (click)="confirmDelete(account, $event)"
+                    >
+                      <app-icon name="contract-delete" />
+                    </button>
+                  </div>
                 </div>
-                <div class="account-row__actions">
-                  <button
-                    pButton
-                    type="button"
-                    iconOnly
-                    severity="secondary"
-                    [text]="true"
-                    [attr.data-testid]="'account-overview-row-' + account.id + '-edit'"
-                    [attr.aria-label]="'accountOverview.editAccount' | translate"
-                    [pTooltip]="'accountOverview.editAccount' | translate"
-                    tooltipPosition="top"
-                    (click)="openEditDialog(account)"
-                  >
-                    <app-icon name="pencil" />
-                  </button>
-                  <button
-                    pButton
-                    type="button"
-                    iconOnly
-                    severity="danger"
-                    [text]="true"
-                    [attr.data-testid]="'account-overview-row-' + account.id + '-delete'"
-                    [attr.aria-label]="'accountOverview.deleteAccount' | translate"
-                    [pTooltip]="'accountOverview.deleteAccount' | translate"
-                    tooltipPosition="top"
-                    (click)="confirmDelete(account, $event)"
-                  >
-                    <app-icon name="contract-delete" />
-                  </button>
-                </div>
-              </div>
-            }
+              }
+            </div>
           </p-card>
         }
       }
@@ -324,7 +335,7 @@ function sortByStatus(accounts: AccountOverviewEntry[]): AccountOverviewEntry[] 
   `,
   styles: `
     .account-overview-panel {
-      max-width: 66%;
+      max-width: 1100px;
       margin: 0 auto 1.5rem;
     }
 
@@ -366,17 +377,26 @@ function sortByStatus(accounts: AccountOverviewEntry[]): AccountOverviewEntry[] 
       margin: 0;
     }
 
+    /* Two account tiles side by side; a single column on narrow screens. */
+    .account-group__grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.75rem;
+    }
+
+    @media (max-width: 900px) {
+      .account-group__grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
     .account-row {
       display: flex;
       align-items: flex-start;
       gap: 0.75rem;
-      padding: 0.75rem 0;
-      border-top: 1px solid var(--p-content-border-color);
-    }
-
-    .account-row:first-of-type {
-      border-top: none;
-      padding-top: 0;
+      padding: 0.75rem;
+      border: 1px solid var(--p-content-border-color);
+      border-radius: var(--p-border-radius-md, 0.5rem);
     }
 
     .account-row__avatar {

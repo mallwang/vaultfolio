@@ -105,6 +105,8 @@ const ADD_TYPE: Record<RetirementPillar, string> = {
   `,
   styles: `
     :host {
+      max-width: 1100px;
+      margin-inline: auto;
       display: flex;
       flex-direction: column;
       gap: 1rem;

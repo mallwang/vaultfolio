@@ -7,6 +7,7 @@ import {
 } from '@vaultfolio/export';
 import { I18nService } from '../i18n/i18n.service';
 import { CHART_IMAGE_CAPTURE } from './chart-image-capture';
+import { PDF_LOGO } from './pdf-logo';
 import { FEATURE_EXPORT_REGISTRY } from './feature-export-registry.token';
 
 /** Seam for the file generation, so specs can observe what the runner hands to the exporter. */
@@ -35,6 +36,7 @@ export class FeatureExportRunner {
   private readonly i18n = inject(I18nService);
   private readonly captureChartImage = inject(CHART_IMAGE_CAPTURE);
   private readonly generate = inject(EXPORT_FEATURE);
+  private readonly loadLogo = inject(PDF_LOGO);
 
   /** Resolves with the downloaded file name; rejects when the export fails. */
   async run(featureId: string, format: ExportFormat): Promise<string> {
@@ -65,9 +67,14 @@ export class FeatureExportRunner {
     const chartSideTable =
       format === 'pdf' && definition.getChartSideTable ? definition.getChartSideTable() : undefined;
 
+    const logo = await this.logoFor(format);
     const title = this.i18n.translate(definition.titleKey);
     const lang = this.i18n.language();
-    const subtitleDate = new Intl.DateTimeFormat(lang).format(new Date());
+    const subtitleDate = new Intl.DateTimeFormat(lang, {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    }).format(new Date());
     const resolved: ResolvedFeatureExport = {
       featureId: definition.featureId,
       title,
@@ -87,6 +94,8 @@ export class FeatureExportRunner {
       ...(tables ? { tables } : {}),
       chartImages,
       chartSideTable,
+      ...(logo ? { logo } : {}),
+      orientation: definition.pdfOrientation, // only the PDF exporter reads it
       locale: lang,
       subtitle: `${this.i18n.translate('export.subtitlePrefix')} ${subtitleDate}`,
       footer: this.i18n.translate('export.footerText'),
@@ -96,5 +105,9 @@ export class FeatureExportRunner {
     const fileName = exportFileName(title, format, Boolean(tables));
     triggerDownload(blob, fileName);
     return fileName;
+  }
+
+  private logoFor(format: ExportFormat): Promise<string | undefined> {
+    return format === 'pdf' ? this.loadLogo() : Promise.resolve(undefined);
   }
 }

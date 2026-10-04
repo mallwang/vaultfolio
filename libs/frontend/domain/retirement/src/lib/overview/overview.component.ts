@@ -2,7 +2,6 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { catchError, of, switchMap } from 'rxjs';
-import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
 import type {
   RetirementPillarSummary,
@@ -27,7 +26,6 @@ type PillarKey = 'statutory' | 'occupational' | 'private';
   selector: 'app-retirement-overview',
   imports: [
     RouterLink,
-    ButtonModule,
     MessageModule,
     IconComponent,
     TranslatePipe,
@@ -156,28 +154,32 @@ type PillarKey = 'statutory' | 'occupational' | 'private';
                   @for (item of p.summary.items; track item.id) {
                     <li [attr.data-testid]="'retirement-overview-row-' + item.id">
                       <span class="row__name">
-                        {{
+                        <span class="row__title">{{
                           item.providerLabel ??
                             ('retirement.types.' + item.contractType | translate)
-                        }}
-                        <span class="badge badge--muted">{{
-                          (item.origin === 'IMPORTED'
-                            ? 'retirement.badges.imported'
-                            : 'retirement.badges.manual'
-                          ) | translate
                         }}</span>
-                        @if (item.outdated) {
-                          <span class="badge badge--warn" data-testid="retirement-badge-outdated">{{
-                            'retirement.badges.outdated' | translate
+                        <span class="row__badges">
+                          <span class="badge badge--muted">{{
+                            (item.origin === 'IMPORTED'
+                              ? 'retirement.badges.imported'
+                              : 'retirement.badges.manual'
+                            ) | translate
                           }}</span>
-                        }
-                        @if (item.incomplete) {
-                          <span
-                            class="badge badge--warn"
-                            data-testid="retirement-badge-incomplete"
-                            >{{ 'retirement.badges.incomplete' | translate }}</span
-                          >
-                        }
+                          @if (item.outdated) {
+                            <span
+                              class="badge badge--warn"
+                              data-testid="retirement-badge-outdated"
+                              >{{ 'retirement.badges.outdated' | translate }}</span
+                            >
+                          }
+                          @if (item.incomplete) {
+                            <span
+                              class="badge badge--warn"
+                              data-testid="retirement-badge-incomplete"
+                              >{{ 'retirement.badges.incomplete' | translate }}</span
+                            >
+                          }
+                        </span>
                       </span>
                       <span class="row__amount">{{ rowAmount(item) }}</span>
                     </li>
@@ -185,13 +187,12 @@ type PillarKey = 'statutory' | 'occupational' | 'private';
                 </ul>
               }
               <a
-                pButton
-                severity="secondary"
-                [text]="true"
+                class="link"
                 [routerLink]="['..', p.key]"
                 [attr.data-testid]="'retirement-overview-details-' + p.key"
               >
                 {{ 'retirement.overview.pillar.details' | translate }}
+                <app-icon name="external-link" />
               </a>
             </section>
           }
@@ -219,6 +220,8 @@ type PillarKey = 'statutory' | 'occupational' | 'private';
   `,
   styles: `
     :host {
+      max-width: 1100px;
+      margin-inline: auto;
       display: flex;
       flex-direction: column;
       gap: 1rem;
@@ -278,6 +281,20 @@ type PillarKey = 'statutory' | 'occupational' | 'private';
     }
     .badge--warn {
       background: color-mix(in srgb, var(--p-orange-500) 18%, transparent);
+    }
+    /* The glyph lives in app-icon's own encapsulated template, so sizing it needs ng-deep. */
+    .link ::ng-deep .material-symbols-outlined {
+      font-size: 1rem;
+    }
+    .link {
+      display: inline-flex;
+      align-items: center;
+      align-self: flex-start;
+      gap: 0.25rem;
+      margin-top: auto;
+      color: var(--p-primary-color);
+      text-decoration: none;
+      font-size: 0.875rem;
     }
     .panel__head {
       display: flex;
@@ -360,9 +377,14 @@ type PillarKey = 'statutory' | 'occupational' | 'private';
       flex-wrap: wrap;
     }
     .row__name {
-      display: inline-flex;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.25rem;
+    }
+    .row__badges {
+      display: flex;
       flex-wrap: wrap;
-      align-items: center;
       gap: 0.375rem;
     }
     a.p-button {

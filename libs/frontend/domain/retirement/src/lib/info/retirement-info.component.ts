@@ -45,6 +45,11 @@ import { DangerZoneComponent } from '../danger-zone/danger-zone.component';
     </section>
   `,
   styles: `
+    :host {
+      display: block;
+      max-width: 1100px;
+      margin-inline: auto;
+    }
     .info {
       display: flex;
       flex-direction: column;

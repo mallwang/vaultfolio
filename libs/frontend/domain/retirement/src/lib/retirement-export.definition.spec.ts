@@ -60,6 +60,30 @@ describe('createRetirementExportDefinition', () => {
     await expect(pending).rejects.toBeDefined();
   });
 
+  it('builds the PDF report sections from the summary, in portrait', async () => {
+    const def = definition();
+    expect(def.pdfOrientation).toBe('portrait');
+    const pending = def.getPdfSections?.();
+    http.expectOne('/api/retirement/summary').flush({
+      expectedMonthly: '0.00',
+      guaranteedMonthly: '0.00',
+      differenceMonthly: '0.00',
+      monthlySavings: '0.00',
+      pensionStart: null,
+      capital: { total: '0.00', items: [] },
+      pillars: {},
+      flags: { outdatedCount: 0, incompleteCount: 0 },
+      items: [],
+    });
+    await expect(pending).resolves.toEqual([{ kind: 'text', text: expect.stringContaining('') }]);
+  });
+
+  it.each([403, 503])('has no PDF sections on a %s', async (status) => {
+    const pending = definition().getPdfSections?.();
+    http.expectOne('/api/retirement/summary').flush({}, { status, statusText: 'x' });
+    await expect(pending).resolves.toEqual([]);
+  });
+
   it('produces a structured export for every format', async () => {
     const def = definition();
     const pending = def.fetchData();

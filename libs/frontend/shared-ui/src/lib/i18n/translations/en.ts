@@ -658,11 +658,14 @@ export const en: TranslationDictionary = {
     columnCardNumber: 'Card number',
     columnValidUntil: 'Valid until',
     columnNotes: 'Notes',
+    columnDetails: 'Details',
   },
   retirementExport: {
     title: 'Retirement',
     infobox:
       'About this export — Retirement. One row per recorded retirement contract: statutory, occupational and private provision with guaranteed and expected monthly pension, contributions and dates. Amounts are gross; expected values are projections, not guarantees.',
+    pdfInfobox:
+      'About this export — Retirement. A printable version of the overview: expected and guaranteed monthly pension, savings and pension start, broken down by statutory, occupational and private provision. Amounts are gross; expected values are projections, not guarantees.',
     columnPillar: 'Pillar',
     columnType: 'Type',
     columnProvider: 'Provider',

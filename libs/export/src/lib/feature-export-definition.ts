@@ -66,7 +66,32 @@ export type PdfSection =
        */
       startOnNewPage?: boolean;
     }
-  | { kind: 'text'; title?: string; text: string };
+  | { kind: 'text'; title?: string; text: string }
+  | { kind: 'kpis'; tiles: PdfKpiTile[] }
+  | { kind: 'bar'; title: string; caption?: string; segments: PdfBarSegment[] };
+
+/** One figure tile of a `kpis` section; tiles share the page width evenly. */
+export interface PdfKpiTile {
+  /** Already translated. */
+  label: string;
+  /** Preformatted display value. */
+  value: string;
+  /** Small grey line(s) below the value. */
+  hints?: string[];
+  /** Accent border and larger value for the headline figure. */
+  highlight?: boolean;
+  /** Italic value, for projections. */
+  italic?: boolean;
+}
+
+/** One segment of a `bar` section; shares are fractions and are scaled to the bar's width. */
+export interface PdfBarSegment {
+  /** Already translated; shown in the legend. */
+  label: string;
+  share: number;
+  /** Hex color. */
+  color: string;
+}
 
 export type ExportTableColumnFormat = 'text' | 'integer' | 'money' | 'ratio';
 
@@ -169,6 +194,8 @@ export interface FeatureExportDefinition {
    * formats serialize these tables instead of the generic rows. The PDF ignores it.
    */
   getExportTables?(): Promise<ExportTable[]>;
+  /** Page orientation of the PDF; defaults to landscape. */
+  pdfOrientation?: 'portrait' | 'landscape';
   /** PDF-only infobox key, used instead of `infoboxKey` for the PDF. */
   pdfInfoboxKey?: string;
   /**
@@ -210,6 +237,10 @@ export interface ResolvedFeatureExport {
   tables?: ExportTable[];
   /** Allocation table rendered to the right of the first chart image, PDF only. */
   chartSideTable?: ChartSideTable;
+  /** PNG data URL of the app logo, shown top right next to the title; PDF only. */
+  logo?: string;
+  /** PDF page orientation; defaults to landscape. */
+  orientation?: 'portrait' | 'landscape';
   /** BCP 47 language tag (e.g. 'de', 'en') for locale-aware number/date formatting in PDF. */
   locale?: string;
   /** Translated subtitle line shown below the title (e.g. "exportiert am 09.09.2026"). */
