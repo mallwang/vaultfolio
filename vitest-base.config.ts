@@ -9,6 +9,9 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     testTimeout: 15000,
+    // Same reasoning for hooks (TestBed setup/teardown): destroying a fixture with a
+    // 120-row table (development.component.spec.ts) exceeded the 10s default under coverage on CI.
+    hookTimeout: 30000,
     setupFiles: ['./tools/vitest-global-setup.ts'],
     coverage: {
       exclude: [
