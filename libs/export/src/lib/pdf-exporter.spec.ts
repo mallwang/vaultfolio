@@ -221,11 +221,11 @@ describe('PDF sections', () => {
     );
     const content = doc.content as Node[];
 
-    expect(content[0]['text']).toBe('Earnings');
+    expect(JSON.stringify(content[0])).toContain('Earnings');
     expect(content.some((n) => n['table']?.body?.[0]?.[0]?.text === 'About this export.')).toBe(
       true,
     );
-    const chartAt = content.findIndex((n) => n['columns']);
+    const chartAt = content.findIndex((n, i) => i > 0 && n['columns']);
     const headings = content.filter((n) => n['style'] === 'sectionHeader').map((n) => n['text']);
     expect(headings).toEqual(['Note', 'Totals per employer', 'Second']);
     expect(chartAt).toBeGreaterThan(0);
@@ -429,7 +429,7 @@ describe('section PDF layout', () => {
   it('draws the chart across the page width in a section PDF and keeps it narrow otherwise', () => {
     const imageWidth = (resolved: ResolvedFeatureExport) => {
       const doc = buildDocDefinition(resolved);
-      const columns = (doc.content as Node[]).find((n) => n['columns']);
+      const columns = (doc.content as Node[]).find((n, i) => i > 0 && n['columns']);
       return columns?.['columns'][0].stack[0].width;
     };
     expect(imageWidth(sectionResolved([employerTable], { chartImages: [DUMMY_PNG] }))).toBe(
@@ -445,5 +445,53 @@ describe('section PDF layout', () => {
         chartImages: [DUMMY_PNG],
       }),
     ).toBe(440);
+  });
+});
+
+describe('PDF report sections', () => {
+  const tiles = [
+    { label: 'Expected', value: '≈ 200,00 €', highlight: true },
+    { label: 'Guaranteed', value: '50,00 €', hints: ['per month'] },
+  ];
+  const segments = [
+    { label: 'Guaranteed', share: 0.25, color: '#22c55e' },
+    { label: 'Additional', share: 0.75, color: '#7dd3fc' },
+  ];
+
+  it('renders kpi tiles side by side', () => {
+    const doc = buildDocDefinition(sectionResolved([{ kind: 'kpis', tiles }]));
+    // One table row: both tiles plus the gap cell between them, so they share the row height.
+    const row = (doc.content as Node[]).find((n) => n['table']?.body?.[0]?.length === 3);
+    expect(row?.['table'].body).toHaveLength(1);
+    expect(JSON.stringify(row)).toContain('per month');
+  });
+
+  it('scales the bar segments to the page width, portrait narrower than landscape', () => {
+    const barWidth = (orientation?: 'portrait') => {
+      const doc = buildDocDefinition(
+        sectionResolved([{ kind: 'bar', title: 'Split', segments }], { orientation }),
+      );
+      const canvas = (doc.content as Node[]).find((n) => n['canvas']?.length === 2);
+      return canvas?.['canvas'].reduce((sum: number, r: { w: number }) => sum + r.w, 0) as number;
+    };
+    expect(barWidth()).toBeCloseTo(842 - 2 * SECTION_PAGE_MARGIN);
+    expect(barWidth('portrait')).toBeCloseTo(595 - 2 * SECTION_PAGE_MARGIN);
+  });
+
+  it('uses the requested page orientation', () => {
+    expect(
+      buildDocDefinition(sectionResolved([], { orientation: 'portrait' })).pageOrientation,
+    ).toBe('portrait');
+  });
+});
+
+describe('PDF header', () => {
+  it('puts the logo right of the title in the same row, and omits it when not given', () => {
+    const withLogo = buildDocDefinition(sectionResolved([], { logo: DUMMY_PNG }));
+    const header = (withLogo.content as Node[])[0];
+    expect(header['columns']).toHaveLength(2);
+    expect(header['columns'][1]).toMatchObject({ image: DUMMY_PNG, alignment: 'right' });
+    const without = (buildDocDefinition(sectionResolved([])).content as Node[])[0];
+    expect(without['columns']).toHaveLength(1);
   });
 });

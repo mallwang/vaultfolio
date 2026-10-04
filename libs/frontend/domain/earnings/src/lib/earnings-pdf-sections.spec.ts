@@ -443,9 +443,11 @@ describe('earnings PDF section language', () => {
 
   it('has no English table or section label in the German output', () => {
     const s = buildEarningsPdfSections(overview(), TABLES, translator(de), 'de');
-    const labels = s.flatMap((x) =>
-      x.kind === 'table' ? [x.title, x.subtitle ?? '', ...x.columns.map((c) => c.label)] : [x.text],
-    );
+    const labels = s.flatMap((x) => {
+      if (x.kind === 'table') return [x.title, x.subtitle ?? '', ...x.columns.map((c) => c.label)];
+      if (x.kind === 'text') return [x.text];
+      return [];
+    });
     for (const english of [
       'Employer',
       'Career total',

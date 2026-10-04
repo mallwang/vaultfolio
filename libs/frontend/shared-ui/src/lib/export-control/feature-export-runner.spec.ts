@@ -10,6 +10,7 @@ import { I18nService } from '../i18n/i18n.service';
 import { FEATURE_EXPORT_REGISTRY } from './feature-export-registry.token';
 import { EXPORT_FEATURE, FeatureExportRunner } from './feature-export-runner';
 import { CHART_IMAGE_CAPTURE } from './chart-image-capture';
+import { PDF_LOGO } from './pdf-logo';
 
 // Calls through to the real exporter unless a test overrides the implementation.
 const captureMock = vi.fn();
@@ -25,6 +26,9 @@ function makeDefinition(overrides: Partial<FeatureExportDefinition> = {}): Featu
   };
 }
 
+const LOGO =
+  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+
 describe('FeatureExportRunner', () => {
   const exportFeatureMock = vi.fn(exportFeature);
   let runner: FeatureExportRunner;
@@ -39,6 +43,7 @@ describe('FeatureExportRunner', () => {
     await TestBed.configureTestingModule({
       providers: [
         { provide: EXPORT_FEATURE, useValue: exportFeatureMock },
+        { provide: PDF_LOGO, useValue: () => Promise.resolve(LOGO) },
         {
           provide: CHART_IMAGE_CAPTURE,
           useValue: captureMock,
@@ -54,6 +59,13 @@ describe('FeatureExportRunner', () => {
     HTMLAnchorElement.prototype.click = function (this: HTMLAnchorElement) {
       downloadedFileNames.push(this.download);
     };
+  });
+
+  it('hands the logo to the PDF only', async () => {
+    await runner.run('holdings', 'pdf');
+    await runner.run('holdings', 'csv');
+    expect(exportFeatureMock.mock.calls[0][0].logo).toBe(LOGO);
+    expect(exportFeatureMock.mock.calls[1][0].logo).toBeUndefined();
   });
 
   it.each<[ExportFormat, string]>([

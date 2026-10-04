@@ -662,11 +662,14 @@ export const de: TranslationDictionary = {
     columnCardNumber: 'Kartennummer',
     columnValidUntil: 'Gültig bis',
     columnNotes: 'Notizen',
+    columnDetails: 'Details',
   },
   retirementExport: {
     title: 'Altersvorsorge',
     infobox:
       'Über diesen Export — Altersvorsorge. Eine Zeile pro erfasstem Vorsorgevertrag: gesetzliche, betriebliche und private Vorsorge mit garantierter und erwarteter Monatsrente, Beiträgen und Terminen. Beträge sind brutto; erwartete Werte sind Prognosen, keine Garantien.',
+    pdfInfobox:
+      'Über diesen Export — Altersvorsorge. Druckfassung der Übersicht: erwartete und garantierte Monatsrente, Sparbetrag und Rentenbeginn, gegliedert nach gesetzlicher, betrieblicher und privater Vorsorge. Beträge sind brutto; erwartete Werte sind Prognosen, keine Garantien.',
     columnPillar: 'Säule',
     columnType: 'Art',
     columnProvider: 'Anbieter',

@@ -1,10 +1,11 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import type { ExportRow, FeatureExportDefinition } from '@vaultfolio/export';
+import type { ExportRow, FeatureExportDefinition, PdfSection } from '@vaultfolio/export';
 import type { RetirementPensionFigures, RetirementRecord } from '@vaultfolio/api-contract';
 import { I18nService } from '@vaultfolio/frontend-shared-ui';
 import { expectedMonthlyOf, guaranteedMonthlyOf, sum } from '@vaultfolio/retirement';
+import { buildRetirementPdfSections } from './retirement-pdf-sections';
 import { RetirementService } from './retirement.service';
 
 /** Own plus employer monthly contributions (supplement first, as in the summary). */
@@ -47,6 +48,9 @@ export function createRetirementExportDefinition(): FeatureExportDefinition {
     featureId: 'retirement',
     titleKey: 'retirementExport.title',
     infoboxKey: 'retirementExport.infobox',
+    // The PDF is a printable version of the overview (037), so it has its own text and layout.
+    pdfInfoboxKey: 'retirementExport.pdfInfobox',
+    pdfOrientation: 'portrait',
     columns: [
       { key: 'pillar', labelKey: 'retirementExport.columnPillar', format: 'text' },
       { key: 'type', labelKey: 'retirementExport.columnType', format: 'text' },
@@ -59,6 +63,17 @@ export function createRetirementExportDefinition(): FeatureExportDefinition {
       { key: 'statementDate', labelKey: 'retirementExport.columnStatementDate', format: 'date' },
       { key: 'origin', labelKey: 'retirementExport.columnOrigin', format: 'text' },
     ],
+    async getPdfSections(): Promise<PdfSection[]> {
+      try {
+        const summary = await firstValueFrom(api.summary());
+        return buildRetirementPdfSections(summary, (key) => i18n.translate(key), i18n.language());
+      } catch (error) {
+        if (error instanceof HttpErrorResponse && (error.status === 403 || error.status === 503)) {
+          return [];
+        }
+        throw error;
+      }
+    },
     async fetchData(): Promise<ExportRow[]> {
       try {
         return (await firstValueFrom(api.records())).map(toRow);

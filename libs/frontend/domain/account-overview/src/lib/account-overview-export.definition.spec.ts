@@ -74,4 +74,54 @@ describe('createAccountOverviewExportDefinition', () => {
     const definition = TestBed.runInInjectionContext(createAccountOverviewExportDefinition);
     expect(definition.getChartOptions).toBeUndefined();
   });
+
+  describe('getPdfSections', () => {
+    async function sectionsFor(entries: AccountOverviewEntry[]) {
+      const definition = TestBed.runInInjectionContext(createAccountOverviewExportDefinition);
+      return pdfSectionsOf(definition, entries);
+    }
+
+    async function pdfSectionsOf(
+      definition: ReturnType<typeof createAccountOverviewExportDefinition>,
+      entries: AccountOverviewEntry[],
+    ) {
+      const httpMock = TestBed.inject(HttpTestingController);
+      httpMock.expectOne('/api/account-overview/accounts').flush([]);
+      const promise = definition.getPdfSections?.();
+      httpMock.expectOne('/api/account-overview/accounts').flush(entries);
+      return promise;
+    }
+
+    it('is portrait and returns no sections for an empty overview', async () => {
+      const definition = TestBed.runInInjectionContext(createAccountOverviewExportDefinition);
+      expect(definition.pdfOrientation).toBe('portrait');
+      expect(await pdfSectionsOf(definition, [])).toEqual([]);
+    });
+
+    it('stacks the secondary fields into one details cell, skipping empty ones', async () => {
+      const full: AccountOverviewEntry = {
+        ...account,
+        website: 'https://n26.com',
+        cardUsage: 'Daily',
+        cardNumber: '1234',
+        validUntil: '12/30',
+        notes: 'Main',
+        requiredMinimum: '100.00',
+      };
+      const sections = await sectionsFor([full, account]);
+
+      expect(sections).toHaveLength(1);
+      const table = sections?.[0];
+      if (table?.kind !== 'table') throw new Error('expected a table section');
+      expect(table.columns.map((c) => c.key)).toContain('details');
+      const [first, second] = table.rows;
+      const lines = String(first.cells['details']).split('\n');
+      expect(lines).toHaveLength(5);
+      expect(lines[0]).toBe('https://n26.com');
+      expect(lines[1]).toContain('Daily');
+      expect(lines[4]).toContain('Main');
+      expect(first.cells['requiredMinimum']).toBe('100.00');
+      expect(second.cells['details']).toBe('');
+    });
+  });
 });

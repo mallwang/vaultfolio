@@ -10,6 +10,8 @@ export type {
   ExportTableRow,
   FeatureExportDefinition,
   PdfColumnFormat,
+  PdfBarSegment,
+  PdfKpiTile,
   PdfSection,
   PdfTableColumn,
   PdfTableRow,
