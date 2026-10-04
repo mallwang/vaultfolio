@@ -185,6 +185,30 @@ Layout** gesendet werden, damit der Parser geschrieben werden kann.
   `libs/frontend/admin/src/lib/requests/payload-views/`; Tabelle, API und Mailmechanismus
   bleiben unverändert.
 
+## Synthetische Testdaten (Lasttests und Demo-Accounts)
+
+Drei Wegwerf-Generatoren füllen einen Testaccount mit erfundenen Daten. Sie sind nur für lokale
+und Demo-Zwecke gedacht — nie auf einen Account mit echten Daten richten.
+
+| Bereich        | Skript                                                                         | Lasttest-Satz (Standard)                         | `--profile demo`                         |
+| -------------- | ------------------------------------------------------------------------------ | ------------------------------------------------ | ---------------------------------------- |
+| Einkommen      | [generate-career-testset.mjs](../tools/earnings/generate-career-testset.mjs)   | 589 Monate 1977–2026, 10 Arbeitgeber, eine Lücke | 153 Monate 2014–2026, 3 Arbeitgeber      |
+| Vermögen       | [seed-wealth-testset.mjs](../tools/wealth/seed-wealth-testset.mjs)             | 597 Monats-Stichtage, bis 27 Einträge, Randfälle | 129 Stichtage 2016–2026, realistisch     |
+| Altersvorsorge | [seed-retirement-testset.mjs](../tools/retirement/seed-retirement-testset.mjs) | 81 Datensätze über alle Vertragsarten            | gesetzliche Rente + 5 plausible Verträge |
+
+- **Vermögen und Altersvorsorge** laden über die REST-API hoch (es gibt keinen Bulk-Import):
+  `node tools/wealth/seed-wealth-testset.mjs --email <e> --password <p> [--base http://localhost:3000] [--profile demo] [--replace]`.
+  Gegen ein Deployment den API-Präfix verwenden, z. B. `--base https://<host>/api`. Ohne `--replace`
+  verweigert das Skript einen nicht leeren Account; mit `--replace` läuft zuerst `DELETE /wealth`
+  (bzw. `/retirement`). `--out datei.json` schreibt die Daten, ohne hochzuladen. Der Account braucht
+  die Bereichsfreigabe (Admins haben alle).
+- **Einkommen** hat kein passendes API-Format: die `earnings-export`-JSON mit
+  `node tools/earnings/generate-career-testset.mjs out.json [--profile demo]` erzeugen und in der
+  Oberfläche importieren (Einkommen → Import) oder die Seite mit Playwright bedienen
+  (`data-testid="earnings-import-input"`).
+- Die Ausgabe ist deterministisch, ein Zurücksetzen ist also reproduzierbar. Passwörter auf der
+  Kommandozeile landen in der Shell-History — nur die dedizierten Testaccounts verwenden.
+
 ## Überblick über die CI-Pipeline
 
 [.github/workflows/ci.yml](../.github/workflows/ci.yml) läuft bei jedem PR und bei Push auf
