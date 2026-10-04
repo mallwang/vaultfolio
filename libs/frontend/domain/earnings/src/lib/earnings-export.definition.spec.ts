@@ -130,7 +130,12 @@ describe('createEarningsExportDefinition', () => {
       flush();
 
       const result = await sections;
-      expect(result?.map((x) => (x.kind === 'table' ? x.title : x.text))).toEqual([
+      const labels = result?.flatMap((x) => {
+        if (x.kind === 'table') return [x.title];
+        if (x.kind === 'text') return [x.text];
+        return [];
+      });
+      expect(labels).toEqual([
         'Totals per employer',
         'Monthly overview gross / net',
         'Taxes and contributions',
