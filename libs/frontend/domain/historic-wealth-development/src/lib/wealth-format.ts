@@ -29,6 +29,11 @@ export function formatPct(pct: string | null, lang: string, notAvailable: string
   }).format(Number(pct) / 100);
 }
 
+/** Whole-number percent formatter (`38 %`) for chart tooltips. */
+export function percentFormat(lang: string): Intl.NumberFormat {
+  return new Intl.NumberFormat(lang, { style: 'percent', maximumFractionDigits: 0 });
+}
+
 /** Share of `part` in `total` as a percentage (`38,4 %`); `–` without a positive total. */
 export function formatShare(part: string, total: string, lang: string): string {
   const whole = Number(total);

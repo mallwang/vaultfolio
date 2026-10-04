@@ -14,8 +14,9 @@ import { catchError, of, tap } from 'rxjs';
 import { providePrimeNG } from 'primeng/config';
 import { MessageService } from 'primeng/api';
 import { CURRENT_USER_SOURCE } from '@vaultfolio/frontend-domain-access';
-import { FEATURE_EXPORT_REGISTRY } from '@vaultfolio/frontend-shared-ui';
+import { APP_VERSION, FEATURE_EXPORT_REGISTRY } from '@vaultfolio/frontend-shared-ui';
 import { environment } from '../environments/environment';
+import pkg from '../../package.json';
 import { routes } from './app.routes';
 import { AuthService } from './auth/auth.service';
 import { authInterceptor } from './auth/auth.interceptor';
@@ -62,6 +63,7 @@ export const appConfig: ApplicationConfig = {
     // Root-level singleton backing the app-wide <p-toast/> in app.html
     // (specs/030-observability-logging-error-handling, US3).
     MessageService,
+    { provide: APP_VERSION, useValue: pkg.version },
     // `domainGuard`/`isDomainEntitled` (`@vaultfolio/frontend-domain-access`,
     // `scope:shared`) may not import `CurrentUserStore` directly (it lives
     // in `scope:frontend`, contracts/module-boundaries.md) — this binding is

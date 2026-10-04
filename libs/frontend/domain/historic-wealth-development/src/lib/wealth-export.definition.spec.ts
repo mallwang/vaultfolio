@@ -63,7 +63,7 @@ describe('createWealthExportDefinition', () => {
 
     const tables = definition.getExportTables?.();
     answer([snap('a', '2024-01-31', '1000.00')]);
-    expect((await tables)?.map((t) => t.id)).toEqual(['entries', 'totals']);
+    expect((await tables)?.map((t) => t.id)).toEqual(['entries', 'totals', 'balance']);
   });
 
   it('follows the period filter in the PDF but not in the data tables', async () => {

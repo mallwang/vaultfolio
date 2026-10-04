@@ -4,7 +4,12 @@ import type { HealthStatus } from '@vaultfolio/api-contract';
 import { CardModule } from 'primeng/card';
 import { MessageModule } from 'primeng/message';
 import { TagModule } from 'primeng/tag';
-import { IconComponent, LocaleDateTimePipe, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
+import {
+  APP_VERSION,
+  IconComponent,
+  LocaleDateTimePipe,
+  TranslatePipe,
+} from '@vaultfolio/frontend-shared-ui';
 
 /**
  * Minimal page that calls GET /health and renders the result — proves the
@@ -30,6 +35,11 @@ import { IconComponent, LocaleDateTimePipe, TranslatePipe } from '@vaultfolio/fr
   providers: [TranslatePipe],
   template: `
     <p-card [header]="'healthStatus.title' | translate">
+      @if (appVersion) {
+        <p class="health-status__version" data-testid="admin-app-version">
+          {{ 'healthStatus.version' | translate }}: <strong>v{{ appVersion }}</strong>
+        </p>
+      }
       @if (health(); as result) {
         <div class="health-status__row">
           <p-tag
@@ -82,6 +92,10 @@ import { IconComponent, LocaleDateTimePipe, TranslatePipe } from '@vaultfolio/fr
       gap: 0.5rem;
     }
 
+    .health-status__version {
+      margin: 0 0 0.75rem;
+    }
+
     .health-status__timestamp {
       color: var(--p-text-muted-color);
       font-size: 0.875rem;
@@ -92,6 +106,7 @@ import { IconComponent, LocaleDateTimePipe, TranslatePipe } from '@vaultfolio/fr
 export class HealthStatusComponent {
   private readonly http = inject(HttpClient);
   private readonly translate = inject(TranslatePipe);
+  protected readonly appVersion = inject(APP_VERSION);
 
   protected readonly health = signal<HealthStatus | null>(null);
   protected readonly error = signal<string | null>(null);

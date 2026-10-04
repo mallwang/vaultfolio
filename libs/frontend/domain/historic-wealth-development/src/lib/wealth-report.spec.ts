@@ -90,6 +90,30 @@ describe('buildWealthPdfSections', () => {
     expect(balance.rows[0].cells['passivaAmount']).toBe('1100.00');
   });
 
+  it('shows p. a. in the snapshot table with footnotes for percent and p. a.', () => {
+    const table = tables(sections)[1];
+    expect(table.columns.map((c) => c.footnote)).toEqual([
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      1,
+      2,
+    ]);
+    expect(table.footnotes).toEqual([t('wealth.table.percentHint'), t('wealth.table.perYearHint')]);
+    expect(table.rows[0].cells['pctPerYear']).toEqual(expect.any(Number));
+    expect(table.rows[1].cells['pctPerYear']).toBeNull();
+  });
+
+  it('leaves missing balance amounts blank instead of a dash', () => {
+    const balance = tables(sections)[2];
+    expect(balance.columns.filter((c) => c.blankWhenMissing).map((c) => c.key)).toEqual([
+      'assetAmount',
+      'passivaAmount',
+    ]);
+  });
+
   it('is language-aware and falls back to a text section without snapshots', () => {
     const german = buildWealthPdfSections([newer], none, 'all', tr(de), 'de');
     expect(tables(german)[0].title).toBe('Letzter Stichtag nach Klasse');
@@ -112,7 +136,7 @@ describe('buildWealthExportTables', () => {
   const settings: WealthSettings = {
     classGroups: [{ side: 'ASSET', class: { custom: 'Whisky' }, group: 'TANGIBLE' }],
   };
-  const [entries, totals] = buildWealthExportTables([newer, older], settings, t);
+  const [entries, totals, balance] = buildWealthExportTables([newer, older], settings, t, 'en');
 
   it('flattens every entry with side, class, amount and balance group in date order', () => {
     expect(entries.id).toBe('entries');
@@ -141,6 +165,7 @@ describe('buildWealthExportTables', () => {
         net: '600.00',
         change: null,
         changeRatio: null,
+        changeRatioPerYear: null,
       },
       {
         date: '2025-06-30',
@@ -149,14 +174,34 @@ describe('buildWealthExportTables', () => {
         net: '1100.00',
         change: '500.00',
         changeRatio: '0.8333',
+        changeRatioPerYear: expect.stringMatching(/^\d+\.\d{4}$/),
       },
     ]);
     expect(totals.columns.find((c) => c.key === 'changeRatio')?.format).toBe('ratio');
   });
 
+  it('writes dates as date cells and change, percent and p. a. as formulas', () => {
+    expect(totals.columns.find((c) => c.key === 'date')?.format).toBe('date');
+    expect(entries.columns.find((c) => c.key === 'date')?.format).toBe('date');
+    const formulas = Object.fromEntries(totals.columns.map((c) => [c.key, c.formula]));
+    expect(formulas['change']).toContain('{prev:net}');
+    expect(formulas['changeRatio']).toContain('{prev:net}');
+    expect(formulas['changeRatioPerYear']).toContain('365');
+    expect(totals.columns.find((c) => c.key === 'changeRatioPerYear')?.label).toBe('p.a.');
+  });
+
+  it('adds the balance sheet of the latest snapshot with equal sums', () => {
+    expect(balance.id).toBe('balance');
+    expect(balance.title).toBe('Balance sheet 2025-06-30');
+    const last = balance.rows[balance.rows.length - 1];
+    expect(last.cells).toMatchObject({ assetAmount: '1500.00', passivaAmount: '1500.00' });
+    expect(buildWealthExportTables([newer], none, tr(de), 'de')[2].title).toBe('Bilanz 30.06.2025');
+  });
+
   it('is empty without snapshots', () => {
-    const [e, tt] = buildWealthExportTables([], none, t);
+    const [e, tt, b] = buildWealthExportTables([], none, t, 'en');
     expect(e.rows).toEqual([]);
     expect(tt.rows).toEqual([]);
+    expect(b.rows).toEqual([]);
   });
 });

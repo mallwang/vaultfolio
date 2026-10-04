@@ -10,6 +10,7 @@ import {
 const format: WealthChartFormat = {
   money: (v) => `€${v.toFixed(2)}`,
   moneyWhole: (v) => `€${v}`,
+  percentWhole: (r) => `${Math.round(r * 100)}%`,
   date: (iso) => iso,
 };
 const entry = (over: Partial<WealthEntry>): WealthEntry => ({
@@ -70,6 +71,16 @@ describe('wealthChartOption', () => {
     const net = build().series.find((s) => s.type === 'line');
     expect(net?.name).toBe('Net');
     expect(net?.data).toEqual([1, 11]);
+  });
+
+  it('adds the share of the total assets in brackets to every tooltip figure', () => {
+    const { tooltip } = build() as unknown as {
+      tooltip: { valueFormatter: (value: number, dataIndex: number) => string };
+    };
+    // 2025-02-01: assets 15.00, crypto 5.00 = 33 %, liabilities plotted as −4.00 = 27 %.
+    expect(tooltip.valueFormatter(5, 1)).toBe('€5.00 (33%)');
+    expect(tooltip.valueFormatter(-4, 1)).toBe('€-4.00 (27%)');
+    expect(tooltip.valueFormatter(11, 1)).toBe('€11.00 (73%)');
   });
 
   it('omits the liabilities series when there are none and lists every series in the legend', () => {

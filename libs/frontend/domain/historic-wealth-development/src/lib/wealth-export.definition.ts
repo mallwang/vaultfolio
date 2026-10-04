@@ -17,7 +17,7 @@ import {
   wealthChartOption,
   type WealthChartFormat,
 } from './charts/wealth-charts';
-import { formatDate, formatMoney } from './wealth-format';
+import { formatDate, formatMoney, percentFormat } from './wealth-format';
 import {
   buildWealthExportTables,
   buildWealthPdfSections,
@@ -71,6 +71,7 @@ export function createWealthExportDefinition(): FeatureExportDefinition {
     const format: WealthChartFormat = {
       money: (v) => formatMoney(v.toFixed(2), lang),
       moneyWhole: (v) => formatMoney(String(v), lang, { whole: true }),
+      percentWhole: (r) => percentFormat(lang).format(r),
       date: (iso) => formatDate(iso, lang),
     };
     // The PDF is always printed on white, whatever theme the app is in.
@@ -126,6 +127,7 @@ export function createWealthExportDefinition(): FeatureExportDefinition {
         source?.snapshots ?? [],
         source?.settings ?? { classGroups: [] },
         (key) => i18n.translate(key),
+        i18n.language(),
       );
     },
     // The chart spans the page width in the PDF, so it is captured in a matching wide format.

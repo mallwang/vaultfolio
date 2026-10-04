@@ -140,6 +140,10 @@ function snapshotTable(
         net: totals.net,
         delta: change?.delta ?? null,
         pct: change?.ratio === null || change === undefined ? null : Number(change.ratio),
+        pctPerYear:
+          change?.ratioPerYear === null || change === undefined
+            ? null
+            : Number(change.ratioPerYear),
       },
     };
   });
@@ -152,21 +156,25 @@ function snapshotTable(
       { key: 'liabilities', label: t('wealth.table.liabilities'), format: 'currency' },
       { key: 'net', label: t('wealth.table.net'), format: 'currency' },
       { key: 'delta', label: t('wealth.table.change'), format: 'currency' },
-      { key: 'pct', label: t('wealth.table.percent'), format: 'percent' },
+      { key: 'pct', label: t('wealth.table.percent'), format: 'percent', footnote: 1 },
+      { key: 'pctPerYear', label: t('wealth.table.perYear'), format: 'percent', footnote: 2 },
     ],
     rows,
+    footnotes: [t('wealth.table.percentHint'), t('wealth.table.perYearHint')],
     fontSize: 8,
     startOnNewPage: true,
   };
 }
 
-/** Aktiva left, Passiva right; group headers bold, one identical "Summe" row at the end. */
-function balanceTable(
+/**
+ * Aktiva left, Passiva right; group headers flagged `emphasis: 'total'`, one identical "Summe" row
+ * at the end. Shared by the PDF table and the balance sheet of the data exports.
+ */
+function balanceRows(
   snapshot: WealthSnapshot,
   settings: WealthSettings,
   t: Translate,
-  lang: string,
-): Extract<PdfSection, { kind: 'table' }> {
+): PdfTableRow[] {
   const sheet = balanceSheetOf(snapshot, settings.classGroups);
   type Line = { label: string; amount: string; header: boolean };
   const classText = (ref: ClassRef) => labelOfClass(ref, (id) => t(`wealth.classes.${id}`));
@@ -218,8 +226,18 @@ function balanceTable(
     },
     emphasis: 'total',
   });
+  return rows;
+}
+
+function balanceTable(
+  snapshot: WealthSnapshot,
+  settings: WealthSettings,
+  t: Translate,
+  lang: string,
+): Extract<PdfSection, { kind: 'table' }> {
   const money = 90;
   const text = (PDF_CONTENT_WIDTH - 2 * money - 4 * 2 * SECTION_CELL_PADDING) / 2;
+  // Rows that are shorter on one side leave that side blank rather than showing dashes.
   return {
     kind: 'table',
     title: fill(t('wealth.export.balanceTitle'), {
@@ -227,16 +245,28 @@ function balanceTable(
     }),
     columns: [
       { key: 'assetLabel', label: t('wealth.export.balanceAssets'), format: 'text', width: text },
-      { key: 'assetAmount', label: '', format: 'currency', width: money },
+      {
+        key: 'assetAmount',
+        label: '',
+        format: 'currency',
+        width: money,
+        blankWhenMissing: true,
+      },
       {
         key: 'passivaLabel',
         label: t('wealth.export.balancePassiva'),
         format: 'text',
         width: text,
       },
-      { key: 'passivaAmount', label: '', format: 'currency', width: money },
+      {
+        key: 'passivaAmount',
+        label: '',
+        format: 'currency',
+        width: money,
+        blankWhenMissing: true,
+      },
     ],
-    rows,
+    rows: balanceRows(snapshot, settings, t),
     fontSize: 8,
     startOnNewPage: true,
   };
@@ -275,11 +305,21 @@ export function emptyWealthPdfSections(t: Translate): PdfSection[] {
   return [{ kind: 'text', text: t('wealth.export.unavailable') }];
 }
 
-/** Flat entry table and totals table for JSON, CSV and Excel. */
+/** `2026-09-30` → `30.09.2026` in German, the ISO date otherwise; safe in a sheet name. */
+function shortDate(iso: string, lang: string): string {
+  return lang.startsWith('de') ? iso.split('-').reverse().join('.') : iso;
+}
+
+/**
+ * Entry table, totals table and the current balance sheet (latest snapshot) for JSON, CSV and
+ * Excel. In Excel the totals' change, percent and p. a. columns are formulas over the net worths
+ * and dates, and dates are real date cells.
+ */
 export function buildWealthExportTables(
   snapshots: readonly WealthSnapshot[],
   settings: WealthSettings,
   t: Translate,
+  lang: string,
 ): ExportTable[] {
   const sorted = sortedByDate(snapshots);
   const changes = new Map(changesOf(sorted).map((c) => [c.id, c]));
@@ -287,7 +327,7 @@ export function buildWealthExportTables(
     id: 'entries',
     title: t('wealth.export.entriesTable'),
     columns: [
-      { key: 'date', label: t('wealth.table.date'), format: 'text' },
+      { key: 'date', label: t('wealth.table.date'), format: 'date' },
       { key: 'side', label: t('wealth.export.sideColumn'), format: 'text' },
       { key: 'class', label: t('wealth.export.classColumn'), format: 'text' },
       { key: 'name', label: t('wealth.export.entryName'), format: 'text' },
@@ -313,12 +353,29 @@ export function buildWealthExportTables(
     id: 'totals',
     title: t('wealth.export.totalsTable'),
     columns: [
-      { key: 'date', label: t('wealth.table.date'), format: 'text' },
+      { key: 'date', label: t('wealth.table.date'), format: 'date' },
       { key: 'assets', label: t('wealth.table.assets'), format: 'money' },
       { key: 'liabilities', label: t('wealth.table.liabilities'), format: 'money' },
       { key: 'net', label: t('wealth.table.net'), format: 'money' },
-      { key: 'change', label: t('wealth.table.change'), format: 'money' },
-      { key: 'changeRatio', label: t('wealth.table.percent'), format: 'ratio' },
+      {
+        key: 'change',
+        label: t('wealth.table.change'),
+        format: 'money',
+        formula: '{net}-{prev:net}',
+      },
+      {
+        key: 'changeRatio',
+        label: t('wealth.table.percent'),
+        format: 'ratio',
+        formula: 'IF({prev:net}>0,({net}-{prev:net})/{prev:net},"")',
+      },
+      {
+        key: 'changeRatioPerYear',
+        label: t('wealth.table.perYear'),
+        format: 'ratio',
+        formula:
+          'IF(AND({prev:net}>0,{net}>0,{date}>{prev:date}),({net}/{prev:net})^(365/({date}-{prev:date}))-1,"")',
+      },
     ],
     rows: sorted.map((snapshot) => {
       const sums = totalsOf(snapshot);
@@ -331,9 +388,24 @@ export function buildWealthExportTables(
           net: sums.net,
           change: change?.delta ?? null,
           changeRatio: change?.ratio ?? null,
+          changeRatioPerYear: change?.ratioPerYear ?? null,
         },
       };
     }),
   };
-  return [entries, totals];
+  const latest = sorted[sorted.length - 1];
+  const balance: ExportTable = {
+    id: 'balance',
+    title: latest
+      ? fill(t('wealth.export.balanceSheetAt'), { date: shortDate(latest.snapshotDate, lang) })
+      : t('wealth.export.balanceSheet'),
+    columns: [
+      { key: 'assetLabel', label: t('wealth.export.balanceAssets'), format: 'text' },
+      { key: 'assetAmount', label: t('wealth.export.amountColumn'), format: 'money' },
+      { key: 'passivaLabel', label: t('wealth.export.balancePassiva'), format: 'text' },
+      { key: 'passivaAmount', label: t('wealth.export.amountColumn'), format: 'money' },
+    ],
+    rows: latest ? balanceRows(latest, settings, t) : [],
+  };
+  return [entries, totals, balance];
 }

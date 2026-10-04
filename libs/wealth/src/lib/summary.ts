@@ -21,6 +21,8 @@ export interface Change {
    * percent with two decimals); `null` unless both net worths are > 0 and the dates differ.
    */
   pctPerYear: string | null;
+  /** `pctPerYear` as a fraction with four decimals (`"0.1250"` = 12.5 % p. a.), for exports. */
+  ratioPerYear: string | null;
 }
 
 export interface Series {
@@ -112,23 +114,21 @@ function daysBetween(from: string, to: string): number {
 }
 
 function changeBetween(id: string, previous: Totals | null, current: Totals, days: number): Change {
-  if (!previous) return { id, delta: null, pct: null, ratio: null, pctPerYear: null };
+  if (!previous)
+    return { id, delta: null, pct: null, ratio: null, pctPerYear: null, ratioPerYear: null };
   const prevNet = new Decimal(previous.net);
   const delta = new Decimal(current.net).minus(prevNet);
+  const perYear =
+    prevNet.gt(0) && new Decimal(current.net).gt(0) && days > 0
+      ? new Decimal(current.net).div(prevNet).pow(new Decimal(365).div(days)).minus(1)
+      : null;
   return {
     id,
     delta: money(delta),
     pct: prevNet.gt(0) ? delta.div(prevNet).times(100).toFixed(2) : null,
     ratio: prevNet.gt(0) ? delta.div(prevNet).toFixed(4) : null,
-    pctPerYear:
-      prevNet.gt(0) && new Decimal(current.net).gt(0) && days > 0
-        ? new Decimal(current.net)
-            .div(prevNet)
-            .pow(new Decimal(365).div(days))
-            .minus(1)
-            .times(100)
-            .toFixed(2)
-        : null,
+    pctPerYear: perYear ? perYear.times(100).toFixed(2) : null,
+    ratioPerYear: perYear ? perYear.toFixed(4) : null,
   };
 }
 

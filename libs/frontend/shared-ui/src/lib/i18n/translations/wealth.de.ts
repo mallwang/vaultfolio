@@ -53,7 +53,11 @@ export const wealthDe: TranslationDictionary = {
     net: 'Nettovermögen',
     change: 'Veränderung',
     percent: '%',
+    percentHint:
+      'Veränderung des Nettovermögens seit dem vorherigen Stichtag in Prozent von dessen Wert, unabhängig vom zeitlichen Abstand der beiden Stichtage.',
     perYear: 'p. a.',
+    perYearHint:
+      'Auf ein Jahr hochgerechnete Entwicklung des Nettovermögens seit dem vorherigen Stichtag, verzinst: (Ende / Start)^(365 / Tage) − 1. Sie zeigt, wie sich dein gesamtes Nettovermögen entwickelt hat – inklusive Einzahlungen, Entnahmen und Schuldenänderungen – und ist nicht die Rendite deiner Geldanlagen. Bei kurzen Abständen kann der Wert extrem ausfallen.',
     actions: 'Aktionen',
     edit: 'Bearbeiten',
     copy: 'Als Vorlage kopieren',
@@ -178,12 +182,12 @@ export const wealthDe: TranslationDictionary = {
   export: {
     data: {
       pdf: 'Kennzahlen, Entwicklungsdiagramm, letzter Stichtag nach Klasse, alle Stichtage und die Bilanz als Bericht',
-      xlsx: 'Alle Positionen und die Summen je Stichtag als zwei Blätter',
-      csv: '2 CSV-Dateien (Positionen und Summen) in einem ZIP-Archiv',
-      json: 'Alle Positionen und die Summen je Stichtag in strukturierter Form',
+      xlsx: 'Alle Positionen, die Summen je Stichtag (mit Formeln) und die aktuelle Bilanz als drei Blätter',
+      csv: '3 CSV-Dateien (Positionen, Summen und aktuelle Bilanz) in einem ZIP-Archiv',
+      json: 'Alle Positionen, die Summen je Stichtag und die aktuelle Bilanz in strukturierter Form',
     },
     infobox:
-      'Zu diesem Export — Vermögen. Jede Position jedes Stichtags (Datum, Seite, Klasse, Name, Betrag, Bilanzgruppe) und die Summen je Stichtag mit der Veränderung zum vorherigen. Beträge in EUR; Verbindlichkeiten stehen als positive Werte auf ihrer eigenen Seite.',
+      'Zu diesem Export — Vermögen. Jede Position jedes Stichtags (Datum, Seite, Klasse, Name, Betrag, Bilanzgruppe) und die Summen je Stichtag mit der Veränderung zum vorherigen (absolut, in Prozent und p. a.) sowie die Bilanz des letzten Stichtags. Beträge in EUR; Verbindlichkeiten stehen als positive Werte auf ihrer eigenen Seite.',
     pdfInfobox:
       'Zu diesem Export — Vermögen. Kennzahlen, die Entwicklung deines Nettovermögens im gewählten Zeitraum, der letzte Stichtag nach Klasse, alle Stichtage und die Bilanz des letzten Stichtags, wie in der Vermögensübersicht. Beträge in EUR; Verbindlichkeiten werden getrennt von den Vermögenswerten aufgeführt.',
     title: 'Vermögensentwicklung',
@@ -200,6 +204,8 @@ export const wealthDe: TranslationDictionary = {
     balanceAssets: 'Aktiva',
     balancePassiva: 'Passiva',
     balanceTotal: 'Summe',
+    balanceSheet: 'Bilanz',
+    balanceSheetAt: 'Bilanz {{date}}',
     side: { ASSET: 'Vermögenswert', LIABILITY: 'Verbindlichkeit' },
     unavailable: 'Es gibt noch keine Stichtage zum Exportieren.',
     entriesTable: 'Positionen',

@@ -407,6 +407,7 @@ export const en: TranslationDictionary = {
   },
   healthStatus: {
     title: 'System health',
+    version: 'Version',
     backend: 'Backend',
     database: 'Database',
     checkedAt: 'Checked at',
