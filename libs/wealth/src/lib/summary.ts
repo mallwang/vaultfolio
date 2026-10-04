@@ -14,6 +14,8 @@ export interface Change {
   delta: string | null;
   /** Percent of the previous net worth with two decimals (`"12.50"` = 12.5 %); `null` unless that net worth is > 0. */
   pct: string | null;
+  /** The same change as a fraction with four decimals (`"0.1250"` = 12.5 %), for exports; `null` like `pct`. */
+  ratio: string | null;
 }
 
 export interface Series {
@@ -99,13 +101,14 @@ export function seriesOf(snapshots: readonly WealthSnapshot[]): Series {
 }
 
 function changeBetween(id: string, previous: Totals | null, current: Totals): Change {
-  if (!previous) return { id, delta: null, pct: null };
+  if (!previous) return { id, delta: null, pct: null, ratio: null };
   const prevNet = new Decimal(previous.net);
   const delta = new Decimal(current.net).minus(prevNet);
   return {
     id,
     delta: money(delta),
     pct: prevNet.gt(0) ? delta.div(prevNet).times(100).toFixed(2) : null,
+    ratio: prevNet.gt(0) ? delta.div(prevNet).toFixed(4) : null,
   };
 }
 

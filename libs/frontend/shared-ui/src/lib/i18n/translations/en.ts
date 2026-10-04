@@ -427,10 +427,6 @@ export const en: TranslationDictionary = {
     title: 'Budget Planner',
     body: 'Budget Planner is not yet available. This area will be built out in a future update.',
   },
-  historicWealthDevelopmentPlaceholder: {
-    title: 'Wealth Development',
-    body: 'Wealth Development is not yet available. This area will be built out in a future update.',
-  },
   accountOverviewPlaceholder: {
     title: 'Account Overview',
     body: 'Account Overview is not yet available. This area will be built out in a future update.',
@@ -691,11 +687,6 @@ export const en: TranslationDictionary = {
     title: 'Budget Planner',
     infobox:
       'About this export — Budget Planner. Household budgeting is not built yet in Vaultfolio, so this file contains no rows today — it will automatically start including your data once that feature ships.',
-  },
-  historicWealthDevelopmentExport: {
-    title: 'Wealth Development',
-    infobox:
-      'About this export — Wealth Development. Historic wealth development tracking is not built yet in Vaultfolio, so this file contains no rows today — it will automatically start including your data once that feature ships.',
   },
   earnings: earningsEn,
   retirement: retirementEn,

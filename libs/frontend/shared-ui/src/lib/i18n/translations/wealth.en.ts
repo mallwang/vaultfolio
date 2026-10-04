@@ -171,6 +171,16 @@ export const wealthEn: TranslationDictionary = {
     unavailable: 'Wealth data is temporarily unavailable.',
   },
   export: {
+    data: {
+      pdf: 'Key figures, development chart, latest snapshot by class, all snapshots and the balance sheet as a report',
+      xlsx: 'Every entry and the totals per snapshot as two sheets',
+      csv: '2 CSV files (entries and totals) in a ZIP archive',
+      json: 'Every entry and the totals per snapshot in structured form',
+    },
+    infobox:
+      'About this export — Wealth. Every entry of every snapshot (date, side, class, name, amount, balance group) and the totals per snapshot with the change since the previous one. Amounts are in EUR; liabilities are listed as positive values on their own side.',
+    pdfInfobox:
+      'About this export — Wealth. Key figures, the development of your net worth in the chosen period, the latest snapshot by class, all snapshots and the balance sheet of the latest snapshot, as shown in the Wealth overview. Amounts are in EUR; liabilities are listed separately from assets.',
     title: 'Wealth development',
     period: 'Period: {{period}}',
     kpis: 'Key figures',

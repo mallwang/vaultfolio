@@ -428,10 +428,6 @@ export const de: TranslationDictionary = {
     title: 'Haushaltsplaner',
     body: 'Der Haushaltsplaner ist noch nicht verfügbar. Dieser Bereich wird in einem zukünftigen Update ausgebaut.',
   },
-  historicWealthDevelopmentPlaceholder: {
-    title: 'Vermögensentwicklung',
-    body: 'Die Vermögensentwicklung ist noch nicht verfügbar. Dieser Bereich wird in einem zukünftigen Update ausgebaut.',
-  },
   accountOverviewPlaceholder: {
     title: 'Kontoübersicht',
     body: 'Die Kontoübersicht ist noch nicht verfügbar. Dieser Bereich wird in einem zukünftigen Update ausgebaut.',
@@ -695,11 +691,6 @@ export const de: TranslationDictionary = {
     title: 'Haushaltsplaner',
     infobox:
       'Über diesen Export — Haushaltsplaner. Die Haushaltsplanung ist in Vaultfolio noch nicht umgesetzt, daher enthält diese Datei heute keine Zeilen — sie wird automatisch Ihre Daten enthalten, sobald diese Funktion verfügbar ist.',
-  },
-  historicWealthDevelopmentExport: {
-    title: 'Vermögensentwicklung',
-    infobox:
-      'Über diesen Export — Vermögensentwicklung. Die historische Vermögensentwicklung ist in Vaultfolio noch nicht umgesetzt, daher enthält diese Datei heute keine Zeilen — sie wird automatisch Ihre Daten enthalten, sobald diese Funktion verfügbar ist.',
   },
   earnings: earningsDe,
   retirement: retirementDe,

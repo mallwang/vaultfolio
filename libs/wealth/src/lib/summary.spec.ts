@@ -133,9 +133,9 @@ describe('changesOf', () => {
       snap('c', '2025-03-01', ['99.00']),
     ]);
     expect(changes).toEqual([
-      { id: 'a', delta: null, pct: null },
-      { id: 'b', delta: '10.00', pct: '10.00' },
-      { id: 'c', delta: '-11.00', pct: '-10.00' },
+      { id: 'a', delta: null, pct: null, ratio: null },
+      { id: 'b', delta: '10.00', pct: '10.00', ratio: '0.1000' },
+      { id: 'c', delta: '-11.00', pct: '-10.00', ratio: '-0.1000' },
     ]);
   });
 
@@ -153,8 +153,8 @@ describe('changesOf', () => {
       snap('b', '2025-02-01', ['10.00']),
       snap('c', '2025-03-01', ['20.00']),
     ]);
-    expect(changes[1]).toEqual({ id: 'b', delta: '60.00', pct: null });
-    expect(changes[2]).toEqual({ id: 'c', delta: '10.00', pct: '100.00' });
+    expect(changes[1]).toEqual({ id: 'b', delta: '60.00', pct: null, ratio: null });
+    expect(changes[2]).toEqual({ id: 'c', delta: '10.00', pct: '100.00', ratio: '1.0000' });
     const zero = changesOf([
       buildSnapshot({ id: 'z', entries: [buildEntry({ amount: '0.00' })] }),
       snap('n', '2026-01-01', ['5.00']),
@@ -175,7 +175,7 @@ describe('latestOf', () => {
     ]);
     expect(latest?.snapshot.id).toBe('b');
     expect(latest?.totals.net).toBe('120.00');
-    expect(latest?.change).toEqual({ id: 'b', delta: '20.00', pct: '20.00' });
+    expect(latest?.change).toEqual({ id: 'b', delta: '20.00', pct: '20.00', ratio: '0.2000' });
   });
 
   it('is null without snapshots', () => {

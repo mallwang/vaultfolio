@@ -170,6 +170,16 @@ export const wealthDe: TranslationDictionary = {
     unavailable: 'Vermögensdaten sind vorübergehend nicht verfügbar.',
   },
   export: {
+    data: {
+      pdf: 'Kennzahlen, Entwicklungsdiagramm, letzter Stichtag nach Klasse, alle Stichtage und die Bilanz als Bericht',
+      xlsx: 'Alle Positionen und die Summen je Stichtag als zwei Blätter',
+      csv: '2 CSV-Dateien (Positionen und Summen) in einem ZIP-Archiv',
+      json: 'Alle Positionen und die Summen je Stichtag in strukturierter Form',
+    },
+    infobox:
+      'Zu diesem Export — Vermögen. Jede Position jedes Stichtags (Datum, Seite, Klasse, Name, Betrag, Bilanzgruppe) und die Summen je Stichtag mit der Veränderung zum vorherigen. Beträge in EUR; Verbindlichkeiten stehen als positive Werte auf ihrer eigenen Seite.',
+    pdfInfobox:
+      'Zu diesem Export — Vermögen. Kennzahlen, die Entwicklung deines Nettovermögens im gewählten Zeitraum, der letzte Stichtag nach Klasse, alle Stichtage und die Bilanz des letzten Stichtags, wie in der Vermögensübersicht. Beträge in EUR; Verbindlichkeiten werden getrennt von den Vermögenswerten aufgeführt.',
     title: 'Vermögensentwicklung',
     period: 'Zeitraum: {{period}}',
     kpis: 'Kennzahlen',
