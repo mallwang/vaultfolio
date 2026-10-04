@@ -199,6 +199,25 @@ every target it runs (`nx serve`, `nx build`, etc.), so `npm run dev` picks up t
 no extra wiring. Add new variables to `.env.example` (documented, empty/placeholder values) as the
 app grows.
 
+#### Switching users in one browser
+
+No personal data of one account may ever be visible to another, also not on a shared device or
+across browser tabs. Two rules keep that true as the app grows:
+
+- **The signed-in identity changes only through `SessionBoundary`**
+  ([session-boundary.ts](apps/frontend/src/app/auth/session-boundary.ts)). Sign-out, account
+  deletion and an expired session (`leave()`) always load the page afresh; sign-in, invite
+  acceptance and password reset (`enter()`) do so when a different user was already loaded on the
+  page. A full load drops every store, service and component at once, so a new cache cannot be
+  forgotten. Do not call `CurrentUserStore.setAuthenticated`/`setUnauthenticated` followed by a
+  router navigation from a new flow — go through the boundary. It also re-checks the session
+  whenever a tab becomes active again and reloads if another tab changed the account.
+- **Every backend response is sent with `Cache-Control: no-store`**
+  ([no-store.ts](apps/backend/src/app/no-store.ts)), so the browser keeps no personal data on disk.
+
+An app-wide store that caches user data should additionally reset itself when the user id changes
+(see `WealthStore`) as a second line of defence.
+
 ### Earnings encryption key
 
 The Earnings domain encrypts every stored amount with `EARNINGS_ENCRYPTION_KEY` (Base64 of exactly

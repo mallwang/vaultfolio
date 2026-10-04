@@ -1,13 +1,13 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { CardModule } from 'primeng/card';
 import type { AuthErrorResponse } from '@vaultfolio/api-contract';
 import { AuthService } from '../auth.service';
-import { CurrentUserStore } from '../current-user.store';
+import { SessionBoundary } from '../session-boundary';
 import { TranslatePipe } from '@vaultfolio/frontend-shared-ui';
 
 /**
@@ -40,8 +40,7 @@ import { TranslatePipe } from '@vaultfolio/frontend-shared-ui';
 })
 export class SignInComponent {
   private readonly authService = inject(AuthService);
-  private readonly currentUser = inject(CurrentUserStore);
-  private readonly router = inject(Router);
+  private readonly sessionBoundary = inject(SessionBoundary);
   private readonly route = inject(ActivatedRoute);
   private readonly translate = inject(TranslatePipe);
 
@@ -58,10 +57,7 @@ export class SignInComponent {
     this.errorMessage.set(null);
 
     this.authService.signIn({ email: this.email, password: this.password }).subscribe({
-      next: (user) => {
-        this.currentUser.setAuthenticated(user);
-        void this.router.navigateByUrl(this.redirectTarget());
-      },
+      next: (user) => this.sessionBoundary.enter(user, this.redirectTarget()),
       error: (error: unknown) => {
         this.submitting.set(false);
         const body = (error as { error?: AuthErrorResponse })?.error;

@@ -17,6 +17,7 @@ import { IconComponent, I18nService, TranslatePipe } from '@vaultfolio/frontend-
    from `app.routes.ts`'s own dynamic `import()`s, in a different module than this one, so a
    bundler still code-splits them into their own chunk regardless of this static import. */
 import { InvitationsService } from '@vaultfolio/frontend-admin';
+import { SessionBoundary } from '../../auth/session-boundary';
 
 const ROLE_KEY: Record<UserRole, 'roleAdmin' | 'roleMember'> = {
   [UserRole.ADMIN]: 'roleAdmin',
@@ -57,6 +58,7 @@ export class AcceptComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly invitationsService = inject(InvitationsService);
   private readonly i18n = inject(I18nService);
+  private readonly sessionBoundary = inject(SessionBoundary);
 
   private token = '';
 
@@ -120,9 +122,9 @@ export class AcceptComponent implements OnInit {
       displayName: this.displayName().trim(),
     };
     this.invitationsService.accept(this.token, body).subscribe({
-      next: () => {
-        void this.router.navigateByUrl('/app/dashboard');
-      },
+      // The invitee may be accepting in a browser that still shows another account (e.g. the
+      // inviting admin's): entering through the boundary drops that account's state first.
+      next: (user) => this.sessionBoundary.enter(user, '/app/dashboard'),
       error: (error: unknown) => {
         this.submitting.set(false);
         const httpError = error as { status?: number; error?: InvitationsErrorResponse };

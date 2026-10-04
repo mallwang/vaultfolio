@@ -1,12 +1,13 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter, Router } from '@angular/router';
+import { provideRouter } from '@angular/router';
 import type { ProfileSummary } from '@vaultfolio/api-contract';
 import * as ExportLib from '@vaultfolio/export';
 import { CHART_IMAGE_CAPTURE } from '@vaultfolio/frontend-shared-ui';
 import { ProfileComponent } from './profile.component';
 import { CurrentUserStore } from '../../auth/current-user.store';
+import { PAGE_LOADER } from '../../auth/session-boundary';
 import { FakeCurrentUserStore } from '../../auth/testing/current-user-store.testing';
 
 const PROFILE: ProfileSummary = {
@@ -22,6 +23,7 @@ describe('ProfileComponent', () => {
   let fixture: ComponentFixture<ProfileComponent>;
   let httpMock: HttpTestingController;
   let fakeStore: FakeCurrentUserStore;
+  const pageLoader = { assign: vi.fn(), reload: vi.fn() };
 
   beforeEach(async () => {
     fakeStore = new FakeCurrentUserStore();
@@ -40,6 +42,7 @@ describe('ProfileComponent', () => {
         provideHttpClientTesting(),
         provideRouter([]),
         { provide: CurrentUserStore, useValue: fakeStore },
+        { provide: PAGE_LOADER, useValue: pageLoader },
       ],
     }).compileComponents();
 
@@ -268,12 +271,11 @@ describe('ProfileComponent', () => {
       expect(fixture.componentInstance['deleting']()).toBe(true);
     });
 
-    it('DELETEs account and navigates to sign-in on success', () => {
-      const spy = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
+    it('DELETEs account and loads sign-in afresh on success', () => {
       fixture.componentInstance['deleteConfirmText'].set('DELETE');
       fixture.componentInstance['confirmDeleteAccount']();
       httpMock.expectOne('/api/profile/account').flush(null);
-      expect(spy).toHaveBeenCalledWith('/sign-in');
+      expect(pageLoader.assign).toHaveBeenCalledWith('/sign-in');
     });
 
     it('sets step to blocked on 409', () => {

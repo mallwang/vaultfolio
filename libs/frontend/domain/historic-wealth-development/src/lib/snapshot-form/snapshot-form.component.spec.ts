@@ -1,3 +1,4 @@
+import { CURRENT_USER_SOURCE } from '@vaultfolio/frontend-domain-access';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
@@ -28,7 +29,12 @@ describe('SnapshotFormComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [provideRouter(routes), provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        provideRouter(routes),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: CURRENT_USER_SOURCE, useValue: { current: () => ({ id: 'user-1' }) } },
+      ],
     });
     http = TestBed.inject(HttpTestingController);
   });

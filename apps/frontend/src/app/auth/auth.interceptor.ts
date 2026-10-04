@@ -2,6 +2,8 @@ import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import type { HttpInterceptorFn } from '@angular/common/http';
 import { catchError, throwError } from 'rxjs';
+import { CurrentUserStore } from './current-user.store';
+import { PAGE_LOADER } from './session-boundary';
 
 /**
  * Redirects to `/sign-in` on any `401` response (research.md #8) — covers
@@ -20,9 +22,14 @@ import { catchError, throwError } from 'rxjs';
  * The page the user was on when their session expired is carried along as a
  * `redirect` query param, same as `authGuard`, so `SignInComponent` can
  * return them there after they sign back in.
+ *
+ * If a user was signed in on this page, the redirect is a full page load (see `SessionBoundary`),
+ * so their data does not stay in memory behind the sign-in form for whoever signs in next.
  */
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
+  const currentUser = inject(CurrentUserStore);
+  const pageLoader = inject(PAGE_LOADER);
 
   return next(req).pipe(
     catchError((error: unknown) => {
@@ -39,7 +46,12 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
           currentUrl && currentUrl !== '/' && !currentUrl.startsWith('/sign-in')
             ? `?redirect=${encodeURIComponent(currentUrl)}`
             : '';
-        void router.navigateByUrl(`/sign-in${redirect}`);
+        if (currentUser.current()) {
+          currentUser.setUnauthenticated();
+          pageLoader.assign(`/sign-in${redirect}`);
+        } else {
+          void router.navigateByUrl(`/sign-in${redirect}`);
+        }
       }
       return throwError(() => error);
     }),

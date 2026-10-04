@@ -6,7 +6,7 @@ import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { IconComponent, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
-import { CurrentUserStore } from '../../auth/current-user.store';
+import { SessionBoundary } from '../../auth/session-boundary';
 import { ProfileService } from '../../settings/profile/profile.service';
 
 /** Mirrors `libs/domain/auth/password-policy.ts` — a client-side hint only (scope:frontend can't depend on scope:domain libs). */
@@ -39,7 +39,7 @@ export class ResetPasswordComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly profileService = inject(ProfileService);
-  private readonly currentUser = inject(CurrentUserStore);
+  private readonly sessionBoundary = inject(SessionBoundary);
 
   private token = '';
 
@@ -89,10 +89,7 @@ export class ResetPasswordComponent implements OnInit {
     this.profileService
       .confirmPasswordReset(this.token, { newPassword: this.newPassword() })
       .subscribe({
-        next: (user) => {
-          this.currentUser.setAuthenticated(user);
-          void this.router.navigateByUrl('/app/dashboard');
-        },
+        next: (user) => this.sessionBoundary.enter(user, '/app/dashboard'),
         error: (error: unknown) => {
           this.submitting.set(false);
           const httpError = error as { status?: number };

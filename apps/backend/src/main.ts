@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import cookieParser from 'cookie-parser';
 import { AppModule } from './app/app.module';
 import { configureBodyParsers } from './app/body-parsers';
+import { configureNoStore } from './app/no-store';
 import { JsonLoggerService } from './logger/json-logger.service';
 import { setupOpenApi } from './openapi/openapi.setup';
 
@@ -25,6 +26,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, { logger, bodyParser: false });
   configureBodyParsers(app);
   app.use(cookieParser());
+  configureNoStore(app);
   setupOpenApi(app);
   const port = process.env.PORT || 3000;
   await app.listen(port);
