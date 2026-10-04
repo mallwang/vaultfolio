@@ -6,6 +6,8 @@
 
 **Status**: Draft
 
+**Design**: [design.md](design.md)
+
 **Input**: User description: "Vermögensentwicklung (Net-Worth-Tracking): Nutzer erfassen zu einem bestimmten Datum (Stichtag) einen Snapshot ihres Vermögens, aufgeteilt in frei wählbare Assetklassen/Positionen (z. B. Bargeld, Edelmetalle, Giralgeld, Aktien, Krypto – aber auch Whiskey, Autos, Immobilien oder beliebige andere Gegenstände mit einem Wert). Felder sollen nicht zu strikt sein. Frühere Zeitpunkte müssen nachtragbar sein (der Nutzer pflegt aktuell Excel mit historischen Stichtagen), sodass eine Gesamt-Vermögensentwicklung über die Zeit sichtbar wird. Optional: Werte aus dem Bestände-Feature als Vorschlag übernehmen – dort fehlt aber noch der aktuelle Marktwert. Darstellung: Übersicht analog zur Einkommensentwicklung, inklusive PDF-Export und Dashboard-Kachel (mit Drag-and-Drop-Reihenfolge und Sichtbarkeit)."
 
 ## User Scenarios & Testing _(mandatory)_

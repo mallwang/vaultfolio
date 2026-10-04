@@ -1,0 +1,3289 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Vermögensentwicklung Mockup</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    />
+    <style>
+      /* Layout: review chrome on top; stage hosts the real app shell with the Vermögen page (Entwicklung / Bilanz tabs), the Stichtag form, empty/single states, the dashboard tile and a PDF preview. All names and amounts are invented. */
+      :root {
+        color-scheme: light;
+        --p-bg: #ffffff;
+        --p-surface-2: #f8fafb;
+        --p-text: #1b2a2e;
+        --p-muted: #5d7077;
+        --p-line: #dbe3e6;
+        --p-hover: #f1f5f6;
+        --p-primary: #0d9488;
+        --p-primary-600: #0f766e;
+        --p-primary-soft: #e2f5f2;
+        --p-on-primary: #ffffff;
+        --p-info: #0369a1;
+        --p-info-bg: #e0f2fe;
+        --p-ok: #15803d;
+        --p-ok-bg: #dcfce7;
+        --p-warn: #b45309;
+        --p-warn-bg: #fef3c7;
+        --p-danger: #b91c1c;
+        --p-danger-bg: #fdecec;
+        --p-muted-bg: #eef2f4;
+        --review-bg: #f3f2ee;
+        --review-ink: #2c2a25;
+        --review-muted: #6e6a5e;
+        --review-line: #ddd9d0;
+        --review-accent: #b45f2c;
+        --review-panel: #ffffff;
+        --stage: #d9d4c8;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme='light']) {
+          color-scheme: dark;
+          --p-bg: #11191c;
+          --p-surface-2: #172226;
+          --p-text: #e6eef0;
+          --p-muted: #9ab0b7;
+          --p-line: #2b3b41;
+          --p-hover: #1c2a2f;
+          --p-primary: #2dd4bf;
+          --p-primary-600: #5eead4;
+          --p-primary-soft: #153a38;
+          --p-on-primary: #06201d;
+          --p-info: #7dd3fc;
+          --p-info-bg: rgba(14, 165, 233, 0.16);
+          --p-ok: #4ade80;
+          --p-ok-bg: rgba(34, 197, 94, 0.16);
+          --p-warn: #fbbf24;
+          --p-warn-bg: rgba(245, 158, 11, 0.16);
+          --p-danger: #f87171;
+          --p-danger-bg: rgba(239, 68, 68, 0.16);
+          --p-muted-bg: #1e2c31;
+          --review-bg: #1a1916;
+          --review-ink: #ece8dc;
+          --review-muted: #a39e8e;
+          --review-line: #36332b;
+          --review-accent: #e08a52;
+          --review-panel: #23211c;
+          --stage: #2b2924;
+        }
+      }
+      :root[data-theme='dark'] {
+        color-scheme: dark;
+        --p-bg: #11191c;
+        --p-surface-2: #172226;
+        --p-text: #e6eef0;
+        --p-muted: #9ab0b7;
+        --p-line: #2b3b41;
+        --p-hover: #1c2a2f;
+        --p-primary: #2dd4bf;
+        --p-primary-600: #5eead4;
+        --p-primary-soft: #153a38;
+        --p-on-primary: #06201d;
+        --p-info: #7dd3fc;
+        --p-info-bg: rgba(14, 165, 233, 0.16);
+        --p-ok: #4ade80;
+        --p-ok-bg: rgba(34, 197, 94, 0.16);
+        --p-warn: #fbbf24;
+        --p-warn-bg: rgba(245, 158, 11, 0.16);
+        --p-danger: #f87171;
+        --p-danger-bg: rgba(239, 68, 68, 0.16);
+        --p-muted-bg: #1e2c31;
+        --review-bg: #1a1916;
+        --review-ink: #ece8dc;
+        --review-muted: #a39e8e;
+        --review-line: #36332b;
+        --review-accent: #e08a52;
+        --review-panel: #23211c;
+        --stage: #2b2924;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      [hidden] {
+        display: none !important;
+      }
+      body {
+        margin: 0;
+        background: var(--review-bg);
+        color: var(--review-ink);
+        font-family:
+          Inter,
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      h1,
+      h2,
+      h3,
+      p {
+        text-wrap: balance;
+      }
+      button {
+        font: inherit;
+      }
+
+      /* ===== review chrome ===== */
+      .review-header {
+        padding: 1.5rem 1rem 1rem;
+        border-bottom: 1px solid var(--review-line);
+      }
+      .review-eyebrow {
+        font-size: 0.72rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--review-accent);
+        font-weight: 700;
+        margin: 0 0 0.25rem;
+      }
+      .review-header h1 {
+        margin: 0 0 0.35rem;
+        font-size: 1.35rem;
+        font-weight: 800;
+      }
+      .review-header p {
+        margin: 0;
+        color: var(--review-muted);
+        font-size: 0.9rem;
+        max-width: 72ch;
+        line-height: 1.5;
+      }
+      .review-controls {
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+        padding: 0.75rem 1rem;
+        background: var(--review-panel);
+        border-bottom: 1px solid var(--review-line);
+        position: sticky;
+        top: env(safe-area-inset-top, 0px);
+        z-index: 20;
+      }
+      .control-group {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+      .control-group .label {
+        font-size: 0.72rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--review-muted);
+        font-weight: 700;
+        min-width: 5.2rem;
+      }
+      .segmented {
+        display: inline-flex;
+        border: 1px solid var(--review-line);
+        border-radius: 8px;
+        overflow: hidden;
+        flex-wrap: wrap;
+      }
+      .segmented button {
+        appearance: none;
+        border: none;
+        background: var(--review-panel);
+        color: var(--review-ink);
+        font-size: 0.8rem;
+        font-weight: 600;
+        padding: 0.38rem 0.7rem;
+        cursor: pointer;
+        border-right: 1px solid var(--review-line);
+      }
+      .segmented button:last-child {
+        border-right: none;
+      }
+      .segmented button:hover {
+        background: var(--review-bg);
+      }
+      .segmented button:focus-visible {
+        outline: 2px solid var(--review-accent);
+        outline-offset: -2px;
+      }
+      .segmented button[aria-pressed='true'] {
+        background: var(--review-accent);
+        color: #fff;
+      }
+      .review-stage {
+        padding: 1.25rem 1rem;
+        display: flex;
+        justify-content: center;
+      }
+      .stage-frame {
+        width: 100%;
+        max-width: 1240px;
+        background: var(--stage);
+        border-radius: 14px;
+        padding: 1rem;
+        transition: max-width 0.2s ease;
+        min-width: 0;
+      }
+      .stage-frame[data-viewport='mobile'] {
+        max-width: 400px;
+      }
+      .stage-frame-label {
+        font-size: 0.72rem;
+        color: var(--review-muted);
+        text-align: center;
+        margin: 0 0 0.5rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      .canvas {
+        background: var(--p-bg);
+        color: var(--p-text);
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+      }
+      .review-footer {
+        padding: 0 1rem 2rem;
+        max-width: 1240px;
+        margin: 0 auto;
+        font-size: 0.85rem;
+        color: var(--review-muted);
+        line-height: 1.5;
+      }
+      .review-footer h3 {
+        margin: 0.5rem 0 0.2rem;
+        font-size: 0.8rem;
+        color: var(--review-ink);
+      }
+      .review-footer ul {
+        margin: 0.2rem 0 0.6rem;
+        padding-left: 1.1rem;
+      }
+
+      /* ===== app shell (snapshot of the real shell) ===== */
+      .shell {
+        display: grid;
+        grid-template-columns: 224px 1fr;
+        min-height: 780px;
+      }
+      .stage-frame[data-viewport='mobile'] .shell {
+        grid-template-columns: 1fr;
+      }
+      .sidebar {
+        background: var(--p-bg);
+        border-right: 1px solid var(--p-line);
+        display: flex;
+        flex-direction: column;
+        padding: 1.1rem 0.85rem;
+        gap: 1.5rem;
+      }
+      .stage-frame[data-viewport='mobile'] .sidebar {
+        flex-direction: row;
+        align-items: center;
+        border-right: none;
+        border-bottom: 1px solid var(--p-line);
+        padding: 0.6rem 0.85rem;
+        gap: 0.75rem;
+        overflow-x: auto;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        padding: 0 0.4rem;
+      }
+      .brand__mark {
+        width: 26px;
+        height: 26px;
+        border-radius: 7px;
+        background: linear-gradient(135deg, var(--p-primary), var(--p-primary-600));
+        flex: 0 0 auto;
+      }
+      .brand__name {
+        font-weight: 800;
+        font-size: 0.98rem;
+        letter-spacing: -0.01em;
+      }
+      .stage-frame[data-viewport='mobile'] .brand__name {
+        display: none;
+      }
+      .nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+      }
+      .stage-frame[data-viewport='mobile'] .nav {
+        flex-direction: row;
+        gap: 0.3rem;
+      }
+      .nav__item {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        padding: 0.55rem 0.6rem;
+        border-radius: 8px;
+        font-size: 0.86rem;
+        font-weight: 600;
+        color: var(--p-muted);
+        position: relative;
+        white-space: nowrap;
+      }
+      .nav__item svg {
+        width: 17px;
+        height: 17px;
+        flex: 0 0 auto;
+      }
+      .nav__item--active {
+        background: var(--p-primary-soft);
+        color: var(--p-primary-600);
+      }
+      .nav__item--active::before {
+        content: '';
+        position: absolute;
+        left: -0.85rem;
+        top: 0.35rem;
+        bottom: 0.35rem;
+        width: 3px;
+        border-radius: 2px;
+        background: var(--p-primary);
+      }
+      .stage-frame[data-viewport='mobile'] .nav__item {
+        flex-direction: column;
+        gap: 0.2rem;
+        min-width: 68px;
+        padding: 0.4rem;
+        font-size: 0.64rem;
+        text-align: center;
+      }
+      .stage-frame[data-viewport='mobile'] .nav__item--active::before {
+        display: none;
+      }
+      .main {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+      }
+      .app-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--p-line);
+      }
+      .app-header__crumb {
+        font-size: 0.75rem;
+        color: var(--p-muted);
+        margin: 0 0 0.15rem;
+        font-weight: 600;
+      }
+      .app-header__title {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 800;
+      }
+      .app-header__meta {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+        color: var(--p-muted);
+      }
+      .stage-frame[data-viewport='mobile'] .app-header {
+        padding: 0.8rem 1rem;
+      }
+      .stage-frame[data-viewport='mobile'] .meta-name,
+      .stage-frame[data-viewport='mobile'] .role-badge,
+      .stage-frame[data-viewport='mobile'] .signout span {
+        display: none;
+      }
+      .role-badge {
+        font-size: 0.68rem;
+        font-weight: 700;
+        color: var(--p-primary-600);
+        background: var(--p-primary-soft);
+        padding: 0.15rem 0.5rem;
+        border-radius: 999px;
+      }
+      .avatar {
+        width: 28px;
+        height: 28px;
+        border-radius: 999px;
+        background: var(--p-primary);
+        color: var(--p-on-primary);
+        font-size: 0.72rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .icon-btn {
+        appearance: none;
+        border: none;
+        background: none;
+        color: var(--p-muted);
+        cursor: pointer;
+        border-radius: 999px;
+        width: 30px;
+        height: 30px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .icon-btn:hover {
+        background: var(--p-hover);
+      }
+      .signout {
+        appearance: none;
+        border: none;
+        background: none;
+        color: var(--p-muted);
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.3rem 0.5rem;
+        border-radius: 8px;
+      }
+      .signout:hover {
+        background: var(--p-hover);
+      }
+      svg.i {
+        width: 16px;
+        height: 16px;
+        flex: 0 0 auto;
+      }
+      .content {
+        padding: 1.25rem 1.5rem 2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.1rem;
+        min-width: 0;
+      }
+      .stage-frame[data-viewport='mobile'] .content {
+        padding: 1rem;
+      }
+
+      /* ===== generic controls ===== */
+      .btn {
+        appearance: none;
+        border: 1px solid var(--p-line);
+        background: var(--p-bg);
+        color: var(--p-text);
+        font-size: 0.84rem;
+        font-weight: 600;
+        padding: 0.5rem 0.85rem;
+        border-radius: 8px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        white-space: nowrap;
+      }
+      .btn:hover {
+        background: var(--p-hover);
+      }
+      .btn:focus-visible,
+      .tab:focus-visible,
+      .link-btn:focus-visible,
+      .chip:focus-visible {
+        outline: 2px solid var(--p-primary);
+        outline-offset: 2px;
+      }
+      .btn--primary {
+        background: var(--p-primary);
+        border-color: var(--p-primary);
+        color: var(--p-on-primary);
+      }
+      .btn--primary:hover {
+        background: var(--p-primary-600);
+        border-color: var(--p-primary-600);
+      }
+      .btn--danger {
+        color: var(--p-danger);
+      }
+      .btn--sm {
+        padding: 0.32rem 0.6rem;
+        font-size: 0.78rem;
+      }
+      .link-btn {
+        appearance: none;
+        border: none;
+        background: none;
+        color: var(--p-primary-600);
+        font-weight: 600;
+        font-size: 0.84rem;
+        cursor: pointer;
+        padding: 0.2rem 0;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+      }
+      .link-btn:hover {
+        text-decoration: underline;
+      }
+      .toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.6rem;
+      }
+      .toolbar__left,
+      .toolbar__right {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+      }
+      .tabs {
+        display: flex;
+        gap: 0.25rem;
+        border-bottom: 1px solid var(--p-line);
+        overflow-x: auto;
+      }
+      .tab {
+        appearance: none;
+        border: none;
+        background: none;
+        font-size: 0.86rem;
+        font-weight: 600;
+        color: var(--p-muted);
+        padding: 0.6rem 0.8rem;
+        border-bottom: 2px solid transparent;
+        margin-bottom: -1px;
+        cursor: pointer;
+        white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+      }
+      .tab:hover {
+        color: var(--p-text);
+      }
+      .tab[aria-selected='true'] {
+        color: var(--p-primary-600);
+        border-bottom-color: var(--p-primary);
+      }
+      .badge {
+        font-size: 0.68rem;
+        font-weight: 700;
+        padding: 0.12rem 0.5rem;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        white-space: nowrap;
+        background: var(--p-muted-bg);
+        color: var(--p-muted);
+      }
+      .badge svg.i {
+        width: 11px;
+        height: 11px;
+      }
+      .badge--ok {
+        background: var(--p-ok-bg);
+        color: var(--p-ok);
+      }
+      .badge--warn {
+        background: var(--p-warn-bg);
+        color: var(--p-warn);
+      }
+      .badge--info {
+        background: var(--p-info-bg);
+        color: var(--p-info);
+      }
+      .badge--danger {
+        background: var(--p-danger-bg);
+        color: var(--p-danger);
+      }
+      .num {
+        font-variant-numeric: tabular-nums;
+      }
+      .muted {
+        color: var(--p-muted);
+      }
+      .panel {
+        border: 1px solid var(--p-line);
+        border-radius: 12px;
+        background: var(--p-bg);
+      }
+      .panel__head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        padding: 0.85rem 1rem;
+        border-bottom: 1px solid var(--p-line);
+        flex-wrap: wrap;
+      }
+      .panel__head h2 {
+        margin: 0;
+        font-size: 0.98rem;
+        font-weight: 800;
+      }
+      .panel__head p {
+        margin: 0.1rem 0 0;
+        font-size: 0.78rem;
+        color: var(--p-muted);
+      }
+      .panel__body {
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.9rem;
+      }
+      .note {
+        display: flex;
+        gap: 0.6rem;
+        align-items: flex-start;
+        padding: 0.65rem 0.8rem;
+        border-radius: 10px;
+        font-size: 0.8rem;
+        line-height: 1.45;
+        background: var(--p-info-bg);
+        color: var(--p-text);
+      }
+      .note svg.i {
+        color: var(--p-info);
+        margin-top: 0.1rem;
+      }
+      .note--warn {
+        background: var(--p-warn-bg);
+      }
+      .note--warn svg.i {
+        color: var(--p-warn);
+      }
+      .note--danger {
+        background: var(--p-danger-bg);
+      }
+      .note--danger svg.i {
+        color: var(--p-danger);
+      }
+
+      /* ===== guaranteed vs projection ===== */
+      .tag-g {
+        font-size: 0.64rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--p-ok);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.2rem;
+      }
+      .tag-p {
+        font-size: 0.64rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--p-muted);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.2rem;
+      }
+      .val-g {
+        font-weight: 800;
+      }
+      .val-p {
+        font-weight: 700;
+        font-style: italic;
+        color: var(--p-text);
+      }
+      .val-p::before {
+        content: '≈ ';
+        font-style: normal;
+        color: var(--p-muted);
+        font-weight: 600;
+      }
+
+      /* ===== summary ===== */
+      .kpis {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0.75rem;
+      }
+      .stage-frame[data-viewport='mobile'] .kpis {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .kpi {
+        border: 1px solid var(--p-line);
+        border-radius: 12px;
+        padding: 0.85rem 0.95rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        background: var(--p-bg);
+        min-width: 0;
+      }
+      .kpi__label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--p-muted);
+        display: flex;
+        justify-content: space-between;
+        gap: 0.4rem;
+        align-items: center;
+      }
+      .kpi__value {
+        font-size: 1.45rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      .kpi__value small {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--p-muted);
+        letter-spacing: 0;
+      }
+      .kpi__sub {
+        font-size: 0.74rem;
+        color: var(--p-muted);
+        line-height: 1.35;
+      }
+      .kpi--hero {
+        background: var(--p-primary-soft);
+        border-color: transparent;
+      }
+      .gap-bar {
+        display: flex;
+        height: 14px;
+        border-radius: 999px;
+        overflow: hidden;
+        background: var(--p-muted-bg);
+      }
+      .gap-bar__g {
+        background: var(--p-ok);
+      }
+      .gap-bar__p {
+        background: repeating-linear-gradient(
+          135deg,
+          var(--p-primary) 0 6px,
+          color-mix(in srgb, var(--p-primary) 55%, transparent) 6px 12px
+        );
+      }
+      .gap-legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem 1.2rem;
+        font-size: 0.78rem;
+        color: var(--p-muted);
+      }
+      .gap-legend span::before {
+        content: '';
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 3px;
+        margin-right: 0.35rem;
+        vertical-align: -1px;
+      }
+      .gap-legend .lg-g::before {
+        background: var(--p-ok);
+      }
+      .gap-legend .lg-p::before {
+        background: var(--p-primary);
+      }
+
+      .pillars {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.75rem;
+        align-items: start;
+      }
+      .stage-frame[data-viewport='mobile'] .pillars {
+        grid-template-columns: 1fr;
+      }
+      .pillar {
+        border: 1px solid var(--p-line);
+        border-radius: 12px;
+        background: var(--p-bg);
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+      }
+      .pillar__head {
+        padding: 0.85rem 1rem 0.6rem;
+        display: flex;
+        justify-content: space-between;
+        gap: 0.5rem;
+        align-items: flex-start;
+      }
+      .pillar__title {
+        display: flex;
+        flex-direction: column;
+        gap: 0.1rem;
+      }
+      .pillar__title h3 {
+        margin: 0;
+        font-size: 0.95rem;
+        font-weight: 800;
+      }
+      .pillar__title span {
+        font-size: 0.74rem;
+        color: var(--p-muted);
+      }
+      .pillar__sum {
+        padding: 0 1rem 0.75rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+        border-bottom: 1px solid var(--p-line);
+      }
+      .pillar__sum b {
+        font-size: 1.2rem;
+        font-weight: 800;
+      }
+      .pillar__list {
+        list-style: none;
+        margin: 0;
+        padding: 0.35rem 1rem 0.5rem;
+        display: flex;
+        flex-direction: column;
+      }
+      .pillar__list li {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.6rem;
+        padding: 0.5rem 0;
+        border-bottom: 1px dashed var(--p-line);
+        font-size: 0.82rem;
+        align-items: center;
+      }
+      .pillar__list li:last-child {
+        border-bottom: none;
+      }
+      .pillar__list .li-name {
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+        min-width: 0;
+      }
+      .pillar__list .li-name small {
+        color: var(--p-muted);
+        font-size: 0.72rem;
+        display: flex;
+        gap: 0.3rem;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .pillar__foot {
+        padding: 0.6rem 1rem 0.85rem;
+        border-top: 1px solid var(--p-line);
+      }
+      .pillar--empty {
+        border-style: dashed;
+      }
+      .pillar--empty .empty {
+        padding: 1.1rem 1rem 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+        align-items: flex-start;
+        font-size: 0.82rem;
+        color: var(--p-muted);
+        line-height: 1.45;
+      }
+
+      /* ===== contract cards ===== */
+      .contracts {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.85rem;
+        align-items: start;
+      }
+      .stage-frame[data-viewport='mobile'] .contracts {
+        grid-template-columns: 1fr;
+      }
+      .contract {
+        border: 1px solid var(--p-line);
+        border-radius: 12px;
+        background: var(--p-bg);
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+      }
+      .contract--wide {
+        grid-column: 1 / -1;
+      }
+      .contract__head {
+        padding: 0.9rem 1rem 0.7rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.45rem;
+        border-bottom: 1px solid var(--p-line);
+      }
+      .contract__title {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.6rem;
+        align-items: flex-start;
+      }
+      .contract__title h3 {
+        margin: 0;
+        font-size: 0.95rem;
+        font-weight: 800;
+      }
+      .contract__title small {
+        display: block;
+        font-size: 0.74rem;
+        color: var(--p-muted);
+        font-weight: 500;
+        margin-top: 0.1rem;
+      }
+      .contract__badges {
+        display: flex;
+        gap: 0.35rem;
+        flex-wrap: wrap;
+      }
+      .contract__id {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.76rem;
+        color: var(--p-muted);
+        flex-wrap: wrap;
+      }
+      .contract__id code {
+        font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace;
+        font-size: 0.78rem;
+        color: var(--p-text);
+        background: var(--p-muted-bg);
+        padding: 0.1rem 0.4rem;
+        border-radius: 5px;
+      }
+      .contract__body {
+        padding: 0.8rem 1rem;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.75rem 1rem;
+      }
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+        min-width: 0;
+      }
+      .field__label {
+        font-size: 0.7rem;
+        color: var(--p-muted);
+        font-weight: 600;
+        display: flex;
+        gap: 0.4rem;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .field__value {
+        font-size: 0.95rem;
+      }
+      .field--full {
+        grid-column: 1 / -1;
+      }
+      .scen {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0.4rem;
+      }
+      .scen div {
+        background: var(--p-surface-2);
+        border: 1px solid var(--p-line);
+        border-radius: 8px;
+        padding: 0.35rem 0.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.05rem;
+      }
+      .scen small {
+        font-size: 0.66rem;
+        color: var(--p-muted);
+        font-weight: 700;
+      }
+      .scen b {
+        font-size: 0.82rem;
+        font-weight: 700;
+        font-style: italic;
+      }
+      .contract__foot {
+        padding: 0.65rem 1rem;
+        border-top: 1px solid var(--p-line);
+        display: flex;
+        gap: 0.5rem;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        background: var(--p-surface-2);
+        border-radius: 0 0 12px 12px;
+      }
+      .contract__foot .acts {
+        display: flex;
+        gap: 0.4rem;
+        flex-wrap: wrap;
+      }
+      .contract__foot small {
+        font-size: 0.72rem;
+        color: var(--p-muted);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+      }
+      .contract--outdated {
+        border-color: color-mix(in srgb, var(--p-warn) 55%, var(--p-line));
+      }
+
+      .capital-box {
+        grid-column: 1 / -1;
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.7rem 0.85rem;
+        border-radius: 10px;
+        background: var(--p-info-bg);
+        font-size: 0.8rem;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .capital-box b {
+        font-size: 1.15rem;
+        font-weight: 800;
+      }
+
+      /* ===== import ===== */
+      .dropzone {
+        border: 2px dashed var(--p-line);
+        border-radius: 12px;
+        padding: 1.6rem 1rem;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        background: var(--p-surface-2);
+      }
+      .dropzone svg.i {
+        width: 30px;
+        height: 30px;
+        color: var(--p-primary);
+      }
+      .dropzone strong {
+        font-size: 0.98rem;
+      }
+      .dropzone p {
+        margin: 0;
+        font-size: 0.8rem;
+        color: var(--p-muted);
+        max-width: 62ch;
+        line-height: 1.45;
+      }
+      .steps {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        font-size: 0.78rem;
+        color: var(--p-muted);
+      }
+      .steps span {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.25rem 0.6rem;
+        border-radius: 999px;
+        background: var(--p-muted-bg);
+        font-weight: 600;
+      }
+      .steps span.on {
+        background: var(--p-primary-soft);
+        color: var(--p-primary-600);
+      }
+      .privacy-list {
+        margin: 0;
+        padding-left: 1.1rem;
+        font-size: 0.8rem;
+        color: var(--p-muted);
+        line-height: 1.55;
+      }
+      .file-row {
+        display: flex;
+        align-items: center;
+        gap: 0.7rem;
+        padding: 0.65rem 0.8rem;
+        border: 1px solid var(--p-line);
+        border-radius: 10px;
+        font-size: 0.84rem;
+        flex-wrap: wrap;
+      }
+      .file-row .grow {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.1rem;
+      }
+      .file-row small {
+        color: var(--p-muted);
+        font-size: 0.74rem;
+      }
+      .tbl-wrap {
+        overflow-x: auto;
+        border: 1px solid var(--p-line);
+        border-radius: 10px;
+      }
+      table.fields {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.84rem;
+        min-width: 460px;
+      }
+      table.fields th {
+        text-align: left;
+        font-size: 0.7rem;
+        color: var(--p-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        padding: 0.55rem 0.8rem;
+        background: var(--p-surface-2);
+        border-bottom: 1px solid var(--p-line);
+      }
+      table.fields td {
+        padding: 0.5rem 0.8rem;
+        border-bottom: 1px solid var(--p-line);
+        vertical-align: middle;
+      }
+      table.fields tr:last-child td {
+        border-bottom: none;
+      }
+      table.fields td.r,
+      table.fields th.r {
+        text-align: right;
+      }
+      table.fields tr.need td {
+        background: var(--p-warn-bg);
+      }
+      .input {
+        appearance: none;
+        width: 100%;
+        border: 1px solid var(--p-line);
+        background: var(--p-bg);
+        color: var(--p-text);
+        border-radius: 8px;
+        padding: 0.48rem 0.65rem;
+        font-size: 0.86rem;
+        min-width: 0;
+      }
+      .input:focus-visible {
+        outline: 2px solid var(--p-primary);
+        outline-offset: 1px;
+      }
+      .input--sm {
+        max-width: 9.5rem;
+        text-align: right;
+      }
+      .input[readonly] {
+        background: var(--p-muted-bg);
+        color: var(--p-muted);
+      }
+      .actions {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+      }
+
+      /* ===== form ===== */
+      .chips {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+      .chip {
+        appearance: none;
+        border: 1px solid var(--p-line);
+        background: var(--p-bg);
+        color: var(--p-text);
+        border-radius: 10px;
+        padding: 0.55rem 0.8rem;
+        font-size: 0.84rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.1rem;
+        text-align: left;
+      }
+      .chip small {
+        font-size: 0.7rem;
+        color: var(--p-muted);
+        font-weight: 500;
+      }
+      .chip[aria-pressed='true'] {
+        border-color: var(--p-primary);
+        background: var(--p-primary-soft);
+        box-shadow: inset 0 0 0 1px var(--p-primary);
+      }
+      .chip[disabled] {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+      .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.85rem 1rem;
+      }
+      .stage-frame[data-viewport='mobile'] .form-grid {
+        grid-template-columns: 1fr;
+      }
+      .form-grid .full {
+        grid-column: 1 / -1;
+      }
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+        min-width: 0;
+      }
+      .form-group label {
+        font-size: 0.76rem;
+        font-weight: 700;
+      }
+      .form-group .hint {
+        font-size: 0.72rem;
+        color: var(--p-muted);
+      }
+      .form-section {
+        font-size: 0.74rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--p-muted);
+        font-weight: 800;
+        margin: 0.4rem 0 -0.2rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      /* ===== info cards ===== */
+      .info-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.85rem;
+      }
+      .stage-frame[data-viewport='mobile'] .info-grid {
+        grid-template-columns: 1fr;
+      }
+      .info-card {
+        border: 1px solid var(--p-line);
+        border-radius: 12px;
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+        background: var(--p-bg);
+      }
+      .info-card h3 {
+        margin: 0;
+        font-size: 0.98rem;
+        font-weight: 800;
+      }
+      .info-card p {
+        margin: 0;
+        font-size: 0.82rem;
+        line-height: 1.5;
+        color: var(--p-muted);
+        flex: 1;
+      }
+      .info-card .src {
+        font-size: 0.72rem;
+        color: var(--p-muted);
+        display: flex;
+        gap: 0.4rem;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      /* ===== dashboard ===== */
+      .dash-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.85rem;
+      }
+      .stage-frame[data-viewport='mobile'] .dash-grid {
+        grid-template-columns: 1fr;
+      }
+      .ph-tile {
+        border: 1px dashed var(--p-line);
+        border-radius: 12px;
+        min-height: 190px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--p-muted);
+        font-size: 0.8rem;
+        background: var(--p-surface-2);
+      }
+      .tile {
+        border: 1px solid var(--p-line);
+        border-radius: 12px;
+        background: var(--p-bg);
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+      }
+      .tile__head {
+        padding: 0.85rem 1rem 0.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .tile__head h3 {
+        margin: 0;
+        font-size: 0.92rem;
+        font-weight: 800;
+        display: flex;
+        gap: 0.45rem;
+        align-items: center;
+      }
+      .tile__main {
+        padding: 0 1rem 0.75rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+      }
+      .tile__main b {
+        font-size: 1.6rem;
+        letter-spacing: -0.02em;
+        font-weight: 800;
+      }
+      .tile__rows {
+        padding: 0 1rem 0.75rem;
+        display: flex;
+        flex-direction: column;
+      }
+      .tile__rows div {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.6rem;
+        padding: 0.42rem 0;
+        border-top: 1px dashed var(--p-line);
+        font-size: 0.8rem;
+        align-items: baseline;
+      }
+      .tile__rows div span:first-child {
+        color: var(--p-muted);
+      }
+      .tile__foot {
+        padding: 0.6rem 1rem 0.8rem;
+        margin-top: auto;
+      }
+      .tile--cta {
+        cursor: pointer;
+      }
+      .tile--cta:hover {
+        border-color: var(--p-primary);
+      }
+      .tile .gap-bar {
+        margin: 0 1rem 0.35rem;
+      }
+      .tile .gap-legend {
+        padding: 0 1rem 0.7rem;
+        font-size: 0.72rem;
+      }
+      .tile__empty {
+        padding: 0.2rem 1rem 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+        font-size: 0.82rem;
+        color: var(--p-muted);
+        line-height: 1.45;
+        align-items: flex-start;
+      }
+      .dash-label {
+        font-size: 0.7rem;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: var(--p-muted);
+        font-weight: 800;
+        margin: 0 0 -0.3rem;
+      }
+      /* ===== 038 wealth additions ===== */
+      :root {
+        --c-liquid: #0d9488;
+        --c-sec: #2563eb;
+        --c-crypto: #9333ea;
+        --c-metal: #d97706;
+        --c-real: #64748b;
+        --c-other: #db2777;
+        --c-debt: #dc2626;
+      }
+      .pos {
+        color: var(--p-ok);
+        font-weight: 700;
+      }
+      .neg {
+        color: var(--p-danger);
+        font-weight: 700;
+      }
+      .toolbar__left {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+      }
+      .period {
+        display: inline-flex;
+        border: 1px solid var(--p-line);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      .period button {
+        appearance: none;
+        border: 0;
+        border-right: 1px solid var(--p-line);
+        background: var(--p-bg);
+        color: var(--p-text);
+        font: inherit;
+        font-size: 0.8rem;
+        font-weight: 600;
+        padding: 0.35rem 0.65rem;
+        cursor: pointer;
+      }
+      .period button:last-child {
+        border-right: 0;
+      }
+      .period button[aria-pressed='true'] {
+        background: var(--p-primary);
+        color: var(--p-on-primary);
+      }
+      .chart-wrap {
+        padding: 0.5rem 1rem 0.25rem;
+      }
+      .chart-wrap svg {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        padding: 0.25rem 1rem 0.9rem;
+      }
+      .lg-chip {
+        appearance: none;
+        border: 1px solid var(--p-line);
+        background: var(--p-bg);
+        color: var(--p-text);
+        border-radius: 999px;
+        font: inherit;
+        font-size: 0.76rem;
+        font-weight: 600;
+        padding: 0.22rem 0.65rem 0.22rem 0.5rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        cursor: pointer;
+      }
+      .lg-chip i {
+        width: 10px;
+        height: 10px;
+        border-radius: 3px;
+        background: var(--dot);
+        display: inline-block;
+      }
+      .lg-chip[aria-pressed='false'] {
+        opacity: 0.45;
+        text-decoration: line-through;
+      }
+      .lg-chip--line i {
+        height: 3px;
+        border-radius: 2px;
+      }
+      .lg-chip--debt i {
+        background: repeating-linear-gradient(
+          45deg,
+          var(--c-debt),
+          var(--c-debt) 3px,
+          transparent 3px,
+          transparent 5px
+        );
+        border: 1px solid var(--c-debt);
+        height: 10px;
+      }
+      .axis text {
+        fill: var(--p-muted);
+        font-size: 10px;
+      }
+      .axis line {
+        stroke: var(--p-line);
+      }
+      .stack {
+        display: flex;
+        height: 18px;
+        border-radius: 9px;
+        overflow: hidden;
+        border: 1px solid var(--p-line);
+      }
+      .stack span {
+        display: block;
+        height: 100%;
+      }
+      td.r,
+      th.r {
+        text-align: right;
+      }
+      table.fields td .row-acts {
+        display: inline-flex;
+        gap: 0.15rem;
+      }
+      .icon-btn--sm {
+        width: 28px;
+        height: 28px;
+      }
+      tr.is-latest td {
+        background: var(--p-primary-soft);
+      }
+      /* balance sheet */
+      .bs {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.85rem;
+        align-items: start;
+      }
+      .stage-frame[data-viewport='mobile'] .bs {
+        grid-template-columns: 1fr;
+      }
+      .bs__side {
+        border: 1px solid var(--p-line);
+        border-radius: 12px;
+        background: var(--p-bg);
+        overflow: hidden;
+      }
+      .bs__title {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        padding: 0.7rem 1rem;
+        background: var(--p-surface-2);
+        border-bottom: 1px solid var(--p-line);
+      }
+      .bs__title h3 {
+        margin: 0;
+        font-size: 0.95rem;
+      }
+      .bs__title small {
+        color: var(--p-muted);
+        font-weight: 600;
+      }
+      .bs__group {
+        padding: 0.55rem 1rem 0.2rem;
+      }
+      .bs__group-h {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.8rem;
+        font-weight: 800;
+        padding: 0.3rem 0;
+        border-bottom: 1px solid var(--p-line);
+      }
+      .bs__row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.84rem;
+        padding: 0.32rem 0 0.32rem 0.7rem;
+      }
+      .bs__row small {
+        color: var(--p-muted);
+        display: block;
+        font-size: 0.7rem;
+      }
+      .bs__row .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 2px;
+        display: inline-block;
+        margin-right: 0.4rem;
+        background: var(--dot);
+      }
+      .bs__eq {
+        margin: 0.6rem 1rem;
+        padding: 0.55rem 0.75rem;
+        border-radius: 10px;
+        background: var(--p-primary-soft);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: 800;
+        font-size: 0.9rem;
+      }
+      .bs__sum {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.7rem 1rem;
+        border-top: 2px solid var(--p-text);
+        font-weight: 800;
+        font-size: 0.95rem;
+      }
+      .bs__empty-group {
+        padding: 0.4rem 0 0.5rem 0.7rem;
+        font-size: 0.78rem;
+        color: var(--p-muted);
+        font-style: italic;
+      }
+      .group-pick {
+        border: 1px dashed var(--p-primary);
+        background: var(--p-primary-soft);
+        border-radius: 10px;
+        padding: 0.6rem 0.8rem;
+        display: flex;
+        gap: 0.6rem;
+        align-items: center;
+        flex-wrap: wrap;
+        font-size: 0.82rem;
+      }
+      .group-pick select,
+      select.input {
+        appearance: auto;
+        width: auto;
+      }
+      /* form */
+      .form-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 260px;
+        gap: 0.85rem;
+        align-items: start;
+      }
+      .stage-frame[data-viewport='mobile'] .form-layout {
+        grid-template-columns: 1fr;
+      }
+      .pos-head,
+      .pos-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.1fr) minmax(0, 0.8fr) 32px;
+        gap: 0.5rem;
+        align-items: center;
+      }
+      .stage-frame[data-viewport='mobile'] .pos-head {
+        display: none;
+      }
+      .stage-frame[data-viewport='mobile'] .pos-row {
+        grid-template-columns: 1fr 1fr;
+        padding-bottom: 0.6rem;
+        border-bottom: 1px solid var(--p-line);
+      }
+      .pos-head {
+        font-size: 0.7rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--p-muted);
+        padding: 0 1rem;
+      }
+      .pos-body {
+        padding: 0.5rem 1rem 0.9rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+      .pos-row .input.amount {
+        text-align: right;
+      }
+      .sum-box {
+        position: sticky;
+        top: 4rem;
+        border: 1px solid var(--p-line);
+        border-radius: 12px;
+        background: var(--p-bg);
+        padding: 0.9rem 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+      .sum-box div {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.86rem;
+      }
+      .sum-box .total {
+        border-top: 1px solid var(--p-line);
+        padding-top: 0.55rem;
+        font-weight: 800;
+        font-size: 1rem;
+      }
+      .suggest {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.3rem;
+        padding: 0 1rem 0.8rem;
+        font-size: 0.74rem;
+        color: var(--p-muted);
+        align-items: center;
+      }
+      .suggest button {
+        appearance: none;
+        border: 1px solid var(--p-line);
+        background: var(--p-surface-2);
+        color: var(--p-text);
+        border-radius: 999px;
+        font: inherit;
+        font-size: 0.74rem;
+        padding: 0.12rem 0.55rem;
+        cursor: pointer;
+      }
+      .spark {
+        width: 100%;
+        height: 44px;
+        display: block;
+      }
+      .tile .delta-line {
+        display: flex;
+        gap: 0.5rem;
+        align-items: baseline;
+        font-size: 0.8rem;
+        padding: 0 1rem;
+      }
+      .tile .spark-wrap {
+        padding: 0.2rem 1rem 0;
+      }
+      /* pdf */
+      .pdf-pages {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        align-items: center;
+      }
+      .pdf-page {
+        width: 100%;
+        max-width: 860px;
+        aspect-ratio: 297 / 210;
+        background: #fff;
+        color: #1b2a2e;
+        border: 1px solid var(--p-line);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+        padding: 1.1rem 1.3rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+        overflow: hidden;
+        font-size: 0.7rem;
+      }
+      .stage-frame[data-viewport='mobile'] .pdf-page {
+        aspect-ratio: auto;
+      }
+      .pdf-page h2 {
+        font-size: 0.95rem;
+        margin: 0;
+      }
+      .pdf-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 2px solid #0d9488;
+        padding-bottom: 0.4rem;
+      }
+      .pdf-logo {
+        font-weight: 800;
+        color: #0d9488;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+      }
+      .pdf-kpis {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.5rem;
+      }
+      .pdf-kpis div {
+        border: 1px solid #dbe3e6;
+        border-radius: 6px;
+        padding: 0.35rem 0.5rem;
+      }
+      .pdf-kpis small {
+        display: block;
+        color: #5d7077;
+        font-size: 0.6rem;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+      .pdf-kpis b {
+        font-size: 0.95rem;
+      }
+      .pdf-cols {
+        display: grid;
+        grid-template-columns: 1.4fr 1fr;
+        gap: 0.7rem;
+        flex: 1;
+        min-height: 0;
+      }
+      .pdf-page .bs__row,
+      .pdf-page .bs__group-h {
+        font-size: 0.64rem;
+        padding-top: 0.12rem;
+        padding-bottom: 0.12rem;
+      }
+      .pdf-page .bs__title {
+        padding: 0.3rem 0.6rem;
+      }
+      .pdf-page .bs__title h3 {
+        font-size: 0.72rem;
+      }
+      .pdf-page .bs__group {
+        padding: 0.2rem 0.6rem 0;
+      }
+      .pdf-page .bs__eq,
+      .pdf-page .bs__sum {
+        font-size: 0.68rem;
+        margin-left: 0.6rem;
+        margin-right: 0.6rem;
+        padding: 0.3rem 0.5rem;
+      }
+      .pdf-page .bs__sum {
+        margin: 0;
+        padding-left: 0.6rem;
+        padding-right: 0.6rem;
+      }
+      .pdf-foot {
+        display: flex;
+        justify-content: space-between;
+        color: #5d7077;
+        font-size: 0.6rem;
+        border-top: 1px solid #dbe3e6;
+        padding-top: 0.3rem;
+      }
+      .pdf-page table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.62rem;
+      }
+      .pdf-page th,
+      .pdf-page td {
+        padding: 0.18rem 0.3rem;
+        border-bottom: 1px solid #e6edef;
+        text-align: right;
+      }
+      .pdf-page th:first-child,
+      .pdf-page td:first-child {
+        text-align: left;
+      }
+      .pdf-page th {
+        color: #5d7077;
+        font-size: 0.58rem;
+        text-transform: uppercase;
+      }
+    </style>
+  </head>
+  <body>
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <defs>
+        <symbol id="i-grid" viewBox="0 0 24 24">
+          <path
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linejoin="round"
+            d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"
+          />
+        </symbol>
+        <symbol id="i-chart" viewBox="0 0 24 24">
+          <path
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M4 20V10M10 20V4M16 20v-8M22 20H2"
+          />
+        </symbol>
+        <symbol id="i-wallet" viewBox="0 0 24 24">
+          <path
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linejoin="round"
+            d="M3 7h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM3 7l12-3v3M17 14h2"
+          />
+        </symbol>
+        <symbol id="i-sun" viewBox="0 0 24 24">
+          <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <circle cx="12" cy="12" r="4" />
+            <path
+              d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"
+            />
+          </g>
+        </symbol>
+        <symbol id="i-out" viewBox="0 0 24 24">
+          <path
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M9 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h4M16 8l4 4-4 4M20 12H9"
+          />
+        </symbol>
+        <symbol id="i-upload" viewBox="0 0 24 24">
+          <path
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M12 16V4M7 9l5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"
+          />
+        </symbol>
+        <symbol id="i-plus" viewBox="0 0 24 24">
+          <path
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            d="M12 5v14M5 12h14"
+          />
+        </symbol>
+        <symbol id="i-lock" viewBox="0 0 24 24">
+          <path
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linejoin="round"
+            d="M6 11h12v9H6zM8 11V8a4 4 0 0 1 8 0v3"
+          />
+        </symbol>
+        <symbol id="i-edit" viewBox="0 0 24 24">
+          <path
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M4 20h4L19 9l-4-4L4 16zM13 7l4 4"
+          />
+        </symbol>
+        <symbol id="i-trash" viewBox="0 0 24 24">
+          <path
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"
+          />
+        </symbol>
+        <symbol id="i-refresh" viewBox="0 0 24 24">
+          <path
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M20 11a8 8 0 0 0-14-4M4 4v4h4M4 13a8 8 0 0 0 14 4M20 20v-4h-4"
+          />
+        </symbol>
+        <symbol id="i-info" viewBox="0 0 24 24">
+          <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 11v5M12 8h.01" />
+          </g>
+        </symbol>
+        <symbol id="i-check" viewBox="0 0 24 24">
+          <path
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M5 12.5l4.5 4.5L19 7"
+          />
+        </symbol>
+        <symbol id="i-warn" viewBox="0 0 24 24">
+          <path
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M12 4l9 16H3zM12 10v4M12 17h.01"
+          />
+        </symbol>
+        <symbol id="i-ext" viewBox="0 0 24 24">
+          <path
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"
+          />
+        </symbol>
+        <symbol id="i-copy" viewBox="0 0 24 24">
+          <path
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linejoin="round"
+            d="M9 9h11v11H9zM5 15V4h11"
+          />
+        </symbol>
+        <symbol id="i-file" viewBox="0 0 24 24">
+          <path
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linejoin="round"
+            d="M6 3h8l5 5v13H6zM14 3v5h5"
+          />
+        </symbol>
+        <symbol id="i-download" viewBox="0 0 24 24">
+          <path
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M12 4v12M7 11l5 5 5-5M4 20h16"
+          />
+        </symbol>
+        <symbol id="i-shield" viewBox="0 0 24 24">
+          <path
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linejoin="round"
+            d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"
+          />
+        </symbol>
+
+        <symbol id="i-trend" viewBox="0 0 24 24">
+          <path
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M3 17l6-6 4 4 8-8M15 7h6v6"
+          />
+        </symbol>
+        <symbol id="i-balance" viewBox="0 0 24 24">
+          <path
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M12 3v18M6 21h12M5 7h14M5 7l-3 7a3 3 0 006 0zM19 7l-3 7a3 3 0 006 0z"
+          />
+        </symbol>
+      </defs>
+    </svg>
+    <header class="review-header">
+      <p class="review-eyebrow">Non-functional review mockup</p>
+      <h1>Vermögensentwicklung</h1>
+      <p>
+        Statische Vorschau der Domain „Vermögensentwicklung" (Spec 038): Entwicklung mit Diagramm
+        und Stichtagen, persönliche Bilanz, Erfassen eines Stichtags, leere und einzelne Zustände,
+        Dashboard-Kachel und PDF-Vorschau. Alle Namen und Beträge sind erfunden.
+      </p>
+    </header>
+
+    <div class="review-controls">
+      <div class="control-group">
+        <span class="label">Viewport</span>
+        <div class="segmented" id="viewport-toggle">
+          <button type="button" data-viewport="desktop" aria-pressed="true">Desktop</button
+          ><button type="button" data-viewport="mobile" aria-pressed="false">Mobile</button>
+        </div>
+      </div>
+      <div class="control-group">
+        <span class="label">Seite</span>
+        <div class="segmented" id="screen-toggle">
+          <button type="button" data-screen="overview" aria-pressed="true">Entwicklung</button
+          ><button type="button" data-screen="balance" aria-pressed="false">Bilanz</button
+          ><button type="button" data-screen="single" aria-pressed="false">Ein Stichtag</button
+          ><button type="button" data-screen="empty" aria-pressed="false">Leer</button
+          ><button type="button" data-screen="dashboard" aria-pressed="false">
+            Dashboard-Kachel</button
+          ><button type="button" data-screen="pdf" aria-pressed="false">PDF-Vorschau</button>
+        </div>
+      </div>
+      <div class="control-group">
+        <span class="label">Erfassen</span>
+        <div class="segmented" id="flow-toggle">
+          <button type="button" data-screen="form" aria-pressed="false">Stichtag erfassen</button
+          ><button type="button" data-screen="form-dup" aria-pressed="false">
+            Datum bereits vergeben
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="review-stage">
+      <div class="stage-frame" id="stage-frame" data-viewport="desktop">
+        <p class="stage-frame-label" id="stage-frame-label">Desktop · 1240px</p>
+        <div class="canvas" id="canvas" data-screen="overview">
+          <div class="shell">
+            <nav class="sidebar" aria-label="Primary">
+              <div class="brand">
+                <span class="brand__mark"></span><span class="brand__name">Vaultfolio</span>
+              </div>
+              <div class="nav">
+                <a class="nav__item" data-nav="dashboard"
+                  ><svg class="i"><use href="#i-grid" /></svg><span>Dashboard</span></a
+                >
+                <a class="nav__item"
+                  ><svg class="i"><use href="#i-chart" /></svg><span>Holdings</span></a
+                >
+                <a class="nav__item"
+                  ><svg class="i"><use href="#i-wallet" /></svg><span>Einkommen</span></a
+                >
+                <a class="nav__item"
+                  ><svg class="i"><use href="#i-shield" /></svg><span>Altersvorsorge</span></a
+                >
+                <a class="nav__item nav__item--active" data-nav="wealth"
+                  ><svg class="i"><use href="#i-trend" /></svg><span>Vermögen</span></a
+                >
+              </div>
+            </nav>
+            <div class="main">
+              <div class="app-header">
+                <div>
+                  <p class="app-header__crumb">Vaultfolio</p>
+                  <h1 class="app-header__title" id="page-title">Vermögensentwicklung</h1>
+                </div>
+                <div class="app-header__meta">
+                  <span class="meta-name">Max Mustermann</span><span class="role-badge">Admin</span
+                  ><span class="avatar">MM</span>
+                  <button type="button" class="icon-btn" aria-label="Dunkles Theme">
+                    <svg class="i"><use href="#i-sun" /></svg>
+                  </button>
+                  <button type="button" class="signout">
+                    <svg class="i"><use href="#i-out" /></svg><span>Abmelden</span>
+                  </button>
+                </div>
+              </div>
+              <div class="content">
+                <div data-show="overview balance empty single" class="page-frame">
+                  <div class="toolbar">
+                    <div class="toolbar__left" data-show="overview balance single">
+                      <span class="muted" style="font-size: 0.78rem; font-weight: 700"
+                        >Zeitraum</span
+                      >
+                      <div class="period" role="group" aria-label="Zeitraum">
+                        <button type="button" aria-pressed="false">1 Jahr</button
+                        ><button type="button" aria-pressed="false">3 Jahre</button
+                        ><button type="button" aria-pressed="true">Alle</button>
+                      </div>
+                    </div>
+                    <div class="toolbar__left" data-show="empty"></div>
+                    <div class="toolbar__right">
+                      <button type="button" class="link-btn" data-show="overview balance single">
+                        <svg class="i"><use href="#i-download" /></svg>Daten exportieren
+                      </button>
+                      <button type="button" class="btn btn--primary" data-goto="form">
+                        <svg class="i"><use href="#i-plus" /></svg>Stichtag erfassen
+                      </button>
+                    </div>
+                  </div>
+                  <div class="tabs" role="tablist" style="margin-top: 0.85rem">
+                    <button type="button" class="tab" role="tab" data-tab="overview">
+                      Entwicklung
+                    </button>
+                    <button type="button" class="tab" role="tab" data-tab="balance">Bilanz</button>
+                  </div>
+                </div>
+                <section data-show="overview" aria-label="Entwicklung">
+                  <div class="kpis">
+                    <div class="kpi kpi--hero">
+                      <div class="kpi__label">Nettovermögen</div>
+                      <div class="kpi__value num">321.000 €</div>
+                      <div class="kpi__sub">Stichtag 30.09.2026</div>
+                    </div>
+                    <div class="kpi">
+                      <div class="kpi__label">Veränderung</div>
+                      <div class="kpi__value num pos">+19.000 €</div>
+                      <div class="kpi__sub"><span class="pos">+6,3 %</span> seit 30.06.2026</div>
+                    </div>
+                    <div class="kpi">
+                      <div class="kpi__label">Vermögenswerte</div>
+                      <div class="kpi__value num">490.000 €</div>
+                      <div class="kpi__sub">8 Positionen in 6 Klassen</div>
+                    </div>
+                    <div class="kpi">
+                      <div class="kpi__label">Verbindlichkeiten</div>
+                      <div class="kpi__value num neg">−169.000 €</div>
+                      <div class="kpi__sub">1 Position</div>
+                    </div>
+                  </div>
+                  <div class="panel" style="margin-top: 1rem">
+                    <div class="panel__head">
+                      <div>
+                        <h2>Entwicklung des Nettovermögens</h2>
+                        <p>
+                          Vermögenswerte nach oben, Verbindlichkeiten nach unten, Linie =
+                          Nettovermögen
+                        </p>
+                      </div>
+                    </div>
+                    <div class="chart-wrap">
+                      <svg
+                        id="chart-main"
+                        role="img"
+                        aria-label="Säulen- und Liniendiagramm des Nettovermögens über acht Stichtage"
+                      ></svg>
+                    </div>
+                    <div
+                      class="legend"
+                      id="legend-main"
+                      role="group"
+                      aria-label="Klassen ein- oder ausblenden"
+                    ></div>
+                  </div>
+                  <div class="panel" style="margin-top: 1rem">
+                    <div class="panel__head">
+                      <div>
+                        <h2>Stichtage</h2>
+                        <p>Veränderung jeweils zum vorherigen Stichtag im Zeitraum</p>
+                      </div>
+                    </div>
+                    <div class="tbl-wrap">
+                      <table class="fields" id="snap-table" style="min-width: 620px"></table>
+                    </div>
+                  </div>
+                </section>
+                <section data-show="single" aria-label="Ein Stichtag">
+                  <div class="kpis">
+                    <div class="kpi kpi--hero">
+                      <div class="kpi__label">Nettovermögen</div>
+                      <div class="kpi__value num">321.000 €</div>
+                      <div class="kpi__sub">Stichtag 30.09.2026</div>
+                    </div>
+                    <div class="kpi">
+                      <div class="kpi__label">Veränderung</div>
+                      <div class="kpi__value num muted">–</div>
+                      <div class="kpi__sub">Noch kein Vergleich möglich</div>
+                    </div>
+                    <div class="kpi">
+                      <div class="kpi__label">Vermögenswerte</div>
+                      <div class="kpi__value num">490.000 €</div>
+                    </div>
+                    <div class="kpi">
+                      <div class="kpi__label">Verbindlichkeiten</div>
+                      <div class="kpi__value num neg">−169.000 €</div>
+                    </div>
+                  </div>
+                  <div class="note" style="margin-top: 1rem">
+                    <svg class="i"><use href="#i-info" /></svg>
+                    <div>
+                      Mit einem zweiten Stichtag siehst du hier, wie sich dein Vermögen entwickelt.
+                      Tipp: Lege einen früheren Stichtag über „Aus bestehendem Stichtag kopieren" an
+                      – Namen und Klassen sind dann schon vorbelegt.
+                      <div style="margin-top: 0.5rem">
+                        <button type="button" class="btn btn--sm" data-goto="form">
+                          <svg class="i"><use href="#i-copy" /></svg>Früheren Stichtag nachtragen
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="panel" style="margin-top: 1rem">
+                    <div class="panel__head">
+                      <div>
+                        <h2>Zusammensetzung am 30.09.2026</h2>
+                        <p>Anteil der Klassen an den Vermögenswerten</p>
+                      </div>
+                    </div>
+                    <div class="panel__body">
+                      <div
+                        class="stack"
+                        role="img"
+                        aria-label="Immobilien 60 Prozent, Aktien und Fonds 20 Prozent, Bargeld und Giralgeld 8 Prozent, übrige 12 Prozent"
+                      >
+                        <span style="width: 60.2%; background: var(--c-real)"></span
+                        ><span style="width: 20.2%; background: var(--c-sec)"></span
+                        ><span style="width: 8.2%; background: var(--c-liquid)"></span
+                        ><span style="width: 4.5%; background: var(--c-metal)"></span
+                        ><span style="width: 2.7%; background: var(--c-crypto)"></span
+                        ><span style="width: 4.3%; background: var(--c-other)"></span>
+                      </div>
+                      <div class="gap-legend" style="margin-top: 0.5rem">
+                        <span class="lg-chip" style="--dot: var(--c-real)"
+                          ><i></i>Immobilien 60 %</span
+                        ><span class="lg-chip" style="--dot: var(--c-sec)"
+                          ><i></i>Aktien &amp; Fonds 20 %</span
+                        ><span class="lg-chip" style="--dot: var(--c-liquid)"
+                          ><i></i>Bargeld &amp; Giralgeld 8 %</span
+                        >
+                      </div>
+                    </div>
+                  </div>
+                </section>
+                <section data-show="balance" aria-label="Bilanz">
+                  <div class="panel">
+                    <div class="panel__head" style="flex-wrap: wrap; gap: 0.6rem">
+                      <div>
+                        <h2>Persönliche Bilanz</h2>
+                        <p>
+                          Aktiva = Passiva: Das Eigenkapital ist der Ausgleich aus Vermögenswerten
+                          und Verbindlichkeiten.
+                        </p>
+                      </div>
+                      <label
+                        style="
+                          display: flex;
+                          align-items: center;
+                          gap: 0.5rem;
+                          font-size: 0.8rem;
+                          font-weight: 700;
+                        "
+                        >Stichtag
+                        <select class="input" aria-label="Stichtag wählen">
+                          <option>30.09.2026</option>
+                          <option>30.06.2026</option>
+                          <option>31.03.2026</option>
+                          <option>31.12.2025</option>
+                          <option>30.09.2025</option>
+                          <option>30.06.2025</option>
+                          <option>31.03.2025</option>
+                          <option>31.12.2024</option>
+                        </select></label
+                      >
+                    </div>
+                  </div>
+                  <div style="margin-top: 0.85rem">
+                    <div class="bs">
+                      <div class="bs__side">
+                        <div class="bs__title">
+                          <h3>Aktiva</h3>
+                          <small>Was ich besitze</small>
+                        </div>
+                        <div class="bs__group">
+                          <div class="bs__group-h">
+                            <span>Liquide Mittel</span><span class="num">40.000 €</span>
+                          </div>
+                          <div class="bs__row">
+                            <span
+                              ><span class="dot" style="--dot: var(--c-liquid)"></span>Girokonto
+                              Hauptbank<small>Bargeld &amp; Giralgeld</small></span
+                            ><b class="num">12.000 €</b>
+                          </div>
+                          <div class="bs__row">
+                            <span
+                              ><span class="dot" style="--dot: var(--c-liquid)"></span
+                              >Tagesgeld<small>Bargeld &amp; Giralgeld</small></span
+                            ><b class="num">26.000 €</b>
+                          </div>
+                          <div class="bs__row">
+                            <span
+                              ><span class="dot" style="--dot: var(--c-liquid)"></span>Bargeld<small
+                                >Bargeld &amp; Giralgeld</small
+                              ></span
+                            ><b class="num">2.000 €</b>
+                          </div>
+                        </div>
+                        <div class="bs__group">
+                          <div class="bs__group-h">
+                            <span>Wertpapiere und Krypto</span><span class="num">112.000 €</span>
+                          </div>
+                          <div class="bs__row">
+                            <span
+                              ><span class="dot" style="--dot: var(--c-sec)"></span
+                              >Welt-ETF-Depot<small>Aktien &amp; Fonds</small></span
+                            ><b class="num">99.000 €</b>
+                          </div>
+                          <div class="bs__row">
+                            <span
+                              ><span class="dot" style="--dot: var(--c-crypto)"></span>Bitcoin /
+                              Ether<small>Krypto</small></span
+                            ><b class="num">13.000 €</b>
+                          </div>
+                        </div>
+                        <div class="bs__group">
+                          <div class="bs__group-h">
+                            <span>Sachwerte</span><span class="num">338.000 €</span>
+                          </div>
+                          <div class="bs__row">
+                            <span
+                              ><span class="dot" style="--dot: var(--c-real)"></span
+                              >Eigentumswohnung<small>Immobilien</small></span
+                            ><b class="num">295.000 €</b>
+                          </div>
+                          <div class="bs__row">
+                            <span
+                              ><span class="dot" style="--dot: var(--c-metal)"></span>Goldmünzen und
+                              -barren<small>Edelmetalle</small></span
+                            ><b class="num">22.000 €</b>
+                          </div>
+                          <div class="bs__row">
+                            <span
+                              ><span class="dot" style="--dot: var(--c-other)"></span
+                              >Kompaktwagen<small>Sonstige</small></span
+                            ><b class="num">15.000 €</b>
+                          </div>
+                          <div class="bs__row">
+                            <span
+                              ><span class="dot" style="--dot: var(--c-other)"></span
+                              >Whisky-Sammlung<small>Sonstige</small></span
+                            ><b class="num">6.000 €</b>
+                          </div>
+                        </div>
+                        <div class="bs__group">
+                          <div class="bs__group-h">
+                            <span>Sonstiges</span><span class="num">0 €</span>
+                          </div>
+                          <div class="bs__empty-group">Keine Positionen</div>
+                        </div>
+                        <div class="bs__sum">
+                          <span>Summe Aktiva</span><span class="num">490.000 €</span>
+                        </div>
+                      </div>
+                      <div class="bs__side">
+                        <div class="bs__title">
+                          <h3>Passiva</h3>
+                          <small>Woher es kommt</small>
+                        </div>
+                        <div class="bs__group">
+                          <div class="bs__group-h">
+                            <span>Eigenkapital (Nettovermögen)</span
+                            ><span class="num">321.000 €</span>
+                          </div>
+                          <div class="bs__empty-group" style="font-style: normal">
+                            Aktiva − Verbindlichkeiten, wird berechnet
+                          </div>
+                        </div>
+                        <div class="bs__group">
+                          <div class="bs__group-h">
+                            <span>Langfristige Verbindlichkeiten</span
+                            ><span class="num">169.000 €</span>
+                          </div>
+                          <div class="bs__row">
+                            <span
+                              ><span class="dot" style="--dot: var(--c-debt)"></span>Hypothek
+                              Eigentumswohnung<small>Hypothek</small></span
+                            ><b class="num">169.000 €</b>
+                          </div>
+                        </div>
+                        <div class="bs__group">
+                          <div class="bs__group-h">
+                            <span>Kurzfristige Verbindlichkeiten</span><span class="num">0 €</span>
+                          </div>
+                          <div class="bs__empty-group">Keine Positionen</div>
+                        </div>
+                        <div class="bs__group">
+                          <div class="bs__group-h">
+                            <span>Sonstige Verbindlichkeiten</span><span class="num">0 €</span>
+                          </div>
+                          <div class="bs__empty-group">Keine Positionen</div>
+                        </div>
+                        <div class="bs__sum">
+                          <span>Summe Passiva</span><span class="num">490.000 €</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="note" style="margin-top: 0.85rem">
+                    <svg class="i"><use href="#i-info" /></svg>
+                    <div>
+                      Jede Klasse gehört zu einer Bilanzgruppe. Du kannst die Gruppe einer Klasse
+                      ändern – das gilt dann für alle Stichtage.
+                      <div class="group-pick" style="margin-top: 0.55rem">
+                        <span><b>Whisky-Sammlung</b> (Klasse „Sonstige") liegt in</span
+                        ><select class="input" aria-label="Bilanzgruppe für Klasse Sonstige">
+                          <option>Sachwerte</option>
+                          <option>Wertpapiere und Krypto</option>
+                          <option>Liquide Mittel</option>
+                          <option>Sonstiges</option></select
+                        ><button type="button" class="btn btn--sm">Übernehmen</button>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="note note--warn" style="margin-top: 0.6rem">
+                    <svg class="i"><use href="#i-warn" /></svg>
+                    <div>
+                      Kennzahlen wie Eigenkapitalquote oder Liquiditätsgrad werden in dieser Version
+                      bewusst nicht berechnet.
+                    </div>
+                  </div>
+                </section>
+                <section data-show="empty" aria-label="Leer">
+                  <div class="panel">
+                    <div class="panel__body" style="text-align: center; padding: 2.2rem 1rem">
+                      <svg class="i" style="width: 34px; height: 34px; color: var(--p-primary)">
+                        <use href="#i-trend" />
+                      </svg>
+                      <h2 style="margin: 0.6rem 0 0.3rem; font-size: 1.1rem">
+                        Noch kein Stichtag erfasst
+                      </h2>
+                      <p
+                        class="muted"
+                        style="
+                          max-width: 52ch;
+                          margin: 0 auto 1rem;
+                          font-size: 0.88rem;
+                          line-height: 1.5;
+                        "
+                      >
+                        Halte fest, was du an einem Tag besitzt und schuldest – Bargeld, Aktien,
+                        Immobilien, aber auch Auto oder Whisky. Frühere Stichtage kannst du
+                        jederzeit nachtragen, so entsteht deine Vermögensentwicklung.
+                      </p>
+                      <button type="button" class="btn btn--primary" data-goto="form">
+                        <svg class="i"><use href="#i-plus" /></svg>Ersten Stichtag erfassen
+                      </button>
+                    </div>
+                  </div>
+                </section>
+                <section data-show="form form-dup" aria-label="Stichtag erfassen">
+                  <div
+                    class="note note--danger"
+                    data-show="form-dup"
+                    style="margin-bottom: 0.85rem"
+                  >
+                    <svg class="i"><use href="#i-warn" /></svg>
+                    <div>
+                      <b>Für den 30.09.2026 gibt es bereits einen Stichtag.</b> Pro Datum ist nur
+                      ein Stichtag möglich.
+                      <div style="margin-top: 0.45rem">
+                        <button type="button" class="btn btn--sm" data-goto="overview">
+                          Bestehenden Stichtag öffnen
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="form-layout">
+                    <div style="display: flex; flex-direction: column; gap: 0.85rem; min-width: 0">
+                      <div class="panel">
+                        <div class="panel__head">
+                          <div><h2>Stichtag</h2></div>
+                        </div>
+                        <div class="panel__body">
+                          <div class="form-grid">
+                            <div class="form-group">
+                              <label for="f-date">Datum</label
+                              ><input
+                                id="f-date"
+                                class="input"
+                                value="30.09.2026"
+                                data-state-input
+                              /><span class="hint">Heute oder in der Vergangenheit</span>
+                            </div>
+                            <div class="form-group">
+                              <label for="f-copy">Aus bestehendem Stichtag kopieren</label
+                              ><select id="f-copy" class="input" style="width: 100%">
+                                <option>Nicht kopieren (leer starten)</option>
+                                <option selected>30.06.2026 – Namen und Klassen übernehmen</option>
+                                <option>31.03.2026</option></select
+                              ><span class="hint">Beträge musst du neu eintragen</span>
+                            </div>
+                            <div class="form-group full">
+                              <label for="f-note">Notiz (optional)</label
+                              ><input
+                                id="f-note"
+                                class="input"
+                                placeholder="z. B. nach Gehaltserhöhung"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="panel">
+                        <div class="panel__head">
+                          <div><h2>Vermögenswerte</h2></div>
+                        </div>
+                        <div class="pos-head">
+                          <span>Name</span><span>Klasse</span
+                          ><span class="r" style="text-align: right">Betrag (€)</span><span></span>
+                        </div>
+                        <div class="pos-body">
+                          <div class="pos-row">
+                            <input
+                              class="input"
+                              value="Girokonto Hauptbank"
+                              aria-label="Name"
+                            /><input
+                              class="input"
+                              value="Bargeld &amp; Giralgeld"
+                              aria-label="Klasse"
+                              list="x"
+                            /><input
+                              class="input amount num"
+                              value="12.000"
+                              aria-label="Betrag in Euro"
+                            /><button
+                              type="button"
+                              class="icon-btn icon-btn--sm"
+                              aria-label="Position entfernen"
+                            >
+                              <svg class="i"><use href="#i-trash" /></svg>
+                            </button>
+                          </div>
+                          <div class="pos-row">
+                            <input class="input" value="Welt-ETF-Depot" aria-label="Name" /><input
+                              class="input"
+                              value="Aktien &amp; Fonds"
+                              aria-label="Klasse"
+                              list="x"
+                            /><input
+                              class="input amount num"
+                              value="99.000"
+                              aria-label="Betrag in Euro"
+                            /><button
+                              type="button"
+                              class="icon-btn icon-btn--sm"
+                              aria-label="Position entfernen"
+                            >
+                              <svg class="i"><use href="#i-trash" /></svg>
+                            </button>
+                          </div>
+                          <div class="pos-row">
+                            <input class="input" value="Whisky-Sammlung" aria-label="Name" /><input
+                              class="input"
+                              value="Whisky"
+                              aria-label="Klasse"
+                              list="x"
+                            /><input
+                              class="input amount num"
+                              value="6.000"
+                              aria-label="Betrag in Euro"
+                            /><button
+                              type="button"
+                              class="icon-btn icon-btn--sm"
+                              aria-label="Position entfernen"
+                            >
+                              <svg class="i"><use href="#i-trash" /></svg>
+                            </button>
+                          </div>
+                          <div class="group-pick">
+                            <svg class="i"><use href="#i-info" /></svg
+                            ><span
+                              >Neue Klasse <b>„Whisky"</b> – in welche Bilanzgruppe soll sie?</span
+                            ><select class="input" aria-label="Bilanzgruppe für Klasse Whisky">
+                              <option>Sachwerte</option>
+                              <option>Wertpapiere und Krypto</option>
+                              <option>Liquide Mittel</option>
+                              <option>Sonstiges</option>
+                            </select>
+                          </div>
+                          <div>
+                            <button type="button" class="btn btn--sm">
+                              <svg class="i"><use href="#i-plus" /></svg>Vermögenswert hinzufügen
+                            </button>
+                          </div>
+                        </div>
+                        <div class="suggest">
+                          <span>Vorschläge:</span><button type="button">Bargeld</button
+                          ><button type="button">Edelmetalle</button
+                          ><button type="button">Giralgeld</button
+                          ><button type="button">Aktien &amp; Fonds</button
+                          ><button type="button">Krypto</button
+                          ><button type="button">Immobilien</button
+                          ><button type="button">Fahrzeuge</button
+                          ><button type="button">Sammlerstücke</button
+                          ><button type="button">Sonstige</button>
+                        </div>
+                      </div>
+                      <div class="panel">
+                        <div class="panel__head">
+                          <div><h2>Verbindlichkeiten</h2></div>
+                        </div>
+                        <div class="pos-head">
+                          <span>Name</span><span>Klasse</span
+                          ><span style="text-align: right">Betrag (€)</span><span></span>
+                        </div>
+                        <div class="pos-body">
+                          <div class="pos-row">
+                            <input
+                              class="input"
+                              value="Hypothek Eigentumswohnung"
+                              aria-label="Name"
+                            /><input
+                              class="input"
+                              value="Hypothek"
+                              aria-label="Klasse"
+                              list="x"
+                            /><input
+                              class="input amount num"
+                              value="169.000"
+                              aria-label="Betrag in Euro"
+                            /><button
+                              type="button"
+                              class="icon-btn icon-btn--sm"
+                              aria-label="Position entfernen"
+                            >
+                              <svg class="i"><use href="#i-trash" /></svg>
+                            </button>
+                          </div>
+                          <div>
+                            <button type="button" class="btn btn--sm">
+                              <svg class="i"><use href="#i-plus" /></svg>Verbindlichkeit hinzufügen
+                            </button>
+                          </div>
+                        </div>
+                        <div class="suggest">
+                          <span>Vorschläge:</span><button type="button">Hypothek</button
+                          ><button type="button">Darlehen</button
+                          ><button type="button">Sonstige Schulden</button>
+                        </div>
+                      </div>
+                      <div class="note" id="neg-hint">
+                        <svg class="i"><use href="#i-info" /></svg>
+                        <div>
+                          Beträge werden immer positiv eingegeben. Ob eine Position das Vermögen
+                          erhöht oder mindert, bestimmt der Abschnitt, in dem sie steht.
+                        </div>
+                      </div>
+                    </div>
+                    <aside class="sum-box" aria-label="Zwischensumme">
+                      <div><span>Vermögenswerte</span><b class="num">117.000 €</b></div>
+                      <div><span>Verbindlichkeiten</span><b class="num neg">−169.000 €</b></div>
+                      <div class="total">
+                        <span>Nettovermögen</span><b class="num neg">−52.000 €</b>
+                      </div>
+                      <small class="muted"
+                        >Vorschau – es sind noch nicht alle Positionen eingetragen.</small
+                      >
+                      <button type="button" class="btn btn--primary" data-goto="overview">
+                        Stichtag speichern
+                      </button>
+                      <button type="button" class="btn" data-goto="overview">Abbrechen</button>
+                    </aside>
+                  </div>
+                </section>
+                <section data-show="dashboard" aria-label="Dashboard">
+                  <p class="dash-label">Mit Daten</p>
+                  <div class="dash-grid" style="margin-top: 0.4rem">
+                    <div class="ph-tile">[Kachel Holdings]</div>
+                    <div class="ph-tile">[Kachel Einkommen]</div>
+                    <article
+                      class="tile tile--cta"
+                      data-goto="overview"
+                      tabindex="0"
+                      role="link"
+                      aria-label="Vermögensentwicklung öffnen"
+                    >
+                      <div class="tile__head">
+                        <h3>
+                          <svg class="i" style="color: var(--p-primary)">
+                            <use href="#i-trend" /></svg
+                          >Vermögen
+                        </h3>
+                        <span class="badge badge--ok">Stand 30.09.2026</span>
+                      </div>
+                      <div class="tile__main">
+                        <span class="muted" style="font-size: 0.72rem">Nettovermögen</span
+                        ><b class="num">321.000 €</b>
+                      </div>
+                      <div class="delta-line">
+                        <span class="pos">▲ +19.000 € (+6,3 %)</span
+                        ><span class="muted">zum 30.06.2026</span>
+                      </div>
+                      <div class="spark-wrap">
+                        <svg
+                          id="spark1"
+                          class="spark"
+                          viewBox="0 0 200 44"
+                          preserveAspectRatio="none"
+                          role="img"
+                          aria-label="Verlauf des Nettovermögens über acht Stichtage"
+                        ></svg>
+                      </div>
+                      <div class="tile__rows">
+                        <div><span>Vermögenswerte</span><b class="num">490.000 €</b></div>
+                        <div><span>Verbindlichkeiten</span><b class="num">169.000 €</b></div>
+                      </div>
+                      <div class="tile__foot">
+                        <span class="link-btn">Zur Vermögensentwicklung →</span>
+                      </div>
+                    </article>
+                  </div>
+                  <p class="dash-label" style="margin-top: 1.4rem">Nur ein Stichtag</p>
+                  <div class="dash-grid" style="margin-top: 0.4rem">
+                    <article class="tile">
+                      <div class="tile__head">
+                        <h3>
+                          <svg class="i" style="color: var(--p-primary)">
+                            <use href="#i-trend" /></svg
+                          >Vermögen
+                        </h3>
+                        <span class="badge badge--ok">Stand 30.09.2026</span>
+                      </div>
+                      <div class="tile__main">
+                        <span class="muted" style="font-size: 0.72rem">Nettovermögen</span
+                        ><b class="num">321.000 €</b>
+                      </div>
+                      <div class="tile__empty" style="padding-top: 0.4rem">
+                        Mit einem zweiten Stichtag siehst du hier die Veränderung und den
+                        Verlauf.<button type="button" class="btn btn--sm" data-goto="form">
+                          Stichtag erfassen
+                        </button>
+                      </div>
+                    </article>
+                  </div>
+                  <p class="dash-label" style="margin-top: 1.4rem">Ohne Daten</p>
+                  <div class="dash-grid" style="margin-top: 0.4rem">
+                    <article class="tile">
+                      <div class="tile__head">
+                        <h3>
+                          <svg class="i" style="color: var(--p-primary)">
+                            <use href="#i-trend" /></svg
+                          >Vermögen
+                        </h3>
+                      </div>
+                      <div class="tile__empty">
+                        Erfasse deinen ersten Stichtag, um dein Nettovermögen und seine Entwicklung
+                        auf einen Blick zu sehen.<button
+                          type="button"
+                          class="btn btn--primary btn--sm"
+                          data-goto="form"
+                        >
+                          Ersten Stichtag erfassen
+                        </button>
+                      </div>
+                    </article>
+                  </div>
+                </section>
+                <section data-show="pdf" aria-label="PDF-Vorschau">
+                  <div class="note">
+                    <svg class="i"><use href="#i-info" /></svg>
+                    <div>
+                      Vorschau des PDF-Berichts „Vermögensentwicklung" (Querformat, Zeitraum
+                      „Alle"). Der Export startet wie bei Einkommen und Altersvorsorge über den
+                      Export-Dialog.
+                    </div>
+                  </div>
+                  <div class="pdf-pages">
+                    <div class="pdf-page">
+                      <div class="pdf-head">
+                        <div class="pdf-logo">
+                          <svg class="i"><use href="#i-shield" /></svg>Vaultfolio
+                        </div>
+                        <div><b>Vermögensentwicklung</b> · 31.12.2024 – 30.09.2026</div>
+                      </div>
+                      <div class="pdf-kpis">
+                        <div><small>Nettovermögen</small><b>321.000 €</b></div>
+                        <div>
+                          <small>Veränderung im Zeitraum</small><b class="pos">+98.000 €</b>
+                        </div>
+                        <div><small>Vermögenswerte</small><b>490.000 €</b></div>
+                        <div><small>Verbindlichkeiten</small><b>169.000 €</b></div>
+                      </div>
+                      <div class="pdf-cols">
+                        <div>
+                          <svg
+                            id="chart-pdf"
+                            role="img"
+                            aria-label="Nettovermögen über die Stichtage"
+                            style="width: 100%; height: auto"
+                          ></svg>
+                        </div>
+                        <div>
+                          <h2>Nach Klasse am 30.09.2026</h2>
+                          <table id="class-table"></table>
+                        </div>
+                      </div>
+                      <div class="pdf-foot">
+                        <span>Erstellt am 04.10.2026</span><span>Seite 1 von 2</span>
+                      </div>
+                    </div>
+                    <div class="pdf-page">
+                      <div class="pdf-head">
+                        <div class="pdf-logo">
+                          <svg class="i"><use href="#i-shield" /></svg>Vaultfolio
+                        </div>
+                        <div><b>Bilanz zum 30.09.2026</b></div>
+                      </div>
+                      <div style="flex: 1; min-height: 0; overflow: hidden">
+                        <div class="bs">
+                          <div class="bs__side">
+                            <div class="bs__title">
+                              <h3>Aktiva</h3>
+                              <small>Was ich besitze</small>
+                            </div>
+                            <div class="bs__group">
+                              <div class="bs__group-h">
+                                <span>Liquide Mittel</span><span class="num">40.000 €</span>
+                              </div>
+                              <div class="bs__row">
+                                <span
+                                  ><span class="dot" style="--dot: var(--c-liquid)"></span>Girokonto
+                                  Hauptbank<small>Bargeld &amp; Giralgeld</small></span
+                                ><b class="num">12.000 €</b>
+                              </div>
+                              <div class="bs__row">
+                                <span
+                                  ><span class="dot" style="--dot: var(--c-liquid)"></span
+                                  >Tagesgeld<small>Bargeld &amp; Giralgeld</small></span
+                                ><b class="num">26.000 €</b>
+                              </div>
+                              <div class="bs__row">
+                                <span
+                                  ><span class="dot" style="--dot: var(--c-liquid)"></span
+                                  >Bargeld<small>Bargeld &amp; Giralgeld</small></span
+                                ><b class="num">2.000 €</b>
+                              </div>
+                            </div>
+                            <div class="bs__group">
+                              <div class="bs__group-h">
+                                <span>Wertpapiere und Krypto</span
+                                ><span class="num">112.000 €</span>
+                              </div>
+                              <div class="bs__row">
+                                <span
+                                  ><span class="dot" style="--dot: var(--c-sec)"></span
+                                  >Welt-ETF-Depot<small>Aktien &amp; Fonds</small></span
+                                ><b class="num">99.000 €</b>
+                              </div>
+                              <div class="bs__row">
+                                <span
+                                  ><span class="dot" style="--dot: var(--c-crypto)"></span>Bitcoin /
+                                  Ether<small>Krypto</small></span
+                                ><b class="num">13.000 €</b>
+                              </div>
+                            </div>
+                            <div class="bs__group">
+                              <div class="bs__group-h">
+                                <span>Sachwerte</span><span class="num">338.000 €</span>
+                              </div>
+                              <div class="bs__row">
+                                <span
+                                  ><span class="dot" style="--dot: var(--c-real)"></span
+                                  >Eigentumswohnung<small>Immobilien</small></span
+                                ><b class="num">295.000 €</b>
+                              </div>
+                              <div class="bs__row">
+                                <span
+                                  ><span class="dot" style="--dot: var(--c-metal)"></span>Goldmünzen
+                                  und -barren<small>Edelmetalle</small></span
+                                ><b class="num">22.000 €</b>
+                              </div>
+                              <div class="bs__row">
+                                <span
+                                  ><span class="dot" style="--dot: var(--c-other)"></span
+                                  >Kompaktwagen<small>Sonstige</small></span
+                                ><b class="num">15.000 €</b>
+                              </div>
+                              <div class="bs__row">
+                                <span
+                                  ><span class="dot" style="--dot: var(--c-other)"></span
+                                  >Whisky-Sammlung<small>Sonstige</small></span
+                                ><b class="num">6.000 €</b>
+                              </div>
+                            </div>
+                            <div class="bs__group">
+                              <div class="bs__group-h">
+                                <span>Sonstiges</span><span class="num">0 €</span>
+                              </div>
+                              <div class="bs__empty-group">Keine Positionen</div>
+                            </div>
+                            <div class="bs__sum">
+                              <span>Summe Aktiva</span><span class="num">490.000 €</span>
+                            </div>
+                          </div>
+                          <div class="bs__side">
+                            <div class="bs__title">
+                              <h3>Passiva</h3>
+                              <small>Woher es kommt</small>
+                            </div>
+                            <div class="bs__group">
+                              <div class="bs__group-h">
+                                <span>Eigenkapital (Nettovermögen)</span
+                                ><span class="num">321.000 €</span>
+                              </div>
+                              <div class="bs__empty-group" style="font-style: normal">
+                                Aktiva − Verbindlichkeiten, wird berechnet
+                              </div>
+                            </div>
+                            <div class="bs__group">
+                              <div class="bs__group-h">
+                                <span>Langfristige Verbindlichkeiten</span
+                                ><span class="num">169.000 €</span>
+                              </div>
+                              <div class="bs__row">
+                                <span
+                                  ><span class="dot" style="--dot: var(--c-debt)"></span>Hypothek
+                                  Eigentumswohnung<small>Hypothek</small></span
+                                ><b class="num">169.000 €</b>
+                              </div>
+                            </div>
+                            <div class="bs__group">
+                              <div class="bs__group-h">
+                                <span>Kurzfristige Verbindlichkeiten</span
+                                ><span class="num">0 €</span>
+                              </div>
+                              <div class="bs__empty-group">Keine Positionen</div>
+                            </div>
+                            <div class="bs__group">
+                              <div class="bs__group-h">
+                                <span>Sonstige Verbindlichkeiten</span><span class="num">0 €</span>
+                              </div>
+                              <div class="bs__empty-group">Keine Positionen</div>
+                            </div>
+                            <div class="bs__sum">
+                              <span>Summe Passiva</span><span class="num">490.000 €</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="pdf-foot">
+                        <span>Eigenkapital = Aktiva − Verbindlichkeiten</span
+                        ><span>Seite 2 von 2</span>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="review-footer">
+      <h3>Was dieses Mockup zeigt</h3>
+      <ul>
+        <li>
+          Nicht funktionsfähig: Buttons wechseln nur zwischen Ansichten, es wird nichts gespeichert.
+          Alle Namen und Beträge sind erfunden.
+        </li>
+        <li>
+          Verbindlichkeiten werden mit positivem Betrag im Abschnitt „Verbindlichkeiten" erfasst; im
+          Diagramm hängen sie unter der Nulllinie, in der Bilanz stehen sie auf der Passivseite.
+        </li>
+        <li>
+          Eigene Klassen (z. B. „Whisky") fragen einmalig nach der Bilanzgruppe; später lässt sich
+          die Gruppe je Klasse ändern und gilt für alle Stichtage.
+        </li>
+        <li>
+          Die Dashboard-Kachel zeigt keine Bilanz, nur Nettovermögen, Veränderung, Verlauf und die
+          beiden Summen.
+        </li>
+        <li>
+          Die Legende im Diagramm ist im Mockup bedienbar (Klassen ein-/ausblenden), die
+          Zeitraumfilter nicht.
+        </li>
+        <li>
+          Optik nähert die aktuelle teal PrimeNG-Optik der App an; endgültige Tokens entstehen bei
+          der Umsetzung.
+        </li>
+      </ul>
+    </footer>
+    <script>
+      const canvas = document.getElementById('canvas'),
+        frame = document.getElementById('stage-frame'),
+        frameLabel = document.getElementById('stage-frame-label');
+      const tabOf = {
+        overview: 'overview',
+        single: 'overview',
+        empty: 'overview',
+        balance: 'balance',
+      };
+      function setScreen(name) {
+        canvas.setAttribute('data-screen', name);
+        canvas.querySelectorAll('[data-show]').forEach((el) => {
+          el.hidden = !el.getAttribute('data-show').split(' ').includes(name);
+        });
+        document.getElementById('page-title').textContent =
+          name === 'dashboard'
+            ? 'Dashboard'
+            : name === 'form' || name === 'form-dup'
+              ? 'Stichtag erfassen'
+              : 'Vermögensentwicklung';
+        canvas
+          .querySelectorAll('.tab')
+          .forEach((t) => t.setAttribute('aria-selected', String(t.dataset.tab === tabOf[name])));
+        canvas
+          .querySelectorAll('[data-nav]')
+          .forEach((n) =>
+            n.classList.toggle(
+              'nav__item--active',
+              n.dataset.nav === (name === 'dashboard' ? 'dashboard' : 'wealth'),
+            ),
+          );
+        document
+          .querySelectorAll('#screen-toggle button,#flow-toggle button')
+          .forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.screen === name)));
+      }
+      document.getElementById('viewport-toggle').addEventListener('click', (e) => {
+        const b = e.target.closest('button[data-viewport]');
+        if (!b) return;
+        frame.dataset.viewport = b.dataset.viewport;
+        frameLabel.textContent =
+          b.dataset.viewport === 'mobile' ? 'Mobile · 400px' : 'Desktop · 1240px';
+        chart(document.getElementById('chart-main'), b.dataset.viewport === 'mobile');
+        document
+          .querySelectorAll('#viewport-toggle button')
+          .forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      });
+      document.querySelectorAll('#screen-toggle,#flow-toggle').forEach((g) =>
+        g.addEventListener('click', (e) => {
+          const b = e.target.closest('button[data-screen]');
+          if (b) setScreen(b.dataset.screen);
+        }),
+      );
+      canvas.addEventListener('click', (e) => {
+        const go = e.target.closest('[data-goto]');
+        if (go) {
+          setScreen(go.dataset.goto);
+          return;
+        }
+        const t = e.target.closest('.tab');
+        if (t) setScreen(t.dataset.tab);
+        const p = e.target.closest('.period button');
+        if (p) {
+          p.parentElement
+            .querySelectorAll('button')
+            .forEach((x) => x.setAttribute('aria-pressed', String(x === p)));
+        }
+      });
+      canvas.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && e.target.matches('[data-goto]')) setScreen(e.target.dataset.goto);
+      });
+
+      // ---- invented data (k€) ----
+      const classes = [
+        ['Bargeld & Giralgeld', '--c-liquid'],
+        ['Aktien & Fonds', '--c-sec'],
+        ['Krypto', '--c-crypto'],
+        ['Edelmetalle', '--c-metal'],
+        ['Immobilien', '--c-real'],
+        ['Sonstige', '--c-other'],
+      ];
+      const snaps = [
+        ['31.12.2024', [28, 61, 6, 14, 280, 24], 190],
+        ['31.03.2025', [30, 66, 8, 15, 280, 24], 187],
+        ['30.06.2025', [27, 70, 9, 16, 285, 23], 184],
+        ['30.09.2025', [33, 74, 7, 16, 285, 23], 181],
+        ['31.12.2025', [35, 81, 11, 18, 290, 22], 178],
+        ['31.03.2026', [31, 86, 12, 19, 290, 22], 175],
+        ['30.06.2026', [36, 92, 10, 20, 295, 21], 172],
+        ['30.09.2026', [40, 99, 13, 22, 295, 21], 169],
+      ];
+      const fmt = (v) => (v * 1000).toLocaleString('de-DE') + ' €';
+      const hidden = new Set();
+      const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+      function chart(svg, small) {
+        const W = small ? 420 : 760,
+          H = small ? 230 : 300,
+          L = 46,
+          R = 10,
+          T = 12,
+          B = 26;
+        svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+        const min = -200,
+          max = 520,
+          y = (v) => T + ((max - v) / (max - min)) * (H - T - B),
+          bw = (W - L - R) / snaps.length;
+        let s = '<g class="axis">';
+        for (let v = -200; v <= 500; v += 100) {
+          s += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" ${v === 0 ? 'style="stroke:var(--p-muted)"' : ''}/><text x="${L - 6}" y="${y(v) + 3}" text-anchor="end">${v}k</text>`;
+        }
+        snaps.forEach((sn, k) => {
+          s += `<text x="${L + bw * k + bw / 2}" y="${H - 8}" text-anchor="middle">${sn[0].slice(3, 5)}/${sn[0].slice(8)}</text>`;
+        });
+        s +=
+          '</g><defs><pattern id="hatch' +
+          (small ? 's' : '') +
+          '" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="' +
+          css('--c-debt') +
+          '" opacity=".25"/><rect width="3" height="6" fill="' +
+          css('--c-debt') +
+          '" opacity=".8"/></pattern></defs>';
+        const pts = [];
+        snaps.forEach((sn, k) => {
+          let up = 0;
+          const x = L + bw * k + bw * 0.18,
+            w = bw * 0.64;
+          sn[1].forEach((v, c) => {
+            if (hidden.has(c)) return;
+            s += `<rect x="${x}" y="${y(up + v)}" width="${w}" height="${y(up) - y(up + v)}" fill="${css(classes[c][1])}"/>`;
+            up += v;
+          });
+          if (!hidden.has('debt'))
+            s += `<rect x="${x}" y="${y(0)}" width="${w}" height="${y(-sn[2]) - y(0)}" fill="url(#hatch${small ? 's' : ''})" stroke="${css('--c-debt')}"/>`;
+          const net = sn[1].reduce((a, b) => a + b, 0) - sn[2];
+          pts.push([L + bw * k + bw / 2, y(net)]);
+        });
+        if (!hidden.has('net')) {
+          s +=
+            `<polyline fill="none" stroke="var(--p-text)" stroke-width="2.5" points="${pts.map((p) => p.join(',')).join(' ')}"/>` +
+            pts
+              .map(
+                (p) =>
+                  `<circle cx="${p[0]}" cy="${p[1]}" r="3.5" fill="var(--p-bg)" stroke="var(--p-text)" stroke-width="2"/>`,
+              )
+              .join('');
+        }
+        svg.innerHTML = s;
+      }
+      function legend() {
+        const el = document.getElementById('legend-main');
+        el.innerHTML =
+          classes
+            .map(
+              (c, i) =>
+                `<button type="button" class="lg-chip" style="--dot:var(${c[1]})" data-k="${i}" aria-pressed="${!hidden.has(i)}"><i></i>${c[0]}</button>`,
+            )
+            .join('') +
+          `<button type="button" class="lg-chip lg-chip--debt" data-k="debt" aria-pressed="${!hidden.has('debt')}"><i></i>Verbindlichkeiten</button><button type="button" class="lg-chip lg-chip--line" style="--dot:var(--p-text)" data-k="net" aria-pressed="${!hidden.has('net')}"><i></i>Nettovermögen</button>`;
+      }
+      document.getElementById('legend-main').addEventListener('click', (e) => {
+        const b = e.target.closest('.lg-chip');
+        if (!b) return;
+        const k =
+          b.dataset.k === 'debt' || b.dataset.k === 'net' ? b.dataset.k : Number(b.dataset.k);
+        hidden.has(k) ? hidden.delete(k) : hidden.add(k);
+        legend();
+        chart(document.getElementById('chart-main'), frame.dataset.viewport === 'mobile');
+      });
+      function table() {
+        const t = document.getElementById('snap-table');
+        let h =
+          '<thead><tr><th>Stichtag</th><th class="r">Vermögenswerte</th><th class="r">Verbindlichkeiten</th><th class="r">Nettovermögen</th><th class="r">Veränderung</th><th class="r">%</th><th></th></tr></thead><tbody>';
+        const rows = snaps
+          .map((s, k) => {
+            const a = s[1].reduce((x, y) => x + y, 0),
+              n = a - s[2],
+              p = k ? snaps[k - 1][1].reduce((x, y) => x + y, 0) - snaps[k - 1][2] : null;
+            return [s[0], a, s[2], n, p];
+          })
+          .reverse();
+        rows.forEach((r, idx) => {
+          const d = r[4] == null ? null : r[3] - r[4];
+          h += `<tr class="${idx === 0 ? 'is-latest' : ''}"><td><b>${r[0]}</b></td><td class="r num">${fmt(r[1])}</td><td class="r num">${fmt(r[2])}</td><td class="r num"><b>${fmt(r[3])}</b></td><td class="r num ${d == null ? '' : d >= 0 ? 'pos' : 'neg'}">${d == null ? '–' : (d >= 0 ? '+' : '−') + fmt(Math.abs(d))}</td><td class="r num ${d == null ? '' : d >= 0 ? 'pos' : 'neg'}">${d == null ? '–' : (d >= 0 ? '+' : '−') + ((Math.abs(d) / r[4]) * 100).toFixed(1).replace('.', ',') + ' %'}</td><td class="r"><span class="row-acts"><button type="button" class="icon-btn icon-btn--sm" aria-label="Stichtag ${r[0]} bearbeiten" data-goto="form">${'<svg class="i"><use href="#i-edit"/></svg>'}</button><button type="button" class="icon-btn icon-btn--sm" aria-label="Stichtag ${r[0]} als Vorlage kopieren" data-goto="form">${'<svg class="i"><use href="#i-copy"/></svg>'}</button><button type="button" class="icon-btn icon-btn--sm" aria-label="Stichtag ${r[0]} löschen">${'<svg class="i"><use href="#i-trash"/></svg>'}</button></span></td></tr>`;
+        });
+        t.innerHTML = h + '</tbody>';
+      }
+      function classTable() {
+        const last = snaps[snaps.length - 1],
+          prev = snaps[snaps.length - 2];
+        let h = '<tr><th>Klasse</th><th>30.09.</th><th>Δ</th></tr>';
+        classes.forEach((c, i) => {
+          const d = last[1][i] - prev[1][i];
+          h += `<tr><td>${c[0]}</td><td>${fmt(last[1][i])}</td><td class="${d >= 0 ? 'pos' : 'neg'}">${d >= 0 ? '+' : '−'}${fmt(Math.abs(d))}</td></tr>`;
+        });
+        h += `<tr><td>Verbindlichkeiten</td><td>−${fmt(last[2])}</td><td class="pos">+${fmt(prev[2] - last[2])}</td></tr>`;
+        document.getElementById('class-table').innerHTML = h;
+      }
+      function spark() {
+        const n = snaps.map((s) => s[1].reduce((a, b) => a + b, 0) - s[2]);
+        const mn = Math.min(...n),
+          mx = Math.max(...n);
+        const p = n.map((v, k) => [(k / (n.length - 1)) * 200, 40 - ((v - mn) / (mx - mn)) * 34]);
+        document.getElementById('spark1').innerHTML =
+          `<polyline fill="none" stroke="var(--p-primary)" stroke-width="2" vector-effect="non-scaling-stroke" points="${p.map((q) => q.join(',')).join(' ')}"/>`;
+      }
+      legend();
+      chart(document.getElementById('chart-main'));
+      table();
+      classTable();
+      spark();
+      window.addEventListener('load', () => {});
+      const pdfChart = document.getElementById('chart-pdf');
+      const keep = new Set(hidden);
+      chart(pdfChart, true);
+      setScreen('overview');
+    </script>
+  </body>
+</html>
