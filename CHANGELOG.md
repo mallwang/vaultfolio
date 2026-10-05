@@ -1,3 +1,16 @@
+## 0.0.14 (2026-10-05)
+
+### 🚀 Features
+
+- **insurances:** add insurance management domain with gap check and exports ([#84](https://github.com/mallwang/vaultfolio/pull/84))
+- **wealth:** add p.a., footnotes, formulas and balance sheet to exports ([#80](https://github.com/mallwang/vaultfolio/pull/80))
+- **wealth:** style balance sheet and color changes in the wealth PDF ([#82](https://github.com/mallwang/vaultfolio/pull/82))
+
+### 🩹 Fixes
+
+- **auth:** drop previous user's data when the signed-in user changes ([#81](https://github.com/mallwang/vaultfolio/pull/81))
+- **frontend-domain-account-overview:** load export data lazily to avoid pre-login 401 ([#83](https://github.com/mallwang/vaultfolio/pull/83))
+
 ## 0.0.13 (2026-10-04)
 
 ### 🚀 Features
