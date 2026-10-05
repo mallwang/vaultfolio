@@ -24,6 +24,7 @@ export const de: TranslationDictionary = {
     switchToLightTheme: 'Zum hellen Design wechseln',
     switchToDarkTheme: 'Zum dunklen Design wechseln',
     signOut: 'Abmelden',
+    signingOut: 'Du wirst abgemeldet…',
     roleAdmin: 'Administrator',
     roleMember: 'Mitglied',
     language: 'Sprache',

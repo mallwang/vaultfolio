@@ -112,6 +112,7 @@ export class AppHeaderComponent {
   }
 
   protected signOut(): void {
+    this.sessionBoundary.markLeaving();
     this.authService.signOut().subscribe({
       next: () => this.sessionBoundary.leave(),
       // Even if the request fails (e.g. session already expired), clear

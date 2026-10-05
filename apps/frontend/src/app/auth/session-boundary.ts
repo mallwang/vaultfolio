@@ -1,4 +1,4 @@
-import { DOCUMENT, Injectable, InjectionToken, inject } from '@angular/core';
+import { DOCUMENT, Injectable, InjectionToken, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import type { SessionUser } from '@vaultfolio/api-contract';
@@ -39,6 +39,10 @@ export class SessionBoundary {
   private readonly pageLoader = inject(PAGE_LOADER);
   private readonly document = inject(DOCUMENT);
   private checking = false;
+  private readonly leavingState = signal(false);
+
+  /** True from `leave()` until the page is replaced; drives the blocking sign-out overlay. */
+  readonly leaving = this.leavingState.asReadonly();
 
   enter(user: SessionUser, url: string): void {
     const previous = this.currentUser.current();
@@ -50,8 +54,15 @@ export class SessionBoundary {
     void this.router.navigateByUrl(url);
   }
 
+  /** Raises the sign-out overlay early, for callers that still have a request to finish before `leave()`. */
+  markLeaving(): void {
+    this.leavingState.set(true);
+  }
+
   leave(url = '/sign-in'): void {
-    this.currentUser.setUnauthenticated();
+    // The store is deliberately left untouched: clearing it would blank user-bound UI before the
+    // page load replaces everything anyway.
+    this.leavingState.set(true);
     this.pageLoader.assign(url);
   }
 
