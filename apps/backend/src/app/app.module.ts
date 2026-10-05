@@ -11,6 +11,7 @@ import { AccountOverviewModule } from '../account-overview/account-overview.modu
 import { EarningsModule } from '../earnings/earnings.module';
 import { RetirementModule } from '../retirement/retirement.module';
 import { WealthModule } from '../wealth/wealth.module';
+import { InsurancesModule } from '../insurances/insurances.module';
 import { RequestsModule } from '../requests/requests.module';
 import { TurnstileModule } from '../turnstile/turnstile.module';
 import { ObservabilityModule } from '@vaultfolio/observability';
@@ -31,6 +32,7 @@ import { OpenApiModule } from '../openapi/openapi.module';
     EarningsModule,
     RetirementModule,
     WealthModule,
+    InsurancesModule,
     RequestsModule,
     TurnstileModule,
     OpenApiModule,

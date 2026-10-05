@@ -346,7 +346,7 @@ export const earningsEn: TranslationDictionary = {
   },
   widget: {
     title: '{{year}} · {{months}}',
-    open: 'Open',
+    open: 'To earnings',
     months: 'Jan–{{month}}',
     chart: 'Gross per year',
     growth: 'Growth {{from}}→{{to}}',

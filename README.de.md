@@ -239,6 +239,19 @@ unlesbar. **Ohne gültigen Schlüssel startet das Backend trotzdem**, aber jede 
 antwortet mit `503 WEALTH_UNAVAILABLE` (fail closed) und der Bereich zeigt „nicht verfügbar“; die
 übrigen Bereiche bleiben unberührt, gespeicherte Daten gehen nicht verloren.
 
+### Schlüssel für die Versicherungen
+
+Der Bereich „Versicherungen“ verschlüsselt jeden gespeicherten Vertrag (Bezeichnungen, Versicherer,
+Vertragsnummern, Beiträge, Daten, Notizen), das Profil des Lückenchecks und die
+Erinnerungseinstellungen mit einem eigenen `INSURANCES_ENCRYPTION_KEY` (Base64 von genau 32
+Zufallsbytes), getrennt von den übrigen Schlüsseln. Erzeugen und sichern Sie ihn wie den Schlüssel
+der Einkommensentwicklung (siehe oben) – ein verlorener oder geänderter Schlüssel macht alle
+gespeicherten Versicherungsdaten unwiederbringlich unlesbar. **Ohne gültigen Schlüssel startet das
+Backend trotzdem**, aber jede `/insurances`-Route antwortet mit `503 INSURANCES_UNAVAILABLE` (fail
+closed), es werden keine Erinnerungs-E-Mails versendet und der Bereich zeigt „nicht verfügbar“; die
+übrigen Bereiche bleiben unberührt, gespeicherte Daten gehen nicht verloren. Erinnerungs-E-Mails
+nutzen die SMTP-Einstellungen der übrigen Benachrichtigungen und den Link aus `APP_BASE_URL`.
+
 ## Mit Portainer deployen (oder einem anderen Docker-Hub-basierten Host)
 
 `docker-compose.yml` baut Images lokal aus dem Quellcode, was für Portainer auf einem NAS nicht

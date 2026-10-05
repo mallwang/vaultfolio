@@ -42,6 +42,10 @@ eigenen Infrastruktur.
    - 7b.1 [Stichtage erfassen](#7b1-stichtage-erfassen)
    - 7b.2 [Entwicklung, Bilanz und Kachel](#7b2-entwicklung-bilanz-und-kachel)
    - 7b.3 [Export, Datenschutz und Löschen](#7b3-export-datenschutz-und-löschen)
+     7c. [Versicherungen](#7c-versicherungen)
+   - 7c.1 [Verträge erfassen](#7c1-verträge-erfassen)
+   - 7c.2 [Übersicht, Fristen und Erinnerungen](#7c2-übersicht-fristen-und-erinnerungen)
+   - 7c.3 [Lückencheck, Datenschutz und Löschen](#7c3-lückencheck-datenschutz-und-löschen)
 8. [Einstellungen](#8-einstellungen)
    - 8.1 [Profil](#81-profil)
    - 8.2 [Präferenzen](#82-präferenzen)
@@ -511,6 +515,78 @@ und nie in Logs geschrieben. Unten auf der Seite entfernt **Alle Vermögensdaten
 Stichtag und jede Einstellung (das Konto bleibt); einzelne Stichtage löschst du in ihrer
 Tabellenzeile. Steht dort _Vermögensdaten sind vorübergehend nicht verfügbar_, kann der Server die
 Daten gerade nicht lesen – sie sind nicht verloren; wende dich an den Betreiber.
+
+---
+
+## 7c. Versicherungen
+
+**Versicherungen** verwaltet alle deine persönlichen Versicherungen an einem Ort: Verträge, was sie
+kosten und wann du sie kündigen kannst. Der Bereich steht nur zur Verfügung, wenn eine
+Administratorin oder ein Administrator die Domäne Versicherungen für dein Konto freigeschaltet hat.
+Alles wird von Hand erfasst; es wird nichts von Versicherern importiert und es werden keine Dokumente
+gespeichert (nur Notizen).
+
+### 7c.1 Verträge erfassen
+
+- **Vertrag erfassen** öffnet ein Formular. Wähle den Versicherungstyp aus dem Katalog (gruppiert
+  nach Personen, Haftung, Sachen, Mobilität, Recht und Sonstiges; jeder Typ zeigt, ob er wesentlich,
+  empfohlen, situativ oder optional ist) und gib die Vertragsdaten ein: Versicherer, Vertragsnummer,
+  Beginn und optional Ende, die **Prämie** mit Zahlweise (monatlich, vierteljährlich, halbjährlich,
+  jährlich) und den Zahlungsmonat bei nicht monatlicher Zahlweise.
+- **Kündigung**: Gib die Kündigungsfrist (Wochen oder Monate) an, ob sich der Vertrag automatisch
+  verlängert (und um wie viele Monate), optional eine Mindestlaufzeit und, wenn der Versicherer eines
+  nutzt, ein festes Kündigungsdatum pro Jahr (zum Beispiel 30. November bei der Kfz-Versicherung).
+  Das Feld rechts zeigt beim Tippen die monatlichen und jährlichen Kosten und das **nächste mögliche
+  Kündigungsdatum**.
+- Je nach Typ werden weitere Angaben angeboten (zum Beispiel Deckungssumme und Selbstbeteiligung,
+  Kennzeichen und Schadenfreiheitsklasse beim Auto, versicherte Monatsrente bei der
+  Berufsunfähigkeit). **Deckt zusätzlich ab** ist für Kombiprodukte: Wähle die weiteren Typen, die der
+  Vertrag abdeckt, damit der Lückencheck sie nicht als fehlend meldet.
+- Einen Vertrag bearbeitest oder löschst du in seiner Zeile. Damit ein Vertrag nicht mehr zählt,
+  setze seinen Status auf _Gekündigt_ mit einem Ende; er bleibt unter dem Statusfilter _Inaktiv_
+  sichtbar.
+- Gesetzliche Sozialversicherungen (Kranken-, Pflege-, Renten-, Arbeitslosenversicherung) sind
+  Verträge des passenden gesetzlichen Typs mit monatlicher Prämie. Hast du Einkommensdaten, erscheinen
+  sie automatisch als grüne, schreibgeschützte Zeilen mit dem Hinweis _aus Einkommen MM/JJJJ_
+  (Arbeitnehmeranteil deiner neuesten Abrechnung) und aktualisieren sich mit jedem Import.
+  **Manuell erfassen** legt stattdessen einen eigenen Vertrag an; die verknüpfte Zeile verschwindet
+  dann, damit nichts doppelt gezählt wird. Der Schalter **Sozialversicherungen einrechnen** in der
+  Werkzeugleiste nimmt sie in alle Summen auf oder lässt sie heraus.
+
+### 7c.2 Übersicht, Fristen und Erinnerungen
+
+Die Registerkarte **Übersicht** zeigt die Kosten pro Monat und pro Jahr (mit dem gesetzlichen Anteil),
+die Anzahl aktiver Verträge, die nächste Kündigungsfrist, einen Ring der Jahreskosten nach Gruppe,
+ein Balkendiagramm der Zahlungen pro Monat des gewählten Jahres (Jahresbeiträge erscheinen als
+Spitzen), die anstehenden Kündigungsfristen und eine Zusammenfassung des Lückenchecks. Fristen im
+Warnfenster werden hervorgehoben; das Fenster entspricht deinem Erinnerungsvorlauf (30 Tage, solange
+Erinnerungen aus sind). Ohne Verträge erhältst du eine Einladung, den ersten zu erfassen.
+
+Die Registerkarte **Verträge** listet alle Verträge, filterbar nach Gruppe, Status und Einstufung und
+sortierbar nach Prämie und nächster Kündigung. Die Daten sind die berechneten Daten; sie werden nicht
+an Wochenenden oder Feiertage angepasst.
+
+Unter **Erinnerungen** (Werkzeugleiste) schaltest du Erinnerungs-E-Mails zu Kündigungsfristen ein oder
+aus (Standard: aus), wählst den Vorlauf (7 bis 120 Tage, Standard 30) und schaltest einzelne Verträge
+ab. Du erhältst eine E-Mail pro Vertrag und Frist, in deiner Sprache, und keine für inaktive Verträge.
+Die E-Mail enthält nur Versicherungstyp, Vertragsbezeichnung und Datum. Das Dashboard zeigt eine
+Kachel Versicherungen mit den monatlichen Kosten und der nächsten Frist.
+
+### 7c.3 Lückencheck, Datenschutz und Löschen
+
+Die Registerkarte **Lückencheck** stellt wenige Fragen (Immobilien, Auto, Kinder, Haustiere,
+Auslandsreisen, Beschäftigung) und listet, welche relevanten Versicherungen **fehlen** (wesentliche
+zuerst, mit kurzer Erklärung), welche **abgedeckt** sind und welche Verträge **Doppelungen** sein
+könnten (zum Beispiel Überschneidung mit einem Kombiprodukt). **Ausblenden** entfernt einen Vorschlag,
+bis du ihn **wiederherstellst**. Das Ergebnis ist eine allgemeine Orientierung, keine individuelle
+Versicherungsberatung.
+
+**Daten exportieren** schreibt alle Verträge und verknüpften gesetzlichen Zeilen als PDF, Excel, CSV
+oder JSON. Vertragsdaten, dein Profil und die Erinnerungseinstellungen werden verschlüsselt gespeichert
+und nie in Logs geschrieben. Unten auf der Seite entfernt **Alle Versicherungsdaten löschen** jeden
+Vertrag und jede Einstellung (das Konto bleibt). Steht dort _Versicherungsdaten sind vorübergehend
+nicht verfügbar_, kann der Server die Daten gerade nicht lesen – sie sind nicht verloren; wende dich
+an den Betreiber.
 
 ---
 

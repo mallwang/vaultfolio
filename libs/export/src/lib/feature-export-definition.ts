@@ -83,8 +83,18 @@ export type PdfSection =
       /** Already translated; entry `n` (1-based) belongs to the column with `footnote: n`, printed below the table. */
       footnotes?: string[];
     }
-  | { kind: 'text'; title?: string; text: string }
-  | { kind: 'kpis'; tiles: PdfKpiTile[] }
+  | {
+      kind: 'text';
+      title?: string;
+      text: string;
+      /** Orange text, for a notice. */ tone?: 'warning';
+    }
+  | {
+      kind: 'kpis';
+      tiles: PdfKpiTile[];
+      /** Renders the tiles above the chart instead of after it. */
+      beforeChart?: boolean;
+    }
   | { kind: 'bar'; title: string; caption?: string; segments: PdfBarSegment[] };
 
 /** One figure tile of a `kpis` section; tiles share the page width evenly. */
@@ -101,6 +111,8 @@ export interface PdfKpiTile {
   italic?: boolean;
   /** Colors the value and hints teal (`positive`) or orange (`negative`). */
   tone?: 'positive' | 'negative';
+  /** Orange border only; value and hints keep their normal colors. */
+  warnBorder?: boolean;
 }
 
 /** One segment of a `bar` section; shares are fractions and are scaled to the bar's width. */
@@ -160,6 +172,8 @@ export interface ExportTable {
   rows: ExportTableRow[];
   /** JSON key that receives the `emphasis: 'total'` row. */
   totalKey?: string;
+  /** Already translated; Excel and CSV write it as the only data row of a table without rows (JSON stays `[]`). */
+  emptyText?: string;
 }
 
 export type ExportFormat = 'json' | 'csv' | 'xlsx' | 'pdf';

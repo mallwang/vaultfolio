@@ -154,10 +154,11 @@ describe('app.routes', () => {
 
     it.each(NEW_DOMAIN_IDS)('resolves /app/%s to itself', async (id) => {
       await router.navigateByUrl(`/app/${id}`);
-      // the retirement area opens on its overview tab (037), the wealth area on its development tab (038)
+      // the retirement area opens on its overview tab (037), the wealth area on its development tab (038), insurances on its overview tab (039)
       const opened: Record<string, string> = {
         retirement: '/app/retirement/overview',
         'historic-wealth-development': '/app/historic-wealth-development/development',
+        insurances: '/app/insurances/overview',
       };
       expect(location.path()).toBe(opened[id] ?? `/app/${id}`);
     });

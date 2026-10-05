@@ -31,6 +31,7 @@ describe('DashboardLayoutStore', () => {
       'holdings',
       'earnings',
       'retirement',
+      'insurances',
       'historic-wealth-development',
     ]);
     expect(store.visibleTiles().find((t) => t.id === 'earnings')?.entitled).toBe(false);
@@ -45,6 +46,7 @@ describe('DashboardLayoutStore', () => {
       'totalValue',
       'earnings',
       'retirement',
+      'insurances',
       'historic-wealth-development',
     ]);
     expect(JSON.parse(localStorage.getItem('vaultfolio.dashboard-layout.u1') ?? '')).toEqual({
@@ -54,6 +56,7 @@ describe('DashboardLayoutStore', () => {
         'totalValue',
         'earnings',
         'retirement',
+        'insurances',
         'historic-wealth-development',
       ],
       hidden: ['todaysChange'],

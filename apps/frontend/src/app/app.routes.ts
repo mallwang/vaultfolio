@@ -34,6 +34,14 @@ const lazyWealthAvailableGuard: CanActivateFn = () => {
   );
 };
 
+/** Same for the Insurances library's `insurancesAvailableGuard` (contract form screens). */
+const lazyInsurancesAvailableGuard: CanActivateFn = () => {
+  const injector = inject(EnvironmentInjector);
+  return import('@vaultfolio/frontend-domain-insurances').then((m) =>
+    runInInjectionContext(injector, () => m.insurancesAvailableGuard()),
+  );
+};
+
 /** Same for the Retirement library's `retirementAvailableGuard` (form and import screens). */
 const lazyRetirementAvailableGuard: CanActivateFn = () => {
   const injector = inject(EnvironmentInjector);
@@ -268,13 +276,56 @@ export const routes: Routes = [
         ],
       },
       {
+        path: 'insurances/new',
+        title: 'pageTitle.insurancesNew',
+        canActivate: [domainGuard('insurances'), lazyInsurancesAvailableGuard],
+        loadComponent: () =>
+          import('@vaultfolio/frontend-domain-insurances').then(
+            (m) => m.InsurancesContractFormComponent,
+          ),
+      },
+      {
+        path: 'insurances/:id/edit',
+        title: 'pageTitle.insurancesEdit',
+        canActivate: [domainGuard('insurances'), lazyInsurancesAvailableGuard],
+        loadComponent: () =>
+          import('@vaultfolio/frontend-domain-insurances').then(
+            (m) => m.InsurancesContractFormComponent,
+          ),
+      },
+      {
         path: 'insurances',
         title: 'pageTitle.insurances',
         canActivate: [domainGuard('insurances')],
         loadComponent: () =>
-          import('@vaultfolio/frontend-domain-insurances').then(
-            (m) => m.InsurancesPlaceholderComponent,
-          ),
+          import('@vaultfolio/frontend-domain-insurances').then((m) => m.InsurancesAreaComponent),
+        children: [
+          { path: '', pathMatch: 'full', redirectTo: 'overview' },
+          {
+            path: 'overview',
+            title: 'pageTitle.insurances',
+            loadComponent: () =>
+              import('@vaultfolio/frontend-domain-insurances').then(
+                (m) => m.InsurancesOverviewComponent,
+              ),
+          },
+          {
+            path: 'contracts',
+            title: 'pageTitle.insurancesContracts',
+            loadComponent: () =>
+              import('@vaultfolio/frontend-domain-insurances').then(
+                (m) => m.InsurancesContractsComponent,
+              ),
+          },
+          {
+            path: 'gap-check',
+            title: 'pageTitle.insurancesGapCheck',
+            loadComponent: () =>
+              import('@vaultfolio/frontend-domain-insurances').then(
+                (m) => m.InsurancesGapCheckComponent,
+              ),
+          },
+        ],
       },
       {
         path: 'haushaltsplaner',

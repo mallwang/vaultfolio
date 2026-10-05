@@ -10,7 +10,7 @@ const {
   mockCreateAccountOverview,
   mockCreateRetirement,
   mockCreateWealth,
-  mockInsurancesDef,
+  mockCreateInsurances,
   mockHaushaltsplanerDef,
   mockHistoricDef,
 } = vi.hoisted(() => {
@@ -31,7 +31,7 @@ const {
     mockCreateAccountOverview: vi.fn(() => mockAccountDef),
     mockCreateRetirement: vi.fn(() => mockRetirementDef),
     mockCreateWealth: vi.fn(() => mockHistoricDef),
-    mockInsurancesDef,
+    mockCreateInsurances: vi.fn(() => mockInsurancesDef),
     mockHaushaltsplanerDef,
     mockHistoricDef,
     mockHoldingsDef,
@@ -49,7 +49,7 @@ vi.mock('@vaultfolio/frontend-domain-retirement', () => ({
   createRetirementExportDefinition: mockCreateRetirement,
 }));
 vi.mock('@vaultfolio/frontend-domain-insurances', () => ({
-  INSURANCES_EXPORT_DEFINITION: mockInsurancesDef,
+  createInsurancesExportDefinition: mockCreateInsurances,
 }));
 vi.mock('@vaultfolio/frontend-domain-haushaltsplaner', () => ({
   HAUSHALTSPLANER_EXPORT_DEFINITION: mockHaushaltsplanerDef,
@@ -77,20 +77,20 @@ describe('registerFeatureExports', () => {
     expect(register).toHaveBeenCalledTimes(7);
   });
 
-  it('resolves factory-based definitions via runInInjectionContext (holdings, account-overview, earnings, retirement, wealth)', async () => {
+  it('resolves factory-based definitions via runInInjectionContext (holdings, account-overview, earnings, retirement, insurances, wealth)', async () => {
     await registerFeatureExports({ register } as never, injector);
     expect(mockCreateHoldings).toHaveBeenCalledTimes(1);
     expect(mockCreateAccountOverview).toHaveBeenCalledTimes(1);
     expect(mockCreateEarnings).toHaveBeenCalledTimes(1);
     expect(mockCreateRetirement).toHaveBeenCalledTimes(1);
     expect(mockCreateWealth).toHaveBeenCalledTimes(1);
+    expect(mockCreateInsurances).toHaveBeenCalledTimes(1);
     expect(register.mock.calls.map((c) => c[0])).toContain(mockHistoricDef);
   });
 
-  it('registers placeholder constants directly without a factory', async () => {
+  it('registers the placeholder constant directly without a factory', async () => {
     await registerFeatureExports({ register } as never, injector);
     const registered = register.mock.calls.map((c) => c[0]);
-    expect(registered).toContain(mockInsurancesDef);
     expect(registered).toContain(mockHaushaltsplanerDef);
   });
 });

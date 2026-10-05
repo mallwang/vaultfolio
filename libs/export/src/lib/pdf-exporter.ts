@@ -168,11 +168,14 @@ function sectionCell(
 const TILE_GAP = 8;
 
 function tileLineColor(tiles: PdfKpiTile[], index: number | undefined): string {
-  return index !== undefined && tiles[index]?.highlight ? TILE_HIGHLIGHT : TILE_BORDER;
+  const tile = index === undefined ? undefined : tiles[index];
+  if (tile?.warnBorder) return ORANGE;
+  return tile?.highlight ? TILE_HIGHLIGHT : TILE_BORDER;
 }
 
 function tileLineWidth(tiles: PdfKpiTile[], index: number | undefined): number {
-  return index !== undefined && tiles[index]?.highlight ? 1.5 : 0.75;
+  const tile = index === undefined ? undefined : tiles[index];
+  return tile?.highlight || tile?.warnBorder ? 1.5 : 0.75;
 }
 
 /** Tiles are the cells of one table row, so they all get the height of the tallest one. */
@@ -320,7 +323,11 @@ function sectionContent(section: PdfSection, locale: string, contentWidth: numbe
       ...(section.title
         ? [{ text: section.title, style: 'sectionHeader', margin: [0, 8, 0, 4] }]
         : []),
-      { text: section.text, margin: [0, 0, 0, 8] },
+      {
+        text: section.text,
+        margin: [0, 0, 0, 8],
+        ...(section.tone === 'warning' ? { color: ORANGE } : {}),
+      },
     ] as Content[];
   }
   const fontSize = section.fontSize ?? SECTION_FONT_SIZE;
@@ -483,6 +490,13 @@ export function buildDocDefinition(resolved: ResolvedFeatureExport): TDocumentDe
     },
   ];
 
+  const isLead = (section: PdfSection) => section.kind === 'kpis' && section.beforeChart === true;
+  const allSections = resolved.pdfSections ?? [];
+  const sections = allSections.filter((section) => !isLead(section));
+  for (const section of allSections.filter(isLead)) {
+    content.push(...sectionContent(section, locale, contentWidthOf(resolved)));
+  }
+
   if (resolved.chartImages && resolved.chartImages.length > 0) {
     const [mainImage] = resolved.chartImages;
     const sideTable = resolved.chartSideTable;
@@ -541,7 +555,6 @@ export function buildDocDefinition(resolved: ResolvedFeatureExport): TDocumentDe
     }
   }
 
-  const sections = resolved.pdfSections ?? [];
   if (sections.length > 0) {
     const contentWidth = contentWidthOf(resolved);
     for (const section of sections) content.push(...sectionContent(section, locale, contentWidth));

@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {
   I18nService,
@@ -75,17 +75,25 @@ const AREA = '/app/historic-wealth-development';
                   @for (part of parts(); track part.key) {
                     <span
                       class="bar__part"
+                      [class.dim]="hovered() !== null && hovered() !== part.key"
                       [style.flex-grow]="part.weight"
                       [style.background]="part.color"
+                      [title]="part.label + ': ' + part.amount + ' (' + part.share + ')'"
+                      (mouseenter)="hovered.set(part.key)"
+                      (mouseleave)="hovered.set(null)"
                     ></span>
                   }
                 </div>
                 <ul class="legend" data-testid="wealth-widget-legend">
                   @for (part of parts(); track part.key) {
-                    <li>
+                    <li
+                      [class.active]="hovered() === part.key"
+                      (mouseenter)="hovered.set(part.key)"
+                      (mouseleave)="hovered.set(null)"
+                    >
                       <span class="swatch" [style.background]="part.color"></span>
                       <span class="legend__name">{{ part.label }}</span>
-                      <span class="legend__share">{{ part.share }}</span>
+                      <span class="legend__share">{{ part.amount }} ({{ part.share }})</span>
                     </li>
                   }
                 </ul>
@@ -182,6 +190,13 @@ const AREA = '/app/historic-wealth-development';
     }
     .bar__part {
       flex-basis: 0;
+      transition: opacity 0.15s;
+    }
+    .bar__part.dim {
+      opacity: 0.35;
+    }
+    .legend li.active {
+      font-weight: 600;
     }
     .foot {
       margin: 0;
@@ -223,6 +238,7 @@ export class WealthDashboardWidgetComponent implements OnInit {
   private readonly theme = inject(ThemeService);
 
   protected readonly area = AREA;
+  protected readonly hovered = signal<string | null>(null);
   protected readonly figures = computed(() => widgetFiguresOf(this.store.snapshots()));
   /** Asset-class composition of the latest snapshot, colored like the overview's bar. */
   protected readonly parts = computed(() => {
@@ -237,6 +253,7 @@ export class WealthDashboardWidgetComponent implements OnInit {
         ...part,
         label: labelOf.get(part.key) ?? part.key,
         share: formatShare(String(part.weight), String(total), lang),
+        amount: formatMoney(String(part.weight), lang),
         color: colors[index % colors.length],
       }))
       .filter((part) => part.weight > 0);
