@@ -50,7 +50,7 @@ const newDomainOnlyUser: SessionUser = {
   email: 'new-domain-only@example.com',
   displayName: 'New Domain Only',
   role: 'MEMBER',
-  domainScopes: ['insurances'],
+  domainScopes: ['haushaltsplaner'],
 };
 
 describe('DashboardComponent', () => {

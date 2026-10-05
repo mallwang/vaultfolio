@@ -17,3 +17,4 @@ export * from './earnings';
 export * from './requests';
 export * from './retirement';
 export * from './wealth';
+export * from './insurances';

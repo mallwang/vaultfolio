@@ -420,6 +420,43 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       )
     `);
 
+    // 039-insurances-management: one row per contract, one settings row per owner and a plain
+    // reminder log. Names, insurers, contract numbers, amounts, dates, notes, profile and
+    // dismissals live only inside the AES-256-GCM `payload_enc`; the log holds ids and a date.
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS insurance_contracts (
+        id          TEXT PRIMARY KEY,
+        owner_id    TEXT NOT NULL,
+        payload_enc TEXT NOT NULL,
+        key_version INTEGER NOT NULL DEFAULT 1,
+        created_at  TEXT NOT NULL,
+        updated_at  TEXT NOT NULL
+      )
+    `);
+    db.exec(
+      'CREATE INDEX IF NOT EXISTS insurance_contracts_owner_idx ON insurance_contracts (owner_id)',
+    );
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS insurance_settings (
+        owner_id    TEXT PRIMARY KEY,
+        payload_enc TEXT NOT NULL,
+        key_version INTEGER NOT NULL DEFAULT 1,
+        updated_at  TEXT NOT NULL
+      )
+    `);
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS insurance_reminder_log (
+        owner_id      TEXT NOT NULL,
+        contract_id   TEXT NOT NULL,
+        deadline_date TEXT NOT NULL,
+        sent_at       TEXT NOT NULL,
+        PRIMARY KEY (contract_id, deadline_date)
+      )
+    `);
+    db.exec(
+      'CREATE INDEX IF NOT EXISTS insurance_reminder_log_owner_idx ON insurance_reminder_log (owner_id)',
+    );
+
     // 033-parser-requests: generic requests (feature + type, status workflow) with an optional
     // generated attachment and an admin download audit. Brand-new tables, so `IF NOT EXISTS` is
     // enough. No monetary values and no personal identifiers of any document are stored here.

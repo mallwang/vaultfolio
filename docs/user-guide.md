@@ -42,6 +42,10 @@ infrastructure.
    - 7b.1 [Recording Snapshots](#7b1-recording-snapshots)
    - 7b.2 [Development, Balance Sheet and Tile](#7b2-development-balance-sheet-and-tile)
    - 7b.3 [Export, Privacy and Deleting](#7b3-export-privacy-and-deleting)
+     7c. [Insurances](#7c-insurances)
+   - 7c.1 [Recording Contracts](#7c1-recording-contracts)
+   - 7c.2 [Overview, Deadlines and Reminders](#7c2-overview-deadlines-and-reminders)
+   - 7c.3 [Gap Check, Privacy and Deleting](#7c3-gap-check-privacy-and-deleting)
 8. [Settings](#8-settings)
    - 8.1 [Profile](#81-profile)
    - 8.2 [Preferences](#82-preferences)
@@ -488,6 +492,72 @@ bold with their entries indented below. Entry names, classes, amounts and notes 
 bottom of the page **Delete all wealth data** removes every snapshot and setting (the account stays);
 single snapshots are deleted from their table row. If the page says _Wealth data is temporarily
 unavailable_, the server cannot read the data right now — it is not lost; contact the operator.
+
+---
+
+## 7c. Insurances
+
+**Insurances** (_Versicherungen_) keeps all your personal insurances in one place: contracts,
+what they cost, and when you can cancel them. It is available only if an administrator has enabled
+the Insurances domain for your account. Everything is entered by hand; nothing is imported from
+insurers, and no documents are stored (only notes).
+
+### 7c.1 Recording Contracts
+
+- **Add contract** opens a form. Pick the insurance type from the catalog (grouped into persons,
+  liability, property, mobility, legal and other; each type shows whether it is essential,
+  recommended, situational or optional) and enter the contract data: insurer, contract number, start
+  and optional end, the **premium** with its payment interval (monthly, quarterly, half-yearly,
+  yearly) and the payment month for non-monthly intervals.
+- **Cancellation**: enter the notice period (weeks or months), whether the contract renews
+  automatically (and for how many months), an optional minimum term and, if the insurer uses one, a
+  fixed cancellation date every year (for example 30 November for car insurance). The panel on the
+  right shows the monthly and yearly cost and the **next possible cancellation date** while you type.
+- Depending on the type, further details are offered (for example coverage sum and deductible, licence
+  plate and no-claims class for cars, insured monthly benefit for disability insurance).
+  **Also covers** is for combination products: select the further types the contract covers so the
+  gap check does not report them as missing.
+- Edit or delete a contract from its row. To stop counting a contract, set its status to _Cancelled_
+  with an end date; it then stays visible under the _Inactive_ status filter.
+- Statutory social insurances (health, long-term care, pension, unemployment) are contracts of the
+  matching statutory type with a monthly premium. If you have Earnings data, they appear
+  automatically as green, read-only rows marked _from Earnings MM/YYYY_ (employee share of your
+  latest payslip) and update with every import. **Enter manually** creates your own contract
+  instead; the linked row then disappears so nothing is counted twice. The switch **Include social
+  insurances** in the toolbar includes or excludes them in all totals.
+
+### 7c.2 Overview, Deadlines and Reminders
+
+The **Overview** tab shows the cost per month and per year (with the statutory share), the number of
+active contracts, the next cancellation deadline, a donut of the yearly cost by group, a bar chart of
+the payments per month of the chosen year (yearly premiums show up as spikes), the upcoming
+cancellation deadlines and a gap-check summary. Deadlines inside the warning window are highlighted;
+the window equals your reminder lead time (30 days while reminders are off). Without contracts you
+get an invitation to add the first one.
+
+The **Contracts** tab lists all contracts, filterable by group, status and classification and
+sortable by premium and next cancellation date. Dates are the calculated dates; they are not adjusted
+for weekends or holidays.
+
+**Reminders** (toolbar) lets you switch cancellation-deadline reminder e-mails on or off (default:
+off), choose how many days in advance (7 to 120, default 30) and switch single contracts off. You
+get one e-mail per contract and deadline, in your language, and none for inactive contracts. The
+e-mail contains only the insurance type, the contract name and the date. The Dashboard shows an
+Insurances tile with the monthly cost and the next deadline.
+
+### 7c.3 Gap Check, Privacy and Deleting
+
+The **Gap check** tab asks a few questions (real estate, car, children, pets, travel abroad,
+employment) and lists which relevant insurances are **missing** (essential ones first, with a short
+explanation), which are **covered**, and which contracts may be **duplicates** (for example overlap
+with a combination product). **Hide** removes a suggestion until you **Restore** it. The result is
+general guidance, not personalised insurance advice.
+
+**Export data** writes all contracts and linked statutory lines as PDF, Excel, CSV or JSON. Contract
+data, your profile and reminder settings are stored encrypted and are never written to logs. At the
+bottom of the page **Delete all insurance data** removes every contract and setting (the account
+stays). If the page says _Insurance data is temporarily unavailable_, the server cannot read the data
+right now — it is not lost; contact the operator.
 
 ---
 

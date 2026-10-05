@@ -30,6 +30,14 @@ export const DASHBOARD_WIDGET_CONTRIBUTIONS: DashboardWidgetContribution[] = [
       ),
   },
   {
+    domainId: 'insurances',
+    titleKey: 'dashboard.insurances',
+    loadComponent: () =>
+      import('@vaultfolio/frontend-domain-insurances').then(
+        (m) => m.InsurancesDashboardWidgetComponent,
+      ),
+  },
+  {
     domainId: 'historic-wealth-development',
     titleKey: 'dashboard.wealth',
     loadComponent: () =>

@@ -1,0 +1,28 @@
+meta {
+  name: Save Settings
+  type: http
+  seq: 5
+}
+
+put {
+  url: {{baseUrl}}/insurances/settings
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "profile": { "ownsProperty": false, "ownsCar": false, "hasChildren": false, "hasPets": false, "travelsAbroad": false, "employment": "EMPLOYED" },
+    "reminders": { "enabled": true, "leadDays": 30 },
+    "dismissedRequirements": [],
+    "includeSocial": true
+  }
+}
+
+docs {
+  Profile, reminder preferences (lead days 7-120), dismissed gap suggestions, social toggle.
+}

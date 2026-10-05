@@ -1,0 +1,15 @@
+meta {
+  name: Delete Contract
+  type: http
+  seq: 4
+}
+
+delete {
+  url: {{baseUrl}}/insurances/contracts/:id
+  body: none
+  auth: none
+}
+
+docs {
+  Replace `:id` in the URL.
+}

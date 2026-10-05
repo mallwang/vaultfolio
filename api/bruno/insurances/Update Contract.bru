@@ -1,0 +1,34 @@
+meta {
+  name: Update Contract
+  type: http
+  seq: 3
+}
+
+put {
+  url: {{baseUrl}}/insurances/contracts/:id
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "type": "PRIVATE_LIABILITY",
+    "name": "Privathaftpflicht",
+    "insurer": "Beispiel Versicherung AG",
+    "status": "ACTIVE",
+    "startDate": "2025-01-01",
+    "premium": "96.00",
+    "interval": "YEARLY",
+    "paymentMonth": 3,
+    "cancellation": { "autoRenew": true, "period": { "value": 3, "unit": "MONTHS" } },
+    "reminderEnabled": true
+  }
+}
+
+docs {
+  Replaces a contract as a whole; replace `:id` in the URL.
+}

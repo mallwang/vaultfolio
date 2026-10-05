@@ -1,0 +1,15 @@
+meta {
+  name: Get Data
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/insurances
+  body: none
+  auth: none
+}
+
+docs {
+  Contracts, linked social lines (derived from Earnings, read-only), settings and server date in one call.
+}

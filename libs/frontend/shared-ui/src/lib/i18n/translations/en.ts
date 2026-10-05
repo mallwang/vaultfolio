@@ -2,6 +2,7 @@ import { requestsEn } from './requests.en';
 import { earningsEn } from './earnings.en';
 import { retirementEn } from './retirement.en';
 import { wealthEn } from './wealth.en';
+import { insurancesEn } from './insurances.en';
 import { ocrEn } from './ocr.en';
 
 /**
@@ -76,6 +77,7 @@ export const en: TranslationDictionary = {
     },
     retirement: 'Retirement',
     wealth: 'Wealth',
+    insurances: 'Insurances',
     earnings: 'Earnings',
     totalValue: 'Total value',
     todaysChange: "Today's change",
@@ -420,10 +422,6 @@ export const en: TranslationDictionary = {
   },
   // Placeholder domains (022-add-domain-placeholders, FR-003): each renders
   // only its name and this "not yet available" copy — no other UI surface.
-  insurancesPlaceholder: {
-    title: 'Insurances',
-    body: 'Insurances is not yet available. This area will be built out in a future update.',
-  },
   haushaltsplanerPlaceholder: {
     title: 'Budget Planner',
     body: 'Budget Planner is not yet available. This area will be built out in a future update.',
@@ -515,6 +513,11 @@ export const en: TranslationDictionary = {
     wealthBalance: 'Wealth · Balance sheet',
     wealthNew: 'Record wealth snapshot',
     wealthEdit: 'Edit wealth snapshot',
+    insurancesNew: 'Add insurance contract',
+    insurancesEdit: 'Edit insurance contract',
+    insurancesContracts: 'Insurances · Contracts',
+    insurancesGapCheck: 'Insurances · Gap check',
+    insurancesReminders: 'Insurances · Reminders',
     accountOverview: 'Account Overview',
     klaro: 'Klaro',
     earnings: 'Earnings',
@@ -679,11 +682,6 @@ export const en: TranslationDictionary = {
     columnStatementDate: 'Statement date',
     columnOrigin: 'Origin',
   },
-  insurancesExport: {
-    title: 'Insurances',
-    infobox:
-      'About this export — Insurances. Insurance tracking is not built yet in Vaultfolio, so this file contains no rows today — it will automatically start including your data once that feature ships.',
-  },
   haushaltsplanerExport: {
     title: 'Budget Planner',
     infobox:
@@ -692,6 +690,7 @@ export const en: TranslationDictionary = {
   earnings: earningsEn,
   retirement: retirementEn,
   wealth: wealthEn,
+  insurances: insurancesEn,
   ocr: ocrEn,
   requests: requestsEn,
 };
