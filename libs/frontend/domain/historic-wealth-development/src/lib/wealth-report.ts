@@ -57,6 +57,9 @@ function kpiSection(
       {
         label: t('wealth.kpi.change'),
         value: delta === null ? none : formatMoney(delta, lang, { signed: true }),
+        ...(delta === null || Number(delta) === 0
+          ? {}
+          : { tone: Number(delta) > 0 ? ('positive' as const) : ('negative' as const) }),
         hints:
           previous && delta !== null
             ? [
@@ -111,7 +114,7 @@ function classTable(
     { key: 'side', label: t('wealth.export.sideColumn'), format: 'text', width: 100 },
     { key: 'amount', label: t('wealth.export.amountColumn'), format: 'currency' },
     { key: 'share', label: t('wealth.export.shareColumn'), format: 'percent' },
-    { key: 'change', label: t('wealth.kpi.change'), format: 'currency' },
+    { key: 'change', label: t('wealth.kpi.change'), format: 'currency', signColor: true },
   ];
   return {
     kind: 'table',
@@ -155,9 +158,21 @@ function snapshotTable(
       { key: 'assets', label: t('wealth.table.assets'), format: 'currency' },
       { key: 'liabilities', label: t('wealth.table.liabilities'), format: 'currency' },
       { key: 'net', label: t('wealth.table.net'), format: 'currency' },
-      { key: 'delta', label: t('wealth.table.change'), format: 'currency' },
-      { key: 'pct', label: t('wealth.table.percent'), format: 'percent', footnote: 1 },
-      { key: 'pctPerYear', label: t('wealth.table.perYear'), format: 'percent', footnote: 2 },
+      { key: 'delta', label: t('wealth.table.change'), format: 'currency', signColor: true },
+      {
+        key: 'pct',
+        label: t('wealth.table.percent'),
+        format: 'percent',
+        footnote: 1,
+        signColor: true,
+      },
+      {
+        key: 'pctPerYear',
+        label: t('wealth.table.perYear'),
+        format: 'percent',
+        footnote: 2,
+        signColor: true,
+      },
     ],
     rows,
     footnotes: [t('wealth.table.percentHint'), t('wealth.table.perYearHint')],
@@ -207,6 +222,14 @@ function balanceRows(
   const rows: PdfTableRow[] = Array.from({ length: height }, (_, i) => {
     const l = left[i] ?? empty;
     const r = right[i] ?? empty;
+    const bold = [
+      ...(l.header ? ['assetLabel', 'assetAmount'] : []),
+      ...(r.header ? ['passivaLabel', 'passivaAmount'] : []),
+    ];
+    const indent = [
+      ...(!l.header && l.label !== '' ? ['assetLabel'] : []),
+      ...(!r.header && r.label !== '' ? ['passivaLabel'] : []),
+    ];
     return {
       cells: {
         assetLabel: l.label,
@@ -214,7 +237,8 @@ function balanceRows(
         passivaLabel: r.label,
         passivaAmount: r.amount === '' ? null : r.amount,
       },
-      ...(l.header || r.header ? { emphasis: 'total' as const } : {}),
+      ...(bold.length > 0 ? { emphasis: 'total' as const, boldKeys: bold } : {}),
+      ...(indent.length > 0 ? { indentKeys: indent } : {}),
     };
   });
   rows.push({
@@ -244,7 +268,13 @@ function balanceTable(
       date: formatDate(snapshot.snapshotDate, lang),
     }),
     columns: [
-      { key: 'assetLabel', label: t('wealth.export.balanceAssets'), format: 'text', width: text },
+      {
+        key: 'assetLabel',
+        label: t('wealth.export.balanceAssets'),
+        format: 'text',
+        width: text,
+        blankWhenMissing: true,
+      },
       {
         key: 'assetAmount',
         label: '',
@@ -257,6 +287,7 @@ function balanceTable(
         label: t('wealth.export.balancePassiva'),
         format: 'text',
         width: text,
+        blankWhenMissing: true,
       },
       {
         key: 'passivaAmount',
@@ -267,6 +298,10 @@ function balanceTable(
       },
     ],
     rows: balanceRows(snapshot, settings, t),
+    blankDiagonals: [
+      ['assetLabel', 'assetAmount'],
+      ['passivaLabel', 'passivaAmount'],
+    ],
     fontSize: 8,
     startOnNewPage: true,
   };

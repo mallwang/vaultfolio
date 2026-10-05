@@ -505,7 +505,8 @@ den Bereich.
 
 **Daten exportieren** schreibt einen PDF-Bericht (Kennzahlen, Diagramm, letzter Stichtag nach Klasse,
 alle Stichtage und die Bilanz; er folgt dem Zeitraum-Filter) oder alle Positionen und Summen als
-Excel, CSV oder JSON. Positionsnamen, Klassen, Beträge und Notizen werden verschlüsselt gespeichert
+Excel, CSV oder JSON. Im PDF sind Zunahmen teal und Abnahmen orange, und die Bilanz zeigt
+Gruppensummen fett mit eingerückten Positionen darunter. Positionsnamen, Klassen, Beträge und Notizen werden verschlüsselt gespeichert
 und nie in Logs geschrieben. Unten auf der Seite entfernt **Alle Vermögensdaten löschen** jeden
 Stichtag und jede Einstellung (das Konto bleibt); einzelne Stichtage löschst du in ihrer
 Tabellenzeile. Steht dort _Vermögensdaten sind vorübergehend nicht verfügbar_, kann der Server die

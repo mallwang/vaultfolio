@@ -270,6 +270,56 @@ describe('PDF sections', () => {
     expect(node['table'].body[2][2]['text']).toBe('');
   });
 
+  it('colors signed columns, bolds only listed cells and indents sub-positions', () => {
+    const table: TableSection = {
+      ...employerTable,
+      columns: employerTable.columns.map((c) =>
+        c.key === 'gross' ? { ...c, signColor: true } : c,
+      ),
+      rows: [
+        { cells: { employer: 'Up', gross: '5' } },
+        { cells: { employer: 'Down', gross: '-5' }, indentKeys: ['employer'] },
+        { cells: { employer: 'Head', gross: '0' }, emphasis: 'total', boldKeys: ['employer'] },
+      ],
+    };
+    const doc = buildDocDefinition(sectionResolved([table]));
+    const [node] = tableNodes(doc.content as Content[]);
+    const body = node['table'].body;
+    expect(body[1][1]['color']).toBe('#0f766e');
+    expect(body[2][1]['color']).toBe('#c2410c');
+    expect(body[2][0]['margin']).toEqual([10, 0, 0, 0]);
+    expect(body[3][0]['bold']).toBe(true);
+    expect(body[3][1]['bold']).toBe(false);
+    expect(body[3][1]['color']).toBeUndefined();
+  });
+
+  it('merges blank row runs of a column group into one cell with a diagonal', () => {
+    const table: TableSection = {
+      kind: 'table',
+      title: 'Balance',
+      columns: [
+        { key: 'l', label: 'L', format: 'text', width: 100 },
+        { key: 'r', label: 'R', format: 'currency', width: 50 },
+      ],
+      rows: [
+        { cells: { l: 'A', r: '1' } },
+        { cells: { l: '', r: null } },
+        { cells: { l: '', r: null } },
+        { cells: { l: 'Sum', r: '1' } },
+      ],
+      blankDiagonals: [['l', 'r']],
+    };
+    const doc = buildDocDefinition(sectionResolved([table]));
+    const [node] = tableNodes(doc.content as Content[]);
+    const body = node['table'].body;
+    expect(body[2][0]).toMatchObject({ colSpan: 2, rowSpan: 2 });
+    expect(body[2][0]['canvas'][0]).toMatchObject({ type: 'line', x1: 154, x2: 0 });
+    expect(body[2][1]).toEqual({});
+    expect(body[3][0]).toEqual({});
+    expect(body[1][0]['text']).toBe('A');
+    expect(body[4][0]['text']).toBe('Sum');
+  });
+
   it('renders a text section as a paragraph', () => {
     const doc = buildDocDefinition(sectionResolved([{ kind: 'text', text: 'Nothing here yet.' }]));
     expect((doc.content as Node[]).some((n) => n['text'] === 'Nothing here yet.')).toBe(true);
