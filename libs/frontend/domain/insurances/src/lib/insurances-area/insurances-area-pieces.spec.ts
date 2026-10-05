@@ -19,7 +19,6 @@ const data = (over: Partial<InsurancesData> = {}): InsurancesData => ({
   ...over,
 });
 
- 
 // Protected members are reached through `any` on purpose.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, sonarjs/redundant-type-aliases
 type Internals = any;

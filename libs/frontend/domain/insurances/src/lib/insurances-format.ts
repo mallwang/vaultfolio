@@ -57,15 +57,15 @@ export function parseAmountInput(text: string): string | null {
   if (lastComma >= 0 && lastDot >= 0) {
     normalized =
       lastComma > lastDot
-        ? compact.replaceAll(/\./g, '').replace(',', '.')
-        : compact.replaceAll(/,/g, '');
+        ? compact.replaceAll('.', '').replace(',', '.')
+        : compact.replaceAll(',', '');
   } else if (lastComma >= 0) {
-    normalized = compact.replaceAll(/,/g, '.');
-    if ((normalized.match(/\./g) ?? []).length > 1) normalized = normalized.replaceAll(/\./g, '');
+    normalized = compact.replaceAll(',', '.');
+    if ((normalized.match(/\./g) ?? []).length > 1) normalized = normalized.replaceAll('.', '');
   } else if (lastDot >= 0) {
     const dots = compact.match(/\./g) ?? [];
     const afterLast = compact.length - lastDot - 1;
-    if (dots.length > 1 || afterLast === 3) normalized = compact.replaceAll(/\./g, '');
+    if (dots.length > 1 || afterLast === 3) normalized = compact.replaceAll('.', '');
   }
   return /^\d+(\.\d+)?$/.test(normalized) ? normalized : null;
 }

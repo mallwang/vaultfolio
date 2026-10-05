@@ -25,6 +25,12 @@ describe('DASHBOARD_WIDGET_CONTRIBUTIONS', () => {
     ]);
   });
 
+  it('lazy-loads a component for every entry', async () => {
+    for (const contribution of DASHBOARD_WIDGET_CONTRIBUTIONS) {
+      expect(await contribution.loadComponent()).toBeDefined();
+    }
+  });
+
   // 032-earnings-domain (T118): the earnings widget is gated by its own domain id, so the
   // dashboard's entitlement filter hides it from members without the Earnings domain.
   it('registers the earnings widget under its own domain and title', () => {
