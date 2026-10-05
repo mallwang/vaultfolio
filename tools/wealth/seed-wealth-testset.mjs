@@ -7,7 +7,7 @@
  * All names and figures are INVENTED; the series is deterministic.
  *
  *   node tools/wealth/seed-wealth-testset.mjs --email <e> --password <p> [--base http://localhost:3000]
- *        [--profile demo]       # realistic 2016-01 … 2026-09 set instead (Member demo account)
+ *        [--profile realistic]  # realistic 2016-01 … 2026-09 set instead (Member demo account)
  *        [--out snapshots.json]   # write the JSON only, no upload
  *        [--replace]              # DELETE /wealth first (otherwise refuses on a non-empty account)
  */
@@ -303,7 +303,8 @@ for (let y = START; y <= END_YEAR; y++) {
   }
 }
 
-if (args.profile === 'demo') snapshots.splice(0, snapshots.length, ...demoSnapshots());
+if (['demo', 'realistic'].includes(args.profile))
+  snapshots.splice(0, snapshots.length, ...demoSnapshots());
 
 const maxEntries = Math.max(...snapshots.map((s) => s.entries.length));
 const minEntries = Math.min(...snapshots.map((s) => s.entries.length));

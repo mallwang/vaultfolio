@@ -9,7 +9,7 @@
  * the output is deterministic.
  *
  *   node tools/retirement/seed-retirement-testset.mjs --email <e> --password <p> [--base http://localhost:3000]
- *        [--profile demo]     # 7 realistic contracts instead (Member demo account)
+ *        [--profile realistic] # 7 realistic contracts instead (Member demo account)
  *        [--out records.json]   # write the JSON only, no upload
  *        [--replace]            # DELETE /retirement first (otherwise refuses on a non-empty account)
  */
@@ -366,7 +366,8 @@ function demoRecords() {
   ];
 }
 
-if (args.profile === 'demo') records.splice(0, records.length, ...demoRecords());
+if (['demo', 'realistic'].includes(args.profile))
+  records.splice(0, records.length, ...demoRecords());
 
 const summary = records.reduce(
   (a, r) => ((a[r.contractType] = (a[r.contractType] ?? 0) + 1), a),

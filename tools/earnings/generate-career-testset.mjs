@@ -4,16 +4,21 @@
  * 50 years (1977-01 … 2026-09), 10 employers (one with a very long name), a gap of 8 months, a
  * December bonus in most years and mid-year employer changes. All names and figures are INVENTED.
  *
- *   node tools/earnings/generate-career-testset.mjs [out.json] [--profile demo]
+ *   node tools/earnings/generate-career-testset.mjs --out out.json [--profile realistic]
+ *   node tools/earnings/generate-career-testset.mjs --email <e> --password <p> [--base http://localhost:3000]
+ *        [--profile realistic] [--replace]     # uploads through POST /earnings/imports
  *
- * `--profile demo` writes a realistic, edge-case-free career instead: 3 employers, 2014-01 … 2026-09,
+ * `--profile realistic` writes a realistic, edge-case-free career instead: 3 employers, 2014-01 … 2026-09,
  * no gap, plausible salaries (for the Member demo account).
  *
- * Import the result via Earnings → Import. Every record balances (net = gross − taxes − social).
+ * Import a written file via Earnings → Import, or upload directly with --email/--password. Every record balances (net = gross − taxes − social).
  */
+import { createHash } from 'node:crypto';
 import { writeFileSync } from 'node:fs';
+import { parseArgs, signIn } from '../seed-lib.mjs';
 
-const DEMO = process.argv.includes('demo') && process.argv.includes('--profile');
+const args = parseArgs();
+const DEMO = ['demo', 'realistic'].includes(args.profile);
 const LOAD_EMPLOYERS = [
   ['Rheinland Kohle und Stahl AG', 72],
   ['Stadtwerke Musterstadt', 48],
@@ -107,19 +112,84 @@ EMPLOYERS.forEach(([employer, months, gapAfter], employerIndex) => {
   index += gapAfter ?? 0;
 });
 
-const positional = process.argv.slice(2).find((a) => !a.startsWith('--') && a !== 'demo');
-const out = positional ?? (DEMO ? 'career-demo.json' : 'career-testset.json');
-writeFileSync(
-  out,
-  JSON.stringify({
-    schema: 'earnings-export',
-    version: 1,
-    generated: '2026-10-03T12:00:00',
-    records,
-    certificates: [],
-  }),
-);
+const doc = {
+  schema: 'earnings-export',
+  version: 1,
+  generated: '2026-10-03T12:00:00',
+  records,
+  certificates: [],
+};
 const last = records.at(-1).period;
 console.log(
-  `${records.length} records, ${records[0].period} … ${last}, ${EMPLOYERS.length} employers → ${out}`,
+  `${records.length} records, ${records[0].period} … ${last}, ${EMPLOYERS.length} employers`,
 );
+
+if (args.out) {
+  writeFileSync(args.out, JSON.stringify(doc));
+  console.log(`written to ${args.out}`);
+  process.exit(0);
+}
+
+// Export JSON (integer cents) → import API body (money strings), as the Import page does.
+const money = (c) => (c / 100).toFixed(2);
+const AMOUNT = {
+  gross: 'gross',
+  tax_gross: 'taxGross',
+  sv_gross_kv: 'svGrossKv',
+  sv_gross_rv: 'svGrossRv',
+  wage_tax: 'wageTax',
+  soli: 'soli',
+  church_tax: 'churchTax',
+  health: 'health',
+  care: 'care',
+  pension: 'pension',
+  unemployment: 'unemployment',
+  net: 'net',
+  other: 'other',
+  payout: 'payout',
+};
+const ONE_OFF = { gross: 'gross', wage_tax: 'wageTax' };
+const body = {
+  files: [
+    {
+      clientFileId: 'file-1',
+      fileName: 'career.json',
+      sourceType: 'EXPORT_JSON',
+      fileSha256: createHash('sha256').update(JSON.stringify(doc)).digest('hex'),
+      parserId: 'earnings-export',
+      parserVersion: '1',
+      certificates: [],
+      records: records.map((r) => ({
+        employer: r.employer,
+        period: r.period,
+        issued: r.issued,
+        kind: 'REGULAR',
+        seq: r.seq,
+        amounts: {
+          ...Object.fromEntries(Object.values(AMOUNT).map((k) => [k, '0.00'])),
+          ...Object.fromEntries(Object.entries(r.amounts).map(([k, v]) => [AMOUNT[k], money(v)])),
+          oneOff: Object.fromEntries(
+            Object.entries(r.one_off ?? {}).map(([k, v]) => [ONE_OFF[k], money(v)]),
+          ),
+          employerSubsidy: null,
+          ytd: null,
+        },
+      })),
+    },
+  ],
+};
+
+const base = args.base ?? 'http://localhost:3000';
+const headers = await signIn(base, args.email, args.password);
+if (args.replace) {
+  const del = await fetch(`${base}/earnings`, { method: 'DELETE', headers });
+  if (del.status !== 204) throw new Error(`DELETE /earnings failed: ${del.status}`);
+}
+const res = await fetch(`${base}/earnings/imports`, {
+  method: 'POST',
+  headers,
+  body: JSON.stringify(body),
+});
+if (res.status !== 201) throw new Error(`import failed: ${res.status} ${await res.text()}`);
+const { files } = await res.json();
+console.log(`import: ${files.map((f) => f.status).join(', ')}`);
