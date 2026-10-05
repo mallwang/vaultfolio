@@ -6,10 +6,11 @@ import { MessageModule } from 'primeng/message';
 import { SelectModule } from 'primeng/select';
 import type { InsuranceSettings } from '@vaultfolio/api-contract';
 import { I18nService, IconComponent, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
-import type { Classification, Employment, Profile } from '@vaultfolio/insurances';
+import type { Classification, Employment, Profile, RequirementId } from '@vaultfolio/insurances';
 import { fill } from '../insurances-format';
 import { InsurancesStore } from '../insurances-store';
 import { InsurancesService } from '../insurances.service';
+import { FINANZTIP_URLS } from '../insurances-view';
 
 type FlagKey = 'ownsProperty' | 'ownsCar' | 'hasChildren' | 'hasPets' | 'travelsAbroad';
 const FLAGS: readonly FlagKey[] = [
@@ -89,12 +90,22 @@ const EMPLOYMENTS: readonly Employment[] = ['EMPLOYED', 'SELF_EMPLOYED', 'CIVIL_
                   classLabel(m.classification)
                 }}</span>
                 <div class="muted">{{ why(m.requirement) }}</div>
+                <a
+                  class="more"
+                  [href]="finanztipUrl(m.requirement)"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  [attr.data-testid]="'insurances-gap-info-' + m.requirement"
+                >
+                  <span class="more__label">{{ 'insurances.gap.moreInfo' | translate }}</span>
+                  <app-icon name="external-link" />
+                </a>
               </div>
               <button
                 type="button"
                 pButton
                 [text]="true"
-                severity="secondary"
+                severity="warn"
                 size="small"
                 [attr.data-testid]="'insurances-gap-dismiss-' + m.requirement"
                 (click)="dismiss(m.requirement)"
@@ -107,7 +118,7 @@ const EMPLOYMENTS: readonly Employment[] = ['EMPLOYED', 'SELF_EMPLOYED', 'CIVIL_
       </section>
     </div>
 
-    <div class="layout layout--three">
+    <div class="layout layout--two">
       <section class="panel" data-testid="insurances-gap-covered">
         <h2>{{ 'insurances.gap.coveredTitle' | translate }}</h2>
         @if (gaps().covered.length === 0) {
@@ -117,12 +128,25 @@ const EMPLOYMENTS: readonly Employment[] = ['EMPLOYED', 'SELF_EMPLOYED', 'CIVIL_
           @for (c of gaps().covered; track c.requirement) {
             <li [attr.data-testid]="'insurances-gap-covered-' + c.requirement">
               <div class="item__main">
-                <app-icon name="check-circle" /> {{ name(c.requirement) }}
+                <span class="state state--ok"><app-icon name="check-circle" /></span>
+                {{ name(c.requirement) }}
                 @if (c.linked) {
                   <span class="tag tag--source">{{
                     'insurances.gap.fromEarnings' | translate
                   }}</span>
                 }
+                <div>
+                  <a
+                    class="more"
+                    [href]="finanztipUrl(c.requirement)"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    [attr.data-testid]="'insurances-gap-info-' + c.requirement"
+                  >
+                    <span class="more__label">{{ 'insurances.gap.moreInfo' | translate }}</span>
+                    <app-icon name="external-link" />
+                  </a>
+                </div>
               </div>
             </li>
           }
@@ -137,17 +161,19 @@ const EMPLOYMENTS: readonly Employment[] = ['EMPLOYED', 'SELF_EMPLOYED', 'CIVIL_
         <ul class="items">
           @for (r of gaps().redundant; track r.contractId + r.otherContractId) {
             <li>
-              <div class="item__main"><app-icon name="warning" /> {{ redundantText(r) }}</div>
+              <div class="item__main">
+                <span class="state state--warn"><app-icon name="warning" /></span>
+                {{ redundantText(r) }}
+              </div>
             </li>
           }
         </ul>
       </section>
+    </div>
 
+    @if (gaps().dismissed.length > 0) {
       <section class="panel" data-testid="insurances-gap-dismissed">
         <h2>{{ 'insurances.gap.dismissedTitle' | translate }}</h2>
-        @if (gaps().dismissed.length === 0) {
-          <p class="muted">{{ 'insurances.gap.dismissedEmpty' | translate }}</p>
-        }
         <ul class="items">
           @for (d of gaps().dismissed; track d.requirement) {
             <li [attr.data-testid]="'insurances-gap-dismissed-' + d.requirement">
@@ -167,7 +193,7 @@ const EMPLOYMENTS: readonly Employment[] = ['EMPLOYED', 'SELF_EMPLOYED', 'CIVIL_
           }
         </ul>
       </section>
-    </div>
+    }
   `,
   styles: `
     :host {
@@ -182,8 +208,8 @@ const EMPLOYMENTS: readonly Employment[] = ['EMPLOYED', 'SELF_EMPLOYED', 'CIVIL_
       gap: 1rem;
       align-items: start;
     }
-    .layout--three {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+    .layout--two {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
     .panel {
       border: 1px solid var(--p-content-border-color);
@@ -232,6 +258,35 @@ const EMPLOYMENTS: readonly Employment[] = ['EMPLOYED', 'SELF_EMPLOYED', 'CIVIL_
       font-size: 0.85rem;
       margin: 0;
     }
+    .more {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      margin-top: 0.25rem;
+      font-size: 0.85rem;
+      color: var(--p-primary-color);
+      text-decoration: none;
+    }
+    .more:hover .more__label {
+      text-decoration: underline;
+    }
+    .state {
+      display: inline-flex;
+      vertical-align: middle;
+    }
+    .state--ok {
+      color: var(--p-green-500);
+    }
+    .state--warn {
+      color: var(--p-orange-500);
+    }
+    .state ::ng-deep .material-symbols-outlined {
+      font-size: 1.1rem;
+    }
+    /* The glyph lives in app-icon's own encapsulated template, so shrinking it needs ng-deep. */
+    .more ::ng-deep .material-symbols-outlined {
+      font-size: 1rem;
+    }
     .tag {
       display: inline-block;
       margin-left: 0.5rem;
@@ -248,7 +303,7 @@ const EMPLOYMENTS: readonly Employment[] = ['EMPLOYED', 'SELF_EMPLOYED', 'CIVIL_
     }
     @media (max-width: 900px) {
       .layout,
-      .layout--three {
+      .layout--two {
         grid-template-columns: minmax(0, 1fr);
       }
     }
@@ -277,6 +332,10 @@ export class InsurancesGapCheckComponent {
 
   protected why(id: string): string {
     return this.i18n.translate(`insurances.requirements.${id}.why`);
+  }
+
+  protected finanztipUrl(id: string): string {
+    return FINANZTIP_URLS[id as RequirementId];
   }
 
   protected classLabel(c: Classification): string {

@@ -519,7 +519,6 @@ export const de: TranslationDictionary = {
     insurancesEdit: 'Versicherungsvertrag bearbeiten',
     insurancesContracts: 'Versicherungen · Verträge',
     insurancesGapCheck: 'Versicherungen · Lückencheck',
-    insurancesReminders: 'Versicherungen · Erinnerungen',
     accountOverview: 'Kontoübersicht',
     klaro: 'Klaro',
     earnings: 'Einkommensentwicklung',

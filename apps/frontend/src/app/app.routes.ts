@@ -325,14 +325,6 @@ export const routes: Routes = [
                 (m) => m.InsurancesGapCheckComponent,
               ),
           },
-          {
-            path: 'reminders',
-            title: 'pageTitle.insurancesReminders',
-            loadComponent: () =>
-              import('@vaultfolio/frontend-domain-insurances').then(
-                (m) => m.InsurancesRemindersComponent,
-              ),
-          },
         ],
       },
       {

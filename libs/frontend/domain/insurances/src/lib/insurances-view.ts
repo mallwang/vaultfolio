@@ -6,9 +6,12 @@ import {
   type InsuranceGroup,
   type InsuranceTypeId,
   type PaymentInterval,
+  REQUIREMENTS,
+  type RequirementId,
   SOCIAL_TYPE_BY_KIND,
   daysBetween,
   isActiveOn,
+  isSocialType,
   monthlyCostText,
   nextCancellationDate,
   typeDef,
@@ -46,6 +49,67 @@ export interface ContractRow {
 export type Translate = (key: string, params?: Record<string, string | number>) => string;
 
 const NO_INFO: CancellationInfo = { kind: 'NONE' };
+
+/** Finanztip guide per gap-check requirement (general consumer information, opened in a new tab). */
+export const FINANZTIP_URLS: Readonly<Record<RequirementId, string>> = {
+  HEALTH: 'https://www.finanztip.de/krankenversicherung/',
+  LIABILITY: 'https://www.finanztip.de/haftpflichtversicherung/privathaftpflicht/',
+  HOUSEHOLD: 'https://www.finanztip.de/hausratversicherung/',
+  DISABILITY: 'https://www.finanztip.de/berufsunfaehigkeitsversicherung/',
+  BUILDING: 'https://www.finanztip.de/wohngebaeudeversicherungen/',
+  NATURAL_HAZARD:
+    'https://www.finanztip.de/wohngebaeudeversicherungen/elementarschadenversicherung/',
+  CAR: 'https://www.finanztip.de/kfz-versicherung/',
+  PET_LIABILITY: 'https://www.finanztip.de/haftpflichtversicherung/tierhalterhaftpflicht/',
+  TRAVEL_HEALTH: 'https://www.finanztip.de/krankenversicherung/auslandsreisekrankenversicherung/',
+  RISK_LIFE: 'https://www.finanztip.de/risikolebensversicherung/',
+  LEGAL: 'https://www.finanztip.de/rechtsschutzversicherung/',
+  PROPERTY_OWNER_LIABILITY:
+    'https://www.finanztip.de/haftpflichtversicherung/haus-grundbesitzerhaftpflicht/',
+};
+
+/** Contract type the "jetzt eintragen" link preselects: the first type that satisfies the requirement. */
+export function requirementTypeId(requirement: RequirementId): InsuranceTypeId {
+  const def = REQUIREMENTS.find((r) => r.id === requirement);
+  if (!def) throw new Error(`Unknown requirement ${requirement}`);
+  return def.satisfiedBy[0];
+}
+
+export interface BreakdownItem {
+  id: string;
+  name: string;
+  /** Canonical decimal string. */
+  yearly: string;
+}
+
+export interface GroupBreakdown {
+  group: InsuranceGroup;
+  /** Canonical decimal string. */
+  yearly: string;
+  items: BreakdownItem[];
+}
+
+/** Yearly cost of the active rows per group and per contract, largest first. */
+export function groupBreakdown(
+  rows: readonly ContractRow[],
+  includeSocial: boolean,
+): GroupBreakdown[] {
+  const byGroup = new Map<InsuranceGroup, BreakdownItem[]>();
+  for (const row of rows) {
+    if (!row.active || Number(row.yearly) <= 0) continue;
+    if (!includeSocial && isSocialType(row.typeId)) continue;
+    const items = byGroup.get(row.group) ?? [];
+    items.push({ id: row.id, name: row.name, yearly: row.yearly });
+    byGroup.set(row.group, items);
+  }
+  return [...byGroup.entries()]
+    .map(([group, items]) => {
+      items.sort((a, b) => Number(b.yearly) - Number(a.yearly));
+      const total = items.reduce((sum, item) => sum + Number(item.yearly), 0);
+      return { group, yearly: total.toFixed(2), items };
+    })
+    .sort((a, b) => Number(b.yearly) - Number(a.yearly));
+}
 
 export function buildRows(input: {
   contracts: readonly InsuranceContract[];

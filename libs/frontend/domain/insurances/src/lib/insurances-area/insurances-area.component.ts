@@ -1,10 +1,9 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
 import { MessageModule } from 'primeng/message';
-import { SelectModule } from 'primeng/select';
 import { TabsModule } from 'primeng/tabs';
 import {
   ExportControlComponent,
@@ -14,6 +13,7 @@ import {
 } from '@vaultfolio/frontend-shared-ui';
 import { InsurancesStore } from '../insurances-store';
 import { InsurancesService } from '../insurances.service';
+import { InsurancesRemindersComponent } from '../reminders/reminders.component';
 import { InsurancesDangerZoneComponent } from './insurances-danger-zone.component';
 import { InsurancesUnavailableComponent } from './insurances-unavailable.component';
 
@@ -21,7 +21,7 @@ const TABS = ['overview', 'contracts', 'gap-check'] as const;
 
 /**
  * Insurances area (design.md "Toolbar + tabs"): year filter and the social-insurance switch shared
- * by all tabs, reminders link, export control and "Vertrag erfassen" in the toolbar; tabs Übersicht,
+ * by all tabs, reminders button (opens the reminders modal), export control and "Vertrag erfassen" in the toolbar; tabs Übersicht,
  * Verträge and Lückencheck as child routes. With the key unavailable only the unavailable state
  * renders — no toolbar, tabs or figures.
  *
@@ -37,11 +37,11 @@ const TABS = ['overview', 'contracts', 'gap-check'] as const;
     ButtonModule,
     CheckboxModule,
     MessageModule,
-    SelectModule,
     ExportControlComponent,
     IconComponent,
     TranslatePipe,
     InsurancesDangerZoneComponent,
+    InsurancesRemindersComponent,
     InsurancesUnavailableComponent,
   ],
   template: `
@@ -50,16 +50,6 @@ const TABS = ['overview', 'contracts', 'gap-check'] as const;
     } @else {
       <div class="toolbar">
         <div class="filters">
-          <label class="year">
-            <span id="insurances-year-label">{{ 'insurances.toolbar.year' | translate }}</span>
-            <p-select
-              [options]="years()"
-              [ngModel]="store.year()"
-              (ngModelChange)="store.year.set($event)"
-              ariaLabelledBy="insurances-year-label"
-              data-testid="insurances-year"
-            />
-          </label>
           <label class="social">
             <p-checkbox
               [binary]="true"
@@ -72,15 +62,16 @@ const TABS = ['overview', 'contracts', 'gap-check'] as const;
           </label>
         </div>
         <div class="toolbar__actions">
-          <a
+          <button
+            type="button"
             pButton
             [outlined]="true"
             severity="secondary"
-            routerLink="reminders"
+            (click)="remindersOpen.set(true)"
             data-testid="insurances-reminders-link"
           >
             <app-icon name="envelope" /> {{ 'insurances.toolbar.reminders' | translate }}
-          </a>
+          </button>
           <app-export-control featureId="insurances" />
           <a pButton routerLink="/app/insurances/new" data-testid="insurances-add-button">
             <app-icon name="plus" /> {{ 'insurances.toolbar.add' | translate }}
@@ -106,6 +97,8 @@ const TABS = ['overview', 'contracts', 'gap-check'] as const;
           <router-outlet />
         </p-tabpanels>
       </p-tabs>
+
+      <app-insurances-reminders [(visible)]="remindersOpen" />
 
       @if (store.contracts().length > 0) {
         <app-insurances-danger-zone />
@@ -134,7 +127,6 @@ const TABS = ['overview', 'contracts', 'gap-check'] as const;
       align-items: center;
       gap: 0.75rem;
     }
-    .year,
     .social {
       display: inline-flex;
       align-items: center;
@@ -152,6 +144,7 @@ export class InsurancesAreaComponent {
   private readonly service = inject(InsurancesService);
 
   protected readonly tabs = TABS;
+  protected readonly remindersOpen = signal(false);
   protected readonly unavailable = this.service.unavailable;
   private readonly nav = routeTabs('overview');
   protected readonly activeTab = this.nav.activeTab;
@@ -159,11 +152,6 @@ export class InsurancesAreaComponent {
 
   constructor() {
     this.store.ensureLoaded();
-  }
-
-  protected years(): number[] {
-    const current = new Date().getFullYear();
-    return Array.from({ length: 7 }, (_, i) => current - 3 + i);
   }
 
   protected setIncludeSocial(includeSocial: boolean): void {

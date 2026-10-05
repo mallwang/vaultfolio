@@ -1,6 +1,8 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
+import { SelectModule } from 'primeng/select';
 import {
   EchartComponent,
   I18nService,
@@ -8,24 +10,35 @@ import {
   ThemeService,
   TranslatePipe,
 } from '@vaultfolio/frontend-shared-ui';
-import type { InsuranceGroup, UpcomingDeadline } from '@vaultfolio/insurances';
+import type { InsuranceGroup, RequirementId, UpcomingDeadline } from '@vaultfolio/insurances';
+import { isActiveOn, isSocialType } from '@vaultfolio/insurances';
 import {
+  axisBreak,
+  breakdownChartOption,
   chartParts,
-  groupChartOption,
   insurancesChartColors,
+  seriesColor,
   timelineChartOption,
 } from '../charts/insurances-charts';
 import { fill, formatDateShort, formatMoney, monthName } from '../insurances-format';
 import { InsurancesStore } from '../insurances-store';
-import { daysLeftLabel } from '../insurances-view';
+import { buildRows, daysLeftLabel, groupBreakdown, requirementTypeId } from '../insurances-view';
 
 /**
- * Overview tab (design.md "Übersicht", Stories 2 and 3): four KPI tiles, the cost-by-group donut,
+ * Overview tab (design.md "Übersicht", Stories 2 and 3): four KPI tiles, the cost-by-group bars,
  * the payment timeline, upcoming cancellation deadlines and a gap-check summary — or the empty state.
  */
 @Component({
   selector: 'app-insurances-overview',
-  imports: [RouterLink, ButtonModule, EchartComponent, IconComponent, TranslatePipe],
+  imports: [
+    FormsModule,
+    RouterLink,
+    ButtonModule,
+    SelectModule,
+    EchartComponent,
+    IconComponent,
+    TranslatePipe,
+  ],
   template: `
     @if (isEmpty()) {
       <section class="empty" data-testid="insurances-empty">
@@ -64,6 +77,11 @@ import { daysLeftLabel } from '../insurances-view';
         <div class="kpi" data-testid="insurances-kpi-active">
           <span class="kpi__label">{{ 'insurances.kpi.active' | translate }}</span>
           <strong class="kpi__value">{{ summary().activeCount }}</strong>
+          @if (inactiveCount() > 0) {
+            <span class="kpi__sub" data-testid="insurances-kpi-inactive">{{
+              t('insurances.kpi.inactive', { count: inactiveCount() })
+            }}</span>
+          }
         </div>
         <div
           class="kpi"
@@ -83,31 +101,73 @@ import { daysLeftLabel } from '../insurances-view';
       <div class="panels">
         <section class="panel" data-testid="insurances-chart-groups">
           <h2>{{ 'insurances.chart.groupTitle' | translate }}</h2>
-          @if (groups().length > 0) {
+          @if (breakdown().length > 0) {
             <p class="sr-only" data-testid="insurances-chart-groups-summary">
               {{ groupSummary() }}
             </p>
-            <div class="donut">
-              <div class="chart chart--donut" role="img" [attr.aria-label]="groupSummary()">
-                <app-echart [option]="groupOption()" />
-              </div>
-              <ul class="legend" data-testid="insurances-chart-groups-legend">
-                @for (g of groups(); track g.group) {
-                  <li>
-                    <span class="swatch" [style.background]="groupColor(g.group)"></span>
-                    <span class="legend__name">{{ groupLabel(g.group) }}</span>
-                    <span class="legend__share">{{ percent(g.share) }}</span>
-                  </li>
-                }
-              </ul>
+            <div
+              class="chart chart--bars"
+              role="img"
+              [attr.aria-label]="groupSummary()"
+              [style.height.rem]="barsHeight()"
+            >
+              <app-echart [option]="groupOption()" />
             </div>
+            @if (broken()) {
+              <p class="notice" data-testid="insurances-chart-broken">
+                {{ 'insurances.chart.broken' | translate }}
+              </p>
+            }
+            <button
+              type="button"
+              class="toggle"
+              [attr.aria-expanded]="detailsOpen()"
+              data-testid="insurances-chart-groups-toggle"
+              (click)="detailsOpen.set(!detailsOpen())"
+            >
+              {{
+                (detailsOpen() ? 'insurances.chart.hideDetails' : 'insurances.chart.showDetails')
+                  | translate
+              }}
+            </button>
+            <ul class="legend" data-testid="insurances-chart-groups-legend">
+              @for (g of breakdown(); track g.group) {
+                <li class="legend__group">
+                  <span class="legend__name">{{ groupLabel(g.group) }}</span>
+                  <span class="legend__share">{{ money(g.yearly) }}</span>
+                  @if (detailsOpen()) {
+                    <ul class="legend__items">
+                      @for (item of g.items; track item.id; let i = $index) {
+                        <li>
+                          <span class="swatch" [style.background]="itemColor(i)"></span>
+                          <span class="legend__name">{{ item.name }}</span>
+                          <span class="legend__share">{{ money(item.yearly) }}</span>
+                        </li>
+                      }
+                    </ul>
+                  }
+                </li>
+              }
+            </ul>
           } @else {
             <p class="muted">{{ 'insurances.chart.empty' | translate }}</p>
           }
         </section>
 
         <section class="panel" data-testid="insurances-chart-timeline">
-          <h2>{{ t('insurances.chart.timelineTitle', { year: store.year() }) }}</h2>
+          <div class="panel__head">
+            <h2>{{ t('insurances.chart.timelineTitle', { year: store.year() }) }}</h2>
+            <p-select
+              [options]="years()"
+              [ngModel]="store.year()"
+              (ngModelChange)="store.year.set($event)"
+              [attr.aria-label]="'insurances.toolbar.year' | translate"
+              data-testid="insurances-year"
+            />
+          </div>
+          <p class="muted" data-testid="insurances-chart-timeline-hint">
+            {{ 'insurances.chart.timelineHint' | translate }}
+          </p>
           <p class="sr-only" data-testid="insurances-chart-timeline-summary">
             {{ timelineSummary() }}
           </p>
@@ -117,7 +177,7 @@ import { daysLeftLabel } from '../insurances-view';
         </section>
       </div>
 
-      <div class="panels">
+      <div class="panels" [class.panels--single]="store.gaps().missing.length === 0">
         <section class="panel" data-testid="insurances-upcoming">
           <h2>{{ 'insurances.upcoming.title' | translate }}</h2>
           @if (summary().upcoming.length === 0) {
@@ -138,24 +198,31 @@ import { daysLeftLabel } from '../insurances-view';
           }
         </section>
 
-        <section class="panel" data-testid="insurances-gap-summary">
-          <h2>{{ 'insurances.overview.gapTitle' | translate }}</h2>
-          @if (store.gaps().missing.length > 0) {
+        @if (store.gaps().missing.length > 0) {
+          <section class="panel" data-testid="insurances-gap-summary">
+            <h2>{{ 'insurances.overview.gapTitle' | translate }}</h2>
             <p data-testid="insurances-gap-summary-count">
               {{ t('insurances.overview.gapMissing', { count: store.gaps().missing.length }) }}
             </p>
             <ul class="missing">
               @for (m of store.gaps().missing; track m.requirement) {
-                <li>{{ requirementName(m.requirement) }}</li>
+                <li [attr.data-testid]="'insurances-gap-summary-' + m.requirement">
+                  {{ requirementName(m.requirement) }}
+                  (<a
+                    class="link link--inline"
+                    routerLink="/app/insurances/new"
+                    [queryParams]="{ type: typeOf(m.requirement) }"
+                    [attr.data-testid]="'insurances-gap-add-' + m.requirement"
+                    >{{ 'insurances.gap.addNow' | translate }}</a
+                  >)
+                </li>
               }
             </ul>
-          } @else {
-            <p class="muted">{{ 'insurances.overview.gapNone' | translate }}</p>
-          }
-          <a routerLink="../gap-check" class="link" data-testid="insurances-gap-summary-open">
-            {{ 'insurances.overview.gapOpen' | translate }} <app-icon name="chevron-right" />
-          </a>
-        </section>
+            <a routerLink="../gap-check" class="link" data-testid="insurances-gap-summary-open">
+              {{ 'insurances.overview.gapOpen' | translate }} <app-icon name="chevron-right" />
+            </a>
+          </section>
+        }
       </div>
     }
   `,
@@ -196,6 +263,10 @@ import { daysLeftLabel } from '../insurances-view';
       color: var(--p-text-muted-color);
       font-size: 0.875rem;
     }
+    .notice {
+      color: var(--p-orange-600);
+      font-size: 0.875rem;
+    }
     .kpi__value {
       font-size: 1.5rem;
       font-variant-numeric: tabular-nums;
@@ -204,23 +275,54 @@ import { daysLeftLabel } from '../insurances-view';
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 1rem;
+      align-items: start;
+    }
+    .panels--single {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .toggle {
+      all: unset;
+      cursor: pointer;
+      margin-top: 0.75rem;
+      color: var(--p-primary-color);
+      font-size: 0.875rem;
+    }
+    .toggle:focus-visible {
+      outline: 2px solid var(--p-primary-color);
     }
     h2 {
       margin: 0 0 0.5rem;
       font-size: 1rem;
     }
+    .panel__head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
     .chart {
       height: 16rem;
     }
-    .donut {
+    .legend__group {
       display: flex;
-      align-items: center;
-      gap: 1rem;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0.25rem 0.5rem;
     }
-    .chart--donut {
-      flex: none;
-      width: 14rem;
-      height: 14rem;
+    .legend__group > .legend__name {
+      font-weight: 600;
+    }
+    .legend__items {
+      list-style: none;
+      width: 100%;
+      margin: 0;
+      padding: 0 0 0 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+    .link--inline {
+      margin-top: 0;
     }
     .legend,
     .upcoming,
@@ -234,7 +336,7 @@ import { daysLeftLabel } from '../insurances-view';
       font-size: 0.9rem;
     }
     .legend {
-      flex: 1;
+      margin-top: 0.75rem;
     }
     .legend li,
     .upcoming li {
@@ -319,13 +421,6 @@ import { daysLeftLabel } from '../insurances-view';
       .panels {
         grid-template-columns: minmax(0, 1fr);
       }
-      .donut {
-        flex-direction: column;
-        align-items: stretch;
-      }
-      .chart--donut {
-        width: 100%;
-      }
     }
   `,
 })
@@ -335,7 +430,13 @@ export class InsurancesOverviewComponent {
   private readonly theme = inject(ThemeService);
 
   protected readonly summary = this.store.summary;
-  protected readonly groups = computed(() => this.summary().byGroup);
+  protected readonly detailsOpen = signal(false);
+  protected readonly inactiveCount = computed(
+    () =>
+      this.store
+        .contracts()
+        .filter((c) => !isSocialType(c.type) && !isActiveOn(c, this.store.today())).length,
+  );
   protected readonly nextDeadline = computed<UpcomingDeadline | null>(
     () => this.summary().upcoming[0] ?? null,
   );
@@ -357,10 +458,28 @@ export class InsurancesOverviewComponent {
     };
   });
 
+  protected readonly breakdown = computed(() => {
+    this.i18n.language();
+    const { includeSocial } = this.store.settings();
+    return groupBreakdown(
+      buildRows({
+        contracts: this.store.contracts(),
+        linked: includeSocial ? this.store.linkedSocial() : [],
+        gaps: this.store.gaps(),
+        today: this.store.today(),
+        warnDays: this.store.warnDays(),
+        t: (key, params) => this.t(key, params),
+      }),
+      includeSocial,
+    );
+  });
+  protected readonly broken = computed(() => axisBreak(this.breakdown()) !== undefined);
+  protected readonly barsHeight = computed(() => Math.max(8, this.breakdown().length * 3.5 + 2));
+
   protected readonly groupOption = computed(() => {
     this.i18n.language();
-    return groupChartOption(
-      this.groups(),
+    return breakdownChartOption(
+      this.breakdown(),
       (g) => this.groupLabel(g),
       this.format(),
       insurancesChartColors(this.theme.theme()),
@@ -381,7 +500,7 @@ export class InsurancesOverviewComponent {
   protected readonly groupSummary = computed(() =>
     this.t('insurances.chart.groupSummary', {
       parts: chartParts(
-        this.groups().map((g) => ({
+        this.breakdown().map((g) => ({
           label: this.groupLabel(g.group),
           value: this.money(g.yearly),
         })),
@@ -403,6 +522,11 @@ export class InsurancesOverviewComponent {
     }),
   );
 
+  protected years(): number[] {
+    const current = new Date().getFullYear();
+    return Array.from({ length: 7 }, (_, i) => current - 3 + i);
+  }
+
   protected t(key: string, params?: Record<string, string | number>): string {
     return fill(this.i18n.translate(key), params);
   }
@@ -415,13 +539,6 @@ export class InsurancesOverviewComponent {
     return formatDateShort(iso, this.i18n.language());
   }
 
-  protected percent(share: number): string {
-    return new Intl.NumberFormat(this.i18n.language(), {
-      style: 'percent',
-      maximumFractionDigits: 0,
-    }).format(share / 100);
-  }
-
   protected daysLeft(days: number): string {
     return daysLeftLabel(days, (key, params) => this.t(key, params));
   }
@@ -430,8 +547,12 @@ export class InsurancesOverviewComponent {
     return this.i18n.translate(`insurances.groups.${group}`);
   }
 
-  protected groupColor(group: InsuranceGroup): string {
-    return insurancesChartColors(this.theme.theme()).groups[group];
+  protected itemColor(index: number): string {
+    return seriesColor(insurancesChartColors(this.theme.theme()), index);
+  }
+
+  protected typeOf(requirement: string): string {
+    return requirementTypeId(requirement as RequirementId);
   }
 
   protected requirementName(id: string): string {

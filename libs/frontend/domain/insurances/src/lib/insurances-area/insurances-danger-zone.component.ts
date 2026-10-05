@@ -63,7 +63,7 @@ import { InsurancesService } from '../insurances.service';
   styles: `
     :host {
       display: block;
-      margin-inline: 1rem;
+      margin-inline: 2rem;
     }
     .danger {
       display: flex;

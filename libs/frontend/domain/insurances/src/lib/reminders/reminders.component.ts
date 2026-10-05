@@ -1,7 +1,7 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, model, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { CheckboxModule } from 'primeng/checkbox';
+import { DialogModule } from 'primeng/dialog';
 import { MessageModule } from 'primeng/message';
 import { SelectModule } from 'primeng/select';
 import type {
@@ -17,98 +17,88 @@ import { InsurancesService } from '../insurances.service';
 
 const LEAD_DAYS = [7, 14, 30, 60, 90, 120] as const;
 
-/** Reminders view (design.md "Erinnerungen", Story 4): global switch, lead time and one switch per contract. */
+/** Reminders modal (design.md "Erinnerungen", Story 4): global switch, lead time and one switch per contract. */
 @Component({
   selector: 'app-insurances-reminders',
   imports: [
     FormsModule,
-    RouterLink,
     CheckboxModule,
+    DialogModule,
     MessageModule,
     SelectModule,
     IconComponent,
     TranslatePipe,
   ],
   template: `
-    <a class="back" routerLink="/app/insurances" data-testid="insurances-reminders-back">
-      <app-icon name="chevron-left" /> {{ 'insurances.reminders.back' | translate }}
-    </a>
-    <h1 class="title">{{ 'insurances.reminders.title' | translate }}</h1>
-
-    @if (failed()) {
-      <p-message severity="error" data-testid="insurances-reminders-error">{{
-        'insurances.reminders.saveFailed' | translate
-      }}</p-message>
-    }
-
-    <section class="panel" data-testid="insurances-reminders-panel">
-      <label class="check">
-        <p-checkbox
-          [binary]="true"
-          [ngModel]="settings().reminders.enabled"
-          (ngModelChange)="setEnabled($event)"
-          inputId="insurances-reminders-enabled"
-          data-testid="insurances-reminders-enabled"
-        />
-        <span>{{ 'insurances.reminders.enabled' | translate }}</span>
-      </label>
-      <label class="field">
-        <span>{{ 'insurances.reminders.leadDays' | translate }}</span>
-        <p-select
-          [options]="leadOptions()"
-          optionLabel="label"
-          optionValue="value"
-          [ngModel]="settings().reminders.leadDays"
-          (ngModelChange)="setLeadDays($event)"
-          data-testid="insurances-reminders-lead"
-        />
-      </label>
-
-      <h2>{{ 'insurances.reminders.perContract' | translate }}</h2>
-      @if (contracts().length === 0) {
-        <p class="muted">{{ 'insurances.reminders.none' | translate }}</p>
-      }
-      <ul class="items">
-        @for (c of contracts(); track c.id) {
-          <li [attr.data-testid]="'insurances-reminders-row-' + c.id">
-            <p-checkbox
-              [binary]="true"
-              [ngModel]="c.reminderEnabled"
-              (ngModelChange)="setContract(c, $event)"
-              [inputId]="'insurances-reminders-contract-' + c.id"
-              [attr.data-testid]="'insurances-reminders-contract-' + c.id"
-            />
-            <label [for]="'insurances-reminders-contract-' + c.id">{{ c.name }}</label>
-          </li>
+    <p-dialog
+      [header]="'insurances.reminders.title' | translate"
+      [modal]="true"
+      [dismissableMask]="true"
+      [draggable]="false"
+      [visible]="visible()"
+      (visibleChange)="visible.set($event)"
+      [style]="{ width: '40rem' }"
+      [breakpoints]="{ '700px': '94vw' }"
+      [pt]="{
+        root: { 'data-testid': 'insurances-reminders-dialog' },
+        pcCloseButton: { root: { 'data-testid': 'insurances-reminders-close' } },
+      }"
+    >
+      <ng-template #closeicon><app-icon name="close" /></ng-template>
+      <div class="body">
+        @if (failed()) {
+          <p-message severity="error" data-testid="insurances-reminders-error">{{
+            'insurances.reminders.saveFailed' | translate
+          }}</p-message>
         }
-      </ul>
-      <p class="muted">{{ 'insurances.reminders.note' | translate }}</p>
-    </section>
+
+        <label class="check">
+          <p-checkbox
+            [binary]="true"
+            [ngModel]="settings().reminders.enabled"
+            (ngModelChange)="setEnabled($event)"
+            inputId="insurances-reminders-enabled"
+            data-testid="insurances-reminders-enabled"
+          />
+          <span>{{ 'insurances.reminders.enabled' | translate }}</span>
+        </label>
+        <label class="field">
+          <span>{{ 'insurances.reminders.leadDays' | translate }}</span>
+          <p-select
+            [options]="leadOptions()"
+            optionLabel="label"
+            optionValue="value"
+            [ngModel]="settings().reminders.leadDays"
+            (ngModelChange)="setLeadDays($event)"
+            appendTo="body"
+            data-testid="insurances-reminders-lead"
+          />
+        </label>
+
+        <h2>{{ 'insurances.reminders.perContract' | translate }}</h2>
+        @if (contracts().length === 0) {
+          <p class="muted">{{ 'insurances.reminders.none' | translate }}</p>
+        }
+        <ul class="items">
+          @for (c of contracts(); track c.id) {
+            <li [attr.data-testid]="'insurances-reminders-row-' + c.id">
+              <p-checkbox
+                [binary]="true"
+                [ngModel]="c.reminderEnabled"
+                (ngModelChange)="setContract(c, $event)"
+                [inputId]="'insurances-reminders-contract-' + c.id"
+                [attr.data-testid]="'insurances-reminders-contract-' + c.id"
+              />
+              <label [for]="'insurances-reminders-contract-' + c.id">{{ c.name }}</label>
+            </li>
+          }
+        </ul>
+        <p class="muted">{{ 'insurances.reminders.note' | translate }}</p>
+      </div>
+    </p-dialog>
   `,
   styles: `
-    :host {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      max-width: 700px;
-      margin: 0 auto;
-    }
-    .back {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.25rem;
-      color: var(--p-primary-color);
-      text-decoration: none;
-    }
-    .title {
-      margin: 0;
-      font-size: 1.5rem;
-    }
-    .panel {
-      border: 1px solid var(--p-content-border-color);
-      border-radius: var(--p-content-border-radius, 0.5rem);
-      background: var(--p-content-background);
-      padding: 1rem;
+    .body {
       display: flex;
       flex-direction: column;
       gap: 0.75rem;
@@ -149,6 +139,8 @@ export class InsurancesRemindersComponent {
   private readonly store = inject(InsurancesStore);
   private readonly service = inject(InsurancesService);
   private readonly i18n = inject(I18nService);
+
+  readonly visible = model(false);
 
   protected readonly settings = this.store.settings;
   protected readonly failed = signal(false);

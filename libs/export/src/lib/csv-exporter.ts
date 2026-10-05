@@ -65,6 +65,14 @@ export function exportTableCsvFiles(tables: ExportTable[]): { name: string; cont
           .join(','),
       );
     }
+    // A header-only file makes Excel's import fall back to generic column names.
+    if (table.rows.length === 0 && table.emptyText) {
+      lines.push(
+        table.columns
+          .map((_, i) => (i === 0 ? escapeCsvField(table.emptyText as string) : ''))
+          .join(','),
+      );
+    }
     return {
       name: `${String(index + 1).padStart(2, '0')}-${slugify(table.title)}.csv`,
       content: BOM + lines.join('\r\n'),

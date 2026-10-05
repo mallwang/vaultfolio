@@ -65,6 +65,25 @@ describe('InsurancesDashboardWidgetComponent', () => {
     expect(q(el, 'insurances-widget-next')?.classList).toContain('warn');
   });
 
+  it('shows the group chart, the active count and a warning link to the gap check', async () => {
+    const el = await render(
+      data({ contracts: [buildInsuranceContract({ id: 'c1' })] as InsurancesData['contracts'] }),
+    );
+    expect(q(el, 'insurances-widget-chart')).not.toBeNull();
+    expect(txt(el, 'insurances-widget-active')).toContain('1');
+    const gaps = q(el, 'insurances-widget-gaps');
+    expect(gaps?.getAttribute('href')).toBe('/app/insurances/gap-check');
+  });
+
+  it('shows no gap warning when nothing is missing', async () => {
+    const d = data({
+      contracts: [buildInsuranceContract({ id: 'c1' })] as InsurancesData['contracts'],
+    });
+    d.settings.dismissedRequirements = ['HEALTH', 'HOUSEHOLD', 'DISABILITY', 'LEGAL'];
+    const el = await render(d);
+    expect(q(el, 'insurances-widget-gaps')).toBeNull();
+  });
+
   it('invites to add the first contract without data', async () => {
     const el = await render(data());
     expect(q(el, 'insurances-widget-empty')).not.toBeNull();

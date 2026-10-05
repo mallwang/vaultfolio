@@ -170,7 +170,10 @@ function cancellationOf(s: FormState): Record<string, unknown> {
             <h2>{{ 'insurances.form.contractPanel' | translate }}</h2>
             <div class="grid">
               <label class="field span">
-                <span>{{ 'insurances.form.type' | translate }}</span>
+                <span
+                  >{{ 'insurances.form.type' | translate
+                  }}<span class="req" aria-hidden="true"> *</span></span
+                >
                 <p-select
                   [options]="typeOptions()"
                   optionLabel="label"
@@ -183,7 +186,14 @@ function cancellationOf(s: FormState): Record<string, unknown> {
                   [invalid]="!!fieldError('type')"
                   fluid
                   data-testid="insurances-form-type"
-                />
+                >
+                  <ng-template #group let-group>
+                    <span class="type-group">{{ group.label }}</span>
+                  </ng-template>
+                  <ng-template #item let-item>
+                    <span class="type-item">{{ item.label }}</span>
+                  </ng-template>
+                </p-select>
                 @if (fieldError('type'); as message) {
                   <small class="error" data-testid="insurances-form-type-error">{{
                     message
@@ -191,7 +201,10 @@ function cancellationOf(s: FormState): Record<string, unknown> {
                 }
               </label>
               <label class="field">
-                <span>{{ 'insurances.form.name' | translate }}</span>
+                <span
+                  >{{ 'insurances.form.name' | translate
+                  }}<span class="req" aria-hidden="true"> *</span></span
+                >
                 <input
                   pInputText
                   fluid
@@ -248,7 +261,10 @@ function cancellationOf(s: FormState): Record<string, unknown> {
                 />
               </label>
               <label class="field">
-                <span>{{ 'insurances.form.startDate' | translate }}</span>
+                <span
+                  >{{ 'insurances.form.startDate' | translate
+                  }}<span class="req" aria-hidden="true"> *</span></span
+                >
                 <input
                   pInputText
                   fluid
@@ -286,7 +302,10 @@ function cancellationOf(s: FormState): Record<string, unknown> {
             <h2>{{ 'insurances.form.premiumPanel' | translate }}</h2>
             <div class="grid">
               <label class="field">
-                <span>{{ 'insurances.form.premium' | translate }}</span>
+                <span
+                  >{{ 'insurances.form.premium' | translate
+                  }}<span class="req" aria-hidden="true"> *</span></span
+                >
                 <input
                   pInputText
                   fluid
@@ -540,6 +559,33 @@ function cancellationOf(s: FormState): Record<string, unknown> {
               ></textarea>
             </label>
           </section>
+
+          @if (saveError(); as message) {
+            <p-message severity="error" data-testid="insurances-form-save-error">{{
+              message
+            }}</p-message>
+          }
+          <div class="actions">
+            <a
+              pButton
+              severity="secondary"
+              [outlined]="true"
+              [routerLink]="areaPath"
+              data-testid="insurances-form-cancel"
+            >
+              {{ 'insurances.form.cancel' | translate }}
+            </a>
+            <button
+              type="button"
+              pButton
+              [disabled]="saving()"
+              (click)="save()"
+              data-testid="insurances-form-save"
+            >
+              <app-icon name="save" />
+              {{ (saving() ? 'insurances.form.saving' : 'insurances.form.save') | translate }}
+            </button>
+          </div>
         </div>
 
         <aside class="derived" data-testid="insurances-form-derived">
@@ -555,35 +601,12 @@ function cancellationOf(s: FormState): Record<string, unknown> {
             </dl>
           } @else {
             <p class="muted">{{ 'insurances.form.derivedEmpty' | translate }}</p>
+            <p class="muted" data-testid="insurances-form-required-hint">
+              <span class="req" aria-hidden="true">*</span>
+              {{ 'insurances.form.requiredHint' | translate }}
+            </p>
           }
         </aside>
-      </div>
-
-      @if (saveError(); as message) {
-        <p-message severity="error" data-testid="insurances-form-save-error">{{
-          message
-        }}</p-message>
-      }
-      <div class="actions">
-        <a
-          pButton
-          severity="secondary"
-          [outlined]="true"
-          [routerLink]="areaPath"
-          data-testid="insurances-form-cancel"
-        >
-          {{ 'insurances.form.cancel' | translate }}
-        </a>
-        <button
-          type="button"
-          pButton
-          [disabled]="saving()"
-          (click)="save()"
-          data-testid="insurances-form-save"
-        >
-          <app-icon name="save" />
-          {{ (saving() ? 'insurances.form.saving' : 'insurances.form.save') | translate }}
-        </button>
       </div>
     }
   `,
@@ -653,6 +676,17 @@ function cancellationOf(s: FormState): Record<string, unknown> {
     }
     .error {
       color: var(--p-red-500);
+    }
+    .req {
+      color: var(--p-red-500);
+    }
+    .type-group {
+      color: var(--p-text-color);
+      font-weight: 700;
+    }
+    .type-item {
+      display: inline-block;
+      padding-left: 1rem;
     }
     .muted {
       color: var(--p-text-muted-color);
@@ -753,13 +787,13 @@ export class InsurancesContractFormComponent {
           const type = query.get('type');
           const premium = query.get('premium');
           if (type && isInsuranceTypeId(type)) {
+            const social = typeDef(type).social !== undefined;
             this.f.update((s) => ({
               ...s,
               type,
               name: this.i18n.translate(`insurances.types.${type}`),
-              interval: 'MONTHLY',
+              ...(social ? { interval: 'MONTHLY' as const, autoRenew: false } : {}),
               premium: premium ?? '',
-              autoRenew: false,
             }));
           }
         }

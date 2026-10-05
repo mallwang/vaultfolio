@@ -13,7 +13,8 @@ import { InsurancesService } from '../insurances.service';
 import { type ContractRow, buildRows, cancellationLabel, daysLeftLabel } from '../insurances-view';
 
 type StatusFilter = 'ALL' | 'ACTIVE' | 'INACTIVE';
-type SortKey = 'NONE' | 'PREMIUM' | 'DEADLINE';
+type SortKey = 'GROUP' | 'NAME' | 'CLASS' | 'PREMIUM' | 'MONTHLY' | 'DEADLINE';
+type SortDir = 'asc' | 'desc';
 
 const GROUPS: readonly InsuranceGroup[] = [
   'PERSONS',
@@ -72,15 +73,6 @@ const CLASSES: readonly Classification[] = ['ESSENTIAL', 'RECOMMENDED', 'SITUATI
         [attr.aria-label]="'insurances.list.filterClass' | translate"
         data-testid="insurances-filter-class"
       />
-      <p-select
-        [options]="sortOptions()"
-        optionLabel="label"
-        optionValue="value"
-        [ngModel]="sort()"
-        (ngModelChange)="sort.set($event)"
-        [attr.aria-label]="'insurances.list.sort' | translate"
-        data-testid="insurances-sort"
-      />
     </div>
 
     <p-message severity="info" data-testid="insurances-social-note">
@@ -101,11 +93,66 @@ const CLASSES: readonly Classification[] = ['ESSENTIAL', 'RECOMMENDED', 'SITUATI
         <table data-testid="insurances-table">
           <thead>
             <tr>
-              <th>{{ 'insurances.list.insurance' | translate }}</th>
-              <th>{{ 'insurances.list.classification' | translate }}</th>
-              <th class="num">{{ 'insurances.list.premium' | translate }}</th>
-              <th class="num">{{ 'insurances.list.monthly' | translate }}</th>
-              <th>{{ 'insurances.list.next' | translate }}</th>
+              <th [attr.aria-sort]="ariaSort('GROUP')">
+                <button
+                  type="button"
+                  class="sort"
+                  (click)="sortBy('GROUP')"
+                  data-testid="insurances-sort-GROUP"
+                >
+                  {{ 'insurances.list.group' | translate }} {{ arrow('GROUP') }}
+                </button>
+              </th>
+              <th [attr.aria-sort]="ariaSort('NAME')">
+                <button
+                  type="button"
+                  class="sort"
+                  (click)="sortBy('NAME')"
+                  data-testid="insurances-sort-NAME"
+                >
+                  {{ 'insurances.list.insurance' | translate }} {{ arrow('NAME') }}
+                </button>
+              </th>
+              <th [attr.aria-sort]="ariaSort('CLASS')">
+                <button
+                  type="button"
+                  class="sort"
+                  (click)="sortBy('CLASS')"
+                  data-testid="insurances-sort-CLASS"
+                >
+                  {{ 'insurances.list.classification' | translate }} {{ arrow('CLASS') }}
+                </button>
+              </th>
+              <th class="num" [attr.aria-sort]="ariaSort('PREMIUM')">
+                <button
+                  type="button"
+                  class="sort"
+                  (click)="sortBy('PREMIUM')"
+                  data-testid="insurances-sort-PREMIUM"
+                >
+                  {{ 'insurances.list.premium' | translate }} {{ arrow('PREMIUM') }}
+                </button>
+              </th>
+              <th class="num" [attr.aria-sort]="ariaSort('MONTHLY')">
+                <button
+                  type="button"
+                  class="sort"
+                  (click)="sortBy('MONTHLY')"
+                  data-testid="insurances-sort-MONTHLY"
+                >
+                  {{ 'insurances.list.monthly' | translate }} {{ arrow('MONTHLY') }}
+                </button>
+              </th>
+              <th [attr.aria-sort]="ariaSort('DEADLINE')">
+                <button
+                  type="button"
+                  class="sort"
+                  (click)="sortBy('DEADLINE')"
+                  data-testid="insurances-sort-DEADLINE"
+                >
+                  {{ 'insurances.list.next' | translate }} {{ arrow('DEADLINE') }}
+                </button>
+              </th>
               <th>{{ 'insurances.list.reminder' | translate }}</th>
               <th class="actions">{{ 'insurances.list.actions' | translate }}</th>
             </tr>
@@ -115,8 +162,10 @@ const CLASSES: readonly Classification[] = ['ESSENTIAL', 'RECOMMENDED', 'SITUATI
               <tr
                 [class.linked]="row.kind === 'LINKED'"
                 [class.inactive]="!row.active"
+                [class.deadline]="row.withinWindow"
                 [attr.data-testid]="'insurances-row-' + row.id"
               >
+                <td>{{ groupLabel(row.group) }}</td>
                 <td>
                   <div class="name">{{ row.name }}</div>
                   <div class="muted">
@@ -299,17 +348,33 @@ const CLASSES: readonly Classification[] = ['ESSENTIAL', 'RECOMMENDED', 'SITUATI
       margin: 0.25rem 0.25rem 0 0;
       padding: 0.05rem 0.5rem;
       border-radius: 1rem;
-      background: color-mix(in srgb, var(--p-text-color) 10%, transparent);
+      background: color-mix(in srgb, var(--p-text-color) 12%, var(--p-content-background));
+      border: 1px solid color-mix(in srgb, var(--p-text-color) 20%, transparent);
       font-size: 0.75rem;
     }
+    .sort {
+      all: unset;
+      cursor: pointer;
+      font: inherit;
+      white-space: nowrap;
+    }
+    .sort:focus-visible {
+      outline: 2px solid var(--p-primary-color);
+    }
     .tag--source {
-      background: color-mix(in srgb, var(--p-green-500) 20%, transparent);
+      background: color-mix(in srgb, var(--p-green-500) 20%, var(--p-content-background));
     }
     .tag--overlap {
-      background: color-mix(in srgb, var(--p-orange-500) 20%, transparent);
+      background: color-mix(in srgb, var(--p-orange-500) 20%, var(--p-content-background));
     }
     tr.linked {
       background: color-mix(in srgb, var(--p-green-500) 8%, transparent);
+    }
+    tr.inactive {
+      background: color-mix(in srgb, var(--p-text-color) 7%, transparent);
+    }
+    tr.deadline {
+      background: color-mix(in srgb, var(--p-orange-500) 10%, transparent);
     }
     tr.inactive .name {
       text-decoration: line-through;
@@ -332,7 +397,8 @@ export class InsurancesContractsComponent {
   protected readonly group = signal<InsuranceGroup | 'ALL'>('ALL');
   protected readonly status = signal<StatusFilter>('ALL');
   protected readonly classification = signal<Classification | 'ALL'>('ALL');
-  protected readonly sort = signal<SortKey>('NONE');
+  protected readonly sort = signal<SortKey>('MONTHLY');
+  protected readonly dir = signal<SortDir>('desc');
   protected readonly pending = signal<ContractRow | null>(null);
   protected readonly failed = signal(false);
 
@@ -355,18 +421,29 @@ export class InsurancesContractsComponent {
         (classification === 'ALL' || r.classification === classification) &&
         (status === 'ALL' || (status === 'ACTIVE' ? r.active : !r.active)),
     );
-    switch (this.sort()) {
-      case 'PREMIUM':
-        return [...filtered].sort((a, b) => Number(b.monthly) - Number(a.monthly));
-      case 'DEADLINE':
-        return [...filtered].sort((a, b) => {
-          if (!a.deadline) return b.deadline ? 1 : 0;
+    const key = this.sort();
+    const sign = this.dir() === 'asc' ? 1 : -1;
+    const text = (a: string, b: string) => a.localeCompare(b, this.i18n.language());
+    return [...filtered].sort((a, b) => {
+      switch (key) {
+        case 'GROUP':
+          return sign * text(this.groupLabel(a.group), this.groupLabel(b.group));
+        case 'NAME':
+          return sign * text(a.name, b.name);
+        case 'CLASS':
+          return sign * (CLASSES.indexOf(a.classification) - CLASSES.indexOf(b.classification));
+        case 'PREMIUM':
+          return sign * (Number(a.premium) - Number(b.premium));
+        case 'DEADLINE':
+          // Rows without a deadline stay last in both directions.
+          if (!a.deadline && !b.deadline) return 0;
+          if (!a.deadline) return 1;
           if (!b.deadline) return -1;
-          return a.deadline.localeCompare(b.deadline);
-        });
-      default:
-        return filtered;
-    }
+          return sign * a.deadline.localeCompare(b.deadline);
+        default:
+          return sign * (Number(a.monthly) - Number(b.monthly));
+      }
+    });
   });
 
   protected groupOptions() {
@@ -391,12 +468,27 @@ export class InsurancesContractsComponent {
     ];
   }
 
-  protected sortOptions() {
-    return [
-      { label: this.i18n.translate('insurances.list.sortNone'), value: 'NONE' },
-      { label: this.i18n.translate('insurances.list.sortPremium'), value: 'PREMIUM' },
-      { label: this.i18n.translate('insurances.list.sortDeadline'), value: 'DEADLINE' },
-    ];
+  protected sortBy(key: SortKey): void {
+    if (this.sort() === key) {
+      this.dir.set(this.dir() === 'asc' ? 'desc' : 'asc');
+      return;
+    }
+    this.sort.set(key);
+    this.dir.set(key === 'PREMIUM' || key === 'MONTHLY' ? 'desc' : 'asc');
+  }
+
+  protected arrow(key: SortKey): string {
+    if (this.sort() !== key) return '';
+    return this.dir() === 'asc' ? '▲' : '▼';
+  }
+
+  protected ariaSort(key: SortKey): 'ascending' | 'descending' | 'none' {
+    if (this.sort() !== key) return 'none';
+    return this.dir() === 'asc' ? 'ascending' : 'descending';
+  }
+
+  protected groupLabel(group: InsuranceGroup): string {
+    return this.i18n.translate(`insurances.groups.${group}`);
   }
 
   protected t(key: string, params?: Record<string, string | number>): string {

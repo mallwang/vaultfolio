@@ -1,6 +1,14 @@
 import type { InsuranceContract } from '@vaultfolio/api-contract';
+import { REQUIREMENTS } from '@vaultfolio/insurances';
 import { buildInsuranceContract } from '@vaultfolio/insurances/testing';
-import { buildRows, cancellationLabel, daysLeftLabel } from './insurances-view';
+import {
+  FINANZTIP_URLS,
+  buildRows,
+  cancellationLabel,
+  daysLeftLabel,
+  groupBreakdown,
+  requirementTypeId,
+} from './insurances-view';
 
 const t = (key: string, params?: Record<string, string | number>) =>
   params ? `${key}|${JSON.stringify(params)}` : key;
@@ -114,5 +122,52 @@ describe('labels', () => {
   it('labels the days left', () => {
     expect(daysLeftLabel(0, t)).toBe('insurances.cancellation.today');
     expect(daysLeftLabel(5, t)).toContain('"days":5');
+  });
+});
+
+describe('groupBreakdown', () => {
+  const rowsOf = (...contracts: Partial<InsuranceContract>[]) =>
+    buildRows({
+      contracts: contracts.map((c) => buildInsuranceContract(c) as InsuranceContract),
+      linked: [],
+      gaps: noGaps,
+      today: '2026-09-10',
+      warnDays: 30,
+      t,
+    });
+
+  it('sums the yearly cost per group and lists contracts largest first', () => {
+    const groups = groupBreakdown(
+      rowsOf(
+        { id: 'a', name: 'Haftpflicht', type: 'PRIVATE_LIABILITY', premium: '8.00' },
+        { id: 'b', name: 'Kfz', type: 'CAR', premium: '40.00' },
+        { id: 'c', name: 'Tier', type: 'PET_LIABILITY', premium: '4.00' },
+      ),
+      true,
+    );
+    expect(groups.map((g) => [g.group, g.yearly])).toEqual([
+      ['MOBILITY', '40.00'],
+      ['LIABILITY', '12.00'],
+    ]);
+    expect(groups[1].items.map((i) => i.name)).toEqual(['Haftpflicht', 'Tier']);
+  });
+
+  it('ignores inactive contracts and statutory ones when social is off', () => {
+    const rows = rowsOf(
+      { id: 'a', status: 'CANCELLED', endDate: '2026-01-01' },
+      { id: 'b', type: 'STATUTORY_HEALTH', premium: '300.00' },
+    );
+    expect(groupBreakdown(rows, false)).toEqual([]);
+    expect(groupBreakdown(rows, true).map((g) => g.group)).toEqual(['PERSONS']);
+  });
+});
+
+describe('gap-check links', () => {
+  it('has a Finanztip guide and a preselected type for every requirement', () => {
+    for (const requirement of REQUIREMENTS) {
+      expect(FINANZTIP_URLS[requirement.id]).toMatch(/^https:\/\/www\.finanztip\.de\//);
+      expect(requirement.satisfiedBy).toContain(requirementTypeId(requirement.id));
+    }
+    expect(requirementTypeId('LIABILITY')).toBe('PRIVATE_LIABILITY');
   });
 });

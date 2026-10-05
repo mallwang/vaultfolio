@@ -243,6 +243,23 @@ describe('exportXlsx with tables', () => {
     expect(sheet.getCell('C3').value).toEqual({ formula: 'B3-B2', result: 50 });
   });
 
+  it('uses ISO dates and a leading euro sign outside German', async () => {
+    const table: ExportTable = {
+      id: 't',
+      title: 'D',
+      columns: [
+        { key: 'date', label: 'Date', format: 'date' },
+        { key: 'net', label: 'Net', format: 'money' },
+      ],
+      rows: [{ cells: { date: '2025-01-31', net: '100.00' } }],
+    };
+    const sheet = (await readWorkbook(await exportXlsx({ ...withTables([table]), locale: 'en' })))
+      .worksheets[0];
+
+    expect(sheet.getCell('A2').numFmt).toBe('yyyy-mm-dd');
+    expect(sheet.getCell('B2').numFmt).toBe('"€"#,##0.00');
+  });
+
   it('keeps the filter off when emphasis rows sit between data rows', async () => {
     const table: ExportTable = {
       id: 't',
