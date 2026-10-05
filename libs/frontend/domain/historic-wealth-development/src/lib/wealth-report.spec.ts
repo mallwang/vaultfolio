@@ -106,12 +106,34 @@ describe('buildWealthPdfSections', () => {
     expect(table.rows[1].cells['pctPerYear']).toBeNull();
   });
 
-  it('leaves missing balance amounts blank instead of a dash', () => {
+  it('leaves missing balance cells blank instead of a dash', () => {
     const balance = tables(sections)[2];
     expect(balance.columns.filter((c) => c.blankWhenMissing).map((c) => c.key)).toEqual([
+      'assetLabel',
       'assetAmount',
+      'passivaLabel',
       'passivaAmount',
     ]);
+  });
+
+  it('bolds only the group header side of a balance row and indents the positions', () => {
+    const balance = tables(sections)[2];
+    const first = balance.rows[0];
+    expect(first.boldKeys).toEqual(['assetLabel', 'assetAmount', 'passivaLabel', 'passivaAmount']);
+    const entryRow = balance.rows.find((r) => r.cells['assetLabel'] === 'Giro (Cash)');
+    expect(entryRow?.boldKeys?.includes('assetLabel') ?? false).toBe(false);
+    expect(entryRow?.indentKeys).toContain('assetLabel');
+  });
+
+  it('colors the change columns by sign', () => {
+    const colored = (i: number) =>
+      tables(sections)
+        [i].columns.filter((c) => c.signColor)
+        .map((c) => c.key);
+    expect(colored(0)).toEqual(['change']);
+    expect(colored(1)).toEqual(['delta', 'pct', 'pctPerYear']);
+    const kpis = sections[1] as Extract<PdfSection, { kind: 'kpis' }>;
+    expect(kpis.tiles[1].tone).toBe('positive');
   });
 
   it('is language-aware and falls back to a text section without snapshots', () => {

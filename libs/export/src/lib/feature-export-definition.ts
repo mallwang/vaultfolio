@@ -45,6 +45,8 @@ export interface PdfTableColumn {
   footnote?: number;
   /** Renders a missing value as an empty cell instead of a dash. */
   blankWhenMissing?: boolean;
+  /** Colors positive values teal and negative ones orange (changes, deltas). */
+  signColor?: boolean;
 }
 
 export interface PdfTableRow {
@@ -52,6 +54,10 @@ export interface PdfTableRow {
   cells: Record<string, string | number | null>;
   /** `'total'` renders the row bold (e.g. a career-total row). */
   emphasis?: 'total';
+  /** PDF only: bold just these cells instead of the whole row when `emphasis` is set. */
+  boldKeys?: string[];
+  /** PDF only: cells whose text is indented, marking sub-positions. */
+  indentKeys?: string[];
 }
 
 /** One block of a section-based PDF (rendered after title, infobox and charts). */
@@ -69,6 +75,11 @@ export type PdfSection =
        * the next page if it does not fit). Defaults to `true`: every table starts a new page.
        */
       startOnNewPage?: boolean;
+      /**
+       * Groups of adjacent column keys (each with a numeric `width`). Runs of rows that are blank
+       * in every column of a group are merged into one cell with a diagonal line (Buchhalternase).
+       */
+      blankDiagonals?: string[][];
       /** Already translated; entry `n` (1-based) belongs to the column with `footnote: n`, printed below the table. */
       footnotes?: string[];
     }
@@ -88,6 +99,8 @@ export interface PdfKpiTile {
   highlight?: boolean;
   /** Italic value, for projections. */
   italic?: boolean;
+  /** Colors the value and hints teal (`positive`) or orange (`negative`). */
+  tone?: 'positive' | 'negative';
 }
 
 /** One segment of a `bar` section; shares are fractions and are scaled to the bar's width. */

@@ -10,6 +10,10 @@ import type {
 /** The app's teal (Tailwind teal-700 / teal-50), also the accent of the logo. */
 const TEAL = '#0f766e';
 const TEAL_LIGHT = '#f0fdfa';
+/** Negative changes; orange-700 keeps contrast on white next to the teal. */
+const ORANGE = '#c2410c';
+const INDENT = 10;
+const TONE_COLORS = { positive: TEAL, negative: ORANGE };
 const LOGO_SIZE = 36;
 
 function cellToText(value: string | number | null, format: string, locale: string): string {
@@ -73,11 +77,11 @@ const SECTION_TABLE_LAYOUT = {
   paddingRight: () => SECTION_CELL_PADDING,
 };
 
-function sectionCellText(
-  value: string | number | null | undefined,
-  column: PdfTableColumn,
-  locale: string,
-): string {
+type CellValue = string | number | null | undefined;
+
+const isBlank = (value: CellValue) => value === null || value === undefined || value === '';
+
+function sectionCellText(value: CellValue, column: PdfTableColumn, locale: string): string {
   if (value === null || value === undefined || value === '') {
     return column.blankWhenMissing ? '' : MISSING;
   }
@@ -110,6 +114,14 @@ export function sectionColumnWidth(column: PdfTableColumn): number | 'auto' | '*
   return column.width ?? (column.format === 'text' ? 'auto' : '*');
 }
 
+/** Teal for a positive value, orange for a negative one, none for zero or missing. */
+function signColorOf(value: CellValue): string | undefined {
+  if (isBlank(value)) return undefined;
+  const n = Number(value);
+  if (Number.isNaN(n) || n === 0) return undefined;
+  return n > 0 ? TEAL : ORANGE;
+}
+
 const SUPERSCRIPT_DIGITS = '⁰¹²³⁴⁵⁶⁷⁸⁹';
 
 /** `12` → `¹²`; Unicode superscripts because pdfmake has no raised-text style. */
@@ -125,12 +137,15 @@ function sectionCell(
 ): Content {
   const isText = column.format === 'text';
   const text = sectionCellText(row.cells[column.key], column, locale);
+  const bold = row.emphasis === 'total' && (!row.boldKeys || row.boldKeys.includes(column.key));
+  const color = column.signColor ? signColorOf(row.cells[column.key]) : undefined;
+  const margin = row.indentKeys?.includes(column.key) ? [INDENT, 0, 0, 0] : undefined;
   // A period without a main value is one dash, not two stacked ones.
   const hasMain = text !== MISSING && text !== '';
   if (column.secondaryKey && hasMain) {
     return {
       stack: [
-        { text, bold: row.emphasis === 'total' },
+        { text, bold, ...(color ? { color } : {}) },
         { text: sectionCellText(row.cells[column.secondaryKey], column, locale), color: '#666666' },
       ],
       alignment: column.align ?? 'right',
@@ -143,8 +158,10 @@ function sectionCell(
     alignment: column.align ?? (isText ? 'left' : 'right'),
     // Amounts must never break mid-number; only labels (employer names) may wrap.
     noWrap: !isText,
-    bold: row.emphasis === 'total',
+    bold,
     fontSize,
+    ...(color ? { color } : {}),
+    ...(margin ? { margin } : {}),
   } as unknown as Content;
 }
 
@@ -168,6 +185,7 @@ function kpiRow(tiles: PdfKpiTile[]): Content {
       cells.push({ text: '', border: [false, false, false, false] });
     }
     widths.push('*');
+    const toneColor = tile.tone && TONE_COLORS[tile.tone];
     cells.push({
       stack: [
         { text: tile.label, fontSize: 8, color: '#666666' },
@@ -176,9 +194,14 @@ function kpiRow(tiles: PdfKpiTile[]): Content {
           fontSize: tile.highlight ? 16 : 13,
           bold: true,
           italics: tile.italic,
+          ...(toneColor ? { color: toneColor } : {}),
           margin: [0, 2, 0, 2],
         },
-        ...(tile.hints ?? []).map((text) => ({ text, fontSize: 7, color: '#666666' })),
+        ...(tile.hints ?? []).map((text) => ({
+          text,
+          fontSize: 7,
+          color: toneColor ?? '#666666',
+        })),
       ],
       margin: [2, 3, 2, 3],
       border: [true, true, true, true],
@@ -231,6 +254,62 @@ function barContent(
   ] as unknown as Content[];
 }
 
+/** Fixed content height of a body row: Roboto's line height is ≈ 1.33 × the font size. */
+function rowHeightOf(fontSize: number): number {
+  return Math.ceil(fontSize * 1.33);
+}
+
+/** pdfmake's default top/bottom cell padding plus the 0.5 pt row line, per row. */
+const ROW_OVERHEAD = 2 + 2 + 0.5;
+
+/** Start and length of each run of consecutive rows that are blank in all `keys`. */
+function blankRuns(rows: PdfTableRow[], keys: string[]): { start: number; span: number }[] {
+  const runs: { start: number; span: number }[] = [];
+  rows.forEach((row, i) => {
+    if (!keys.every((key) => isBlank(row.cells[key]))) return;
+    const last = runs[runs.length - 1];
+    if (last && last.start + last.span === i) last.span++;
+    else runs.push({ start: i, span: 1 });
+  });
+  return runs;
+}
+
+/**
+ * Buchhalternase: every run of rows that are blank in all `keys` columns becomes one merged cell
+ * with a diagonal from its top right to its bottom left. Needs numeric widths on those columns.
+ */
+function drawBlankDiagonals(
+  body: unknown[][],
+  section: Extract<PdfSection, { kind: 'table' }>,
+  rowHeight: number,
+): void {
+  for (const keys of section.blankDiagonals ?? []) {
+    const indexes = keys.map((key) => section.columns.findIndex((c) => c.key === key));
+    const widths = indexes.map((i) => section.columns[i]?.width);
+    if (indexes.includes(-1) || !widths.every((w): w is number => typeof w === 'number')) continue;
+    const width =
+      widths.reduce((sum, w) => sum + w, 0) + (keys.length - 1) * 2 * SECTION_CELL_PADDING;
+    for (const { start, span } of blankRuns(section.rows, keys)) {
+      for (let r = start; r < start + span; r++) for (const c of indexes) body[r][c] = {};
+      body[start][indexes[0]] = {
+        canvas: [
+          {
+            type: 'line',
+            x1: width,
+            y1: 0,
+            x2: 0,
+            y2: span * (rowHeight + ROW_OVERHEAD) - 4,
+            lineWidth: 0.5,
+            lineColor: '#666666',
+          },
+        ],
+        colSpan: keys.length,
+        rowSpan: span,
+      };
+    }
+  }
+}
+
 function sectionContent(section: PdfSection, locale: string, contentWidth: number): Content[] {
   if (section.kind === 'kpis') {
     return [kpiRow(section.tiles)];
@@ -251,9 +330,11 @@ function sectionContent(section: PdfSection, locale: string, contentWidth: numbe
     fontSize,
     alignment: column.align ?? (column.format === 'text' ? 'left' : 'right'),
   }));
-  const body = section.rows.map((row) =>
+  const body: unknown[][] = section.rows.map((row) =>
     section.columns.map((column) => sectionCell(row, column, locale, fontSize)),
   );
+  const rowHeight = rowHeightOf(fontSize);
+  drawBlankDiagonals(body, section, rowHeight);
   return [
     {
       text: section.title,
@@ -273,6 +354,8 @@ function sectionContent(section: PdfSection, locale: string, contentWidth: numbe
         keepWithHeaderRows: 1,
         dontBreakRows: true,
         widths: section.columns.map(sectionColumnWidth),
+        // Fixed row heights keep a merged diagonal cell as tall as the rows it spans.
+        ...(section.blankDiagonals?.length ? { heights: rowHeight } : {}),
         body: [header, ...body],
       },
       layout: SECTION_TABLE_LAYOUT,

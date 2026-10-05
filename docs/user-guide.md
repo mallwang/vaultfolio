@@ -483,7 +483,8 @@ hidden and reordered like every tile, and clicking it opens the area.
 
 **Export data** writes a PDF report (key figures, chart, latest snapshot by class, all snapshots and
 the balance sheet; it follows the period filter) or all entries and totals as Excel, CSV or JSON.
-Entry names, classes, amounts and notes are stored encrypted and are never written to logs. At the
+In the PDF, increases are teal and decreases orange, and the balance sheet prints group totals in
+bold with their entries indented below. Entry names, classes, amounts and notes are stored encrypted and are never written to logs. At the
 bottom of the page **Delete all wealth data** removes every snapshot and setting (the account stays);
 single snapshots are deleted from their table row. If the page says _Wealth data is temporarily
 unavailable_, the server cannot read the data right now — it is not lost; contact the operator.
