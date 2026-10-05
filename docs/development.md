@@ -171,26 +171,19 @@ send an **anonymized, rebuilt layout** so the parser can be written.
 
 ## Synthetic test data (limit tests and demo accounts)
 
-Three throw-away generators fill a test account with invented data. They are for local and demo
-use only — never point them at an account with real data.
+Throw-away generators fill a test account with invented data. They are for local and demo use only —
+never point them at an account with real data. Two entry points seed all features at once:
 
-| Domain     | Script                                                                         | Load-test set (default)                             | `--profile demo`                          |
-| ---------- | ------------------------------------------------------------------------------ | --------------------------------------------------- | ----------------------------------------- |
-| Earnings   | [generate-career-testset.mjs](../tools/earnings/generate-career-testset.mjs)   | 589 months 1977–2026, 10 employers, a gap           | 153 months 2014–2026, 3 employers         |
-| Wealth     | [seed-wealth-testset.mjs](../tools/wealth/seed-wealth-testset.mjs)             | 597 monthly snapshots, up to 27 entries, edge cases | 129 snapshots 2016–2026, realistic        |
-| Retirement | [seed-retirement-testset.mjs](../tools/retirement/seed-retirement-testset.mjs) | 81 records over every contract type                 | statutory pension + 5 plausible contracts |
+- `node tools/seed-comprehensive.mjs` — load and limit set for the Admin test account.
+- `node tools/seed-realistic.mjs` — plausible, edge-case-free set for the Member test account.
 
-- **Wealth and Retirement** upload through the REST API (there is no bulk import):
-  `node tools/wealth/seed-wealth-testset.mjs --email <e> --password <p> [--base http://localhost:3000] [--profile demo] [--replace]`.
-  Against a deployment use its API prefix, e.g. `--base https://<host>/api`. Without `--replace` the
-  script refuses a non-empty account; with it, `DELETE /wealth` (or `/retirement`) runs first.
-  `--out file.json` writes the data without uploading. The account needs the domain scope (admins
-  have all of them).
-- **Earnings** has no matching API format: generate the `earnings-export` JSON with
-  `node tools/earnings/generate-career-testset.mjs out.json [--profile demo]` and import it in the UI
-  (Earnings → Import), or drive that page with Playwright (`data-testid="earnings-import-input"`).
-- The output is deterministic, so a reset is reproducible. Passwords on the command line end up in
-  the shell history — use the dedicated test accounts only.
+Both upload through the REST API of a running backend and replace the account's earnings, wealth,
+retirement and insurances data. Passwords come from `--password` or `.env.local`
+(`VAULTFOLIO_TEST_PASSWORD` / `VAULTFOLIO_MEMBER_PASSWORD`). Requirements, options and the
+per-feature scripts (`--profile comprehensive|realistic`) are described in
+[tools/README.md](../tools/README.md).
+
+The output is deterministic, so a reset is reproducible.
 
 ## CI pipeline overview
 
