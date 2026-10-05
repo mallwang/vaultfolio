@@ -6,6 +6,8 @@
 
 **Status**: Draft
 
+**Design**: [design.md](./design.md)
+
 **Input**: User description: "Implement the insurances feature: users manage all of their personal insurances including monthly/quarterly/yearly premium, contract data, cancellation deadlines etc. (e.g. private liability, household contents, disability, car, travel health, statutory health). Catalog of many insurance types, some sensible, some combination products, some only sensible in specific situations (e.g. natural-hazard cover only for property owners). Statutory health insurance is coupled to Earnings when available, otherwise entered manually — analogous for other social insurances. Reminder emails (user-toggleable) for deadlines. Gap check in v1. No document upload. Only the user themself is insured. UI comparable to Retirement, Wealth and Earnings."
 
 ## User Scenarios & Testing _(mandatory)_
