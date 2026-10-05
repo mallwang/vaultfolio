@@ -2,6 +2,7 @@ import { requestsDe } from './requests.de';
 import { earningsDe } from './earnings.de';
 import { retirementDe } from './retirement.de';
 import { wealthDe } from './wealth.de';
+import { insurancesDe } from './insurances.de';
 import { ocrDe } from './ocr.de';
 import type { TranslationDictionary } from './en';
 
@@ -70,6 +71,7 @@ export const de: TranslationDictionary = {
     },
     retirement: 'Altersvorsorge',
     wealth: 'Vermögen',
+    insurances: 'Versicherungen',
     earnings: 'Einkommen',
     totalValue: 'Gesamtwert',
     todaysChange: 'Heutige Veränderung',
@@ -421,10 +423,6 @@ export const de: TranslationDictionary = {
   },
   // Placeholder-Domänen (022-add-domain-placeholders, FR-003): jede zeigt nur
   // ihren Namen und diesen "noch nicht verfügbar"-Text — keine weitere UI.
-  insurancesPlaceholder: {
-    title: 'Versicherungen',
-    body: 'Versicherungen sind noch nicht verfügbar. Dieser Bereich wird in einem zukünftigen Update ausgebaut.',
-  },
   haushaltsplanerPlaceholder: {
     title: 'Haushaltsplaner',
     body: 'Der Haushaltsplaner ist noch nicht verfügbar. Dieser Bereich wird in einem zukünftigen Update ausgebaut.',
@@ -517,6 +515,10 @@ export const de: TranslationDictionary = {
     wealthBalance: 'Vermögen · Bilanz',
     wealthNew: 'Stichtag erfassen',
     wealthEdit: 'Stichtag bearbeiten',
+    insurancesNew: 'Versicherungsvertrag erfassen',
+    insurancesEdit: 'Versicherungsvertrag bearbeiten',
+    insurancesContracts: 'Versicherungen · Verträge',
+    insurancesGapCheck: 'Versicherungen · Lückencheck',
     accountOverview: 'Kontoübersicht',
     klaro: 'Klaro',
     earnings: 'Einkommensentwicklung',
@@ -683,11 +685,6 @@ export const de: TranslationDictionary = {
     columnStatementDate: 'Stand',
     columnOrigin: 'Herkunft',
   },
-  insurancesExport: {
-    title: 'Versicherungen',
-    infobox:
-      'Über diesen Export — Versicherungen. Die Versicherungsverfolgung ist in Vaultfolio noch nicht umgesetzt, daher enthält diese Datei heute keine Zeilen — sie wird automatisch Ihre Daten enthalten, sobald diese Funktion verfügbar ist.',
-  },
   haushaltsplanerExport: {
     title: 'Haushaltsplaner',
     infobox:
@@ -696,6 +693,7 @@ export const de: TranslationDictionary = {
   earnings: earningsDe,
   retirement: retirementDe,
   wealth: wealthDe,
+  insurances: insurancesDe,
   ocr: ocrDe,
   requests: requestsDe,
 };

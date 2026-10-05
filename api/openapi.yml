@@ -2071,6 +2071,166 @@ paths:
       security: *ref_21
       summary: Delete all of the caller's wealth data (the account stays).
       tags: *ref_22
+  /insurances:
+    get:
+      operationId: InsurancesController_data
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InsurancesDataDto'
+        '403': &ref_23
+          description: Domain not entitled.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '503': &ref_24
+          description: INSURANCES_UNAVAILABLE — key missing/invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+      security: &ref_25
+        - sessionCookie: []
+      summary: >-
+        Everything the page needs: contracts, linked social lines, settings,
+        server date.
+      tags: &ref_26
+        - insurances
+    delete:
+      operationId: InsurancesController_deleteAll
+      parameters: []
+      responses:
+        '204':
+          description: Deleted.
+        '403': *ref_23
+        '503': *ref_24
+      security: *ref_25
+      summary: Delete all of the caller's insurance data (the account stays).
+      tags: *ref_26
+  /insurances/contracts:
+    post:
+      operationId: InsurancesController_create
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InsuranceContractInputDto'
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InsuranceContractDto'
+        '400':
+          description: >-
+            INSURANCES_VALIDATION / INSURANCES_UNKNOWN_FIELD /
+            INSURANCES_LIMIT_EXCEEDED.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '403': *ref_23
+        '503': *ref_24
+      security: *ref_25
+      summary: Create a contract (at most 200 per user).
+      tags: *ref_26
+  /insurances/contracts/{id}:
+    put:
+      operationId: InsurancesController_update
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InsuranceContractInputDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InsuranceContractDto'
+        '400':
+          description: INSURANCES_VALIDATION / INSURANCES_UNKNOWN_FIELD.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '403': *ref_23
+        '404':
+          description: INSURANCES_CONTRACT_NOT_FOUND.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '503': *ref_24
+      security: *ref_25
+      summary: Replace a contract as a whole.
+      tags: *ref_26
+    delete:
+      operationId: InsurancesController_delete
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Deleted.
+        '403': *ref_23
+        '404':
+          description: INSURANCES_CONTRACT_NOT_FOUND.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '503': *ref_24
+      security: *ref_25
+      summary: Delete one of the caller’s contracts.
+      tags: *ref_26
+  /insurances/settings:
+    put:
+      operationId: InsurancesController_saveSettings
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InsuranceSettingsDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InsuranceSettingsDto'
+        '400':
+          description: INSURANCES_VALIDATION / INSURANCES_UNKNOWN_FIELD.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '403': *ref_23
+        '503': *ref_24
+      security: *ref_25
+      summary: Replace profile, reminder preferences, dismissals and toolbar flag.
+      tags: *ref_26
   /requests:
     post:
       operationId: RequestsController_submit
@@ -2120,12 +2280,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-      security: &ref_23
+      security: &ref_27
         - sessionCookie: []
       summary: >-
         Submit a request (e.g. earnings/new-parser: an anonymized layout; the
         server generates the sample PDF).
-      tags: &ref_24
+      tags: &ref_28
         - requests
     get:
       operationId: RequestsController_list
@@ -2150,9 +2310,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-      security: *ref_23
+      security: *ref_27
       summary: List requests, newest first (admin only).
-      tags: *ref_24
+      tags: *ref_28
   /requests/{id}:
     get:
       operationId: RequestsController_detail
@@ -2181,9 +2341,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-      security: *ref_23
+      security: *ref_27
       summary: Request detail (admin only).
-      tags: *ref_24
+      tags: *ref_28
     patch:
       operationId: RequestsController_update
       parameters:
@@ -2223,9 +2383,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-      security: *ref_23
+      security: *ref_27
       summary: Set the status and/or the note of a request (admin only).
-      tags: *ref_24
+      tags: *ref_28
   /requests/{id}/attachment:
     get:
       operationId: RequestsController_attachment
@@ -2256,9 +2416,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-      security: *ref_23
+      security: *ref_27
       summary: Download the anonymized sample PDF; audited (admin only).
-      tags: *ref_24
+      tags: *ref_28
 info:
   title: Vaultfolio API
   description: >-
@@ -2415,7 +2575,7 @@ components:
       properties:
         assetType:
           type: string
-          enum: &ref_25
+          enum: &ref_29
             - ETF
         management:
           type: string
@@ -2441,7 +2601,7 @@ components:
       properties:
         assetType:
           type: string
-          enum: &ref_26
+          enum: &ref_30
             - SHARE
         management:
           type: string
@@ -2471,7 +2631,7 @@ components:
       properties:
         assetType:
           type: string
-          enum: &ref_27
+          enum: &ref_31
             - PRECIOUS_METAL
         management:
           type: string
@@ -2494,7 +2654,7 @@ components:
       properties:
         assetType:
           type: string
-          enum: &ref_28
+          enum: &ref_32
             - CRYPTO
         management:
           type: string
@@ -2521,7 +2681,7 @@ components:
       properties:
         assetType:
           type: string
-          enum: &ref_29
+          enum: &ref_33
             - DEPOSIT_MONEY
         management:
           type: string
@@ -2562,7 +2722,7 @@ components:
       properties:
         assetType:
           type: string
-          enum: *ref_25
+          enum: *ref_29
         management:
           type: string
         isin:
@@ -2587,7 +2747,7 @@ components:
       properties:
         assetType:
           type: string
-          enum: *ref_26
+          enum: *ref_30
         management:
           type: string
         isin:
@@ -2616,7 +2776,7 @@ components:
       properties:
         assetType:
           type: string
-          enum: *ref_27
+          enum: *ref_31
         management:
           type: string
         name:
@@ -2638,7 +2798,7 @@ components:
       properties:
         assetType:
           type: string
-          enum: *ref_28
+          enum: *ref_32
         management:
           type: string
         name:
@@ -2664,7 +2824,7 @@ components:
       properties:
         assetType:
           type: string
-          enum: *ref_29
+          enum: *ref_33
         management:
           type: string
         name:
@@ -3012,7 +3172,7 @@ components:
           nullable: true
         emailLanguage:
           type: string
-          enum: &ref_30
+          enum: &ref_34
             - en
             - de
           nullable: true
@@ -3055,7 +3215,7 @@ components:
       properties:
         emailLanguage:
           type: string
-          enum: *ref_30
+          enum: *ref_34
           nullable: true
       required:
         - emailLanguage
@@ -3107,7 +3267,7 @@ components:
           type: string
         category:
           type: string
-          enum: &ref_31
+          enum: &ref_35
             - GENERAL
             - LEISURE
             - SAVINGS
@@ -3116,7 +3276,7 @@ components:
             - OTHER
         status:
           type: string
-          enum: &ref_32
+          enum: &ref_36
             - ACTIVE
             - DECOMMISSIONED
           description: >-
@@ -3169,11 +3329,11 @@ components:
           type: string
         category:
           type: string
-          enum: *ref_31
+          enum: *ref_35
           description: Omit to default to 'OTHER'.
         status:
           type: string
-          enum: *ref_32
+          enum: *ref_36
           description: Omit to default to 'ACTIVE'.
         provider:
           type: string
@@ -3223,11 +3383,11 @@ components:
           type: string
         category:
           type: string
-          enum: *ref_31
+          enum: *ref_35
           description: Omit to default to 'OTHER'.
         status:
           type: string
-          enum: *ref_32
+          enum: *ref_36
           description: Omit to default to 'ACTIVE'.
         provider:
           type: string
@@ -3420,7 +3580,7 @@ components:
           pattern: ^\d{4}-(0[1-9]|1[0-2])$
         kind:
           type: string
-          enum: &ref_33
+          enum: &ref_37
             - REGULAR
             - CORRECTION
             - PAYOUT_ONLY
@@ -3437,7 +3597,7 @@ components:
             server re-runs every check on the submitted figures.
           items:
             type: string
-            enum: &ref_35
+            enum: &ref_39
               - gross
               - wageTax
               - soli
@@ -3560,7 +3720,7 @@ components:
           maxLength: 255
         sourceType:
           type: string
-          enum: &ref_34
+          enum: &ref_38
             - PAYSLIP_PDF
             - CERTIFICATE_PDF
             - EXPORT_JSON
@@ -3620,7 +3780,7 @@ components:
           nullable: true
         kind:
           type: string
-          enum: *ref_33
+          enum: *ref_37
           nullable: true
         seq:
           type: object
@@ -3781,7 +3941,7 @@ components:
           type: string
         sourceType:
           type: string
-          enum: *ref_34
+          enum: *ref_38
         parserId:
           type: string
         parserVersion:
@@ -4226,7 +4386,7 @@ components:
             saved before figure correction.
           items:
             type: string
-            enum: *ref_35
+            enum: *ref_39
       required:
         - gross
         - taxGross
@@ -4278,7 +4438,7 @@ components:
           pattern: ^\d{4}-(0[1-9]|1[0-2])$
         kind:
           type: string
-          enum: *ref_33
+          enum: *ref_37
         seq:
           type: number
         amounts:
@@ -4300,40 +4460,40 @@ components:
       properties:
         gross:
           type: object
-          additionalProperties: &ref_36
+          additionalProperties: &ref_40
             type: string
-          example: &ref_37
+          example: &ref_41
             2026-09: '5200.00'
           description: period → amount
         regular:
           type: object
-          additionalProperties: *ref_36
-          example: *ref_37
+          additionalProperties: *ref_40
+          example: *ref_41
           description: period → amount
         bonus:
           type: object
-          additionalProperties: *ref_36
-          example: *ref_37
+          additionalProperties: *ref_40
+          example: *ref_41
           description: period → amount
         net:
           type: object
-          additionalProperties: *ref_36
-          example: *ref_37
+          additionalProperties: *ref_40
+          example: *ref_41
           description: period → amount
         taxes:
           type: object
-          additionalProperties: *ref_36
-          example: *ref_37
+          additionalProperties: *ref_40
+          example: *ref_41
           description: period → amount
         social:
           type: object
-          additionalProperties: *ref_36
-          example: *ref_37
+          additionalProperties: *ref_40
+          example: *ref_41
           description: period → amount
         payout:
           type: object
-          additionalProperties: *ref_36
-          example: *ref_37
+          additionalProperties: *ref_40
+          example: *ref_41
           description: period → amount
       required:
         - gross
@@ -4605,13 +4765,13 @@ components:
           type: string
         pillar:
           type: string
-          enum: &ref_38
+          enum: &ref_42
             - STATUTORY
             - OCCUPATIONAL
             - PRIVATE
         contractType:
           type: string
-          enum: &ref_39
+          enum: &ref_43
             - STATUTORY_PENSION
             - DIRECT_INSURANCE
             - PENSIONSKASSE
@@ -4624,7 +4784,7 @@ components:
             - ALTERSVORSORGEDEPOT
         origin:
           type: string
-          enum: &ref_40
+          enum: &ref_44
             - IMPORTED
             - MANUAL
         providerLabel:
@@ -4796,7 +4956,7 @@ components:
           description: Canonical decimal string (EUR, up to 2 decimal places).
         expectedScenario:
           type: string
-          enum: &ref_43
+          enum: &ref_47
             - '0'
             - '3'
             - '6'
@@ -4824,16 +4984,16 @@ components:
           type: string
         pillar:
           type: string
-          enum: *ref_38
+          enum: *ref_42
         contractType:
           type: string
-          enum: *ref_39
+          enum: *ref_43
         origin:
           type: string
-          enum: *ref_40
+          enum: *ref_44
         status:
           type: string
-          enum: &ref_41
+          enum: &ref_45
             - ACTIVE
             - PAID_UP
             - IN_PAYOUT
@@ -4854,7 +5014,7 @@ components:
           nullable: true
         figures:
           description: Figures of the contract type (strict per-type whitelist).
-          oneOf: &ref_42
+          oneOf: &ref_46
             - $ref: '#/components/schemas/RetirementStatutoryFiguresDto'
             - $ref: '#/components/schemas/RetirementPensionFiguresDto'
             - $ref: '#/components/schemas/RetirementCapitalAccountFiguresDto'
@@ -5081,10 +5241,10 @@ components:
       properties:
         contractType:
           type: string
-          enum: *ref_39
+          enum: *ref_43
         status:
           type: string
-          enum: *ref_41
+          enum: *ref_45
         providerLabel:
           type: string
           maxLength: 80
@@ -5103,10 +5263,10 @@ components:
           description: Insurance or contract number; stored encrypted.
         figures:
           description: Figures of the contract type (strict per-type whitelist).
-          oneOf: *ref_42
+          oneOf: *ref_46
         origin:
           type: string
-          enum: *ref_40
+          enum: *ref_44
         supplement:
           description: IMPORTED only.
           allOf:
@@ -5129,10 +5289,10 @@ components:
       properties:
         contractType:
           type: string
-          enum: *ref_39
+          enum: *ref_43
         status:
           type: string
-          enum: *ref_41
+          enum: *ref_45
         providerLabel:
           type: string
           maxLength: 80
@@ -5151,7 +5311,7 @@ components:
           description: Insurance or contract number; stored encrypted.
         figures:
           description: Figures of the contract type (strict per-type whitelist).
-          oneOf: *ref_42
+          oneOf: *ref_46
       required:
         - contractType
         - status
@@ -5178,10 +5338,10 @@ components:
           description: Canonical decimal string (EUR, up to 2 decimal places).
         expectedScenario:
           type: string
-          enum: *ref_43
+          enum: *ref_47
         status:
           type: string
-          enum: *ref_41
+          enum: *ref_45
     WealthClassRefDto:
       type: object
       properties:
@@ -5213,7 +5373,7 @@ components:
       properties:
         side:
           type: string
-          enum: &ref_44
+          enum: &ref_48
             - ASSET
             - LIABILITY
         class:
@@ -5290,7 +5450,7 @@ components:
       properties:
         side:
           type: string
-          enum: *ref_44
+          enum: *ref_48
         class:
           $ref: '#/components/schemas/WealthClassRefDto'
         group:
@@ -5317,6 +5477,359 @@ components:
             $ref: '#/components/schemas/WealthClassGroupAssignmentDto'
       required:
         - classGroups
+    InsurancePeriodDto:
+      type: object
+      properties:
+        value:
+          type: number
+          minimum: 0
+          maximum: 60
+        unit:
+          type: string
+          enum:
+            - WEEKS
+            - MONTHS
+      required:
+        - value
+        - unit
+    InsuranceFixedDateDto:
+      type: object
+      properties:
+        day:
+          type: number
+          minimum: 1
+          maximum: 31
+        month:
+          type: number
+          minimum: 1
+          maximum: 12
+      required:
+        - day
+        - month
+    InsuranceCancellationDto:
+      type: object
+      properties:
+        period:
+          $ref: '#/components/schemas/InsurancePeriodDto'
+        autoRenew:
+          type: boolean
+        renewalMonths:
+          type: number
+          minimum: 1
+          maximum: 60
+        minimumTermMonths:
+          type: number
+          minimum: 1
+          maximum: 600
+        fixedDate:
+          $ref: '#/components/schemas/InsuranceFixedDateDto'
+      required:
+        - autoRenew
+    InsuranceContractDetailsDto:
+      type: object
+      properties:
+        coverageSum:
+          type: string
+          example: '5000000.00'
+        deductible:
+          type: string
+          example: '150.00'
+        insuredMonthlyBenefit:
+          type: string
+          example: '1500.00'
+        insuredSum:
+          type: string
+          example: '60000.00'
+        licensePlate:
+          type: string
+          maxLength: 30
+        noClaimsClass:
+          type: string
+          maxLength: 30
+    InsuranceContractDto:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: &ref_49
+            - STATUTORY_HEALTH
+            - STATUTORY_CARE
+            - STATUTORY_PENSION
+            - STATUTORY_UNEMPLOYMENT
+            - PRIVATE_HEALTH
+            - SUPPLEMENTARY_HEALTH
+            - DENTAL_SUPPLEMENT
+            - TRAVEL_HEALTH
+            - LONG_TERM_CARE
+            - DISABILITY
+            - TERM_LIFE
+            - ACCIDENT
+            - PRIVATE_LIABILITY
+            - PET_LIABILITY
+            - PROPERTY_OWNER_LIABILITY
+            - HOUSEHOLD
+            - BUILDING
+            - NATURAL_HAZARD
+            - GLASS
+            - CAR
+            - BICYCLE
+            - LEGAL_PROTECTION
+            - OTHER
+        alsoCovers:
+          type: array
+          maxItems: 10
+          description: 'Combination products: further catalog types this contract covers.'
+          items: &ref_50
+            type: string
+            enum: *ref_49
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        insurer:
+          type: string
+          maxLength: 100
+        contractNumber:
+          type: string
+          maxLength: 50
+        status:
+          type: string
+          enum: &ref_51
+            - ACTIVE
+            - CANCELLED
+            - ENDED
+        startDate:
+          type: string
+          example: '2025-01-01'
+          description: YYYY-MM-DD.
+        endDate:
+          type: string
+          description: YYYY-MM-DD, not before startDate.
+        premium:
+          type: string
+          example: '96.00'
+          description: Decimal string, at most two digits.
+        interval:
+          type: string
+          enum: &ref_52
+            - MONTHLY
+            - QUARTERLY
+            - HALF_YEARLY
+            - YEARLY
+        paymentMonth:
+          type: number
+          minimum: 1
+          maximum: 12
+          description: Only for non-monthly intervals.
+        cancellation:
+          $ref: '#/components/schemas/InsuranceCancellationDto'
+        reminderEnabled:
+          type: boolean
+        details:
+          $ref: '#/components/schemas/InsuranceContractDetailsDto'
+        note:
+          type: string
+          maxLength: 500
+        id:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - type
+        - name
+        - status
+        - startDate
+        - premium
+        - interval
+        - cancellation
+        - reminderEnabled
+        - id
+        - createdAt
+        - updatedAt
+    InsuranceLinkedSocialLineDto:
+      type: object
+      properties:
+        kind:
+          type: string
+          enum:
+            - HEALTH
+            - CARE
+            - PENSION
+            - UNEMPLOYMENT
+        monthly:
+          type: string
+          example: '612.00'
+        period:
+          type: string
+          example: 2026-09
+          description: YYYY-MM of the payslip.
+      required:
+        - kind
+        - monthly
+        - period
+    InsuranceProfileDto:
+      type: object
+      properties:
+        ownsProperty:
+          type: boolean
+        ownsCar:
+          type: boolean
+        hasChildren:
+          type: boolean
+        hasPets:
+          type: boolean
+        travelsAbroad:
+          type: boolean
+        employment:
+          type: string
+          enum:
+            - EMPLOYED
+            - SELF_EMPLOYED
+            - CIVIL_SERVANT
+            - OTHER
+      required:
+        - ownsProperty
+        - ownsCar
+        - hasChildren
+        - hasPets
+        - travelsAbroad
+        - employment
+    InsuranceRemindersDto:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+        leadDays:
+          type: number
+          minimum: 7
+          maximum: 120
+          example: 30
+      required:
+        - enabled
+        - leadDays
+    InsuranceSettingsDto:
+      type: object
+      properties:
+        profile:
+          $ref: '#/components/schemas/InsuranceProfileDto'
+        reminders:
+          $ref: '#/components/schemas/InsuranceRemindersDto'
+        dismissedRequirements:
+          type: array
+          maxItems: 50
+          items:
+            type: string
+            enum:
+              - HEALTH
+              - LIABILITY
+              - HOUSEHOLD
+              - DISABILITY
+              - BUILDING
+              - NATURAL_HAZARD
+              - CAR
+              - PET_LIABILITY
+              - TRAVEL_HEALTH
+              - RISK_LIFE
+              - LEGAL
+              - PROPERTY_OWNER_LIABILITY
+        includeSocial:
+          type: boolean
+      required:
+        - profile
+        - reminders
+        - dismissedRequirements
+        - includeSocial
+    InsurancesDataDto:
+      type: object
+      properties:
+        contracts:
+          type: array
+          items:
+            $ref: '#/components/schemas/InsuranceContractDto'
+        linkedSocial:
+          description: >-
+            Derived read-only from the caller’s Earnings data; empty without
+            access or data.
+          type: array
+          items:
+            $ref: '#/components/schemas/InsuranceLinkedSocialLineDto'
+        settings:
+          $ref: '#/components/schemas/InsuranceSettingsDto'
+        today:
+          type: string
+          example: '2026-10-05'
+          description: Server date YYYY-MM-DD.
+      required:
+        - contracts
+        - linkedSocial
+        - settings
+        - today
+    InsuranceContractInputDto:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: *ref_49
+        alsoCovers:
+          type: array
+          maxItems: 10
+          description: 'Combination products: further catalog types this contract covers.'
+          items: *ref_50
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        insurer:
+          type: string
+          maxLength: 100
+        contractNumber:
+          type: string
+          maxLength: 50
+        status:
+          type: string
+          enum: *ref_51
+        startDate:
+          type: string
+          example: '2025-01-01'
+          description: YYYY-MM-DD.
+        endDate:
+          type: string
+          description: YYYY-MM-DD, not before startDate.
+        premium:
+          type: string
+          example: '96.00'
+          description: Decimal string, at most two digits.
+        interval:
+          type: string
+          enum: *ref_52
+        paymentMonth:
+          type: number
+          minimum: 1
+          maximum: 12
+          description: Only for non-monthly intervals.
+        cancellation:
+          $ref: '#/components/schemas/InsuranceCancellationDto'
+        reminderEnabled:
+          type: boolean
+        details:
+          $ref: '#/components/schemas/InsuranceContractDetailsDto'
+        note:
+          type: string
+          maxLength: 500
+      required:
+        - type
+        - name
+        - status
+        - startDate
+        - premium
+        - interval
+        - cancellation
+        - reminderEnabled
     SubmitRequestDto:
       type: object
       properties:
@@ -5382,7 +5895,7 @@ components:
           type: string
         status:
           type: string
-          enum: &ref_45
+          enum: &ref_53
             - OPEN
             - IN_PROGRESS
             - DONE
@@ -5465,7 +5978,7 @@ components:
           type: string
         status:
           type: string
-          enum: *ref_45
+          enum: *ref_53
         note:
           type: string
           nullable: true
@@ -5524,7 +6037,7 @@ components:
       properties:
         status:
           type: string
-          enum: *ref_45
+          enum: *ref_53
         note:
           type: string
           maxLength: 2000

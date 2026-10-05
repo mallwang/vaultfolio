@@ -353,7 +353,7 @@ export const earningsDe: TranslationDictionary = {
   },
   widget: {
     title: '{{year}} · {{months}}',
-    open: 'Öffnen',
+    open: 'Zum Einkommen',
     months: 'Jan–{{month}}',
     chart: 'Brutto je Jahr',
     growth: 'Wachstum {{from}}→{{to}}',

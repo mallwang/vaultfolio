@@ -31,12 +31,14 @@ Holdings tracking (manual entry, CRUD, CSV/JSON import, distribution-by-type cha
 the frontend has grown into a multi-domain app shell — authentication/sessions, admin (accounts,
 invitations, sign-ups), self-service signup, profile/password/preferences settings, multi-language
 UI, theme switching, and a dashboard — with holdings as the first of several planned domains
-(insurances, household planning and account overview exist today as placeholders). Broader capabilities (live market data, valuation) are still to come.
+(household planning and account overview exist today as placeholders). Broader capabilities (live market data, valuation) are still to come.
 
 The **Earnings** domain (payslips and wage-tax certificates) is built as well — see
 [Earnings domain](#earnings-domain). So is **Wealth** (historic wealth development): manual
 snapshots of assets and liabilities, a development chart, a balance sheet, a dashboard tile and a
-PDF/data export — see [docs/user-guide.md](docs/user-guide.md#7b-wealth).
+PDF/data export — see [docs/user-guide.md](docs/user-guide.md#7b-wealth). And so is
+**Insurances**: manually recorded contracts with cost overview, cancellation deadlines, a gap
+check and optional reminder e-mails — see [docs/user-guide.md](docs/user-guide.md#7c-insurances).
 
 For a full walkthrough of the UI, see [docs/user-guide.md](docs/user-guide.md)
 ([Deutsche Version](docs/user-guide.de.md)).
@@ -281,6 +283,18 @@ Earnings key (see above) — a lost or changed key makes all stored wealth data 
 unreadable. **Without a valid key the backend still starts**, but every `/wealth` route answers
 `503 WEALTH_UNAVAILABLE` (fail closed) and the Wealth area shows an "unavailable" state; the other
 domains are unaffected and stored data is not lost.
+
+### Insurances encryption key
+
+The Insurances domain encrypts every stored contract (names, insurers, contract numbers, premiums,
+dates, notes), the gap-check profile and the reminder settings with its own
+`INSURANCES_ENCRYPTION_KEY` (Base64 of exactly 32 random bytes), separate from the other keys.
+Generate and back it up the same way as the Earnings key (see above) — a lost or changed key makes
+all stored insurance data permanently unreadable. **Without a valid key the backend still starts**,
+but every `/insurances` route answers `503 INSURANCES_UNAVAILABLE` (fail closed), no reminder
+e-mails are sent and the Insurances area shows an "unavailable" state; the other domains are
+unaffected and stored data is not lost. Reminder e-mails use the SMTP settings of the other
+notifications and the `APP_BASE_URL` link.
 
 ## Deploying with Portainer (or any Docker Hub-based host)
 

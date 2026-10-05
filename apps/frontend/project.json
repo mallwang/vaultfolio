@@ -103,6 +103,7 @@
             "@vaultfolio/document-text",
             "@vaultfolio/retirement",
             "@vaultfolio/wealth",
+            "@vaultfolio/insurances",
             "@vaultfolio/frontend-document-reader",
             "@vaultfolio/frontend-admin",
             "@vaultfolio/frontend-domain-access",

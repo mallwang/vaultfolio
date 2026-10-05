@@ -1,0 +1,1259 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Versicherungen – Review-Mockup</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #ffffff;
+        --surface: #f8fafc;
+        --text: #1e293b;
+        --muted: #64748b;
+        --line: #e2e8f0;
+        --primary: #10b981;
+        --primary-dark: #059669;
+        --primary-soft: #d1fae5;
+        --warn: #d97706;
+        --warn-soft: #fef3c7;
+        --danger: #dc2626;
+        --danger-soft: #fee2e2;
+        --info: #2563eb;
+        --info-soft: #dbeafe;
+        --review-bg: #f3f2ee;
+        --review-ink: #2c2a25;
+        --review-muted: #7a7669;
+        --review-line: #ddd9d0;
+        --review-accent: #b45f2c;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--review-bg);
+        color: var(--review-ink);
+        font-family:
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          sans-serif;
+      }
+      .review-header {
+        padding: 1.5rem 2rem 1rem;
+        border-bottom: 1px solid var(--review-line);
+      }
+      .review-eyebrow {
+        font-size: 0.72rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--review-accent);
+        font-weight: 700;
+        margin: 0 0 0.25rem;
+      }
+      .review-header h1 {
+        margin: 0 0 0.35rem;
+        font-size: 1.35rem;
+      }
+      .review-header p {
+        margin: 0;
+        color: var(--review-muted);
+        font-size: 0.9rem;
+        max-width: 72ch;
+        line-height: 1.5;
+      }
+      .review-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.25rem;
+        padding: 0.85rem 2rem;
+        background: #fff;
+        border-bottom: 1px solid var(--review-line);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+      .control-group {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .control-group .label {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        color: var(--review-muted);
+        font-weight: 700;
+      }
+      .segmented {
+        display: inline-flex;
+        flex-wrap: wrap;
+        border: 1px solid var(--review-line);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      .segmented button {
+        border: none;
+        background: #fff;
+        font: inherit;
+        font-size: 0.83rem;
+        font-weight: 600;
+        padding: 0.4rem 0.75rem;
+        cursor: pointer;
+        border-right: 1px solid var(--review-line);
+      }
+      .segmented button:last-child {
+        border-right: none;
+      }
+      .segmented button[aria-pressed='true'] {
+        background: var(--review-accent);
+        color: #fff;
+      }
+      .review-stage {
+        padding: 2rem;
+        display: flex;
+        justify-content: center;
+      }
+      .stage-frame {
+        width: 100%;
+        max-width: 1180px;
+        background: #d9d4c8;
+        border-radius: 14px;
+        padding: 1.25rem;
+      }
+      .stage-frame[data-viewport='mobile'] {
+        max-width: 400px;
+      }
+      .stage-frame-label {
+        font-size: 0.72rem;
+        color: var(--review-muted);
+        text-align: center;
+        margin: 0 0 0.5rem;
+        text-transform: uppercase;
+      }
+      .canvas {
+        background: var(--bg);
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+        color: var(--text);
+      }
+      .review-footer {
+        padding: 0 2rem 2rem;
+        max-width: 1180px;
+        margin: 0 auto;
+        font-size: 0.85rem;
+        color: var(--review-muted);
+      }
+      .review-footer li {
+        margin: 0.2rem 0;
+      }
+
+      [data-screen] [data-show] {
+        display: none;
+      }
+      [data-screen='overview'] [data-show~='overview'],
+      [data-screen='contracts'] [data-show~='contracts'],
+      [data-screen='form'] [data-show~='form'],
+      [data-screen='gaps'] [data-show~='gaps'],
+      [data-screen='reminders'] [data-show~='reminders'],
+      [data-screen='empty'] [data-show~='empty'] {
+        display: block;
+      }
+      [data-screen='overview'] .tabs[data-show~='overview'],
+      [data-screen='contracts'] .tabs[data-show~='contracts'],
+      [data-screen='gaps'] .tabs[data-show~='gaps'] {
+        display: flex;
+      }
+      [data-screen='overview'] .toolbar[data-show~='overview'],
+      [data-screen='contracts'] .toolbar[data-show~='contracts'],
+      [data-screen='gaps'] .toolbar[data-show~='gaps'] {
+        display: flex;
+      }
+
+      /* ---- mocked app shell ---- */
+      .shell {
+        display: grid;
+        grid-template-columns: 200px 1fr;
+        min-height: 640px;
+      }
+      .sidebar {
+        background: var(--surface);
+        border-right: 1px solid var(--line);
+        padding: 1rem 0.6rem;
+      }
+      .brand {
+        font-weight: 800;
+        padding: 0 0.6rem 1rem;
+        color: var(--primary-dark);
+      }
+      .nav a {
+        display: block;
+        padding: 0.5rem 0.7rem;
+        border-radius: 6px;
+        font-size: 0.88rem;
+        color: var(--muted);
+        margin-bottom: 2px;
+      }
+      .nav a.active {
+        background: var(--primary-soft);
+        color: var(--primary-dark);
+        font-weight: 700;
+      }
+      .main {
+        min-width: 0;
+      }
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.8rem 1.25rem;
+        border-bottom: 1px solid var(--line);
+      }
+      .topbar h2 {
+        margin: 0;
+        font-size: 1.1rem;
+      }
+      .topbar .meta {
+        font-size: 0.82rem;
+        color: var(--muted);
+      }
+      .content {
+        padding: 1.25rem;
+      }
+      .stage-frame[data-viewport='mobile'] .shell {
+        grid-template-columns: 1fr;
+      }
+      .stage-frame[data-viewport='mobile'] .sidebar {
+        display: flex;
+        overflow-x: auto;
+        gap: 0.3rem;
+        padding: 0.5rem;
+        border-right: none;
+        border-bottom: 1px solid var(--line);
+      }
+      .stage-frame[data-viewport='mobile'] .brand {
+        display: none;
+      }
+      .stage-frame[data-viewport='mobile'] .nav {
+        display: flex;
+        gap: 0.3rem;
+      }
+      .stage-frame[data-viewport='mobile'] .nav a {
+        white-space: nowrap;
+      }
+
+      /* ---- feature ---- */
+      .toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+      }
+      .toolbar .grp {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+      .btn {
+        border: 1px solid var(--line);
+        background: #fff;
+        border-radius: 6px;
+        padding: 0.4rem 0.8rem;
+        font: inherit;
+        font-size: 0.85rem;
+        cursor: pointer;
+        color: var(--text);
+      }
+      .btn.primary {
+        background: var(--primary);
+        border-color: var(--primary);
+        color: #fff;
+        font-weight: 600;
+      }
+      .tabs {
+        display: flex;
+        gap: 0.25rem;
+        border-bottom: 1px solid var(--line);
+        margin-bottom: 1rem;
+      }
+      .tabs span {
+        padding: 0.5rem 0.9rem;
+        font-size: 0.88rem;
+        color: var(--muted);
+        border-bottom: 2px solid transparent;
+      }
+      .tabs span.on {
+        color: var(--primary-dark);
+        border-color: var(--primary);
+        font-weight: 700;
+      }
+      .kpis {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.8rem;
+        margin-bottom: 1rem;
+      }
+      .stage-frame[data-viewport='mobile'] .kpis {
+        grid-template-columns: 1fr 1fr;
+      }
+      .kpi {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 0.8rem;
+        background: #fff;
+      }
+      .kpi small {
+        display: block;
+        color: var(--muted);
+        font-size: 0.74rem;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+      }
+      .kpi b {
+        display: block;
+        font-size: 1.35rem;
+        margin: 0.15rem 0;
+      }
+      .kpi span {
+        font-size: 0.78rem;
+        color: var(--muted);
+      }
+      .kpi.hero {
+        background: var(--primary-soft);
+        border-color: #a7f3d0;
+      }
+      .kpi.alert {
+        background: var(--warn-soft);
+        border-color: #fcd34d;
+      }
+      .grid2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1rem;
+      }
+      .stage-frame[data-viewport='mobile'] .grid2 {
+        grid-template-columns: 1fr;
+      }
+      .panel {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 1rem;
+        background: #fff;
+      }
+      .panel h3 {
+        margin: 0 0 0.7rem;
+        font-size: 0.95rem;
+      }
+      .donut-row {
+        display: flex;
+        gap: 1.2rem;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .donut {
+        width: 130px;
+        height: 130px;
+        border-radius: 50%;
+        background: conic-gradient(
+          #10b981 0 47.6%,
+          #2563eb 47.6% 84.7%,
+          #f59e0b 84.7% 94.2%,
+          #8b5cf6 94.2% 100%
+        );
+        position: relative;
+      }
+      .donut::after {
+        content: '';
+        position: absolute;
+        inset: 28px;
+        background: #fff;
+        border-radius: 50%;
+      }
+      .legend {
+        font-size: 0.82rem;
+        line-height: 1.8;
+      }
+      .legend i {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 2px;
+        margin-right: 0.4rem;
+      }
+      .bars {
+        display: flex;
+        align-items: flex-end;
+        gap: 6px;
+        height: 150px;
+        border-bottom: 1px solid var(--line);
+      }
+      .bars div {
+        flex: 1;
+        background: var(--primary);
+        border-radius: 3px 3px 0 0;
+        position: relative;
+      }
+      .bars div.base {
+        background: #a7f3d0;
+      }
+      .bars-labels {
+        display: flex;
+        gap: 6px;
+        font-size: 0.68rem;
+        color: var(--muted);
+        margin-top: 0.3rem;
+      }
+      .bars-labels span {
+        flex: 1;
+        text-align: center;
+      }
+      .list-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.5rem;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid var(--line);
+        font-size: 0.86rem;
+      }
+      .list-row:last-child {
+        border: none;
+      }
+      .list-row small {
+        color: var(--muted);
+        display: block;
+      }
+      .tag {
+        display: inline-block;
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 0.12rem 0.5rem;
+        border-radius: 999px;
+        white-space: nowrap;
+      }
+      .tag.ess {
+        background: var(--danger-soft);
+        color: var(--danger);
+      }
+      .tag.rec {
+        background: var(--info-soft);
+        color: var(--info);
+      }
+      .tag.sit {
+        background: var(--warn-soft);
+        color: var(--warn);
+      }
+      .tag.opt {
+        background: #e2e8f0;
+        color: #475569;
+      }
+      .tag.src {
+        background: var(--primary-soft);
+        color: var(--primary-dark);
+      }
+      .tag.warn {
+        background: var(--warn-soft);
+        color: var(--warn);
+      }
+      .chips {
+        display: flex;
+        gap: 0.4rem;
+        flex-wrap: wrap;
+        margin-bottom: 0.8rem;
+      }
+      .chip {
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 0.25rem 0.7rem;
+        font-size: 0.8rem;
+        background: #fff;
+      }
+      .chip.on {
+        background: var(--primary-soft);
+        border-color: var(--primary);
+        color: var(--primary-dark);
+        font-weight: 600;
+      }
+      .tablewrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.84rem;
+        min-width: 760px;
+      }
+      th {
+        text-align: left;
+        color: var(--muted);
+        font-size: 0.74rem;
+        text-transform: uppercase;
+        padding: 0.5rem;
+        border-bottom: 1px solid var(--line);
+      }
+      td {
+        padding: 0.55rem 0.5rem;
+        border-bottom: 1px solid var(--line);
+        vertical-align: middle;
+      }
+      td small {
+        color: var(--muted);
+        display: block;
+      }
+      td.num,
+      th.num {
+        text-align: right;
+      }
+      tr.linked td {
+        background: #f0fdf4;
+      }
+      tr.deadline td:nth-child(5) {
+        color: var(--warn);
+        font-weight: 700;
+      }
+      .note {
+        border-radius: 8px;
+        padding: 0.7rem 0.9rem;
+        font-size: 0.84rem;
+        margin-bottom: 1rem;
+        line-height: 1.5;
+      }
+      .note.info {
+        background: var(--info-soft);
+        color: #1e3a8a;
+      }
+      .note.warn {
+        background: var(--warn-soft);
+        color: #78350f;
+      }
+      .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.8rem;
+      }
+      .stage-frame[data-viewport='mobile'] .form-grid {
+        grid-template-columns: 1fr;
+      }
+      .field label {
+        display: block;
+        font-size: 0.76rem;
+        font-weight: 600;
+        color: var(--muted);
+        margin-bottom: 0.2rem;
+      }
+      .field .in {
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 0.45rem 0.6rem;
+        font-size: 0.86rem;
+        background: #fff;
+        min-height: 34px;
+      }
+      .field.full {
+        grid-column: 1 / -1;
+      }
+      .derived {
+        background: var(--primary-soft);
+        border-radius: 8px;
+        padding: 0.7rem 0.9rem;
+        font-size: 0.85rem;
+        margin-top: 0.8rem;
+      }
+      .switch {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.6rem 0;
+        border-bottom: 1px solid var(--line);
+        font-size: 0.88rem;
+      }
+      .switch .tg {
+        width: 38px;
+        height: 20px;
+        border-radius: 999px;
+        background: var(--primary);
+        position: relative;
+      }
+      .switch .tg::after {
+        content: '';
+        position: absolute;
+        right: 2px;
+        top: 2px;
+        width: 16px;
+        height: 16px;
+        background: #fff;
+        border-radius: 50%;
+      }
+      .switch .tg.off {
+        background: #cbd5e1;
+      }
+      .switch .tg.off::after {
+        right: auto;
+        left: 2px;
+      }
+      .empty {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: var(--muted);
+      }
+      .empty h3 {
+        color: var(--text);
+      }
+      .gap-item {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.8rem;
+        align-items: flex-start;
+        padding: 0.65rem 0;
+        border-bottom: 1px solid var(--line);
+        font-size: 0.86rem;
+      }
+      .gap-item:last-child {
+        border: none;
+      }
+      .gap-item small {
+        display: block;
+        color: var(--muted);
+        margin-top: 0.15rem;
+      }
+      .ok {
+        color: var(--primary-dark);
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="review-header">
+      <p class="review-eyebrow">Non-functional review mockup</p>
+      <h1>039 – Versicherungen</h1>
+      <p>
+        Statisches Layout-Mockup des Bereichs „Versicherungen" innerhalb der bestehenden App-Shell.
+        Alle Namen und Beträge sind erfunden. Zustände und Viewport oben umschalten.
+      </p>
+    </header>
+
+    <div class="review-controls">
+      <div class="control-group">
+        <span class="label">Viewport</span>
+        <div class="segmented" id="viewport-toggle">
+          <button type="button" data-viewport="desktop" aria-pressed="true">Desktop</button>
+          <button type="button" data-viewport="mobile" aria-pressed="false">Mobile</button>
+        </div>
+      </div>
+      <div class="control-group">
+        <span class="label">Ansicht</span>
+        <div class="segmented" id="screen-toggle">
+          <button type="button" data-screen="overview" aria-pressed="true">Übersicht</button>
+          <button type="button" data-screen="contracts" aria-pressed="false">Verträge</button>
+          <button type="button" data-screen="form" aria-pressed="false">Vertrag erfassen</button>
+          <button type="button" data-screen="gaps" aria-pressed="false">Lückencheck</button>
+          <button type="button" data-screen="reminders" aria-pressed="false">Erinnerungen</button>
+          <button type="button" data-screen="empty" aria-pressed="false">Leer</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="review-stage">
+      <div class="stage-frame" id="stage-frame" data-viewport="desktop">
+        <p class="stage-frame-label" id="stage-frame-label">Desktop</p>
+        <div class="canvas" data-screen="overview" id="canvas">
+          <div class="shell">
+            <nav class="sidebar">
+              <div class="brand">Vaultfolio</div>
+              <div class="nav">
+                <a>Dashboard</a><a>Holdings</a><a>Altersvorsorge</a>
+                <a class="active">Versicherungen</a><a>Vermögen</a><a>Einkommen</a>
+              </div>
+            </nav>
+            <div class="main">
+              <div class="topbar">
+                <h2>Versicherungen</h2>
+                <span class="meta">Markus Allwang</span>
+              </div>
+              <div class="content">
+                <!-- Toolbar -->
+                <div class="toolbar" data-show="overview contracts gaps">
+                  <div class="grp">
+                    <span class="chip on">2026</span>
+                    <span class="chip">Sozialversicherungen einrechnen ✓</span>
+                  </div>
+                  <div class="grp">
+                    <button class="btn" type="button">🔔 Erinnerungen</button>
+                    <button class="btn" type="button">⬇ Daten exportieren</button>
+                    <button class="btn primary" type="button">+ Vertrag erfassen</button>
+                  </div>
+                </div>
+                <div class="tabs" data-show="overview contracts gaps">
+                  <span class="on" data-show="overview">Übersicht</span>
+                  <span data-show="overview">Verträge</span>
+                  <span data-show="overview">Lückencheck</span>
+                  <span data-show="contracts gaps">Übersicht</span>
+                  <span data-show="contracts" class="on">Verträge</span>
+                  <span data-show="contracts">Lückencheck</span>
+                  <span data-show="gaps">Verträge</span>
+                  <span data-show="gaps" class="on">Lückencheck</span>
+                </div>
+
+                <!-- ============ ÜBERSICHT ============ -->
+                <div data-show="overview">
+                  <div class="kpis">
+                    <div class="kpi hero">
+                      <small>Kosten pro Monat</small><b>137,44 €</b
+                      ><span>privat · +1.031,25 € gesetzlich</span>
+                    </div>
+                    <div class="kpi">
+                      <small>Kosten pro Jahr</small><b>1.649,30 €</b
+                      ><span>privat · +12.375,00 € gesetzlich</span>
+                    </div>
+                    <div class="kpi">
+                      <small>Aktive Verträge</small><b>6</b><span>+ 4 gesetzlich</span>
+                    </div>
+                    <div class="kpi alert">
+                      <small>Nächste Kündigungsfrist</small><b>30.11.2026</b
+                      ><span>KFZ-Versicherung · in 56 Tagen</span>
+                    </div>
+                  </div>
+
+                  <div class="grid2">
+                    <div class="panel">
+                      <h3>Kosten nach Bereich (pro Jahr)</h3>
+                      <div class="donut-row">
+                        <div class="donut"></div>
+                        <div class="legend">
+                          <div><i style="background: #10b981"></i>Personen 785,30 € (48 %)</div>
+                          <div><i style="background: #2563eb"></i>Mobilität 612,00 € (37 %)</div>
+                          <div><i style="background: #f59e0b"></i>Sachen 156,00 € (9 %)</div>
+                          <div><i style="background: #8b5cf6"></i>Haftung 96,00 € (6 %)</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="panel">
+                      <h3>Zahlungen je Monat 2026</h3>
+                      <div class="bars">
+                        <div style="height: 100%"></div>
+                        <div class="base" style="height: 9.5%"></div>
+                        <div style="height: 30%"></div>
+                        <div style="height: 24%"></div>
+                        <div class="base" style="height: 9.5%"></div>
+                        <div style="height: 12%"></div>
+                        <div class="base" style="height: 9.5%"></div>
+                        <div class="base" style="height: 9.5%"></div>
+                        <div class="base" style="height: 9.5%"></div>
+                        <div class="base" style="height: 9.5%"></div>
+                        <div style="height: 12.5%"></div>
+                        <div class="base" style="height: 9.5%"></div>
+                      </div>
+                      <div class="bars-labels">
+                        <span>Jan</span><span>Feb</span><span>Mär</span><span>Apr</span
+                        ><span>Mai</span><span>Jun</span><span>Jul</span><span>Aug</span
+                        ><span>Sep</span><span>Okt</span><span>Nov</span><span>Dez</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="grid2">
+                    <div class="panel">
+                      <h3>Anstehende Kündigungsfristen</h3>
+                      <div class="list-row">
+                        <div>
+                          KFZ-Versicherung<small>fester Stichtag 30.11. · Erinnerung aktiv</small>
+                        </div>
+                        <span class="tag warn">30.11.2026</span>
+                      </div>
+                      <div class="list-row">
+                        <div>Glasbruch<small>3 Monate zum Laufzeitende</small></div>
+                        <span class="tag opt">30.09.2027</span>
+                      </div>
+                      <div class="list-row">
+                        <div>Hausratversicherung<small>1 Monat zum Laufzeitende</small></div>
+                        <span class="tag opt">28.02.2027</span>
+                      </div>
+                    </div>
+                    <div class="panel">
+                      <h3>Lückencheck – Kurzfassung</h3>
+                      <div class="list-row">
+                        <div>
+                          Wohngebäudeversicherung<small>Wesentlich, da Immobilie vorhanden</small>
+                        </div>
+                        <span class="tag ess">Fehlt</span>
+                      </div>
+                      <div class="list-row">
+                        <div>Elementarschaden<small>Empfohlen, da Immobilie vorhanden</small></div>
+                        <span class="tag rec">Fehlt</span>
+                      </div>
+                      <div class="list-row">
+                        <div>
+                          Weitere Hinweise<small>2 situationsabhängig, 1 mögliche Doppelung</small>
+                        </div>
+                        <a class="ok">Zum Lückencheck</a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ============ VERTRÄGE ============ -->
+                <div data-show="contracts">
+                  <div class="chips">
+                    <span class="chip on">Alle</span><span class="chip">Personen</span
+                    ><span class="chip">Haftung</span><span class="chip">Sachen</span
+                    ><span class="chip">Mobilität</span><span class="chip">Recht</span
+                    ><span class="chip">· Aktiv ▾</span>
+                  </div>
+                  <div class="tablewrap">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Versicherung</th>
+                          <th>Einstufung</th>
+                          <th class="num">Prämie</th>
+                          <th class="num">pro Monat</th>
+                          <th>Nächste Kündigung</th>
+                          <th>Erinnerung</th>
+                          <th></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr class="deadline">
+                          <td>KFZ-Versicherung<small>Muster Direkt · B-XY 1234</small></td>
+                          <td><span class="tag rec">Empfohlen</span></td>
+                          <td class="num">612,00 € / Jahr</td>
+                          <td class="num">51,00 €</td>
+                          <td>30.11.2026</td>
+                          <td>🔔 30 Tage</td>
+                          <td>✎ 🗑</td>
+                        </tr>
+                        <tr>
+                          <td>Berufsunfähigkeit<small>Muster Leben · 1.500 € Rente</small></td>
+                          <td><span class="tag ess">Wesentlich</span></td>
+                          <td class="num">64,20 € / Monat</td>
+                          <td class="num">64,20 €</td>
+                          <td>31.12.2041</td>
+                          <td>🔕</td>
+                          <td>✎ 🗑</td>
+                        </tr>
+                        <tr>
+                          <td>Hausratversicherung<small>Muster Sach · 60.000 € Summe</small></td>
+                          <td><span class="tag ess">Wesentlich</span></td>
+                          <td class="num">138,00 € / Jahr</td>
+                          <td class="num">11,50 €</td>
+                          <td>28.02.2027</td>
+                          <td>🔔 30 Tage</td>
+                          <td>✎ 🗑</td>
+                        </tr>
+                        <tr>
+                          <td>Privathaftpflicht<small>Muster Sach · 50 Mio. € Deckung</small></td>
+                          <td><span class="tag ess">Wesentlich</span></td>
+                          <td class="num">96,00 € / Jahr</td>
+                          <td class="num">8,00 €</td>
+                          <td>31.03.2027</td>
+                          <td>🔔 30 Tage</td>
+                          <td>✎ 🗑</td>
+                        </tr>
+                        <tr>
+                          <td>Auslandsreise-Krankenversicherung<small>Muster Reise</small></td>
+                          <td><span class="tag rec">Empfohlen</span></td>
+                          <td class="num">14,90 € / Jahr</td>
+                          <td class="num">1,24 €</td>
+                          <td>31.05.2027</td>
+                          <td>🔕</td>
+                          <td>✎ 🗑</td>
+                        </tr>
+                        <tr>
+                          <td>
+                            Glasbruch<small>Muster Sach</small>
+                            <span class="tag opt">Kombi-Überschneidung</span>
+                          </td>
+                          <td><span class="tag opt">Optional</span></td>
+                          <td class="num">18,00 € / Jahr</td>
+                          <td class="num">1,50 €</td>
+                          <td>30.09.2027</td>
+                          <td>🔕</td>
+                          <td>✎ 🗑</td>
+                        </tr>
+                        <tr class="linked">
+                          <td>Gesetzliche Krankenversicherung<small>Muster-BKK</small></td>
+                          <td><span class="tag ess">Wesentlich</span></td>
+                          <td class="num">411,25 € / Monat</td>
+                          <td class="num">411,25 €</td>
+                          <td>–</td>
+                          <td>–</td>
+                          <td><span class="tag src">aus Einkommen 09/2026</span></td>
+                        </tr>
+                        <tr class="linked">
+                          <td>Pflegeversicherung (gesetzlich)</td>
+                          <td><span class="tag ess">Wesentlich</span></td>
+                          <td class="num">90,00 € / Monat</td>
+                          <td class="num">90,00 €</td>
+                          <td>–</td>
+                          <td>–</td>
+                          <td><span class="tag src">aus Einkommen 09/2026</span></td>
+                        </tr>
+                        <tr class="linked">
+                          <td>Rentenversicherung (gesetzlich)</td>
+                          <td><span class="tag ess">Wesentlich</span></td>
+                          <td class="num">465,00 € / Monat</td>
+                          <td class="num">465,00 €</td>
+                          <td>–</td>
+                          <td>–</td>
+                          <td><span class="tag src">aus Einkommen 09/2026</span></td>
+                        </tr>
+                        <tr class="linked">
+                          <td>Arbeitslosenversicherung (gesetzlich)</td>
+                          <td><span class="tag ess">Wesentlich</span></td>
+                          <td class="num">65,00 € / Monat</td>
+                          <td class="num">65,00 €</td>
+                          <td>–</td>
+                          <td>–</td>
+                          <td><span class="tag src">aus Einkommen 09/2026</span></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div class="note info" style="margin-top: 1rem">
+                    Grün hinterlegte Zeilen werden aus den Einkommens-Abrechnungen übernommen und
+                    sind schreibgeschützt. Über das Stift-Symbol (nur dort) kann auf „manuell"
+                    umgestellt werden. Ohne Einkommensdaten sind diese Einträge manuell erfassbar.
+                  </div>
+                </div>
+
+                <!-- ============ FORM ============ -->
+                <div data-show="form">
+                  <div class="toolbar">
+                    <h3 style="margin: 0">Vertrag erfassen</h3>
+                    <div class="grp">
+                      <button class="btn" type="button">Abbrechen</button
+                      ><button class="btn primary" type="button">Speichern</button>
+                    </div>
+                  </div>
+                  <div class="panel" style="margin-bottom: 1rem">
+                    <h3>Vertragsdaten</h3>
+                    <div class="form-grid">
+                      <div class="field full">
+                        <label>Versicherungsart (Katalog, gruppiert nach Bereich)</label>
+                        <div class="in">
+                          Mobilität › KFZ-Versicherung <span class="tag rec">Empfohlen</span>
+                        </div>
+                      </div>
+                      <div class="field">
+                        <label>Bezeichnung</label>
+                        <div class="in">KFZ Golf</div>
+                      </div>
+                      <div class="field">
+                        <label>Versicherer</label>
+                        <div class="in">Muster Direkt</div>
+                      </div>
+                      <div class="field">
+                        <label>Vertragsnummer</label>
+                        <div class="in">KF-4711-0815</div>
+                      </div>
+                      <div class="field">
+                        <label>Status</label>
+                        <div class="in">Aktiv ▾</div>
+                      </div>
+                      <div class="field">
+                        <label>Vertragsbeginn</label>
+                        <div class="in">01.01.2024</div>
+                      </div>
+                      <div class="field">
+                        <label>Vertragsende (optional)</label>
+                        <div class="in">–</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="panel" style="margin-bottom: 1rem">
+                    <h3>Prämie</h3>
+                    <div class="form-grid">
+                      <div class="field">
+                        <label>Prämie (€, inkl. Versicherungsteuer)</label>
+                        <div class="in">612,00</div>
+                      </div>
+                      <div class="field">
+                        <label>Zahlweise</label>
+                        <div class="in">Jährlich ▾</div>
+                      </div>
+                      <div class="field">
+                        <label>Zahlmonat (bei nicht monatlich)</label>
+                        <div class="in">Januar ▾</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="panel" style="margin-bottom: 1rem">
+                    <h3>Kündigung</h3>
+                    <div class="form-grid">
+                      <div class="field">
+                        <label>Kündigungsfrist</label>
+                        <div class="in">1 Monat ▾</div>
+                      </div>
+                      <div class="field">
+                        <label>Automatische Verlängerung</label>
+                        <div class="in">Ja – jährlich ▾</div>
+                      </div>
+                      <div class="field">
+                        <label>Fester Kündigungsstichtag (optional)</label>
+                        <div class="in">30.11.</div>
+                      </div>
+                      <div class="field">
+                        <label>Erinnerung per E-Mail</label>
+                        <div class="in">Global (30 Tage) ▾</div>
+                      </div>
+                    </div>
+                    <div class="derived">
+                      Nächste mögliche Kündigung: <b>30.11.2026</b> · Kosten:
+                      <b>51,00 € / Monat</b>, 612,00 € / Jahr
+                    </div>
+                  </div>
+                  <div class="panel">
+                    <h3>Typ-spezifische Angaben (KFZ)</h3>
+                    <div class="form-grid">
+                      <div class="field">
+                        <label>Kennzeichen</label>
+                        <div class="in">B-XY 1234</div>
+                      </div>
+                      <div class="field">
+                        <label>SF-Klasse</label>
+                        <div class="in">SF 12</div>
+                      </div>
+                      <div class="field">
+                        <label>Selbstbeteiligung (€)</label>
+                        <div class="in">300</div>
+                      </div>
+                      <div class="field">
+                        <label>Deckungssumme (€)</label>
+                        <div class="in">100.000.000</div>
+                      </div>
+                      <div class="field full">
+                        <label>Deckt zusätzlich ab (Kombiprodukte)</label>
+                        <div class="in">– keine –</div>
+                      </div>
+                      <div class="field full">
+                        <label>Notizen</label>
+                        <div class="in" style="min-height: 60px"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ============ LÜCKENCHECK ============ -->
+                <div data-show="gaps">
+                  <div class="note info">
+                    Allgemeine Orientierung auf Basis deines Profils – keine individuelle
+                    Versicherungsberatung.
+                  </div>
+                  <div class="grid2">
+                    <div class="panel">
+                      <h3>Dein Profil</h3>
+                      <div class="switch">
+                        <span>Ich besitze eine Immobilie</span><span class="tg"></span>
+                      </div>
+                      <div class="switch">
+                        <span>Ich besitze ein Auto</span><span class="tg"></span>
+                      </div>
+                      <div class="switch">
+                        <span>Ich habe Kinder</span><span class="tg off"></span>
+                      </div>
+                      <div class="switch">
+                        <span>Ich habe Haustiere</span><span class="tg off"></span>
+                      </div>
+                      <div class="switch">
+                        <span>Ich reise ins Ausland</span><span class="tg"></span>
+                      </div>
+                      <div class="switch">
+                        <span>Beschäftigung</span
+                        ><span style="color: var(--muted)">Angestellt ▾</span>
+                      </div>
+                    </div>
+                    <div class="panel">
+                      <h3>Fehlende Absicherung</h3>
+                      <div class="gap-item">
+                        <div>
+                          Wohngebäudeversicherung
+                          <small
+                            >Als Eigentümer existenzbedrohend bei Brand, Sturm oder
+                            Leitungswasser.</small
+                          >
+                        </div>
+                        <div><span class="tag ess">Wesentlich</span></div>
+                      </div>
+                      <div class="gap-item">
+                        <div>
+                          Elementarschadenversicherung
+                          <small
+                            >Zusatz zur Gebäudeversicherung gegen Hochwasser, Starkregen und
+                            weitere.</small
+                          >
+                        </div>
+                        <div>
+                          <span class="tag rec">Empfohlen</span> <a class="ok">Ausblenden</a>
+                        </div>
+                      </div>
+                      <div class="gap-item">
+                        <div>
+                          Haus- und Grundbesitzerhaftpflicht
+                          <small
+                            >Nur relevant, wenn nicht schon in der Gebäudeversicherung
+                            enthalten.</small
+                          >
+                        </div>
+                        <div>
+                          <span class="tag sit">Situativ</span> <a class="ok">Ausblenden</a>
+                        </div>
+                      </div>
+                      <div class="gap-item">
+                        <div>
+                          Rechtsschutzversicherung
+                          <small
+                            >Optional; je nach Risikobereitschaft (Verkehr, Privat, Wohnen).</small
+                          >
+                        </div>
+                        <div>
+                          <span class="tag sit">Situativ</span> <a class="ok">Ausblenden</a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="grid2">
+                    <div class="panel">
+                      <h3>Abgedeckt</h3>
+                      <div class="gap-item">
+                        <div>Privathaftpflicht</div>
+                        <span class="ok">✓</span>
+                      </div>
+                      <div class="gap-item">
+                        <div>Hausrat</div>
+                        <span class="ok">✓</span>
+                      </div>
+                      <div class="gap-item">
+                        <div>Berufsunfähigkeit</div>
+                        <span class="ok">✓</span>
+                      </div>
+                      <div class="gap-item">
+                        <div>KFZ-Haftpflicht</div>
+                        <span class="ok">✓</span>
+                      </div>
+                      <div class="gap-item">
+                        <div>Auslandsreise-Krankenversicherung</div>
+                        <span class="ok">✓</span>
+                      </div>
+                      <div class="gap-item">
+                        <div>Gesetzliche Krankenversicherung</div>
+                        <span class="ok">✓ aus Einkommen</span>
+                      </div>
+                    </div>
+                    <div class="panel">
+                      <h3>Mögliche Doppelungen</h3>
+                      <div class="gap-item">
+                        <div>
+                          Glasbruch (18,00 € / Jahr)
+                          <small
+                            >Ist häufig bereits in der Hausratversicherung enthalten – bitte
+                            Bedingungen prüfen.</small
+                          >
+                        </div>
+                        <span class="tag opt">Kombi</span>
+                      </div>
+                      <h3 style="margin-top: 1rem">Ausgeblendet (1)</h3>
+                      <div class="gap-item">
+                        <div>
+                          Tierhalterhaftpflicht<small>Du hast „Haustiere" ausgeschaltet.</small>
+                        </div>
+                        <a class="ok">Wiederherstellen</a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ============ ERINNERUNGEN ============ -->
+                <div data-show="reminders">
+                  <div class="toolbar">
+                    <h3 style="margin: 0">Erinnerungen</h3>
+                    <div class="grp"><button class="btn" type="button">Schließen</button></div>
+                  </div>
+                  <div class="panel" style="max-width: 640px">
+                    <div class="switch">
+                      <span>E-Mail-Erinnerungen für Kündigungsfristen</span><span class="tg"></span>
+                    </div>
+                    <div class="switch"><span>Vorlaufzeit</span><span>30 Tage ▾</span></div>
+                    <h3 style="margin-top: 1rem">Pro Vertrag</h3>
+                    <div class="switch"><span>KFZ-Versicherung</span><span class="tg"></span></div>
+                    <div class="switch">
+                      <span>Hausratversicherung</span><span class="tg"></span>
+                    </div>
+                    <div class="switch"><span>Privathaftpflicht</span><span class="tg"></span></div>
+                    <div class="switch">
+                      <span>Berufsunfähigkeit</span><span class="tg off"></span>
+                    </div>
+                    <div class="switch"><span>Glasbruch</span><span class="tg off"></span></div>
+                    <div class="note info" style="margin-top: 1rem">
+                      Pro Frist wird genau eine E-Mail in deiner Sprache gesendet. Standardmäßig ist
+                      die Funktion ausgeschaltet.
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ============ LEER ============ -->
+                <div data-show="empty">
+                  <div class="empty">
+                    <h3>Noch keine Versicherungen erfasst</h3>
+                    <p>
+                      Erfasse deinen ersten Vertrag oder prüfe zuerst, welche Absicherung für dich
+                      sinnvoll ist.
+                    </p>
+                    <button class="btn primary" type="button">+ Ersten Vertrag erfassen</button>
+                    <button class="btn" type="button">Lückencheck starten</button>
+                    <div
+                      class="note info"
+                      style="margin: 1.5rem auto 0; max-width: 520px; text-align: left"
+                    >
+                      Einkommensdaten gefunden: Gesetzliche Kranken-, Pflege-, Renten- und
+                      Arbeitslosenversicherung werden automatisch übernommen.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="review-footer">
+      <ul>
+        <li>
+          Annäherung an die PrimeNG-Aura-Optik; endgültige Tokens kommen aus der echten
+          Implementierung.
+        </li>
+        <li>Kündigungsfristen, Beträge und Katalogeinträge sind erfundene Beispieldaten.</li>
+        <li>
+          Nicht abgebildet: Validierungsfehler, E-Mail-Inhalt, Export-Dialog, Dashboard-Widget.
+        </li>
+      </ul>
+    </footer>
+
+    <script>
+      const canvas = document.getElementById('canvas');
+      const frame = document.getElementById('stage-frame');
+      const label = document.getElementById('stage-frame-label');
+      function pressed(group, btn) {
+        [...group.querySelectorAll('button')].forEach((b) =>
+          b.setAttribute('aria-pressed', String(b === btn)),
+        );
+      }
+      document.getElementById('viewport-toggle').addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-viewport]');
+        if (!btn) return;
+        frame.setAttribute('data-viewport', btn.dataset.viewport);
+        label.textContent = btn.dataset.viewport === 'mobile' ? 'Mobile (400 px)' : 'Desktop';
+        pressed(e.currentTarget, btn);
+      });
+      document.getElementById('screen-toggle').addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-screen]');
+        if (!btn) return;
+        canvas.setAttribute('data-screen', btn.dataset.screen);
+        pressed(e.currentTarget, btn);
+      });
+    </script>
+  </body>
+</html>

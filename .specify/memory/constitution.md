@@ -1,6 +1,19 @@
 <!--
 Sync Impact Report
-- Version change: 3.9.0 → 3.10.0 (MINOR: Historic Wealth Development domain gets concrete scope,
+- Version change: 3.10.0 → 3.11.0 (MINOR: Insurances domain gets concrete scope,
+  039-insurances-management; it joins the Sensitive Personal Data rules; the contract-number
+  relaxation also covers it; the data-origin rule names the read-only Earnings-derived lines; no
+  principle removed or redefined)
+- Modified sections:
+  - Product Scope intro and In Scope: Insurances bullet (manual contracts, cost and deadline
+    overview, gap check, optional reminder e-mails, read-only social-insurance lines derived
+    server-side from the user's own Earnings data).
+  - Product Scope → Out of Scope: the derivation from Earnings is not an import from an external
+    system.
+  - Product Scope → Sensitive Personal Data: names Insurances; contract numbers MAY be stored there.
+- Added/removed principles and sections: none
+- Templates requiring updates: none
+- Previous: 3.9.0 → 3.10.0 (MINOR: Historic Wealth Development domain gets concrete scope,
   038-networth-tracking; its manual entry data joins the Sensitive Personal Data rules; no
   principle removed or redefined)
 - Modified sections:
@@ -203,7 +216,7 @@ is the first fully-built domain; **Retirement**, **Insurances**, **Haushaltsplan
 budget planning), **Historic Wealth Development**, and **Account Overview** are planned domains
 (registered today as placeholders — see 022-add-domain-placeholders; Retirement is specified in
 037-altersvorsorge-retirement-planning; Historic Wealth Development is specified in
-038-networth-tracking), as is **Earnings**
+038-networth-tracking; Insurances is specified in 039-insurances-management), as is **Earnings**
 (employment income history — see 032-earnings-domain). The scope rules below apply
 per domain as noted; a rule scoped to "the Holdings domain" does not extend to other domains unless
 stated.
@@ -252,6 +265,13 @@ stated.
   there is no bank, broker or Holdings import. Its manual entry data (entry names, classes,
   amounts, notes) falls under the Sensitive Personal Data rules.
 
+- Insurances domain: a user's own insurance contracts (type from a fixed catalog, insurer, term,
+  premium and interval, cancellation settings) entered manually, with cost and payment-timeline
+  overview, derived cancellation deadlines, a profile-based gap check, optional cancellation-deadline
+  reminder e-mails, a dashboard tile and a data export. Statutory social-insurance contribution
+  lines are derived read-only on the server from the user's own Earnings data and never stored.
+  Contract data falls under the Sensitive Personal Data rules.
+
 ### Out of Scope
 
 - Day-to-day expense or budget tracking (income, spending categories, bills, recurring payments)
@@ -268,7 +288,9 @@ stated.
   exceptions to the "manual UI entry or CSV/JSON import" origin rule are the Earnings domain's
   document import and the Retirement domain's Renteninformation import (see In Scope), which are
   still explicit, user-initiated uploads. Neither domain may fetch data from a provider, from the
-  Deutsche Rentenversicherung, or from any other external system.
+  Deutsche Rentenversicherung, or from any other external system. The Insurances domain's
+  read-only social-insurance lines, derived on the server from the user's own Earnings data, are a
+  derivation inside the application, not an import from an external system.
 - Manual entry of monetary figures in the Earnings domain. Payroll and tax figures MUST come from
   the documents that printed them. The one exception is the correction of a figure that a parser
   misread, in the import preview only: the figure MUST take part in a failing arithmetic check,
@@ -293,7 +315,7 @@ provider is unreachable, since a user's recorded holdings are the source of trut
 
 ### Sensitive Personal Data
 
-The Earnings, Retirement and Historic Wealth Development domains, and any future domain holding comparably sensitive personal
+The Earnings, Retirement, Insurances and Historic Wealth Development domains, and any future domain holding comparably sensitive personal
 data (e.g., salary, tax, or health-related records), MUST follow these rules in addition to the rest of this
 constitution:
 
@@ -301,7 +323,7 @@ constitution:
   and stored. Personal identifiers printed on source documents (tax ID, social-security number,
   bank account/IBAN, name, address, personnel number) MUST NOT be transmitted or stored; the
   backend MUST reject any payload containing fields outside the whitelist. Exception, Retirement
-  domain only: the insurance number and contract numbers MAY be entered, stored and displayed to
+  and Insurances domains only: the insurance number and contract numbers MAY be entered, stored and displayed to
   their owner, because the user needs them to look up the contract; they follow the same
   owner-only, encryption-at-rest and log-hygiene rules as amounts. Name, address, tax ID, and bank
   details remain forbidden.
@@ -439,4 +461,4 @@ alignment with the Core Principles; unresolved violations MUST be justified in t
 Complexity Tracking section or the plan MUST be revised to comply. Reviewers MUST treat this
 constitution as authoritative over informal team conventions.
 
-**Version**: 3.10.0 | **Ratified**: 2026-08-13 | **Last Amended**: 2026-10-04
+**Version**: 3.11.0 | **Ratified**: 2026-08-13 | **Last Amended**: 2026-10-05

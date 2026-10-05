@@ -75,5 +75,5 @@
 
 ## Current Feature Plan
 
-Active implementation plan: [specs/038-networth-tracking/plan.md](specs/038-networth-tracking/plan.md)
+Active implementation plan: [specs/039-insurances-management/plan.md](specs/039-insurances-management/plan.md)
 <!-- SPECKIT END -->

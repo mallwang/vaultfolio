@@ -47,6 +47,9 @@
     },
     {
       "path": "../../libs/wealth/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/insurances/tsconfig.lib.json"
     }
   ]
 }

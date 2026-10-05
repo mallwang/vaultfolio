@@ -8,5 +8,6 @@ import { EarningsService } from './earnings.service';
 @Module({
   controllers: [EarningsController],
   providers: [EarningsService, EarningsRepository, EarningsCryptoService, EarningsAvailableGuard],
+  exports: [EarningsService, EarningsCryptoService],
 })
 export class EarningsModule {}

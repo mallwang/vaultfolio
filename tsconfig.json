@@ -88,6 +88,9 @@
       "path": "./libs/wealth"
     },
     {
+      "path": "./libs/insurances"
+    },
+    {
       "path": "./libs/frontend/document-reader"
     }
   ],

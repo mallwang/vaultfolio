@@ -193,6 +193,31 @@ describe('renderNotification', () => {
       expect(de.text).toContain(alert.requestUrl);
     });
 
+    it('renders the insurance deadline reminder without amounts in both languages', () => {
+      const viewModel = {
+        typeLabel: 'Car',
+        contractName: 'Golf',
+        deadlineDate: '2026-11-30',
+        areaUrl: 'https://vaultfolio.example.com/app/insurances',
+      };
+      const en = renderNotification({
+        type: 'insurance-deadline-reminder',
+        preferredLanguage: null,
+        viewModel,
+      });
+      expect(en.subject).toBe('Cancellation deadline for "Golf" on 2026-11-30');
+      expect(en.html).toContain(`href="${viewModel.areaUrl}"`);
+      expect(en.text).toContain(viewModel.areaUrl);
+
+      const de = renderNotification({
+        type: 'insurance-deadline-reminder',
+        preferredLanguage: 'de',
+        viewModel,
+      });
+      expect(de.subject).toBe('Kündigungsfrist für "Golf" am 2026-11-30');
+      expect(de.html).toContain('Zu den Versicherungen');
+    });
+
     it('renders the done mail with the import link in both languages', () => {
       const viewModel = {
         featureName: 'Earnings',

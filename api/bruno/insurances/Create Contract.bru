@@ -1,0 +1,34 @@
+meta {
+  name: Create Contract
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/insurances/contracts
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "type": "PRIVATE_LIABILITY",
+    "name": "Privathaftpflicht",
+    "insurer": "Beispiel Versicherung AG",
+    "status": "ACTIVE",
+    "startDate": "2025-01-01",
+    "premium": "96.00",
+    "interval": "YEARLY",
+    "paymentMonth": 3,
+    "cancellation": { "autoRenew": true, "period": { "value": 3, "unit": "MONTHS" } },
+    "reminderEnabled": true
+  }
+}
+
+docs {
+  Creates a contract (at most 200). Invented data only.
+}

@@ -51,7 +51,7 @@ export async function exportXlsx(resolved: ResolvedFeatureExport): Promise<Blob>
   const { default: ExcelJS } = await import('exceljs');
   const workbook = new ExcelJS.Workbook();
   if (resolved.tables) {
-    addTableSheets(workbook, resolved.tables);
+    addTableSheets(workbook, resolved.tables, resolved.locale);
     return toBlob(workbook);
   }
   const sheet = workbook.addWorksheet(resolved.title.slice(0, 31) || 'Export');
@@ -84,9 +84,14 @@ const TABLE_NUM_FMT = {
   money: '#,##0.00 "€"',
   ratio: '0.0%',
   integer: '0',
-  // German day.month.year, whatever the language of the export.
   date: 'dd.mm.yyyy',
 } as const;
+
+/** German day.month.year and trailing euro sign; every other language gets ISO dates and a leading euro sign. */
+function numFmtsFor(locale: string | undefined) {
+  if (!locale || locale.startsWith('de')) return TABLE_NUM_FMT;
+  return { ...TABLE_NUM_FMT, money: '"€"#,##0.00', date: 'yyyy-mm-dd' } as const;
+}
 
 function tableCellValue(value: string | number | null, column: ExportTableColumn) {
   if (value === null) return null;
@@ -184,7 +189,9 @@ function cellFormula(
 function addTableSheets(
   workbook: InstanceType<typeof import('exceljs').Workbook>,
   tables: ExportTable[],
+  locale: string | undefined,
 ) {
+  const numFmts = numFmtsFor(locale);
   const used = new Set<string>();
   for (const table of tables) {
     const columns = table.columns.filter((column) => !column.excel?.hidden);
@@ -193,7 +200,7 @@ function addTableSheets(
       views: [{ state: 'frozen', ySplit: headerRows }],
     });
     sheet.columns = columns.map((column) => {
-      const numFmt = column.format === 'text' ? undefined : TABLE_NUM_FMT[column.format];
+      const numFmt = column.format === 'text' ? undefined : numFmts[column.format];
       const label = column.excel?.label ?? column.label;
       const longest = table.rows.reduce(
         (max, row) => Math.max(max, String(row.cells[column.key] ?? '').length),
@@ -226,6 +233,9 @@ function addTableSheets(
       const added = sheet.addRow(record);
       if (row.emphasis === 'total') added.font = { bold: true };
     });
+    if (table.rows.length === 0 && table.emptyText && columns.length > 0) {
+      sheet.addRow({ [columns[0].key]: table.emptyText });
+    }
     // The filter covers the header and the data rows, not a closing total row; a two-row header
     // with merged cells has no single header row to filter on.
     const dataRows = table.rows.filter((row) => row.emphasis !== 'total').length;
