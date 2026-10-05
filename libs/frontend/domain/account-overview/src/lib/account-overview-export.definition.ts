@@ -1,5 +1,5 @@
-import { inject } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { inject, signal } from '@angular/core';
+
 import { firstValueFrom } from 'rxjs';
 import type { FeatureExportDefinition, ExportRow, PdfSection } from '@vaultfolio/export';
 import type { AccountOverviewEntry } from '@vaultfolio/api-contract';
@@ -82,9 +82,17 @@ function toPdfSection(entries: AccountOverviewEntry[], i18n: I18nService): PdfSe
 export function createAccountOverviewExportDefinition(): FeatureExportDefinition {
   const accountOverviewService = inject(AccountOverviewService);
   const i18n = inject(I18nService);
-  const accounts = toSignal(accountOverviewService.list(), {
-    initialValue: [] as AccountOverviewEntry[],
-  });
+  const accounts = signal<AccountOverviewEntry[]>([]);
+  let requested = false;
+  // Registered at app bootstrap, i.e. before sign-in: fetch only once the export control asks.
+  const ensureLoaded = () => {
+    if (requested) return;
+    requested = true;
+    accountOverviewService.list().subscribe({
+      next: (rows) => accounts.set(rows),
+      error: () => undefined,
+    });
+  };
 
   return {
     featureId: 'account-overview',
@@ -108,7 +116,10 @@ export function createAccountOverviewExportDefinition(): FeatureExportDefinition
       { key: 'validUntil', labelKey: 'accountOverviewExport.columnValidUntil', format: 'text' },
       { key: 'notes', labelKey: 'accountOverviewExport.columnNotes', format: 'text' },
     ],
-    isEnabled: () => accounts().length > 0,
+    isEnabled: () => {
+      ensureLoaded();
+      return accounts().length > 0;
+    },
     disabledTooltipKey: 'export.tooltipNoData',
     async getPdfSections(): Promise<PdfSection[]> {
       const rows = await firstValueFrom(accountOverviewService.list());
