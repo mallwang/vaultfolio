@@ -38,7 +38,7 @@ export class InsurancesReminderService implements OnModuleInit {
     let sent = 0;
     for (const ownerId of this.repository.ownersWithSettings()) {
       try {
-        sent += await this.sweepOwner(ownerId, today);
+        sent += await this.sweepOwner(ownerId, today); // NOSONAR sequential on purpose: no mail bursts
       } catch (error) {
         this.logger.error({
           event: 'InsuranceReminderOwnerFailed',
@@ -60,7 +60,7 @@ export class InsurancesReminderService implements OnModuleInit {
     let sent = 0;
     for (const contract of this.repository.list(ownerId)) {
       const deadline = dueDeadline(contract, today, reminders.leadDays);
-      if (deadline && (await this.remind(user, contract, deadline))) sent += 1;
+      if (deadline && (await this.remind(user, contract, deadline))) sent += 1; // NOSONAR sequential on purpose
     }
     return sent;
   }

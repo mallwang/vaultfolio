@@ -49,7 +49,7 @@ export function fill(template: string, params: Record<string, string | number> =
 
 /** Parses a user-typed amount (`1.200,50`, `1200.5`) into a plain decimal string; `null` if unreadable. */
 export function parseAmountInput(text: string): string | null {
-  const compact = text.trim().replace(/[\s'’€]/g, '');
+  const compact = text.trim().replaceAll(/[\s'’€]/g, '');
   if (!compact || /[.,]{2}/.test(compact)) return null;
   const lastComma = compact.lastIndexOf(',');
   const lastDot = compact.lastIndexOf('.');
@@ -57,15 +57,15 @@ export function parseAmountInput(text: string): string | null {
   if (lastComma >= 0 && lastDot >= 0) {
     normalized =
       lastComma > lastDot
-        ? compact.replace(/\./g, '').replace(',', '.')
-        : compact.replace(/,/g, '');
+        ? compact.replaceAll(/\./g, '').replace(',', '.')
+        : compact.replaceAll(/,/g, '');
   } else if (lastComma >= 0) {
-    normalized = compact.replace(/,/g, '.');
-    if ((normalized.match(/\./g) ?? []).length > 1) normalized = normalized.replace(/\./g, '');
+    normalized = compact.replaceAll(/,/g, '.');
+    if ((normalized.match(/\./g) ?? []).length > 1) normalized = normalized.replaceAll(/\./g, '');
   } else if (lastDot >= 0) {
     const dots = compact.match(/\./g) ?? [];
     const afterLast = compact.length - lastDot - 1;
-    if (dots.length > 1 || afterLast === 3) normalized = compact.replace(/\./g, '');
+    if (dots.length > 1 || afterLast === 3) normalized = compact.replaceAll(/\./g, '');
   }
   return /^\d+(\.\d+)?$/.test(normalized) ? normalized : null;
 }

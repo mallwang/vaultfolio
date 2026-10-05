@@ -56,12 +56,12 @@ interface FormState {
 }
 
 const AREA_PATH = '/app/insurances';
-const MONEY_DETAILS: readonly DetailField[] = [
+const MONEY_DETAILS: ReadonlySet<DetailField> = new Set<DetailField>([
   'coverageSum',
   'deductible',
   'insuredMonthlyBenefit',
   'insuredSum',
-];
+]);
 const GROUP_ORDER: readonly InsuranceGroup[] = [
   'PERSONS',
   'LIABILITY',
@@ -109,7 +109,7 @@ function detailsOf(s: FormState): Record<string, string> {
   for (const field of allowed) {
     const raw = (s.details[field] ?? '').trim();
     if (raw === '') continue;
-    details[field] = MONEY_DETAILS.includes(field) ? (parseAmountInput(raw) ?? raw) : raw;
+    details[field] = MONEY_DETAILS.has(field) ? (parseAmountInput(raw) ?? raw) : raw;
   }
   return details;
 }
@@ -847,7 +847,7 @@ export class InsurancesContractFormComponent {
   }
 
   protected isMoney(field: DetailField): boolean {
-    return MONEY_DETAILS.includes(field);
+    return MONEY_DETAILS.has(field);
   }
 
   protected patch(partial: Partial<FormState>): void {
@@ -952,7 +952,7 @@ export class InsurancesContractFormComponent {
       fixedDay: c.cancellation.fixedDate ? String(c.cancellation.fixedDate.day) : '',
       fixedMonth: c.cancellation.fixedDate ? String(c.cancellation.fixedDate.month) : '',
       reminderEnabled: c.reminderEnabled,
-      details: { ...(c.details ?? {}) } as Record<string, string>,
+      details: { ...c.details } as Record<string, string>,
       alsoCovers: [...(c.alsoCovers ?? [])],
       note: c.note ?? '',
     };

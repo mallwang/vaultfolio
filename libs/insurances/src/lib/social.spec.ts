@@ -29,6 +29,16 @@ describe('social', () => {
     expect(linkedLinesFromEarnings([rec('2026-02', '150.00', '50.00')])[0].monthly).toBe('100.00');
   });
 
+  it('omits kinds with a zero total and handles missing one-off', () => {
+    const lines = linkedLinesFromEarnings([
+      {
+        period: '2026-03',
+        amounts: { health: '0.00', care: '0.00', pension: '5.00', unemployment: '2.00' },
+      },
+    ]);
+    expect(lines.map((l) => l.kind)).toEqual(['PENSION', 'UNEMPLOYMENT']);
+  });
+
   it('returns nothing without records', () => {
     expect(linkedLinesFromEarnings([])).toEqual([]);
   });

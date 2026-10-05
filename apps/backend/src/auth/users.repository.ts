@@ -355,9 +355,11 @@ export class UsersRepository {
     await this.database.query('DELETE FROM wealth_snapshots WHERE owner_id = $1', [id]);
     await this.database.query('DELETE FROM wealth_settings WHERE owner_id = $1', [id]);
     // 039-insurances-management: purge the user's contracts, settings and reminder log.
-    for (const table of ['insurance_contracts', 'insurance_settings', 'insurance_reminder_log']) {
-      await this.database.query(`DELETE FROM ${table} WHERE owner_id = $1`, [id]);
-    }
+    await Promise.all(
+      ['insurance_contracts', 'insurance_settings', 'insurance_reminder_log'].map((table) =>
+        this.database.query(`DELETE FROM ${table} WHERE owner_id = $1`, [id]),
+      ),
+    );
     // 033-parser-requests: the user's own requests go with the account (FR-042), including the
     // samples and download audit rows; where the user was an administrator only the reference
     // is cleared so other users' requests keep their history.
