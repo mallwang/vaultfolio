@@ -142,6 +142,26 @@ describe('insurances area pieces', () => {
       ]);
     });
 
+    it('shows no planned mail while reminders are off', () => {
+      const c = create();
+      const contract = buildInsuranceContract({ id: 'c1', reminderEnabled: true });
+      expect(c.sendScheduled(contract)).toBe(false);
+      expect(c.sendLabel(contract)).toBe('No mail planned');
+    });
+
+    it('shows the planned send date once reminders are on', () => {
+      const c = create();
+      c.store.setSettings({
+        ...DEFAULT_SETTINGS,
+        reminders: { enabled: true, leadDays: 30 },
+      });
+      const on = buildInsuranceContract({ id: 'c1', reminderEnabled: true });
+      const off = buildInsuranceContract({ id: 'c1', reminderEnabled: false });
+      expect(c.sendScheduled(on)).toBe(true);
+      expect(c.sendLabel(on)).toMatch(/^Mail on /);
+      expect(c.sendScheduled(off)).toBe(false);
+    });
+
     it('lists contracts that can remind', () => {
       expect(
         create()

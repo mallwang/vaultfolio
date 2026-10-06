@@ -55,4 +55,15 @@ describe('IconComponent', () => {
     const span = (fixture.nativeElement as HTMLElement).querySelector('span');
     expect(span?.classList.contains('vf-icon--spin')).toBe(true);
   });
+
+  it('applies the size override as font-size and leaves it unset by default', () => {
+    fixture.componentInstance.name = 'home';
+    fixture.detectChanges();
+    const span = (fixture.nativeElement as HTMLElement).querySelector('span');
+    expect(span?.style.fontSize).toBe('');
+
+    fixture.componentRef.setInput('size', '1.15em');
+    fixture.detectChanges();
+    expect(span?.style.fontSize).toBe('1.15em');
+  });
 });

@@ -5,7 +5,22 @@ import {
   formatMoney,
   monthName,
   parseAmountInput,
+  reminderSendDate,
 } from './insurances-format';
+
+describe('reminderSendDate', () => {
+  it('is the deadline minus the lead days', () => {
+    expect(reminderSendDate('2026-10-31', 30, '2026-09-01')).toBe('2026-10-01');
+  });
+
+  it('crosses month and year boundaries', () => {
+    expect(reminderSendDate('2027-01-10', 30, '2026-09-01')).toBe('2026-12-11');
+  });
+
+  it('is today when the deadline is already inside the lead window', () => {
+    expect(reminderSendDate('2026-09-20', 30, '2026-09-10')).toBe('2026-09-10');
+  });
+});
 
 describe('insurances format', () => {
   it('formats money in the locale and shows a dash without value', () => {
