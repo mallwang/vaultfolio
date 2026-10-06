@@ -68,7 +68,7 @@ export class InsurancesRepository {
     this.database.querySync(
       `INSERT INTO ${INSURANCE_CONTRACTS_TABLE}
          (id, owner_id, payload_enc, key_version, created_at, updated_at)
-       VALUES ($1, $2, $3, 1, $4, $4)`,
+       VALUES ($1, $2, $3, ${this.crypto.keyVersion}, $4, $4)`,
       [id, ownerId, this.crypto.encrypt(INSURANCE_CONTRACTS_TABLE, id, ownerId, input), now],
     );
     return this.require(ownerId, id);
@@ -78,7 +78,7 @@ export class InsurancesRepository {
   update(ownerId: string, id: string, input: InsuranceContractInput): InsuranceContract | null {
     const updated = this.database.querySync<{ id: string }>(
       `UPDATE ${INSURANCE_CONTRACTS_TABLE}
-         SET payload_enc = $3, updated_at = $4
+         SET payload_enc = $3, key_version = ${this.crypto.keyVersion}, updated_at = $4
        WHERE id = $1 AND owner_id = $2 RETURNING id`,
       [
         id,
@@ -120,8 +120,9 @@ export class InsurancesRepository {
   saveSettings(ownerId: string, settings: InsuranceSettings): InsuranceSettings {
     this.database.querySync(
       `INSERT INTO ${INSURANCE_SETTINGS_TABLE} (owner_id, payload_enc, key_version, updated_at)
-       VALUES ($1, $2, 1, $3)
+       VALUES ($1, $2, ${this.crypto.keyVersion}, $3)
        ON CONFLICT (owner_id) DO UPDATE SET payload_enc = excluded.payload_enc,
+         key_version = excluded.key_version,
          updated_at = excluded.updated_at`,
       [
         ownerId,

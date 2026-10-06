@@ -258,6 +258,51 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     );
 
     this.initializeEarningsSchema(db);
+    this.initializeEncryptionSchema(db);
+  }
+
+  /** 040-encryption-key-rotation (data-model.md): wrapped data keys and rotation history. */
+  private initializeEncryptionSchema(db: Database.Database): void {
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS encryption_data_keys (
+        domain          TEXT NOT NULL,
+        version         INTEGER NOT NULL CHECK (version >= 2),
+        wrapped_dek     TEXT NULL,
+        kek_fingerprint TEXT NULL,
+        status          TEXT NOT NULL CHECK (status IN ('current','retired','destroyed')),
+        created_at      TEXT NOT NULL,
+        retired_at      TEXT NULL,
+        destroyed_at    TEXT NULL,
+        PRIMARY KEY (domain, version),
+        CHECK ((status = 'destroyed') = (wrapped_dek IS NULL))
+      )
+    `);
+    db.exec(
+      "CREATE UNIQUE INDEX IF NOT EXISTS encryption_data_keys_current_idx ON encryption_data_keys (domain) WHERE status = 'current'",
+    );
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS encryption_rotation_runs (
+        id                   TEXT PRIMARY KEY,
+        domain               TEXT NOT NULL,
+        kind                 TEXT NOT NULL CHECK (kind IN ('MASTER_KEY','DATA_KEY','KEY_DESTROY','LEGACY_MIGRATION')),
+        status               TEXT NOT NULL CHECK (status IN ('RUNNING','SUCCEEDED','FAILED','INTERRUPTED')),
+        started_at           TEXT NOT NULL,
+        finished_at          TEXT NULL,
+        triggered_by_user_id TEXT NULL REFERENCES users(id) ON DELETE SET NULL,
+        triggered_by_email   TEXT NULL,
+        from_version         INTEGER NULL,
+        to_version           INTEGER NULL,
+        records_total        INTEGER NOT NULL DEFAULT 0,
+        records_done         INTEGER NOT NULL DEFAULT 0,
+        error_code           TEXT NULL
+      )
+    `);
+    db.exec(
+      'CREATE INDEX IF NOT EXISTS encryption_rotation_runs_history_idx ON encryption_rotation_runs (domain, started_at DESC)',
+    );
+    db.exec(
+      "CREATE UNIQUE INDEX IF NOT EXISTS encryption_rotation_runs_running_idx ON encryption_rotation_runs (domain) WHERE status = 'RUNNING'",
+    );
   }
 
   /**

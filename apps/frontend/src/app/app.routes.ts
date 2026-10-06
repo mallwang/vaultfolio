@@ -458,6 +458,12 @@ export const routes: Routes = [
               import('@vaultfolio/frontend-admin').then((m) => m.RequestsComponent),
           },
           {
+            path: 'encryption',
+            title: 'pageTitle.adminEncryption',
+            loadComponent: () =>
+              import('@vaultfolio/frontend-admin').then((m) => m.EncryptionComponent),
+          },
+          {
             path: 'general',
             title: 'pageTitle.adminGeneral',
             loadComponent: () =>

@@ -18,3 +18,4 @@ export * from './requests';
 export * from './retirement';
 export * from './wealth';
 export * from './insurances';
+export * from './encryption';

@@ -202,6 +202,23 @@ Optionen und die Skripte je Bereich (`--profile comprehensive|realistic`) stehen
 
 Die Ausgabe ist deterministisch, ein Zurücksetzen ist also reproduzierbar.
 
+## Schlüsselrotation (Hinweise für Entwickler)
+
+Die fünf verschlüsselten Bereiche (Einkommen, Altersvorsorge, Vermögen, Versicherungen,
+Kontoübersicht) teilen sich `libs/encryption` (Envelope-Primitive, Schlüssel-Fingerabdruck, Keyring im
+Speicher) und das Backend-`EncryptionModule` (`apps/backend/src/encryption`: Schlüsseltabellen
+`encryption_data_keys` und `encryption_rotation_runs`, `DomainKeyringService` je Bereich,
+`RotationService`, Admin-Routen unter `/admin/encryption`). Die `*-crypto.service.ts` der Bereiche sind
+dünne Adapter; ein neuer verschlüsselter Bereich trägt seine Umgebungsvariablen und Tabellen in
+`domain-encryption.registry.ts` ein. Der Chiffretext ist `v<N>:<iv>:<tag>:<ct>`: `v1` ist das alte
+Format (Hauptschlüssel direkt, beim Start einmalig migriert), `N >= 2` ist eine Datenschlüssel-Version.
+Repositories schreiben bei jedem Insert und Update `key_version = crypto.keyVersion`. Der Ablauf für
+Betreiber steht in der README („Schlüsselrotation, Sicherung und Wiederherstellung“).
+
+Tests: `apps/backend/src/tests/encryption.e2e-spec.ts` startet die echte App auf einem Fixture im Zustand
+vor dem Feature. Die Zeitmessung mit 10.000 Datensätzen ist optional:
+`ENCRYPTION_PERF=1 npx jest src/tests/encryption-performance` in `apps/backend`.
+
 ## Überblick über die CI-Pipeline
 
 [.github/workflows/ci.yml](../.github/workflows/ci.yml) läuft bei jedem PR und bei Push auf

@@ -92,6 +92,9 @@
     },
     {
       "path": "./libs/frontend/document-reader"
+    },
+    {
+      "path": "./libs/encryption"
     }
   ],
   "compilerOptions": {}

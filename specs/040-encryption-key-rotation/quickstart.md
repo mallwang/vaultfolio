@@ -18,8 +18,7 @@ Validation guide only; behaviour is defined in [spec.md](spec.md), the schema in
 
 ```bash
 npx nx test encryption          # library: wrap/unwrap, formats, tamper, wrong key
-npx nx test backend             # keyring, rotation, registry, admin controller unit tests
-npx nx e2e backend              # tests/encryption.e2e-spec.ts (real temp SQLite)
+npx nx test backend             # keyring, rotation, registry, controller specs and tests/encryption.e2e-spec.ts (real temp SQLite)
 npx nx test frontend-admin      # admin screen
 npx nx run-many -t lint,typecheck -p encryption backend frontend-admin
 ```
@@ -65,5 +64,6 @@ and sample data is readable.
 
 ## Scenario 6: Scale check (SC-007)
 
-Seed 10,000 records in one domain with a script (synthetic values only), then time master key
-rotation (expect under 1 minute) and re-encryption (expect under 10 minutes).
+Run the opt-in timing check (synthetic rows only): in `apps/backend`,
+`ENCRYPTION_PERF=1 npx jest src/tests/encryption-performance` seeds 10,000 records, then times master
+key rotation (expect under 1 minute) and re-encryption (expect under 10 minutes).

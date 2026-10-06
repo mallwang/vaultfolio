@@ -306,6 +306,30 @@ bytes), separate from the other keys. Generate and back it up the same way as th
 `503 ACCOUNT_OVERVIEW_UNAVAILABLE` (fail closed) and the account overview shows an "unavailable"
 state; the other domains are unaffected and stored data is not lost.
 
+### Key rotation, backup and recovery
+
+Each encrypted domain uses a **two-level key scheme**: the `<DOMAIN>_ENCRYPTION_KEY` you configure is a
+_master key_ that only protects randomly generated _data keys_ stored (wrapped) in the database; the
+data keys encrypt your data. A new install, or an upgrade of an existing one, needs no manual step:
+on the first start after the upgrade existing data is moved once onto a data key using your existing
+keys (the affected domain briefly answers `503` while this runs, seconds for typical data).
+
+- **Back up the keys separately from `./data`** (a password manager or a secret store, not the same
+  backup as the database). Database and keys together restore everything; either alone does not.
+  After a restore, start the app and open **Admin → Encryption**: every domain should show _Ready_.
+- **Missing or wrong key**: the domain is locked (`503`), nothing is written or changed, and Admin →
+  Encryption shows the cause. Restore the correct key and restart; all data is back.
+- **Scheduled rotation of a master key** (no downtime, data untouched): set the new key as
+  `<DOMAIN>_ENCRYPTION_KEY` and the old key as `<DOMAIN>_ENCRYPTION_KEY_PREVIOUS`, restart, open
+  Admin → Encryption and run **Rotate master key** for each domain. When the screen reports the previous
+  key as removable, delete `<DOMAIN>_ENCRYPTION_KEY_PREVIOUS` and restart. The old key then opens
+  nothing.
+- **Emergency rotation after a key leak**: do the master key rotation above, then run **Re-encrypt data**
+  for the domain (confirm by typing the domain id; the domain is unavailable while it runs) and finally
+  **Destroy key** for the retired data key. Back up the new keys again.
+- Keys are only ever supplied through the server environment; they never appear in the UI, the API or
+  the logs.
+
 ## Deploying with Portainer (or any Docker Hub-based host)
 
 `docker-compose.yml` builds images locally from source, which isn't a great fit for Portainer on

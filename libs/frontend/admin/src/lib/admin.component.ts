@@ -53,6 +53,9 @@ import { RequestsService } from './requests/requests.service';
             />
           }
         </p-tab>
+        <p-tab value="encryption" data-testid="admin-tab-encryption">{{
+          'nav.encryption' | translate
+        }}</p-tab>
         <p-tab value="general" data-testid="admin-tab-general">{{
           'admin.general' | translate
         }}</p-tab>

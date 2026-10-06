@@ -303,4 +303,35 @@ describe('DatabaseService — schema initialization', () => {
 
     await database.onModuleDestroy();
   });
+
+  it('creates the encryption tables with their constraints', async () => {
+    const database = new DatabaseService();
+    await database.onModuleInit();
+
+    const key = (version: number, status: string, wrapped: string | null) =>
+      database.query(
+        `INSERT INTO encryption_data_keys (domain, version, wrapped_dek, kek_fingerprint, status, created_at)
+         VALUES ('wealth', $1, $2, 'fp', $3, '2026-10-01T10:00:00.000Z')`,
+        [version, wrapped, status],
+      );
+    await key(2, 'current', 'k1:a:b:c');
+    await expect(key(3, 'current', 'k1:a:b:c')).rejects.toThrow(/UNIQUE/);
+    await expect(key(1, 'retired', 'k1:a:b:c')).rejects.toThrow(/CHECK/);
+    await expect(key(4, 'destroyed', 'k1:a:b:c')).rejects.toThrow(/CHECK/);
+    await expect(key(5, 'retired', null)).rejects.toThrow(/CHECK/);
+    await key(6, 'destroyed', null);
+
+    const run = (id: string, status: string) =>
+      database.query(
+        `INSERT INTO encryption_rotation_runs (id, domain, kind, status, started_at)
+         VALUES ($1, 'wealth', 'MASTER_KEY', $2, '2026-10-01T10:00:00.000Z')`,
+        [id, status],
+      );
+    await run('r1', 'RUNNING');
+    await expect(run('r2', 'RUNNING')).rejects.toThrow(/UNIQUE/);
+    await expect(run('r3', 'BOGUS')).rejects.toThrow(/CHECK/);
+    await run('r4', 'SUCCEEDED');
+
+    await database.onModuleDestroy();
+  });
 });

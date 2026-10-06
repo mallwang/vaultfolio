@@ -1,22 +1,15 @@
 import { randomBytes } from 'node:crypto';
-import type { DatabaseService } from '../database/database.service';
-import { decodeEarningsKey, EarningsCryptoService } from './earnings-crypto.service';
+import { createMemoryKeyring } from '../encryption/encryption.testing';
+import { EarningsCryptoService } from './earnings-crypto.service';
 import { EarningsUnavailableException } from './earnings.exceptions';
 
 const KEY = randomBytes(32).toString('base64');
 
-function service(
-  key: string | undefined,
-  rows: Record<string, unknown>[] = [],
-): EarningsCryptoService {
-  const database = {
-    querySync: jest.fn((sql: string) => (sql.includes('earnings_records') ? rows : [])),
-  } as unknown as DatabaseService;
+function service(key: string | undefined): EarningsCryptoService {
   const previous = process.env.EARNINGS_ENCRYPTION_KEY;
   if (key === undefined) delete process.env.EARNINGS_ENCRYPTION_KEY;
   else process.env.EARNINGS_ENCRYPTION_KEY = key;
-  const s = new EarningsCryptoService(database);
-  s.onModuleInit();
+  const s = new EarningsCryptoService(createMemoryKeyring());
   if (previous === undefined) delete process.env.EARNINGS_ENCRYPTION_KEY;
   else process.env.EARNINGS_ENCRYPTION_KEY = previous;
   return s;
@@ -31,11 +24,11 @@ describe('EarningsCryptoService', () => {
     expect(s.decrypt('earnings_records', 'r1', 'u1', enc)).toEqual(payload);
   });
 
-  it('uses the v1:<iv>:<tag>:<ct> format without any plain amount', () => {
+  it('uses the v<N>:<iv>:<tag>:<ct> format without any plain amount', () => {
     const enc = service(KEY).encrypt('earnings_records', 'r1', 'u1', payload);
     const parts = enc.split(':');
     expect(parts).toHaveLength(4);
-    expect(parts[0]).toBe('v1');
+    expect(parts[0]).toBe('v2');
     expect(Buffer.from(parts[1], 'base64')).toHaveLength(12);
     expect(Buffer.from(parts[2], 'base64')).toHaveLength(16);
     expect(enc).not.toContain('5000');
@@ -98,20 +91,5 @@ describe('EarningsCryptoService', () => {
     expect(() => s.decrypt('earnings_records', 'r1', 'u1', 'v1:a:b:c')).toThrow(
       EarningsUnavailableException,
     );
-  });
-
-  it('becomes unavailable at boot when the key does not match stored data', () => {
-    const enc = service(KEY).encrypt('earnings_records', 'r1', 'u1', payload);
-    expect(service(KEY, [{ id: 'r1', owner_id: 'u1', amounts_enc: enc }]).available).toBe(true);
-    const other = service(randomBytes(32).toString('base64'), [
-      { id: 'r1', owner_id: 'u1', amounts_enc: enc },
-    ]);
-    expect(other.available).toBe(false);
-  });
-
-  it('decodes only base64 of exactly 32 bytes', () => {
-    expect(decodeEarningsKey(KEY)).toHaveLength(32);
-    expect(decodeEarningsKey(` ${KEY} `)).toHaveLength(32);
-    expect(decodeEarningsKey(undefined)).toBeNull();
   });
 });

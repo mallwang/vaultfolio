@@ -1,4 +1,5 @@
 import { requestsEn } from './requests.en';
+import { encryptionEn } from './encryption.en';
 import { earningsEn } from './earnings.en';
 import { retirementEn } from './retirement.en';
 import { wealthEn } from './wealth.en';
@@ -51,6 +52,7 @@ export const en: TranslationDictionary = {
     accounts: 'Accounts',
     invitations: 'Invitations',
     requests: 'Requests',
+    encryption: 'Encryption',
     signups: 'Sign-ups',
     healthStatus: 'Health status',
     collapseSidebar: 'Collapse sidebar',
@@ -569,6 +571,7 @@ export const en: TranslationDictionary = {
     adminInvitations: 'Admin · Invitations',
     adminRequests: 'Admin · Requests',
     adminGeneral: 'Admin · General',
+    adminEncryption: 'Admin · Encryption',
     notFound: 'Not Found',
   },
   accountOverviewForm: {
@@ -727,4 +730,5 @@ export const en: TranslationDictionary = {
   insurances: insurancesEn,
   ocr: ocrEn,
   requests: requestsEn,
+  encryption: encryptionEn,
 };

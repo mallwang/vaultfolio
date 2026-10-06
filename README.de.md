@@ -263,6 +263,35 @@ Backend trotzdem**, aber jede `/account-overview`-Route antwortet mit
 `503 ACCOUNT_OVERVIEW_UNAVAILABLE` (fail closed) und die Kontoübersicht zeigt „nicht verfügbar“;
 die übrigen Bereiche bleiben unberührt, gespeicherte Daten gehen nicht verloren.
 
+### Schlüsselrotation, Sicherung und Wiederherstellung
+
+Jeder verschlüsselte Bereich nutzt ein **zweistufiges Schlüsselverfahren**: Der konfigurierte
+`<BEREICH>_ENCRYPTION_KEY` ist ein _Hauptschlüssel_, der nur zufällig erzeugte _Datenschlüssel_ schützt,
+die verpackt in der Datenbank liegen; die Datenschlüssel verschlüsseln die Daten. Eine Neuinstallation
+oder ein Upgrade einer bestehenden Installation braucht keinen manuellen Schritt: Beim ersten Start
+nach dem Upgrade werden vorhandene Daten einmalig mit den bisherigen Schlüsseln auf einen
+Datenschlüssel umgestellt (der betroffene Bereich antwortet dabei kurz mit `503`, bei üblichen
+Datenmengen Sekunden).
+
+- **Schlüssel getrennt von `./data` sichern** (Passwortmanager oder Secret-Store, nicht in derselben
+  Sicherung wie die Datenbank). Datenbank und Schlüssel zusammen stellen alles wieder her, jedes allein
+  nicht. Nach einer Wiederherstellung die App starten und **Verwaltung → Verschlüsselung** öffnen: Jeder
+  Bereich sollte _Bereit_ anzeigen.
+- **Fehlender oder falscher Schlüssel**: Der Bereich ist gesperrt (`503`), nichts wird geschrieben oder
+  verändert, und Verwaltung → Verschlüsselung zeigt die Ursache. Den richtigen Schlüssel wiederherstellen
+  und neu starten; alle Daten sind wieder da.
+- **Planmäßige Rotation eines Hauptschlüssels** (ohne Ausfall, Daten bleiben unberührt): den neuen
+  Schlüssel als `<BEREICH>_ENCRYPTION_KEY` und den alten als `<BEREICH>_ENCRYPTION_KEY_PREVIOUS` setzen,
+  neu starten, Verwaltung → Verschlüsselung öffnen und je Bereich **Hauptschlüssel rotieren** ausführen.
+  Meldet die Seite den vorherigen Schlüssel als entfernbar, `<BEREICH>_ENCRYPTION_KEY_PREVIOUS` löschen
+  und neu starten. Der alte Schlüssel öffnet danach nichts mehr.
+- **Notfall-Rotation nach einem Schlüsselleck**: die Hauptschlüssel-Rotation wie oben ausführen, dann
+  **Daten neu verschlüsseln** für den Bereich (Bestätigung durch Eingabe der Bereichs-ID; der Bereich ist
+  währenddessen nicht verfügbar) und zuletzt **Schlüssel vernichten** für den ausgemusterten
+  Datenschlüssel. Die neuen Schlüssel erneut sichern.
+- Schlüssel werden ausschließlich über die Server-Umgebung geliefert; sie erscheinen nie in der
+  Oberfläche, der API oder den Logs.
+
 ## Mit Portainer deployen (oder einem anderen Docker-Hub-basierten Host)
 
 `docker-compose.yml` baut Images lokal aus dem Quellcode, was für Portainer auf einem NAS nicht

@@ -6,6 +6,7 @@ import Sqlite from 'better-sqlite3';
 import type { ImportFileInput } from '@vaultfolio/earnings';
 import { evaluateChecks } from '@vaultfolio/earnings';
 import { DatabaseService } from '../database/database.service';
+import { createTestKeyring } from '../encryption/encryption.testing';
 import { EarningsCryptoService } from './earnings-crypto.service';
 import { EarningsRepository } from './earnings.repository';
 
@@ -74,8 +75,7 @@ describe('EarningsRepository (SQLite)', () => {
     process.env.EARNINGS_ENCRYPTION_KEY = randomBytes(32).toString('base64');
     database = new DatabaseService();
     await database.onModuleInit();
-    const crypto = new EarningsCryptoService(database);
-    crypto.onModuleInit();
+    const crypto = new EarningsCryptoService(createTestKeyring(database));
     repository = new EarningsRepository(database, crypto);
   });
 
@@ -118,7 +118,7 @@ describe('EarningsRepository (SQLite)', () => {
         'SELECT amounts_enc FROM earnings_records',
       );
       expect(raw).toHaveLength(1);
-      expect(raw[0].amounts_enc).toMatch(/^v1:/);
+      expect(raw[0].amounts_enc).toMatch(/^v2:/);
       expect(raw[0].amounts_enc).not.toContain('5000');
       expect(raw[0].amounts_enc).not.toContain('3180');
 

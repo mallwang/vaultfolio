@@ -1,0 +1,23 @@
+meta {
+  name: Re-encrypt Domain (admin)
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/admin/encryption/domains/wealth/reencryption
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "confirm": "wealth"
+  }
+}
+
+docs {
+  Generates a new data key and re-encrypts all rows of the domain in the background; the domain
+  answers 503 meanwhile. `confirm` must equal the domain id. Poll `Encryption Status`.
+  Admin-only request — requires the `vaultfolio_session` cookie of an ADMIN account.
+}

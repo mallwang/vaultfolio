@@ -127,7 +127,7 @@ describe('/insurances', () => {
         'EMPLOYED',
       ])
         expect(raw).not.toContain(secret);
-      expect((rows[0] as { payload_enc: string }).payload_enc).toMatch(/^v1:/);
+      expect((rows[0] as { payload_enc: string }).payload_enc).toMatch(/^v2:/);
     });
 
     it('rejects invalid bodies naming fields, never values', async () => {

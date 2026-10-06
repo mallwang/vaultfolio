@@ -1,0 +1,17 @@
+meta {
+  name: Destroy Retired Data Key (admin)
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/admin/encryption/domains/wealth/data-keys/2/destroy
+  body: none
+  auth: none
+}
+
+docs {
+  Irreversibly destroys a retired data key; refused while rows still use it.
+  Admin-only request — requires the `vaultfolio_session` cookie of an ADMIN
+  account, captured by `auth/Login`.
+}

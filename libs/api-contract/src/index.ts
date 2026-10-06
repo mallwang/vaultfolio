@@ -13,3 +13,4 @@ export * from './lib/requests.js';
 export * from './lib/retirement.js';
 export * from './lib/wealth.js';
 export * from './lib/insurances.js';
+export * from './lib/encryption.js';

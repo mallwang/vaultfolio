@@ -285,7 +285,7 @@ describe('/wealth', () => {
       const rows = await t.database.query<Record<string, unknown>>('SELECT * FROM wealth_settings');
       expect(rows).toHaveLength(1);
       expect(JSON.stringify(rows[0])).not.toContain(SECRET_NAME.slice(0, 10));
-      expect(rows[0]['payload_enc']).toMatch(/^v1:/);
+      expect(rows[0]['payload_enc']).toMatch(/^v2:/);
     });
   });
 
@@ -347,7 +347,7 @@ describe('/wealth', () => {
         expect(stored).not.toContain(secret);
         expect(decoded).not.toContain(secret);
       }
-      expect(rows[0]['payload_enc']).toMatch(/^v1:/);
+      expect(rows[0]['payload_enc']).toMatch(/^v2:/);
       expect(rows[0]['snapshot_date']).toBe('2026-03-31');
     });
 
