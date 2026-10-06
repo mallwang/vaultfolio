@@ -20,7 +20,13 @@ import {
   seriesColor,
   timelineChartOption,
 } from '../charts/insurances-charts';
-import { fill, formatDateShort, formatMoney, monthName } from '../insurances-format';
+import {
+  fill,
+  formatDateShort,
+  formatMoney,
+  monthName,
+  reminderSendDate,
+} from '../insurances-format';
 import { InsurancesStore } from '../insurances-store';
 import { buildRows, daysLeftLabel, groupBreakdown, requirementTypeId } from '../insurances-view';
 
@@ -191,7 +197,18 @@ import { buildRows, daysLeftLabel, groupBreakdown, requirementTypeId } from '../
                 >
                   <span class="tag" [class.tag--warn]="u.withinWindow">{{ date(u.date) }}</span>
                   <span class="upcoming__name">{{ u.name }}</span>
-                  <span class="muted">{{ daysLeft(u.daysLeft) }} · {{ reminderHint(u.id) }}</span>
+                  <span class="muted">{{ daysLeft(u.daysLeft) }}</span>
+                  <span
+                    class="hint"
+                    [class.hint--on]="reminderOn(u.id)"
+                    [attr.data-testid]="'insurances-upcoming-reminder-' + u.id"
+                  >
+                    <app-icon
+                      size="1.15em"
+                      [name]="reminderOn(u.id) ? 'notifications-active' : 'notifications-off'"
+                    />
+                    {{ reminderHint(u) }}
+                  </span>
                 </li>
               }
             </ul>
@@ -344,6 +361,36 @@ import { buildRows, daysLeftLabel, groupBreakdown, requirementTypeId } from '../
       align-items: center;
       gap: 0.5rem;
       flex-wrap: wrap;
+    }
+    .upcoming {
+      display: grid;
+      grid-template-columns: auto 1fr auto auto;
+      column-gap: 0.75rem;
+      row-gap: 0;
+    }
+    .upcoming li {
+      display: grid;
+      grid-template-columns: subgrid;
+      grid-column: 1 / -1;
+      column-gap: 0.75rem;
+      padding: 0.45rem 0.5rem;
+      border-radius: 0.375rem;
+    }
+    .upcoming li:nth-child(even) {
+      background: var(--p-content-hover-background);
+    }
+    .upcoming li:hover {
+      background: var(--p-highlight-background);
+    }
+    .hint {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      font-size: 0.875rem;
+      color: var(--p-orange-600);
+    }
+    .hint--on {
+      color: var(--p-teal-600);
     }
     .swatch {
       flex: none;
@@ -559,11 +606,18 @@ export class InsurancesOverviewComponent {
     return this.i18n.translate(`insurances.requirements.${id}.name`);
   }
 
-  protected reminderHint(id: string): string {
-    const settings = this.store.settings();
+  protected reminderOn(id: string): boolean {
     const contract = this.store.contracts().find((c) => c.id === id);
-    return settings.reminders.enabled && contract?.reminderEnabled
-      ? this.i18n.translate('insurances.upcoming.reminderOn')
-      : this.i18n.translate('insurances.upcoming.reminderOff');
+    return this.store.settings().reminders.enabled && !!contract?.reminderEnabled;
+  }
+
+  protected reminderHint(u: UpcomingDeadline): string {
+    if (!this.reminderOn(u.id)) return this.i18n.translate('insurances.upcoming.reminderOff');
+    const sendDate = reminderSendDate(
+      u.date,
+      this.store.settings().reminders.leadDays,
+      this.store.today(),
+    );
+    return this.t('insurances.reminders.sendOn', { date: this.date(sendDate) });
   }
 }

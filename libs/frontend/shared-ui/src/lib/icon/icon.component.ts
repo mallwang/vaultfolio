@@ -22,6 +22,7 @@ const FALLBACK_GLYPH = 'error';
   // contained component has no external resource to resolve.
   template: `<span
     class="material-symbols-outlined"
+    [style.font-size]="size"
     [class.vf-icon--spin]="spin"
     [class.vf-icon--unknown]="isUnknown"
     >{{ glyph }}</span
@@ -66,6 +67,9 @@ export class IconComponent {
 
   /** When true, applies the `vf-icon--spin` rotation animation. */
   @Input() spin = false;
+
+  /** Optional CSS font-size override (e.g. '1.1em' to match surrounding text); default is the glyph font's 24px. */
+  @Input() size?: string;
 
   @HostBinding('attr.aria-hidden') readonly ariaHidden = 'true';
 

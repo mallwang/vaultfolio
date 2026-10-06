@@ -125,6 +125,33 @@ describe('insurances area pieces', () => {
     });
   });
 
+  describe('InsurancesAreaComponent reminder count', () => {
+    const count = (enabled: boolean, reminderEnabled: boolean) => {
+      const c = TestBed.createComponent(InsurancesAreaComponent).componentInstance as Internals;
+      http.expectOne({ method: 'GET', url: '/api/insurances' }).flush(
+        data({
+          contracts: [buildInsuranceContract({ id: 'c1', reminderEnabled })] as never,
+          settings: { ...structuredClone(DEFAULT_SETTINGS), reminders: { enabled, leadDays: 30 } },
+        }),
+      );
+      return c;
+    };
+
+    it('counts contracts that will remind', () => {
+      const c = count(true, true);
+      expect(c.activeReminders()).toBe(1);
+      expect(c.remindersLabel()).toBe('1 reminder on');
+    });
+
+    it('is zero when the global switch is off', () => {
+      expect(count(false, true).activeReminders()).toBe(0);
+    });
+
+    it('is zero when the contract switch is off', () => {
+      expect(count(true, false).activeReminders()).toBe(0);
+    });
+  });
+
   describe('InsurancesRemindersComponent', () => {
     const create = () => {
       const c = TestBed.createComponent(InsurancesRemindersComponent)
@@ -140,6 +167,26 @@ describe('insurances area pieces', () => {
       expect(c.leadOptions().map((o: { value: number }) => o.value)).toEqual([
         7, 14, 30, 60, 90, 120,
       ]);
+    });
+
+    it('shows no planned mail while reminders are off', () => {
+      const c = create();
+      const contract = buildInsuranceContract({ id: 'c1', reminderEnabled: true });
+      expect(c.sendScheduled(contract)).toBe(false);
+      expect(c.sendLabel(contract)).toBe('No mail planned');
+    });
+
+    it('shows the planned send date once reminders are on', () => {
+      const c = create();
+      c.store.setSettings({
+        ...DEFAULT_SETTINGS,
+        reminders: { enabled: true, leadDays: 30 },
+      });
+      const on = buildInsuranceContract({ id: 'c1', reminderEnabled: true });
+      const off = buildInsuranceContract({ id: 'c1', reminderEnabled: false });
+      expect(c.sendScheduled(on)).toBe(true);
+      expect(c.sendLabel(on)).toMatch(/^Mail on /);
+      expect(c.sendScheduled(off)).toBe(false);
     });
 
     it('lists contracts that can remind', () => {
