@@ -75,5 +75,5 @@
 
 ## Current Feature Plan
 
-Active implementation plan: [specs/039-insurances-management/plan.md](specs/039-insurances-management/plan.md)
+Active implementation plan: [specs/040-encryption-key-rotation/plan.md](specs/040-encryption-key-rotation/plan.md)
 <!-- SPECKIT END -->

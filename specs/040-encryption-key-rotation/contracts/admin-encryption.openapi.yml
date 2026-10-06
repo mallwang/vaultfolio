@@ -1,0 +1,220 @@
+openapi: 3.0.3
+info:
+  title: Vaultfolio admin encryption API (040-encryption-key-rotation)
+  version: 1.0.0
+  description: >
+    ADMIN-only operations for per-domain key status, master key rotation, data re-encryption and
+    history. No endpoint accepts, returns or logs key material, key fingerprints or user data.
+    Merged into api/openapi.yml during implementation.
+paths:
+  /admin/encryption/status:
+    get:
+      summary: Key status of every encrypted domain (works while domains are unavailable)
+      operationId: getEncryptionStatus
+      tags: [admin-encryption]
+      responses:
+        '200':
+          description: One entry per domain
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [domains]
+                properties:
+                  domains:
+                    type: array
+                    items: { $ref: '#/components/schemas/DomainKeyStatus' }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+  /admin/encryption/domains/{domain}/master-key-rotation:
+    post:
+      summary: Re-wrap all data keys of the domain under the current master key
+      operationId: rotateMasterKey
+      tags: [admin-encryption]
+      parameters:
+        - $ref: '#/components/parameters/Domain'
+      responses:
+        '200':
+          description: Completed (idempotent; reports 0 re-wrapped when nothing was pending)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RotationRun' }
+        '404': { $ref: '#/components/responses/Error' }
+        '409':
+          description: Another operation runs for this domain, or the domain is not READY (`ENCRYPTION_DOMAIN_NOT_READY`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+  /admin/encryption/domains/{domain}/reencryption:
+    post:
+      summary: Generate a new data key and re-encrypt all domain data (domain locked meanwhile)
+      operationId: startReencryption
+      tags: [admin-encryption]
+      parameters:
+        - $ref: '#/components/parameters/Domain'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [confirm]
+              properties:
+                confirm:
+                  type: string
+                  description: Must equal the domain id
+      responses:
+        '202':
+          description: Started in the background; poll the status endpoint
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RotationRun' }
+        '400': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+        '409':
+          description: Another operation runs for this domain, or the domain is not READY
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+  /admin/encryption/domains/{domain}/data-keys/{version}/destroy:
+    post:
+      summary: Irreversibly destroy a retired data key (refused while rows still use it)
+      operationId: destroyDataKey
+      tags: [admin-encryption]
+      parameters:
+        - $ref: '#/components/parameters/Domain'
+        - name: version
+          in: path
+          required: true
+          schema: { type: integer, minimum: 2 }
+      responses:
+        '200':
+          description: Destroyed
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RotationRun' }
+        '404': { $ref: '#/components/responses/Error' }
+        '409':
+          description: Key not retired, still in use (`ENCRYPTION_KEY_IN_USE`) or another operation runs
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+  /admin/encryption/history:
+    get:
+      summary: Persistent history of rotations, re-encryptions, destroys and upgrade migrations
+      operationId: getEncryptionHistory
+      tags: [admin-encryption]
+      parameters:
+        - name: domain
+          in: query
+          required: false
+          schema: { $ref: '#/components/schemas/DomainId' }
+        - name: limit
+          in: query
+          required: false
+          schema: { type: integer, minimum: 1, maximum: 200, default: 50 }
+      responses:
+        '200':
+          description: Newest first
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [runs]
+                properties:
+                  runs:
+                    type: array
+                    items: { $ref: '#/components/schemas/RotationRun' }
+components:
+  parameters:
+    Domain:
+      name: domain
+      in: path
+      required: true
+      schema: { $ref: '#/components/schemas/DomainId' }
+  responses:
+    Error:
+      description: Structured error
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+  schemas:
+    DomainId:
+      type: string
+      enum: [earnings, retirement, wealth, insurances, account-overview]
+    DomainState:
+      type: string
+      enum: [READY, KEY_MISSING, KEY_MISMATCH, MIGRATING, REENCRYPTING]
+    DomainKeyStatus:
+      type: object
+      required:
+        [
+          domain,
+          state,
+          currentVersion,
+          retiredVersions,
+          rotationPending,
+          previousKeyRemovable,
+          rowsPerVersion,
+        ]
+      properties:
+        domain: { $ref: '#/components/schemas/DomainId' }
+        state: { $ref: '#/components/schemas/DomainState' }
+        currentVersion:
+          type: integer
+          nullable: true
+          description: Data key version used for writes; null while the domain has no usable key
+        retiredVersions:
+          type: array
+          items: { type: integer }
+        rotationPending:
+          type: boolean
+          description: Some data key is still wrapped with the previous master key
+        previousKeyRemovable:
+          type: boolean
+          description: A previous master key is configured but nothing depends on it any more
+        rowsPerVersion:
+          type: object
+          additionalProperties: { type: integer }
+          description: key_version -> row count across the domain's tables (counts only)
+        lastRun:
+          allOf: [{ $ref: '#/components/schemas/RotationRun' }]
+          nullable: true
+        runningRun:
+          allOf: [{ $ref: '#/components/schemas/RotationRun' }]
+          nullable: true
+    RotationRun:
+      type: object
+      required: [id, domain, kind, status, startedAt, recordsTotal, recordsDone]
+      properties:
+        id: { type: string, format: uuid }
+        domain: { $ref: '#/components/schemas/DomainId' }
+        kind:
+          type: string
+          enum: [MASTER_KEY, DATA_KEY, KEY_DESTROY, LEGACY_MIGRATION]
+        status:
+          type: string
+          enum: [RUNNING, SUCCEEDED, FAILED, INTERRUPTED]
+        startedAt: { type: string, format: date-time }
+        finishedAt: { type: string, format: date-time, nullable: true }
+        triggeredByEmail:
+          type: string
+          nullable: true
+          description: null for system runs such as the startup migration
+        fromVersion: { type: integer, nullable: true }
+        toVersion: { type: integer, nullable: true }
+        recordsTotal: { type: integer }
+        recordsDone: { type: integer }
+        errorCode:
+          type: string
+          nullable: true
+          description: Machine code only, never key material or row content
+    ErrorResponse:
+      type: object
+      required: [statusCode, error, message]
+      properties:
+        statusCode: { type: integer }
+        error:
+          type: string
+          description: Machine-readable code, e.g. ENCRYPTION_DOMAIN_NOT_READY, ENCRYPTION_KEY_IN_USE
+        message: { type: string }
