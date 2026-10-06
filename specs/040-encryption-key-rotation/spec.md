@@ -16,6 +16,7 @@
 - Q: How does the operator start a rotation or re-encryption? → A: Through an admin-only screen in the app (the instance runs in Portainer containers without convenient shell access); no command-line tool is required.
 - Q: Should rotations be traceable afterwards? → A: Yes, a persistent history of all rotations (time, domain, kind, outcome, triggering admin; no key material).
 - Q: On a key mismatch at startup, should the app still start? → A: Yes; the app starts, only the affected domain is locked, and the admin screen shows the cause.
+- Q: Data key per domain or per user? → A: Per domain. Per-user keys (e.g. for deleting a user's data from old backups) are out of scope, but the design must not preclude adding them later.
 
 ## User Scenarios & Testing _(mandatory)_
 
@@ -160,4 +161,5 @@ The operator has clear, verified guidance on how to back up keys separately from
 - The current stored format already carries a version marker, which the new design builds on; the existing keys remain valid as the initial master keys.
 - Full re-encryption may make the affected domain briefly unavailable; master key rotation does not. Data loss or silent errors are never acceptable.
 - Backup and key storage tooling (password manager, secrets files) is chosen by the operator; the feature documents recommendations only.
+- Data keys are scoped per domain, not per user. Making a deleted user's data unreadable in old backups is out of scope, and the key design must leave room to add per-user keys later without changing stored data.
 - Protection against an attacker who already copied the database and key before rotation is out of scope; rotation protects only data written after the compromise is closed.
