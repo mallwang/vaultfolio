@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
@@ -7,10 +7,13 @@ import { MessageModule } from 'primeng/message';
 import { TabsModule } from 'primeng/tabs';
 import {
   ExportControlComponent,
+  I18nService,
   IconComponent,
   TranslatePipe,
   routeTabs,
 } from '@vaultfolio/frontend-shared-ui';
+import { nextCancellationDate } from '@vaultfolio/insurances';
+import { fill } from '../insurances-format';
 import { InsurancesStore } from '../insurances-store';
 import { InsurancesService } from '../insurances.service';
 import { InsurancesRemindersComponent } from '../reminders/reminders.component';
@@ -64,13 +67,19 @@ const TABS = ['overview', 'contracts', 'gap-check'] as const;
         <div class="toolbar__actions">
           <button
             type="button"
-            pButton
-            [outlined]="true"
-            severity="secondary"
+            class="link"
+            [class.link--on]="activeReminders() > 0"
+            [class.link--off]="activeReminders() === 0"
             (click)="remindersOpen.set(true)"
             data-testid="insurances-reminders-link"
           >
-            <app-icon name="envelope" /> {{ 'insurances.toolbar.reminders' | translate }}
+            @if (activeReminders() > 0) {
+              <app-icon name="notifications-active" />
+              <span class="link__label">{{ remindersLabel() }}</span>
+            } @else {
+              <app-icon name="notifications-off" />
+              <span class="link__label">{{ 'insurances.toolbar.remindersOff' | translate }}</span>
+            }
           </button>
           <app-export-control featureId="insurances" />
           <a pButton routerLink="/app/insurances/new" data-testid="insurances-add-button">
@@ -137,11 +146,38 @@ const TABS = ['overview', 'contracts', 'gap-check'] as const;
     a.p-button {
       text-decoration: none;
     }
+    .link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0;
+      border: 0;
+      background: none;
+      font: inherit;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .link--on {
+      color: var(--p-teal-600);
+    }
+    .link--off {
+      color: var(--p-orange-600);
+    }
+    .link:hover .link__label {
+      text-decoration: underline;
+    }
+    .link:focus-visible {
+      outline: 2px solid currentColor;
+      outline-offset: 2px;
+      border-radius: 0.25rem;
+    }
   `,
 })
 export class InsurancesAreaComponent {
   protected readonly store = inject(InsurancesStore);
   private readonly service = inject(InsurancesService);
+  private readonly i18n = inject(I18nService);
 
   protected readonly tabs = TABS;
   protected readonly remindersOpen = signal(false);
@@ -149,6 +185,28 @@ export class InsurancesAreaComponent {
   private readonly nav = routeTabs('overview');
   protected readonly activeTab = this.nav.activeTab;
   protected readonly onTabChange = this.nav.onTabChange;
+
+  /** Contracts that will actually remind: switch on globally and per contract, with a deadline. */
+  protected readonly activeReminders = computed(() =>
+    this.store.settings().reminders.enabled
+      ? this.store
+          .contracts()
+          .filter(
+            (c) =>
+              c.reminderEnabled && nextCancellationDate(c, this.store.today()).kind === 'DEADLINE',
+          ).length
+      : 0,
+  );
+
+  protected remindersLabel(): string {
+    const count = this.activeReminders();
+    return fill(
+      this.i18n.translate(
+        count === 1 ? 'insurances.toolbar.remindersOnOne' : 'insurances.toolbar.remindersOn',
+      ),
+      { count },
+    );
+  }
 
   constructor() {
     this.store.ensureLoaded();

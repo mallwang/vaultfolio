@@ -20,6 +20,8 @@ export const ICON_NAME_MAP: Record<string, string> = {
   download: 'download',
   'drag-handle': 'drag_indicator',
   envelope: 'mail',
+  'notifications-active': 'notifications_active',
+  'notifications-off': 'notifications_off',
   warning: 'warning',
   inbox: 'inbox',
   key: 'key',

@@ -69,3 +69,10 @@ export function parseAmountInput(text: string): string | null {
   }
   return /^\d+(\.\d+)?$/.test(normalized) ? normalized : null;
 }
+
+/** First day the reminder can go out: deadline minus lead days, or today when already inside the window. */
+export function reminderSendDate(deadline: string, leadDays: number, today: string): string {
+  const [y, m, d] = deadline.split('-').map(Number);
+  const start = new Date(Date.UTC(y, m - 1, d - leadDays)).toISOString().slice(0, 10);
+  return start > today ? start : today;
+}

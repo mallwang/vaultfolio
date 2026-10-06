@@ -539,11 +539,15 @@ The **Contracts** tab lists all contracts, filterable by group, status and class
 sortable by premium and next cancellation date. Dates are the calculated dates; they are not adjusted
 for weekends or holidays.
 
-**Reminders** (toolbar) lets you switch cancellation-deadline reminder e-mails on or off (default:
-off), choose how many days in advance (7 to 120, default 30) and switch single contracts off. You
-get one e-mail per contract and deadline, in your language, and none for inactive contracts. The
-e-mail contains only the insurance type, the contract name and the date. The Dashboard shows an
-Insurances tile with the monthly cost and the next deadline.
+**Reminders** (toolbar link, showing e.g. "3 reminders on" or "Reminders off") opens a dialog where
+you switch cancellation-deadline reminder e-mails on or off (default: off), choose how many days in
+advance (7 to 120, default 30) and switch single contracts off; while reminders are off the
+per-contract switches are disabled. Each contract card shows the date the e-mail will be sent, and an
+e-mail preview shows what you will receive in your e-mail language (set under Settings >
+Preferences; a hint appears when it differs from the display language). You get one e-mail per
+contract and deadline, and none for inactive contracts. The e-mail contains only the insurance type,
+the contract name and the date. The upcoming deadlines list shows the same send date per contract.
+The Dashboard shows an Insurances tile with the monthly cost and the next deadline.
 
 ### 7c.3 Gap Check, Privacy and Deleting
 

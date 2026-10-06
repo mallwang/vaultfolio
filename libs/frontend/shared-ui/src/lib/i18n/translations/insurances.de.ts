@@ -9,7 +9,9 @@ export const insurancesDe: TranslationDictionary = {
   toolbar: {
     year: 'Jahr',
     includeSocial: 'Sozialversicherungen einrechnen',
-    reminders: 'Erinnerungen',
+    remindersOn: '{{count}} Erinnerungen aktiv',
+    remindersOnOne: '1 Erinnerung aktiv',
+    remindersOff: 'Erinnerungen aus',
     add: 'Vertrag erfassen',
     addFirst: 'Ersten Vertrag erfassen',
   },
@@ -136,7 +138,6 @@ export const insurancesDe: TranslationDictionary = {
   upcoming: {
     title: 'Anstehende Kündigungsfristen',
     empty: 'Keine Kündigungsfristen im Blick.',
-    reminderOn: 'Erinnerung an',
     reminderOff: 'Erinnerung aus',
   },
   overview: {
@@ -306,6 +307,12 @@ export const insurancesDe: TranslationDictionary = {
     leadDays: 'Vorlauf',
     leadDaysOption: '{{days}} Tage',
     perContract: 'Pro Vertrag',
+    preview: 'E-Mail-Vorschau',
+    languageWarning: 'Die E-Mail-Sprache ist {{language}}.',
+    languageSettings: 'In den Einstellungen ändern',
+    languageName: { de: 'Deutsch', en: 'Englisch' },
+    sendOn: 'Mail am {{date}}',
+    sendNone: 'Keine Mail geplant',
     none: 'Keine aktiven Verträge mit Kündigungsfrist.',
     note: 'Eine E-Mail pro Vertrag und Frist, in deiner Sprache. Für inaktive Verträge gibt es nie eine Erinnerung. Sie enthält nur Versicherungstyp, Vertragsbezeichnung und Datum.',
     saveFailed: 'Die Änderung konnte nicht gespeichert werden.',

@@ -566,11 +566,16 @@ Die Registerkarte **Verträge** listet alle Verträge, filterbar nach Gruppe, St
 sortierbar nach Prämie und nächster Kündigung. Die Daten sind die berechneten Daten; sie werden nicht
 an Wochenenden oder Feiertage angepasst.
 
-Unter **Erinnerungen** (Werkzeugleiste) schaltest du Erinnerungs-E-Mails zu Kündigungsfristen ein oder
-aus (Standard: aus), wählst den Vorlauf (7 bis 120 Tage, Standard 30) und schaltest einzelne Verträge
-ab. Du erhältst eine E-Mail pro Vertrag und Frist, in deiner Sprache, und keine für inaktive Verträge.
-Die E-Mail enthält nur Versicherungstyp, Vertragsbezeichnung und Datum. Das Dashboard zeigt eine
-Kachel Versicherungen mit den monatlichen Kosten und der nächsten Frist.
+Der Link **Erinnerungen** (Werkzeugleiste, z. B. „3 Erinnerungen aktiv“ oder „Erinnerungen aus“)
+öffnet einen Dialog, in dem du Erinnerungs-E-Mails zu Kündigungsfristen ein- oder ausschaltest
+(Standard: aus), den Vorlauf wählst (7 bis 120 Tage, Standard 30) und einzelne Verträge abschaltest;
+bei ausgeschalteten Erinnerungen sind die Schalter pro Vertrag deaktiviert. Jede Vertragskachel zeigt,
+wann die E-Mail versendet wird, und eine E-Mail-Vorschau zeigt, was du in deiner E-Mail-Sprache
+erhältst (einstellbar unter Einstellungen > Präferenzen; ein Hinweis erscheint, wenn sie von der
+Anzeigesprache abweicht). Du erhältst eine E-Mail pro Vertrag und Frist und keine für inaktive
+Verträge. Die E-Mail enthält nur Versicherungstyp, Vertragsbezeichnung und Datum. Die Liste der
+anstehenden Fristen zeigt dasselbe Versanddatum pro Vertrag. Das Dashboard zeigt eine Kachel
+Versicherungen mit den monatlichen Kosten und der nächsten Frist.
 
 ### 7c.3 Lückencheck, Datenschutz und Löschen
 

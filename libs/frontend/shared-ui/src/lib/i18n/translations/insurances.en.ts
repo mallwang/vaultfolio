@@ -10,7 +10,9 @@ export const insurancesEn: TranslationDictionary = {
   toolbar: {
     year: 'Year',
     includeSocial: 'Include social insurances',
-    reminders: 'Reminders',
+    remindersOn: '{{count}} reminders on',
+    remindersOnOne: '1 reminder on',
+    remindersOff: 'Reminders off',
     add: 'Add contract',
     addFirst: 'Add first contract',
   },
@@ -136,7 +138,6 @@ export const insurancesEn: TranslationDictionary = {
   upcoming: {
     title: 'Upcoming cancellation deadlines',
     empty: 'No cancellation deadlines to watch.',
-    reminderOn: 'Reminder on',
     reminderOff: 'Reminder off',
   },
   overview: {
@@ -306,6 +307,12 @@ export const insurancesEn: TranslationDictionary = {
     leadDays: 'Remind me in advance',
     leadDaysOption: '{{days}} days',
     perContract: 'Per contract',
+    preview: 'E-mail preview',
+    languageWarning: 'The e-mail language is {{language}}.',
+    languageSettings: 'Change in settings',
+    languageName: { de: 'German', en: 'English' },
+    sendOn: 'Mail on {{date}}',
+    sendNone: 'No mail planned',
     none: 'No active contracts with a cancellation deadline.',
     note: 'One e-mail per contract and deadline, in your language. Reminders are never sent for inactive contracts. They contain only the insurance type, the contract name and the date.',
     saveFailed: 'The change could not be saved.',

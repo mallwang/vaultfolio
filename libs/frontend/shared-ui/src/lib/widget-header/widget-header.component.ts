@@ -10,7 +10,7 @@ import { IconComponent } from '../icon/icon.component';
     <div class="head">
       <strong>{{ title }}</strong>
       <a [routerLink]="link" [attr.data-testid]="linkTestId">
-        {{ linkLabel }} <app-icon name="chevron-right" />
+        <span class="label">{{ linkLabel }}</span> <app-icon name="chevron-right" />
       </a>
     </div>
   `,
@@ -29,7 +29,7 @@ import { IconComponent } from '../icon/icon.component';
       font-size: 0.875rem;
       text-decoration: none;
     }
-    a:hover {
+    a:hover .label {
       text-decoration: underline;
     }
   `,
