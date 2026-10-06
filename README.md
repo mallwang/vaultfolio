@@ -296,6 +296,16 @@ e-mails are sent and the Insurances area shows an "unavailable" state; the other
 unaffected and stored data is not lost. Reminder e-mails use the SMTP settings of the other
 notifications and the `APP_BASE_URL` link.
 
+### Account overview encryption key
+
+The account overview encrypts every stored account entry (names, providers, websites, purposes,
+card numbers, notes) with its own `ACCOUNT_OVERVIEW_ENCRYPTION_KEY` (Base64 of exactly 32 random
+bytes), separate from the other keys. Generate and back it up the same way as the Earnings key
+(see above) — a lost or changed key makes all stored account data permanently unreadable.
+**Without a valid key the backend still starts**, but every `/account-overview` route answers
+`503 ACCOUNT_OVERVIEW_UNAVAILABLE` (fail closed) and the account overview shows an "unavailable"
+state; the other domains are unaffected and stored data is not lost.
+
 ## Deploying with Portainer (or any Docker Hub-based host)
 
 `docker-compose.yml` builds images locally from source, which isn't a great fit for Portainer on

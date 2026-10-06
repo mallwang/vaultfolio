@@ -33,6 +33,7 @@ describe('DashboardLayoutStore', () => {
       'retirement',
       'insurances',
       'historic-wealth-development',
+      'account-overview',
     ]);
     expect(store.visibleTiles().find((t) => t.id === 'earnings')?.entitled).toBe(false);
   });
@@ -48,6 +49,7 @@ describe('DashboardLayoutStore', () => {
       'retirement',
       'insurances',
       'historic-wealth-development',
+      'account-overview',
     ]);
     expect(JSON.parse(localStorage.getItem('vaultfolio.dashboard-layout.u1') ?? '')).toEqual({
       order: [
@@ -58,6 +60,7 @@ describe('DashboardLayoutStore', () => {
         'retirement',
         'insurances',
         'historic-wealth-development',
+        'account-overview',
       ],
       hidden: ['todaysChange'],
     });

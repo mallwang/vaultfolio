@@ -1,6 +1,7 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import type { Observable } from 'rxjs';
+import { ACCOUNT_OVERVIEW_ERROR } from '@vaultfolio/api-contract';
 import type {
   AccountOverviewEntry,
   CreateAccountOverviewEntryRequest,
@@ -30,7 +31,20 @@ export class AccountOverviewService {
     return this.http.put<AccountOverviewEntry>(`${this.baseUrl}/${id}`, body);
   }
 
+  removeAll(): Observable<void> {
+    return this.http.delete<void>(this.baseUrl);
+  }
+
   remove(id: string): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
+}
+
+/** `503 ACCOUNT_OVERVIEW_UNAVAILABLE`: the backend's encryption key is missing or invalid. */
+export function isAccountOverviewUnavailable(error: unknown): boolean {
+  return (
+    error instanceof HttpErrorResponse &&
+    error.status === 503 &&
+    (error.error as { error?: string } | null)?.error === ACCOUNT_OVERVIEW_ERROR.unavailable
+  );
 }

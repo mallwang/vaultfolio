@@ -75,3 +75,8 @@ export interface AccountOverviewNotFoundErrorResponse {
   error: 'ACCOUNT_NOT_FOUND';
   message: string;
 }
+
+/** Error codes (`error` field) the account-overview routes can answer with besides validation/404. */
+export const ACCOUNT_OVERVIEW_ERROR = {
+  unavailable: 'ACCOUNT_OVERVIEW_UNAVAILABLE',
+} as const;

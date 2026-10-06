@@ -252,6 +252,17 @@ closed), es werden keine Erinnerungs-E-Mails versendet und der Bereich zeigt „
 übrigen Bereiche bleiben unberührt, gespeicherte Daten gehen nicht verloren. Erinnerungs-E-Mails
 nutzen die SMTP-Einstellungen der übrigen Benachrichtigungen und den Link aus `APP_BASE_URL`.
 
+### Schlüssel für die Kontoübersicht
+
+Die Kontoübersicht verschlüsselt jeden gespeicherten Konto-Eintrag (Namen, Anbieter, Websites,
+Zwecke, Kartennummern, Notizen) mit einem eigenen `ACCOUNT_OVERVIEW_ENCRYPTION_KEY` (Base64 von
+genau 32 Zufallsbytes), getrennt von den übrigen Schlüsseln. Erzeugen und sichern Sie ihn wie den
+Schlüssel der Einkommensentwicklung (siehe oben) – ein verlorener oder geänderter Schlüssel macht
+alle gespeicherten Kontodaten unwiederbringlich unlesbar. **Ohne gültigen Schlüssel startet das
+Backend trotzdem**, aber jede `/account-overview`-Route antwortet mit
+`503 ACCOUNT_OVERVIEW_UNAVAILABLE` (fail closed) und die Kontoübersicht zeigt „nicht verfügbar“;
+die übrigen Bereiche bleiben unberührt, gespeicherte Daten gehen nicht verloren.
+
 ## Mit Portainer deployen (oder einem anderen Docker-Hub-basierten Host)
 
 `docker-compose.yml` baut Images lokal aus dem Quellcode, was für Portainer auf einem NAS nicht

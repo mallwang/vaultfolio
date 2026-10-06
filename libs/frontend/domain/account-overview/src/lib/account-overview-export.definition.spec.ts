@@ -4,11 +4,10 @@ import { TestBed } from '@angular/core/testing';
 import type { AccountOverviewEntry } from '@vaultfolio/api-contract';
 import { createAccountOverviewExportDefinition } from './account-overview-export.definition';
 
-/** Every field `AccountOverviewPageComponent`'s own row template binds (account-overview-page.component.ts). */
+/** Every field `AccountOverviewPageComponent`'s own row template binds, minus the status (one table per status). */
 const ROW_FIELDS = [
   'name',
   'category',
-  'status',
   'provider',
   'website',
   'purpose',
@@ -43,82 +42,88 @@ describe('createAccountOverviewExportDefinition', () => {
     });
   });
 
-  it('covers every field visible in the Account Overview row (FR-007, SC-002)', () => {
+  function setup() {
     const definition = TestBed.runInInjectionContext(createAccountOverviewExportDefinition);
+    return { definition, httpMock: TestBed.inject(HttpTestingController) };
+  }
 
-    const keys = definition.columns.map((column) => column.key);
-    for (const field of ROW_FIELDS) {
-      expect(keys).toContain(field);
-    }
-  });
-
-  it('fetchData maps AccountOverviewEntry rows via GET /api/account-overview/accounts, resolving category/status to display text', async () => {
-    const definition = TestBed.runInInjectionContext(createAccountOverviewExportDefinition);
-    const httpMock = TestBed.inject(HttpTestingController);
-
-    const rowsPromise = definition.fetchData();
-    httpMock.expectOne('/api/account-overview/accounts').flush([account]);
-    const rows = await rowsPromise;
-
-    expect(rows).toHaveLength(1);
-    expect(rows[0]['name']).toBe('N26 Checking');
-    expect(rows[0]['provider']).toBe('N26');
-    // Resolved via I18nService, not the raw enum value.
-    expect(rows[0]['category']).not.toBe('SAVINGS');
-    expect(rows[0]['status']).not.toBe('ACTIVE');
-  });
+  const decommissioned: AccountOverviewEntry = {
+    ...account,
+    id: 'acc-2',
+    name: 'Old depot',
+    category: 'DEPOT',
+    status: 'DECOMMISSIONED',
+  };
 
   it('has no getChartOptions (no charts on Account Overview)', () => {
-    const definition = TestBed.runInInjectionContext(createAccountOverviewExportDefinition);
-    expect(definition.getChartOptions).toBeUndefined();
+    expect(setup().definition.getChartOptions).toBeUndefined();
+  });
+
+  it('serves the data formats from getExportTables, so the generic row table is empty', async () => {
+    const { definition } = setup();
+    expect(definition.columns).toEqual([]);
+    expect(await definition.fetchData()).toEqual([]);
+  });
+
+  describe('getExportTables', () => {
+    async function tablesFor(entries: AccountOverviewEntry[]) {
+      const { definition, httpMock } = setup();
+      const promise = definition.getExportTables?.();
+      httpMock.expectOne('/api/account-overview/accounts').flush(entries);
+      return promise;
+    }
+
+    it('returns one table for active and one for decommissioned accounts with every field', async () => {
+      const tables = await tablesFor([account, decommissioned]);
+
+      expect(tables?.map((t) => t.id)).toEqual(['active', 'decommissioned']);
+      expect(tables?.[0].columns.map((c) => c.key)).toEqual(ROW_FIELDS);
+      expect(tables?.[0].rows).toHaveLength(1);
+      expect(tables?.[0].rows[0].cells['name']).toBe('N26 Checking');
+      // Category is a resolved display text column, not a separate table.
+      expect(tables?.[0].rows[0].cells['category']).not.toBe('SAVINGS');
+      expect(tables?.[1].rows[0].cells['name']).toBe('Old depot');
+    });
+
+    it('keeps an empty table when a status has no accounts', async () => {
+      const tables = await tablesFor([account]);
+      expect(tables?.[1].rows).toEqual([]);
+      expect(tables?.[1].emptyText).toBeTruthy();
+    });
+
+    it('orders accounts by category within a status', async () => {
+      const general = { ...account, id: 'g', name: 'Giro', category: 'GENERAL' as const };
+      const tables = await tablesFor([account, general]);
+      expect(tables?.[0].rows.map((r) => r.cells['name'])).toEqual(['Giro', 'N26 Checking']);
+    });
   });
 
   describe('getPdfSections', () => {
     async function sectionsFor(entries: AccountOverviewEntry[]) {
-      const definition = TestBed.runInInjectionContext(createAccountOverviewExportDefinition);
-      return pdfSectionsOf(definition, entries);
-    }
-
-    async function pdfSectionsOf(
-      definition: ReturnType<typeof createAccountOverviewExportDefinition>,
-      entries: AccountOverviewEntry[],
-    ) {
-      const httpMock = TestBed.inject(HttpTestingController);
+      const { definition, httpMock } = setup();
       const promise = definition.getPdfSections?.();
       httpMock.expectOne('/api/account-overview/accounts').flush(entries);
       return promise;
     }
 
-    it('is portrait and returns no sections for an empty overview', async () => {
-      const definition = TestBed.runInInjectionContext(createAccountOverviewExportDefinition);
-      expect(definition.pdfOrientation).toBe('portrait');
-      expect(await pdfSectionsOf(definition, [])).toEqual([]);
+    it('uses the default landscape page and returns no sections for an empty overview', async () => {
+      expect(setup().definition.pdfOrientation).toBeUndefined();
+      expect(await sectionsFor([])).toEqual([]);
     });
 
-    it('stacks the secondary fields into one details cell, skipping empty ones', async () => {
-      const full: AccountOverviewEntry = {
-        ...account,
-        website: 'https://n26.com',
-        cardUsage: 'Daily',
-        cardNumber: '1234',
-        validUntil: '12/30',
-        notes: 'Main',
-        requiredMinimum: '100.00',
-      };
-      const sections = await sectionsFor([full, account]);
+    it('returns a table per non-empty status with one column per field', async () => {
+      const sections = await sectionsFor([account, decommissioned]);
+      expect(sections).toHaveLength(2);
+      for (const section of sections ?? []) {
+        if (section.kind !== 'table') throw new Error('expected a table section');
+        expect(section.columns.map((c) => c.key).sort()).toEqual([...ROW_FIELDS].sort());
+        expect(section.rows).toHaveLength(1);
+      }
+    });
 
+    it('omits the decommissioned table when there are none', async () => {
+      const sections = await sectionsFor([account]);
       expect(sections).toHaveLength(1);
-      const table = sections?.[0];
-      if (table?.kind !== 'table') throw new Error('expected a table section');
-      expect(table.columns.map((c) => c.key)).toContain('details');
-      const [first, second] = table.rows;
-      const lines = String(first.cells['details']).split('\n');
-      expect(lines).toHaveLength(5);
-      expect(lines[0]).toBe('https://n26.com');
-      expect(lines[1]).toContain('Daily');
-      expect(lines[4]).toContain('Main');
-      expect(first.cells['requiredMinimum']).toBe('100.00');
-      expect(second.cells['details']).toBe('');
     });
   });
 });

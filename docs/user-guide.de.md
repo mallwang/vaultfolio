@@ -232,8 +232,21 @@ Nutze die Schaltfläche **Konto hinzufügen**, um einen Eintrag zu erstellen. Be
 Löschen funktionieren genauso wie bei Holdings. Das Deaktivieren eines Kontos markiert es als
 inaktiv, ohne es zu löschen – nützlich für das Führen historischer Aufzeichnungen.
 
+Die Liste lässt sich über die Kategorie-Chips, die Suche und den Statusfilter eingrenzen. Lange
+Texte werden auf zwei Zeilen gekürzt; **Mehr anzeigen** klappt sie auf. Unten löscht **Alle Konten
+löschen** nach einer Bestätigung sämtliche Konten.
+
+Auf dem Dashboard zeigt die Kachel **Konten** die Gesamtzahl und die Anzahl je Kategorie und
+verlinkt auf die Übersicht.
+
+Deine Kontodaten werden verschlüsselt gespeichert. Hat der Betreiber den Schlüssel der
+Kontoübersicht nicht eingerichtet, zeigt die Seite statt deiner Konten den Hinweis „nicht
+verfügbar“.
+
 Der Link **Daten exportieren** (oben rechts) funktioniert genauso wie bei Holdings – JSON, CSV,
-Excel und PDF stehen im Export-Dialog zur Verfügung.
+Excel und PDF stehen im Export-Dialog zur Verfügung. Alle Formate führen aktive und stillgelegte
+Konten getrennt auf (zwei Blätter, zwei CSV-Dateien, zwei JSON-Listen, zwei PDF-Tabellen); die
+Kategorie ist eine Spalte.
 
 ---
 

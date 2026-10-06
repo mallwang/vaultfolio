@@ -1,8 +1,8 @@
-import { provideHttpClient } from '@angular/common/http';
+import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import type { AccountOverviewEntry } from '@vaultfolio/api-contract';
-import { AccountOverviewService } from './account-overview.service';
+import { AccountOverviewService, isAccountOverviewUnavailable } from './account-overview.service';
 
 describe('AccountOverviewService', () => {
   let service: AccountOverviewService;
@@ -105,6 +105,15 @@ describe('AccountOverviewService', () => {
     expect(error).toBeDefined();
   });
 
+  it('removeAll() issues a DELETE to /api/account-overview/accounts', () => {
+    let completed = false;
+    service.removeAll().subscribe(() => (completed = true));
+    const req = httpMock.expectOne('/api/account-overview/accounts');
+    expect(req.request.method).toBe('DELETE');
+    req.flush(null, { status: 204, statusText: 'No Content' });
+    expect(completed).toBe(true);
+  });
+
   it('remove() issues a DELETE to /api/account-overview/accounts/:id', () => {
     let completed = false;
     service.remove('entry-1').subscribe(() => (completed = true));
@@ -125,5 +134,18 @@ describe('AccountOverviewService', () => {
       .error(new ProgressEvent('error'), { status: 404 });
 
     expect(error).toBeDefined();
+  });
+});
+
+describe('isAccountOverviewUnavailable', () => {
+  it('is true only for a 503 with the unavailable error code', () => {
+    const unavailable = new HttpErrorResponse({
+      status: 503,
+      error: { error: 'ACCOUNT_OVERVIEW_UNAVAILABLE' },
+    });
+    expect(isAccountOverviewUnavailable(unavailable)).toBe(true);
+    expect(isAccountOverviewUnavailable(new HttpErrorResponse({ status: 503 }))).toBe(false);
+    expect(isAccountOverviewUnavailable(new HttpErrorResponse({ status: 500 }))).toBe(false);
+    expect(isAccountOverviewUnavailable(new Error('x'))).toBe(false);
   });
 });

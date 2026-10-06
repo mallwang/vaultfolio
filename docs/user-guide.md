@@ -228,8 +228,20 @@ Use the **Add account** button to create an entry. Edit and delete work the same
 in Holdings. Decommissioning an account marks it as inactive without deleting it —
 useful for keeping historical records.
 
+The list can be narrowed with the category chips, the search box and the status
+filter. Long texts are shortened to two lines; **Show more** expands them. At the
+bottom, **Delete all accounts** removes every account after a confirmation.
+
+The Dashboard has an **Accounts** tile with the total and the count per category;
+it links to the overview.
+
+Your account data is stored encrypted. If the operator has not configured the
+account overview key, the page shows an "unavailable" notice instead of your accounts.
+
 The **Export data** link (top right) works the same as in Holdings — JSON, CSV,
-Excel, and PDF formats are available in the export dialog.
+Excel, and PDF formats are available in the export dialog. All formats list active
+and decommissioned accounts separately (two sheets, two CSV files, two JSON lists,
+two PDF tables); the category is a column.
 
 ---
 

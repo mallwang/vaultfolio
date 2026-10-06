@@ -1,0 +1,15 @@
+meta {
+  name: Delete All Account Overview Entries
+  type: http
+  seq: 2
+}
+
+delete {
+  url: {{baseUrl}}/account-overview/accounts
+  body: none
+  auth: none
+}
+
+docs {
+  Deletes all account-overview entries of the caller.
+}
