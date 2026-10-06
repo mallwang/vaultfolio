@@ -9,6 +9,8 @@ export { de } from './lib/i18n/translations/de';
 export { ThemeService } from './lib/theme/theme.service';
 export type { Theme } from './lib/theme/theme.service';
 export { IconComponent } from './lib/icon/icon.component';
+export { EmptyTileComponent } from './lib/empty-tile/empty-tile.component';
+export { WidgetHeaderComponent } from './lib/widget-header/widget-header.component';
 export { ICON_NAME_MAP } from './lib/icon/icon-name.map';
 export { EchartComponent } from './lib/chart/echart.component';
 export type { EchartClickEvent } from './lib/chart/echart.component';

@@ -1,7 +1,12 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import type { RetirementSummary } from '@vaultfolio/api-contract';
-import { I18nService, IconComponent, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
+import {
+  EmptyTileComponent,
+  I18nService,
+  IconComponent,
+  TranslatePipe,
+  WidgetHeaderComponent,
+} from '@vaultfolio/frontend-shared-ui';
 import { fill, formatDate, formatMoney } from '../retirement-format';
 import { RetirementService } from '../retirement.service';
 
@@ -15,7 +20,7 @@ import { RetirementService } from '../retirement.service';
  */
 @Component({
   selector: 'app-retirement-dashboard-widget',
-  imports: [RouterLink, IconComponent, TranslatePipe],
+  imports: [IconComponent, TranslatePipe, EmptyTileComponent, WidgetHeaderComponent],
   template: `
     <div class="widget" data-testid="retirement-widget">
       @if (service.unavailable()) {
@@ -24,21 +29,21 @@ import { RetirementService } from '../retirement.service';
         </p>
       } @else if (summary(); as s) {
         @if (s.items.length === 0) {
-          <a class="tile empty" routerLink="/app/retirement" data-testid="retirement-widget-empty">
-            <strong>{{ 'retirement.widget.emptyTitle' | translate }}</strong>
-            <span class="muted">{{ 'retirement.widget.emptyBody' | translate }}</span>
-            <span class="cta">
-              {{ 'retirement.widget.emptyCta' | translate }} <app-icon name="chevron-right" />
-            </span>
-          </a>
+          <app-empty-tile
+            link="/app/retirement"
+            testId="retirement-widget-empty"
+            [title]="'retirement.widget.emptyTitle' | translate"
+            [body]="'retirement.widget.emptyBody' | translate"
+            [ctaLabel]="'retirement.widget.emptyCta' | translate"
+          />
         } @else {
           <div class="tile">
-            <div class="head">
-              <strong>{{ 'retirement.widget.expected' | translate }}</strong>
-              <a routerLink="/app/retirement" data-testid="retirement-widget-open">
-                {{ 'retirement.widget.open' | translate }} <app-icon name="chevron-right" />
-              </a>
-            </div>
+            <app-widget-header
+              link="/app/retirement"
+              linkTestId="retirement-widget-open"
+              [title]="'retirement.widget.expected' | translate"
+              [linkLabel]="'retirement.widget.open' | translate"
+            />
             <div class="hero">
               <span class="hero__value" data-testid="retirement-widget-expected">
                 ≈ {{ money(s.expectedMonthly) }}
@@ -131,28 +136,10 @@ import { RetirementService } from '../retirement.service';
       color: inherit;
       text-decoration: none;
     }
-    .empty {
-      align-items: center;
-      text-align: center;
-      padding: 0.5rem 0;
-    }
     .muted {
       margin: 0;
       color: var(--p-text-muted-color);
       font-size: 0.8125rem;
-    }
-    .head {
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      gap: 0.5rem;
-    }
-    .head a {
-      display: inline-flex;
-      align-items: center;
-      color: var(--p-primary-color);
-      text-decoration: none;
-      font-size: 0.875rem;
     }
     .hero {
       display: flex;
@@ -277,12 +264,6 @@ import { RetirementService } from '../retirement.service';
       border-top: 1px solid var(--p-content-border-color);
       font-size: 0.8125rem;
       color: var(--p-text-muted-color);
-    }
-    .cta {
-      display: inline-flex;
-      align-items: center;
-      color: var(--p-primary-color);
-      font-size: 0.875rem;
     }
   `,
 })

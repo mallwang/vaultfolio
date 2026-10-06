@@ -1,7 +1,13 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import type { EarningsOverview } from '@vaultfolio/api-contract';
-import { I18nService, IconComponent, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
+import {
+  EmptyTileComponent,
+  I18nService,
+  IconComponent,
+  TranslatePipe,
+  WidgetHeaderComponent,
+} from '@vaultfolio/frontend-shared-ui';
 import { EarningsService } from '../earnings.service';
 import { fill, formatMoney, monthName } from '../earnings-format';
 import { kpiTiles } from '../overview/latest-year-kpis/latest-year-kpis.component';
@@ -16,7 +22,7 @@ import { MAX_BARS, widgetFigures } from './widget-figures';
  */
 @Component({
   selector: 'app-earnings-dashboard-widget',
-  imports: [RouterLink, IconComponent, TranslatePipe],
+  imports: [RouterLink, IconComponent, TranslatePipe, EmptyTileComponent, WidgetHeaderComponent],
   template: `
     <div class="widget" data-testid="earnings-widget">
       @if (api.unavailable()) {
@@ -25,12 +31,12 @@ import { MAX_BARS, widgetFigures } from './widget-figures';
         </p>
       } @else if (overview(); as data) {
         @if (data.latestYear; as year) {
-          <div class="head">
-            <strong>{{ heading() }}</strong>
-            <a routerLink="/app/earnings" data-testid="earnings-widget-open">
-              {{ 'earnings.widget.open' | translate }} <app-icon name="chevron-right" />
-            </a>
-          </div>
+          <app-widget-header
+            link="/app/earnings"
+            linkTestId="earnings-widget-open"
+            [title]="heading()"
+            [linkLabel]="'earnings.widget.open' | translate"
+          />
           <dl class="kpis">
             @for (tile of tiles(); track tile.key) {
               <div class="kpi" [attr.data-testid]="'earnings-widget-' + tile.key">
@@ -100,14 +106,13 @@ import { MAX_BARS, widgetFigures } from './widget-figures';
             }
           </div>
         } @else {
-          <div class="empty">
-            <p class="muted" data-testid="earnings-widget-empty">
-              {{ 'earnings.empty.title' | translate }}
-            </p>
-            <a routerLink="/app/earnings/import" data-testid="earnings-widget-import">{{
-              'earnings.toolbar.importDocuments' | translate
-            }}</a>
-          </div>
+          <app-empty-tile
+            link="/app/earnings"
+            testId="earnings-widget-empty"
+            [title]="'earnings.empty.title' | translate"
+            [body]="'earnings.widget.emptyBody' | translate"
+            [ctaLabel]="'earnings.widget.emptyCta' | translate"
+          />
         }
       } @else if (failed()) {
         <p class="muted">{{ 'earnings.errors.generic' | translate }}</p>
@@ -120,6 +125,7 @@ import { MAX_BARS, widgetFigures } from './widget-figures';
       flex-direction: column;
       gap: 0.75rem;
     }
+
     .head {
       display: flex;
       align-items: baseline;
@@ -132,25 +138,6 @@ import { MAX_BARS, widgetFigures } from './widget-figures';
       color: var(--p-primary-color);
       text-decoration: none;
       font-size: 0.875rem;
-    }
-    .empty {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.35rem;
-      padding: 0.5rem 0;
-      text-align: center;
-      font-size: 0.85rem;
-    }
-    .empty .muted {
-      font-size: 0.85rem;
-    }
-    .empty a {
-      color: var(--p-primary-color);
-      text-decoration: none;
-    }
-    .empty a:hover {
-      text-decoration: underline;
     }
     .muted {
       margin: 0;

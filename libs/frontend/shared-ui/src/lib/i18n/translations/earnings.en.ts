@@ -347,6 +347,8 @@ export const earningsEn: TranslationDictionary = {
   widget: {
     title: '{{year}} · {{months}}',
     open: 'To earnings',
+    emptyCta: 'Record earnings data',
+    emptyBody: 'Import your payslips to follow how your income develops.',
     months: 'Jan–{{month}}',
     chart: 'Gross per year',
     growth: 'Growth {{from}}→{{to}}',
