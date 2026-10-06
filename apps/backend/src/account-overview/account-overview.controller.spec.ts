@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import type { Response } from 'express';
 import { AccountOverviewController } from './account-overview.controller';
 import { AccountOverviewService } from './account-overview.service';
+import { AccountOverviewAvailableGuard } from './account-overview-available.guard';
 import type { Account } from '@vaultfolio/domain-accounts';
 
 /**
@@ -60,7 +61,10 @@ describe('AccountOverviewController', () => {
     const moduleRef: TestingModule = await Test.createTestingModule({
       controllers: [AccountOverviewController],
       providers: [{ provide: AccountOverviewService, useValue: service }],
-    }).compile();
+    })
+      .overrideGuard(AccountOverviewAvailableGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
     controller = moduleRef.get(AccountOverviewController);
   });

@@ -45,4 +45,12 @@ export const DASHBOARD_WIDGET_CONTRIBUTIONS: DashboardWidgetContribution[] = [
         (m) => m.WealthDashboardWidgetComponent,
       ),
   },
+  {
+    domainId: 'account-overview',
+    titleKey: 'dashboard.accounts',
+    loadComponent: () =>
+      import('@vaultfolio/frontend-domain-account-overview').then(
+        (m) => m.AccountOverviewDashboardWidgetComponent,
+      ),
+  },
 ];

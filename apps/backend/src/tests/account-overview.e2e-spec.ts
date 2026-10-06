@@ -1,6 +1,7 @@
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
+import { randomBytes } from 'node:crypto';
 import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import cookieParser from 'cookie-parser';
@@ -34,6 +35,7 @@ describe('/account-overview/accounts', () => {
     process.env.DATABASE_PATH = path.join(tempDir, 'test.db');
     process.env.BOOTSTRAP_ADMIN_EMAIL = ADMIN_EMAIL;
     process.env.BOOTSTRAP_ADMIN_PASSWORD = ADMIN_PASSWORD;
+    process.env.ACCOUNT_OVERVIEW_ENCRYPTION_KEY = randomBytes(32).toString('base64');
 
     const moduleRef: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
@@ -54,6 +56,7 @@ describe('/account-overview/accounts', () => {
     delete process.env.DATABASE_PATH;
     delete process.env.BOOTSTRAP_ADMIN_EMAIL;
     delete process.env.BOOTSTRAP_ADMIN_PASSWORD;
+    delete process.env.ACCOUNT_OVERVIEW_ENCRYPTION_KEY;
     fs.rmSync(tempDir, { recursive: true, force: true });
   });
 
@@ -144,6 +147,24 @@ describe('/account-overview/accounts', () => {
       .set('Cookie', cookie);
   });
 
+  it('DELETE /account-overview/accounts removes every entry of the caller (204)', async () => {
+    for (const name of ['One', 'Two']) {
+      await request(app.getHttpServer())
+        .post('/account-overview/accounts')
+        .set('Cookie', cookie)
+        .send({ name });
+    }
+    const deleted = await request(app.getHttpServer())
+      .delete('/account-overview/accounts')
+      .set('Cookie', cookie);
+    expect(deleted.status).toBe(204);
+
+    const list = await request(app.getHttpServer())
+      .get('/account-overview/accounts')
+      .set('Cookie', cookie);
+    expect(list.body).toEqual([]);
+  });
+
   it('POST with a blank name returns 400 VALIDATION_FAILED', async () => {
     const response = await request(app.getHttpServer())
       .post('/account-overview/accounts')
@@ -226,5 +247,56 @@ describe('/account-overview/accounts', () => {
       error: 'ACCOUNT_NOT_FOUND',
       message: 'This account no longer exists.',
     });
+  });
+});
+
+describe('/account-overview/accounts without ACCOUNT_OVERVIEW_ENCRYPTION_KEY', () => {
+  let app: INestApplication;
+  let tempDir: string;
+  let cookie: string;
+
+  const ADMIN_EMAIL = 'admin@example.com';
+  const ADMIN_PASSWORD = 'a-valid-8-char-password';
+
+  beforeAll(async () => {
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'vaultfolio-account-overview-nokey-'));
+    process.env.DATABASE_PATH = path.join(tempDir, 'test.db');
+    process.env.BOOTSTRAP_ADMIN_EMAIL = ADMIN_EMAIL;
+    process.env.BOOTSTRAP_ADMIN_PASSWORD = ADMIN_PASSWORD;
+    delete process.env.ACCOUNT_OVERVIEW_ENCRYPTION_KEY;
+
+    const moduleRef: TestingModule = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
+    app = moduleRef.createNestApplication();
+    app.use(cookieParser());
+    await app.init();
+
+    const signIn = await request(app.getHttpServer())
+      .post('/auth/sign-in')
+      .send({ email: ADMIN_EMAIL, password: ADMIN_PASSWORD });
+    cookie = (signIn.headers['set-cookie'] as unknown as string[])[0].split(';')[0];
+  });
+
+  afterAll(async () => {
+    await app.close();
+    delete process.env.DATABASE_PATH;
+    delete process.env.BOOTSTRAP_ADMIN_EMAIL;
+    delete process.env.BOOTSTRAP_ADMIN_PASSWORD;
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  });
+
+  it('answers 503 ACCOUNT_OVERVIEW_UNAVAILABLE on every route and never writes', async () => {
+    const list = await request(app.getHttpServer())
+      .get('/account-overview/accounts')
+      .set('Cookie', cookie);
+    expect(list.status).toBe(503);
+    expect(list.body.error).toBe('ACCOUNT_OVERVIEW_UNAVAILABLE');
+
+    const create = await request(app.getHttpServer())
+      .post('/account-overview/accounts')
+      .set('Cookie', cookie)
+      .send({ name: 'Blocked' });
+    expect(create.status).toBe(503);
   });
 });

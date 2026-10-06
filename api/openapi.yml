@@ -1247,6 +1247,15 @@ paths:
       security: *ref_9
       summary: Create an account-overview entry.
       tags: *ref_10
+    delete:
+      operationId: AccountOverviewController_deleteAll
+      parameters: []
+      responses:
+        '204':
+          description: Deleted.
+      security: *ref_9
+      summary: Delete all of the caller's account-overview entries.
+      tags: *ref_10
   /account-overview/accounts/{id}:
     put:
       operationId: AccountOverviewController_update

@@ -90,6 +90,13 @@ export class AccountOverviewService {
     return deleted;
   }
 
+  /** Danger zone: hard-deletes every entry of the caller. */
+  async deleteAll(ownerId: string): Promise<number> {
+    const removed = await this.repository.deleteAllForOwner(ownerId);
+    this.logger.log({ outcome: 'deleted_all', count: removed });
+    return removed;
+  }
+
   private log(account: Account, outcome: 'created' | 'updated'): void {
     this.logger.log({ id: account.id, name: account.name, category: account.category, outcome });
   }

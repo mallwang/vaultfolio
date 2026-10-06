@@ -1,4 +1,5 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import type { AccountCategory, AccountOverviewEntry } from '@vaultfolio/api-contract';
 import { ACCOUNT_CATEGORIES, deriveCardBrand } from '@vaultfolio/account-fields';
 import { ButtonModule } from 'primeng/button';
@@ -6,6 +7,8 @@ import { CardModule } from 'primeng/card';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DialogModule } from 'primeng/dialog';
+import { InputTextModule } from 'primeng/inputtext';
+import { SelectModule } from 'primeng/select';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
@@ -15,8 +18,15 @@ import {
   LocaleNumberPipe,
   TranslatePipe,
 } from '@vaultfolio/frontend-shared-ui';
+import { AccountOverviewDangerZoneComponent } from '../account-overview-danger-zone/account-overview-danger-zone.component';
 import { AccountOverviewFormComponent } from '../account-overview-form/account-overview-form.component';
-import { AccountOverviewService } from '../account-overview.service';
+import { AccountOverviewService, isAccountOverviewUnavailable } from '../account-overview.service';
+import { countByCategory } from '../account-categories';
+
+type StatusFilter = 'ALL' | 'ACTIVE' | 'DECOMMISSIONED';
+
+/** Free-text beyond this length is clamped in a row until the row is expanded. */
+const LONG_TEXT_THRESHOLD = 80;
 
 /** One in-use category group, plus its accounts (design.md's grouped content region). */
 interface AccountGroup {
@@ -55,14 +65,18 @@ function sortByStatus(accounts: AccountOverviewEntry[]): AccountOverviewEntry[] 
 @Component({
   selector: 'app-account-overview-page',
   imports: [
+    FormsModule,
     ButtonModule,
     CardModule,
     DialogModule,
+    InputTextModule,
+    SelectModule,
     ConfirmDialogModule,
     ToastModule,
     TagModule,
     TooltipModule,
     AccountOverviewFormComponent,
+    AccountOverviewDangerZoneComponent,
     TranslatePipe,
     LocaleNumberPipe,
     IconComponent,
@@ -111,6 +125,64 @@ function sortByStatus(accounts: AccountOverviewEntry[]): AccountOverviewEntry[] 
         </div>
       </div>
 
+      @if (accounts().length > 0) {
+        <div class="filters" data-testid="account-overview-filters">
+          @if (categoryCounts().length > 1) {
+            <div
+              class="filters__chips"
+              role="group"
+              [attr.aria-label]="'accountOverview.filterCategory' | translate"
+            >
+              <button
+                type="button"
+                class="filter-chip"
+                [class.filter-chip--active]="categoryFilter() === 'ALL'"
+                [attr.aria-pressed]="categoryFilter() === 'ALL'"
+                data-testid="account-overview-filter-category-ALL"
+                (click)="categoryFilter.set('ALL')"
+              >
+                {{ 'accountOverview.filterAll' | translate }}
+                <span class="filter-chip__count">{{ accounts().length }}</span>
+              </button>
+              @for (entry of categoryCounts(); track entry.category) {
+                <button
+                  type="button"
+                  class="filter-chip"
+                  [class.filter-chip--active]="categoryFilter() === entry.category"
+                  [attr.aria-pressed]="categoryFilter() === entry.category"
+                  [attr.data-testid]="'account-overview-filter-category-' + entry.category"
+                  (click)="categoryFilter.set(entry.category)"
+                >
+                  {{ 'accountCategory.' + entry.category | translate }}
+                  <span class="filter-chip__count">{{ entry.count }}</span>
+                </button>
+              }
+            </div>
+          }
+          <div class="filters__controls">
+            <input
+              pInputText
+              type="search"
+              class="filters__search"
+              data-testid="account-overview-search"
+              [placeholder]="'accountOverview.searchPlaceholder' | translate"
+              [attr.aria-label]="'accountOverview.searchPlaceholder' | translate"
+              [ngModel]="search()"
+              (ngModelChange)="search.set($event)"
+            />
+            <p-select
+              [options]="statusOptions()"
+              optionLabel="label"
+              optionValue="value"
+              [ngModel]="statusFilter()"
+              (ngModelChange)="statusFilter.set($event)"
+              [attr.aria-label]="'accountOverview.filterStatus' | translate"
+              data-testid="account-overview-filter-status"
+            />
+          </div>
+        </div>
+      }
+
       @if (loadError()) {
         <p class="error-state">{{ loadError() }}</p>
       } @else if (accounts().length === 0 && !loading()) {
@@ -127,6 +199,10 @@ function sortByStatus(accounts: AccountOverviewEntry[]): AccountOverviewEntry[] 
             {{ 'accountOverview.addFirstAccount' | translate }}
           </button>
         </div>
+      } @else if (groups().length === 0 && accounts().length > 0) {
+        <p class="muted" data-testid="account-overview-no-matches">
+          {{ 'accountOverview.noMatches' | translate }}
+        </p>
       } @else {
         @for (group of groups(); track group.category) {
           <p-card
@@ -145,7 +221,9 @@ function sortByStatus(accounts: AccountOverviewEntry[]): AccountOverviewEntry[] 
                   <div class="account-row__avatar">{{ initialsFor(account.name) }}</div>
                   <div class="account-row__body">
                     <div class="account-row__title">
-                      <span class="account-row__name">{{ account.name }}</span>
+                      <span class="account-row__name" [title]="account.name">{{
+                        account.name
+                      }}</span>
                       <p-tag
                         [value]="'accountStatus.' + account.status | translate"
                         [severity]="account.status === 'ACTIVE' ? 'success' : 'warn'"
@@ -164,7 +242,13 @@ function sortByStatus(accounts: AccountOverviewEntry[]): AccountOverviewEntry[] 
                       }
                     </div>
                     @if (account.purpose) {
-                      <p class="account-row__purpose">{{ account.purpose }}</p>
+                      <p
+                        class="account-row__purpose"
+                        [class.clamped]="!isExpanded(account.id)"
+                        [attr.data-testid]="'account-overview-row-' + account.id + '-purpose'"
+                      >
+                        {{ account.purpose }}
+                      </p>
                     }
                     @if (
                       account.category === 'CREDIT_CARD' &&
@@ -222,12 +306,7 @@ function sortByStatus(accounts: AccountOverviewEntry[]): AccountOverviewEntry[] 
                         }
                       </div>
                     }
-                    @if (
-                      account.website ||
-                      account.cardUsage ||
-                      account.requiredMinimum ||
-                      account.notes
-                    ) {
+                    @if (account.website || account.requiredMinimum) {
                       <div class="account-row__chips">
                         @if (account.website) {
                           <a
@@ -242,16 +321,6 @@ function sortByStatus(accounts: AccountOverviewEntry[]): AccountOverviewEntry[] 
                             {{ account.website }}
                           </a>
                         }
-                        @if (account.cardUsage) {
-                          <span
-                            class="chip"
-                            [pTooltip]="'accountOverview.cardUsageLabel' | translate"
-                            tooltipPosition="top"
-                          >
-                            <app-icon name="credit-card" class="chip__icon" />
-                            {{ account.cardUsage }}
-                          </span>
-                        }
                         @if (account.requiredMinimum) {
                           <span
                             class="chip"
@@ -262,17 +331,53 @@ function sortByStatus(accounts: AccountOverviewEntry[]): AccountOverviewEntry[] 
                             {{ account.requiredMinimum | localeNumber: currencyFormat }}
                           </span>
                         }
-                        @if (account.notes) {
-                          <span
-                            class="chip"
-                            [pTooltip]="'accountOverview.notesLabel' | translate"
-                            tooltipPosition="top"
-                          >
-                            <app-icon name="sticky-note" class="chip__icon" />
-                            {{ account.notes }}
-                          </span>
-                        }
                       </div>
+                    }
+                    @if (account.cardUsage) {
+                      <p
+                        class="account-row__detail"
+                        [class.clamped]="!isExpanded(account.id)"
+                        [attr.data-testid]="'account-overview-row-' + account.id + '-card-usage'"
+                      >
+                        <app-icon
+                          name="credit-card"
+                          class="detail__icon"
+                          [pTooltip]="'accountOverview.cardUsageLabel' | translate"
+                          tooltipPosition="top"
+                        />
+                        <span>{{ account.cardUsage }}</span>
+                      </p>
+                    }
+                    @if (account.notes) {
+                      <p
+                        class="account-row__detail"
+                        [class.clamped]="!isExpanded(account.id)"
+                        [attr.data-testid]="'account-overview-row-' + account.id + '-notes'"
+                      >
+                        <app-icon
+                          name="sticky-note"
+                          class="detail__icon"
+                          [pTooltip]="'accountOverview.notesLabel' | translate"
+                          tooltipPosition="top"
+                        />
+                        <span>{{ account.notes }}</span>
+                      </p>
+                    }
+                    @if (hasLongText(account)) {
+                      <button
+                        type="button"
+                        class="account-row__toggle"
+                        [attr.data-testid]="'account-overview-row-' + account.id + '-expand'"
+                        [attr.aria-expanded]="isExpanded(account.id)"
+                        (click)="toggleExpanded(account.id)"
+                      >
+                        {{
+                          (isExpanded(account.id)
+                            ? 'accountOverview.showLess'
+                            : 'accountOverview.showMore'
+                          ) | translate
+                        }}
+                      </button>
                     }
                   </div>
                   <div class="account-row__actions">
@@ -310,6 +415,10 @@ function sortByStatus(accounts: AccountOverviewEntry[]): AccountOverviewEntry[] 
             </div>
           </p-card>
         }
+      }
+
+      @if (accounts().length > 0 && !loadError()) {
+        <app-account-overview-danger-zone class="danger-zone" (deleted)="refresh()" />
       }
     </section>
 
@@ -427,9 +536,19 @@ function sortByStatus(accounts: AccountOverviewEntry[]): AccountOverviewEntry[] 
 
     .account-row__name {
       font-weight: 600;
+      min-width: 0;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .account-row__provider {
+      min-width: 0;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
       color: var(--p-text-muted-color);
       font-size: 0.85rem;
     }
@@ -443,6 +562,107 @@ function sortByStatus(accounts: AccountOverviewEntry[]): AccountOverviewEntry[] 
     .account-row__purpose {
       margin: 0.15rem 0 0;
       font-size: 0.85rem;
+      color: var(--p-text-muted-color);
+      overflow-wrap: anywhere;
+    }
+
+    .account-row__detail {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.4rem;
+      margin: 0.35rem 0 0;
+      font-size: 0.8rem;
+      color: var(--p-text-muted-color);
+      overflow-wrap: anywhere;
+    }
+
+    .account-row__detail span {
+      min-width: 0;
+    }
+
+    .detail__icon {
+      flex: none;
+      font-size: 0.95rem;
+    }
+
+    /* Long free text collapses to two lines until the row is expanded. */
+    .clamped,
+    .clamped span {
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      overflow: hidden;
+    }
+
+    .account-row__detail.clamped {
+      display: flex;
+    }
+
+    .account-row__toggle {
+      margin-top: 0.3rem;
+      padding: 0;
+      border: none;
+      background: transparent;
+      color: var(--p-primary-color);
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    .account-row__toggle:hover {
+      text-decoration: underline;
+    }
+
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .filters__chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+
+    .filters__controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .filters__search {
+      min-width: 14rem;
+    }
+
+    .filter-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.25rem 0.75rem;
+      border: 1px solid var(--p-content-border-color);
+      border-radius: 999px;
+      background: var(--p-content-background);
+      color: inherit;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+
+    .filter-chip--active {
+      border-color: var(--p-primary-color);
+      background: var(--p-highlight-background);
+      color: var(--p-primary-color);
+    }
+
+    .filter-chip__count {
+      font-variant-numeric: tabular-nums;
+      opacity: 0.75;
+    }
+
+    .muted {
       color: var(--p-text-muted-color);
     }
 
@@ -542,6 +762,10 @@ function sortByStatus(accounts: AccountOverviewEntry[]): AccountOverviewEntry[] 
       flex-shrink: 0;
     }
 
+    .danger-zone {
+      margin-top: 1.5rem;
+    }
+
     .error-state {
       color: var(--p-red-500);
     }
@@ -577,6 +801,41 @@ export class AccountOverviewPageComponent implements OnInit {
   /** Ids of credit-card accounts whose card number is currently shown in full (per-viewer, reset on reload). */
   protected readonly revealedIds = signal<ReadonlySet<string>>(new Set());
 
+  /** Ids of rows whose long text is shown in full instead of clamped. */
+  protected readonly expandedIds = signal<ReadonlySet<string>>(new Set());
+
+  protected readonly search = signal('');
+  protected readonly categoryFilter = signal<AccountCategory | 'ALL'>('ALL');
+  protected readonly statusFilter = signal<StatusFilter>('ALL');
+
+  protected readonly categoryCounts = computed(() => countByCategory(this.accounts()));
+
+  protected readonly statusOptions = computed(() => [
+    { value: 'ALL', label: this.translate.transform('accountOverview.filterAll') },
+    { value: 'ACTIVE', label: this.translate.transform('accountStatus.ACTIVE') },
+    { value: 'DECOMMISSIONED', label: this.translate.transform('accountStatus.DECOMMISSIONED') },
+  ]);
+
+  /** Accounts matching the category chip, the status select and the search text (name, provider, purpose, notes, card usage, website). */
+  private readonly filteredAccounts = computed(() => {
+    const query = this.search().trim().toLowerCase();
+    const category = this.categoryFilter();
+    const status = this.statusFilter();
+    return this.accounts().filter((account) => {
+      if (category !== 'ALL' && account.category !== category) return false;
+      if (status !== 'ALL' && account.status !== status) return false;
+      if (!query) return true;
+      return [
+        account.name,
+        account.provider,
+        account.purpose,
+        account.notes,
+        account.cardUsage,
+        account.website,
+      ].some((value) => value?.toLowerCase().includes(query));
+    });
+  });
+
   /** `requiredMinimum` chip's format — whole-currency amounts, matching the add/edit form's input. */
   protected readonly currencyFormat: Intl.NumberFormatOptions = {
     style: 'currency',
@@ -590,10 +849,11 @@ export class AccountOverviewPageComponent implements OnInit {
    * is `OTHER` (i.e. no other category has any account at all).
    */
   protected readonly groups = computed<AccountGroup[]>(() => {
-    const accounts = this.accounts();
+    const accounts = this.filteredAccounts();
     const nonOtherCategories = ACCOUNT_CATEGORIES.filter((category) => category !== 'OTHER');
+    // Judged on all accounts, so filtering down to one category keeps its own group label.
     const anyNonOtherInUse = nonOtherCategories.some((category) =>
-      accounts.some((account) => account.category === category),
+      this.accounts().some((account) => account.category === category),
     );
 
     if (!anyNonOtherInUse) {
@@ -619,7 +879,7 @@ export class AccountOverviewPageComponent implements OnInit {
     this.refresh();
   }
 
-  private refresh(): void {
+  protected refresh(): void {
     this.loading.set(true);
     this.loadError.set(null);
     this.accountOverviewService.list().subscribe({
@@ -627,8 +887,14 @@ export class AccountOverviewPageComponent implements OnInit {
         this.accounts.set(accounts);
         this.loading.set(false);
       },
-      error: () => {
-        this.loadError.set(this.translate.transform('accountOverview.loadError'));
+      error: (error: unknown) => {
+        this.loadError.set(
+          this.translate.transform(
+            isAccountOverviewUnavailable(error)
+              ? 'accountOverview.unavailable'
+              : 'accountOverview.loadError',
+          ),
+        );
         this.loading.set(false);
       },
     });
@@ -669,6 +935,25 @@ export class AccountOverviewPageComponent implements OnInit {
       next.add(accountId);
     }
     this.revealedIds.set(next);
+  }
+
+  /** Whether a row has free text long enough to be clamped (then it gets a "Show more" toggle). */
+  protected hasLongText(account: AccountOverviewEntry): boolean {
+    return [account.purpose, account.cardUsage, account.notes].some(
+      (text) => (text?.length ?? 0) > LONG_TEXT_THRESHOLD,
+    );
+  }
+
+  protected isExpanded(accountId: string): boolean {
+    return this.expandedIds().has(accountId);
+  }
+
+  protected toggleExpanded(accountId: string): void {
+    const next = new Set(this.expandedIds());
+    if (!next.delete(accountId)) {
+      next.add(accountId);
+    }
+    this.expandedIds.set(next);
   }
 
   protected openAddDialog(): void {

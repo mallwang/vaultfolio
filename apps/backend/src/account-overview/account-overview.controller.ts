@@ -1,4 +1,16 @@
-import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Put, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+  Put,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import type { Response } from 'express';
 import type {
@@ -8,6 +20,7 @@ import type {
 } from '@vaultfolio/api-contract';
 import type { FieldError } from '@vaultfolio/domain-accounts';
 import { AccountOverviewService } from './account-overview.service';
+import { AccountOverviewAvailableGuard } from './account-overview-available.guard';
 import { accountToResponse } from './account-overview.mapper';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { RequestUser } from '../auth/current-user.decorator';
@@ -45,6 +58,7 @@ const NOT_FOUND_BODY: AccountOverviewNotFoundErrorResponse = {
 @ApiVaultfolioSessionAuth()
 @Controller('account-overview/accounts')
 @RequiresDomain('account-overview')
+@UseGuards(AccountOverviewAvailableGuard)
 export class AccountOverviewController {
   constructor(private readonly accountOverviewService: AccountOverviewService) {}
 
@@ -78,6 +92,14 @@ export class AccountOverviewController {
 
     res.status(HttpStatus.CREATED);
     return accountToResponse(result.account);
+  }
+
+  @Delete()
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: "Delete all of the caller's account-overview entries." })
+  @ApiResponse({ status: 204, description: 'Deleted.' })
+  async deleteAll(@CurrentUser() user: RequestUser): Promise<void> {
+    await this.accountOverviewService.deleteAll(user.id);
   }
 
   @Put(':id')

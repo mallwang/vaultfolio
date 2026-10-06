@@ -1,16 +1,45 @@
 import { inject, signal } from '@angular/core';
 
 import { firstValueFrom } from 'rxjs';
-import type { FeatureExportDefinition, ExportRow, PdfSection } from '@vaultfolio/export';
+import { ACCOUNT_CATEGORIES } from '@vaultfolio/account-fields';
+import type {
+  ExportRow,
+  ExportTable,
+  FeatureExportDefinition,
+  PdfSection,
+  PdfTableColumn,
+} from '@vaultfolio/export';
 import type { AccountOverviewEntry } from '@vaultfolio/api-contract';
 import { I18nService } from '@vaultfolio/frontend-shared-ui';
 import { AccountOverviewService } from './account-overview.service';
 
-function toRow(entry: AccountOverviewEntry, i18n: I18nService): ExportRow {
+const FIELD_KEYS = [
+  'name',
+  'category',
+  'provider',
+  'website',
+  'purpose',
+  'cardUsage',
+  'requiredMinimum',
+  'cardNumber',
+  'validUntil',
+  'notes',
+] as const;
+
+/** Entries split by status; within a status they keep the category order of the overview. */
+function splitByStatus(entries: AccountOverviewEntry[]) {
+  const byCategory = (list: AccountOverviewEntry[]) =>
+    ACCOUNT_CATEGORIES.flatMap((category) => list.filter((entry) => entry.category === category));
+  return {
+    active: byCategory(entries.filter((entry) => entry.status === 'ACTIVE')),
+    decommissioned: byCategory(entries.filter((entry) => entry.status === 'DECOMMISSIONED')),
+  };
+}
+
+function cellsOf(entry: AccountOverviewEntry, i18n: I18nService): Record<string, string | null> {
   return {
     name: entry.name,
     category: i18n.translate(`accountCategory.${entry.category}`),
-    status: i18n.translate(`accountStatus.${entry.status}`),
     provider: entry.provider,
     website: entry.website,
     purpose: entry.purpose,
@@ -22,55 +51,64 @@ function toRow(entry: AccountOverviewEntry, i18n: I18nService): ExportRow {
   };
 }
 
-/**
- * One printable table for the PDF: a portrait A4 page cannot hold all eleven columns, so the
- * secondary fields (website, card usage/number, validity, notes) are stacked into one wrapping
- * "Details" cell instead of getting a column each.
- */
-function toPdfSection(entries: AccountOverviewEntry[], i18n: I18nService): PdfSection {
-  const label = (key: string) => i18n.translate(`accountOverviewExport.${key}`);
-  const details = (entry: AccountOverviewEntry) =>
-    [
-      entry.website,
-      entry.cardUsage && `${label('columnCardUsage')}: ${entry.cardUsage}`,
-      entry.cardNumber && `${label('columnCardNumber')}: ${entry.cardNumber}`,
-      entry.validUntil && `${label('columnValidUntil')}: ${entry.validUntil}`,
-      entry.notes && `${label('columnNotes')}: ${entry.notes}`,
-    ]
-      .filter(Boolean)
-      .join('\n');
+const label = (i18n: I18nService, key: string) => i18n.translate(`accountOverviewExport.${key}`);
 
-  return {
+const columnKey = (key: (typeof FIELD_KEYS)[number]) =>
+  `column${key.charAt(0).toUpperCase()}${key.slice(1)}`;
+
+/** One table per status for JSON, CSV and Excel: the category is a column, not a table of its own. */
+function toExportTables(entries: AccountOverviewEntry[], i18n: I18nService): ExportTable[] {
+  const { active, decommissioned } = splitByStatus(entries);
+  const columns = FIELD_KEYS.map((key) => ({
+    key,
+    label: label(i18n, columnKey(key)),
+    format: 'text' as const,
+  }));
+  const table = (id: string, titleKey: string, list: AccountOverviewEntry[]): ExportTable => ({
+    id,
+    title: label(i18n, titleKey),
+    columns,
+    rows: list.map((entry) => ({ cells: cellsOf(entry, i18n) })),
+    emptyText: label(i18n, 'emptyTable'),
+  });
+  return [
+    table('active', 'tableActive', active),
+    table('decommissioned', 'tableDecommissioned', decommissioned),
+  ];
+}
+
+/** PDF: one landscape table per status with a column per field; long text wraps inside its cell. */
+function toPdfSections(entries: AccountOverviewEntry[], i18n: I18nService): PdfSection[] {
+  const { active, decommissioned } = splitByStatus(entries);
+  const columns: PdfTableColumn[] = [
+    { key: 'name', label: label(i18n, 'columnName'), format: 'text', width: 70 },
+    { key: 'category', label: label(i18n, 'columnCategory'), format: 'text', width: 48 },
+    { key: 'provider', label: label(i18n, 'columnProvider'), format: 'text', width: 60 },
+    { key: 'purpose', label: label(i18n, 'columnPurpose'), format: 'text', width: '*' },
+    {
+      key: 'requiredMinimum',
+      label: label(i18n, 'columnRequiredMinimum'),
+      format: 'text',
+      width: 62,
+    },
+    { key: 'website', label: label(i18n, 'columnWebsite'), format: 'text', width: 70 },
+    { key: 'cardUsage', label: label(i18n, 'columnCardUsage'), format: 'text', width: '*' },
+    { key: 'cardNumber', label: label(i18n, 'columnCardNumber'), format: 'text', width: 62 },
+    { key: 'validUntil', label: label(i18n, 'columnValidUntil'), format: 'text', width: 34 },
+    { key: 'notes', label: label(i18n, 'columnNotes'), format: 'text', width: '*' },
+  ];
+  const section = (titleKey: string, list: AccountOverviewEntry[]): PdfSection => ({
     kind: 'table',
-    title: i18n.translate('accountOverviewExport.title'),
+    title: label(i18n, titleKey),
     startOnNewPage: false,
-    fontSize: 7.5,
-    columns: [
-      { key: 'name', label: label('columnName'), format: 'text', width: '*' },
-      { key: 'category', label: label('columnCategory'), format: 'text', width: 50 },
-      { key: 'status', label: label('columnStatus'), format: 'text', width: 42 },
-      { key: 'provider', label: label('columnProvider'), format: 'text', width: '*' },
-      { key: 'purpose', label: label('columnPurpose'), format: 'text', width: '*' },
-      {
-        key: 'requiredMinimum',
-        label: label('columnRequiredMinimum'),
-        format: 'currencyWhole',
-        width: 50,
-      },
-      { key: 'details', label: label('columnDetails'), format: 'text', width: '*' },
-    ],
-    rows: entries.map((entry) => ({
-      cells: {
-        name: entry.name,
-        category: i18n.translate(`accountCategory.${entry.category}`),
-        status: i18n.translate(`accountStatus.${entry.status}`),
-        provider: entry.provider,
-        purpose: entry.purpose,
-        requiredMinimum: entry.requiredMinimum,
-        details: details(entry),
-      },
-    })),
-  };
+    fontSize: 7,
+    columns,
+    rows: list.map((entry) => ({ cells: cellsOf(entry, i18n) })),
+  });
+  return [
+    ...(active.length > 0 ? [section('tableActive', active)] : []),
+    ...(decommissioned.length > 0 ? [section('tableDecommissioned', decommissioned)] : []),
+  ];
 }
 
 /**
@@ -98,36 +136,25 @@ export function createAccountOverviewExportDefinition(): FeatureExportDefinition
     featureId: 'account-overview',
     titleKey: 'accountOverviewExport.title',
     infoboxKey: 'accountOverviewExport.infobox',
-    pdfOrientation: 'portrait',
-    columns: [
-      { key: 'name', labelKey: 'accountOverviewExport.columnName', format: 'text' },
-      { key: 'category', labelKey: 'accountOverviewExport.columnCategory', format: 'text' },
-      { key: 'status', labelKey: 'accountOverviewExport.columnStatus', format: 'text' },
-      { key: 'provider', labelKey: 'accountOverviewExport.columnProvider', format: 'text' },
-      { key: 'website', labelKey: 'accountOverviewExport.columnWebsite', format: 'text' },
-      { key: 'purpose', labelKey: 'accountOverviewExport.columnPurpose', format: 'text' },
-      { key: 'cardUsage', labelKey: 'accountOverviewExport.columnCardUsage', format: 'text' },
-      {
-        key: 'requiredMinimum',
-        labelKey: 'accountOverviewExport.columnRequiredMinimum',
-        format: 'decimal',
-      },
-      { key: 'cardNumber', labelKey: 'accountOverviewExport.columnCardNumber', format: 'text' },
-      { key: 'validUntil', labelKey: 'accountOverviewExport.columnValidUntil', format: 'text' },
-      { key: 'notes', labelKey: 'accountOverviewExport.columnNotes', format: 'text' },
-    ],
+    formatDataKeys: {
+      pdf: 'accountOverviewExport.data.pdf',
+      xlsx: 'accountOverviewExport.data.xlsx',
+      csv: 'accountOverviewExport.data.csv',
+      json: 'accountOverviewExport.data.json',
+    },
+    // The data formats are served by `getExportTables`; there is no generic row table.
+    columns: [],
     isEnabled: () => {
       ensureLoaded();
       return accounts().length > 0;
     },
     disabledTooltipKey: 'export.tooltipNoData',
     async getPdfSections(): Promise<PdfSection[]> {
-      const rows = await firstValueFrom(accountOverviewService.list());
-      return rows.length > 0 ? [toPdfSection(rows, i18n)] : [];
+      return toPdfSections(await firstValueFrom(accountOverviewService.list()), i18n);
     },
-    async fetchData(): Promise<ExportRow[]> {
-      const rows = await firstValueFrom(accountOverviewService.list());
-      return rows.map((entry) => toRow(entry, i18n));
+    fetchData: (): Promise<ExportRow[]> => Promise.resolve([]),
+    async getExportTables(): Promise<ExportTable[]> {
+      return toExportTables(await firstValueFrom(accountOverviewService.list()), i18n);
     },
   };
 }

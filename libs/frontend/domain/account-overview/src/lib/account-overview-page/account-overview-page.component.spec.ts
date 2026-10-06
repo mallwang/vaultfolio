@@ -122,6 +122,64 @@ describe('AccountOverviewPageComponent', () => {
     });
   });
 
+  describe('filters and long text', () => {
+    const seed = () =>
+      fixture.componentInstance['accounts'].set([
+        makeAccount({ id: '1', name: 'Giro', category: 'GENERAL', provider: 'Sparkasse' }),
+        makeAccount({ id: '2', name: 'Tagesgeld', category: 'SAVINGS', status: 'DECOMMISSIONED' }),
+        makeAccount({ id: '3', name: 'Reise', category: 'SAVINGS', notes: 'Urlaubskasse' }),
+      ]);
+
+    it('narrows groups by category, status and search text', () => {
+      const comp = fixture.componentInstance;
+      seed();
+      comp['categoryFilter'].set('SAVINGS');
+      expect(comp['groups']().flatMap((g) => g.accounts.map((a) => a.id))).toEqual(['3', '2']);
+
+      comp['statusFilter'].set('ACTIVE');
+      expect(comp['groups']().flatMap((g) => g.accounts.map((a) => a.id))).toEqual(['3']);
+
+      comp['categoryFilter'].set('ALL');
+      comp['statusFilter'].set('ALL');
+      comp['search'].set('sparkasse');
+      expect(comp['groups']().flatMap((g) => g.accounts.map((a) => a.id))).toEqual(['1']);
+    });
+
+    it('keeps the category label when filtering to OTHER among other categories', () => {
+      const comp = fixture.componentInstance;
+      comp['accounts'].set([
+        makeAccount({ id: '1', category: 'GENERAL' }),
+        makeAccount({ id: '2', category: 'OTHER' }),
+      ]);
+      comp['categoryFilter'].set('OTHER');
+      expect(comp['groups']().map((g) => g.category)).toEqual(['OTHER']);
+    });
+
+    it('shows a no-matches note when nothing matches', () => {
+      seed();
+      fixture.componentInstance['search'].set('zzz');
+      fixture.detectChanges();
+      const el = fixture.nativeElement as HTMLElement;
+      expect(el.querySelector('[data-testid="account-overview-no-matches"]')).not.toBeNull();
+    });
+
+    it('offers expand/collapse only for rows with long text', () => {
+      const comp = fixture.componentInstance;
+      comp['accounts'].set([
+        makeAccount({ id: 'short', notes: 'kurz' }),
+        makeAccount({ id: 'long', notes: 'x'.repeat(200) }),
+      ]);
+      fixture.detectChanges();
+      const el = fixture.nativeElement as HTMLElement;
+      expect(el.querySelector('[data-testid="account-overview-row-short-expand"]')).toBeNull();
+      const toggle = el.querySelector('[data-testid="account-overview-row-long-expand"]');
+      expect(toggle).not.toBeNull();
+      expect(comp['isExpanded']('long')).toBe(false);
+      comp['toggleExpanded']('long');
+      expect(comp['isExpanded']('long')).toBe(true);
+    });
+  });
+
   describe('initialsFor()', () => {
     it('returns first letter of a single word', () => {
       expect(fixture.componentInstance['initialsFor']('Alice')).toBe('A');
