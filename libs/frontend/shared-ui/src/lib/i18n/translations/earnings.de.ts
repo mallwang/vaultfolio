@@ -354,6 +354,9 @@ export const earningsDe: TranslationDictionary = {
   widget: {
     title: '{{year}} · {{months}}',
     open: 'Zum Einkommen',
+    emptyCta: 'Einkommensdaten erfassen',
+    emptyBody:
+      'Importiere deine Gehaltsabrechnungen, um die Entwicklung deines Einkommens zu sehen.',
     months: 'Jan–{{month}}',
     chart: 'Brutto je Jahr',
     growth: 'Wachstum {{from}}→{{to}}',

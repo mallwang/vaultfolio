@@ -62,6 +62,17 @@
 .tile ::ng-deep .p-card {
   flex: 1;
   min-width: 0;
+  border: 1px solid var(--p-content-border-color);
+  transition: background-color 0.15s;
+}
+
+/* Card whose empty-state widget is hovered: tint the whole card. */
+.tile ::ng-deep .p-card:has(.empty:hover) {
+  background-color: color-mix(in srgb, var(--p-primary-color) 8%, var(--p-card-background));
+}
+
+:host-context(.app-dark) .tile ::ng-deep .p-card:has(.empty:hover) {
+  background-color: color-mix(in srgb, var(--p-primary-color) 20%, var(--p-card-background));
 }
 
 .tile__handle {

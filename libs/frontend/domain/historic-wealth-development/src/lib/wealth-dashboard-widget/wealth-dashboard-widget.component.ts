@@ -1,10 +1,10 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import {
+  EmptyTileComponent,
   I18nService,
-  IconComponent,
   ThemeService,
   TranslatePipe,
+  WidgetHeaderComponent,
 } from '@vaultfolio/frontend-shared-ui';
 import { fill, formatDate, formatMoney, formatPct, formatShare } from '../wealth-format';
 import { WealthStore } from '../wealth-store';
@@ -24,7 +24,7 @@ const AREA = '/app/historic-wealth-development';
  */
 @Component({
   selector: 'app-wealth-dashboard-widget',
-  imports: [RouterLink, IconComponent, TranslatePipe],
+  imports: [TranslatePipe, EmptyTileComponent, WidgetHeaderComponent],
   template: `
     <div class="widget" data-testid="wealth-widget">
       @if (service.unavailable()) {
@@ -34,22 +34,22 @@ const AREA = '/app/historic-wealth-development';
       } @else if (store.loaded()) {
         @switch (figures().kind) {
           @case ('empty') {
-            <a class="tile empty" [routerLink]="area" data-testid="wealth-widget-empty">
-              <strong>{{ 'wealth.widget.title' | translate }}</strong>
-              <span class="muted">{{ 'wealth.widget.emptyBody' | translate }}</span>
-              <span class="cta">
-                {{ 'wealth.widget.emptyCta' | translate }} <app-icon name="chevron-right" />
-              </span>
-            </a>
+            <app-empty-tile
+              [link]="area"
+              testId="wealth-widget-empty"
+              [title]="'wealth.widget.title' | translate"
+              [body]="'wealth.widget.emptyBody' | translate"
+              [ctaLabel]="'wealth.widget.emptyCta' | translate"
+            />
           }
           @default {
             <div class="tile">
-              <div class="head">
-                <strong>{{ 'wealth.widget.net' | translate }}</strong>
-                <a [routerLink]="area" data-testid="wealth-widget-link">
-                  {{ 'wealth.widget.open' | translate }} <app-icon name="chevron-right" />
-                </a>
-              </div>
+              <app-widget-header
+                [link]="area"
+                linkTestId="wealth-widget-link"
+                [title]="'wealth.widget.net' | translate"
+                [linkLabel]="'wealth.widget.open' | translate"
+              />
               <span class="hero" data-testid="wealth-widget-net">{{ text().net }}</span>
               <span class="muted" data-testid="wealth-widget-date">{{ text().asOf }}</span>
               @if (figures().kind === 'trend') {
@@ -120,14 +120,6 @@ const AREA = '/app/historic-wealth-development';
     </div>
   `,
   styles: `
-    .head a {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.25rem;
-      color: var(--p-primary-color);
-      font-size: 0.875rem;
-      text-decoration: none;
-    }
     .legend {
       list-style: none;
       margin: 0;
@@ -162,12 +154,6 @@ const AREA = '/app/historic-wealth-development';
       gap: 0.5rem;
       color: inherit;
       text-decoration: none;
-    }
-    .head {
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      gap: 0.5rem;
     }
     .hero {
       font-size: 1.8rem;
@@ -220,13 +206,6 @@ const AREA = '/app/historic-wealth-development';
     }
     .muted {
       color: var(--p-text-muted-color);
-      font-size: 0.875rem;
-    }
-    .cta {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.25rem;
-      color: var(--p-primary-color);
       font-size: 0.875rem;
     }
   `,

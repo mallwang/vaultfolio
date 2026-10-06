@@ -1,10 +1,12 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {
+  EmptyTileComponent,
   I18nService,
   IconComponent,
   ThemeService,
   TranslatePipe,
+  WidgetHeaderComponent,
 } from '@vaultfolio/frontend-shared-ui';
 import { isActiveOn, isSocialType, type UpcomingDeadline } from '@vaultfolio/insurances';
 import { insurancesChartColors } from '../charts/insurances-charts';
@@ -21,7 +23,7 @@ const AREA = '/app/insurances';
  */
 @Component({
   selector: 'app-insurances-dashboard-widget',
-  imports: [RouterLink, IconComponent, TranslatePipe],
+  imports: [RouterLink, IconComponent, TranslatePipe, EmptyTileComponent, WidgetHeaderComponent],
   template: `
     <div class="widget" data-testid="insurances-widget">
       @if (service.unavailable()) {
@@ -30,21 +32,21 @@ const AREA = '/app/insurances';
         </p>
       } @else if (store.loaded()) {
         @if (empty()) {
-          <a class="tile" [routerLink]="area" data-testid="insurances-widget-empty">
-            <strong>{{ 'insurances.widget.title' | translate }}</strong>
-            <span class="muted">{{ 'insurances.widget.emptyBody' | translate }}</span>
-            <span class="cta">
-              {{ 'insurances.widget.emptyCta' | translate }} <app-icon name="chevron-right" />
-            </span>
-          </a>
+          <app-empty-tile
+            [link]="area"
+            testId="insurances-widget-empty"
+            [title]="'insurances.widget.title' | translate"
+            [body]="'insurances.widget.emptyBody' | translate"
+            [ctaLabel]="'insurances.widget.emptyCta' | translate"
+          />
         } @else {
           <div class="tile">
-            <div class="head">
-              <strong>{{ 'insurances.widget.monthly' | translate }}</strong>
-              <a [routerLink]="area" data-testid="insurances-widget-link">
-                {{ 'insurances.widget.open' | translate }} <app-icon name="chevron-right" />
-              </a>
-            </div>
+            <app-widget-header
+              [link]="area"
+              linkTestId="insurances-widget-link"
+              [title]="'insurances.widget.monthly' | translate"
+              [linkLabel]="'insurances.widget.open' | translate"
+            />
             <span class="hero" data-testid="insurances-widget-monthly">{{ monthly() }}</span>
             <span class="muted" data-testid="insurances-widget-yearly">{{ yearly() }}</span>
             <span class="muted" [class.warn]="warn()" data-testid="insurances-widget-next">{{
@@ -102,21 +104,6 @@ const AREA = '/app/insurances';
       flex-direction: column;
       gap: 0.5rem;
       color: inherit;
-      text-decoration: none;
-    }
-    .head {
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      gap: 0.5rem;
-    }
-    .head a,
-    .cta {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.25rem;
-      color: var(--p-primary-color);
-      font-size: 0.875rem;
       text-decoration: none;
     }
     .hero {
