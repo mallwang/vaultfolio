@@ -30,6 +30,7 @@ export const en: TranslationDictionary = {
     switchToLightTheme: 'Switch to light theme',
     switchToDarkTheme: 'Switch to dark theme',
     signOut: 'Sign out',
+    signingOut: 'Signing you out…',
     roleAdmin: 'Admin',
     roleMember: 'Member',
     language: 'Language',

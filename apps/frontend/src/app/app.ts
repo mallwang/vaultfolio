@@ -1,6 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ToastModule } from 'primeng/toast';
+import { TranslatePipe } from '@vaultfolio/frontend-shared-ui';
+import { SessionBoundary } from './auth/session-boundary';
 import { AppHeaderComponent } from './core/layout/app-header/app-header.component';
 
 /**
@@ -18,9 +21,11 @@ import { AppHeaderComponent } from './core/layout/app-header/app-header.componen
  * don't render their own toast.
  */
 @Component({
-  imports: [AppHeaderComponent, RouterOutlet, ToastModule],
+  imports: [AppHeaderComponent, ProgressSpinnerModule, RouterOutlet, ToastModule, TranslatePipe],
   selector: 'app-root',
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
-export class App {}
+export class App {
+  protected readonly leaving = inject(SessionBoundary).leaving;
+}

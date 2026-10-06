@@ -55,7 +55,8 @@ describe('SessionBoundary', () => {
     store.setAuthenticated(admin);
     boundary.leave();
 
-    expect(store.status()).toBe('unauthenticated');
+    expect(boundary.leaving()).toBe(true);
+    expect(store.status()).toBe('authenticated');
     expect(pageLoader.assign).toHaveBeenCalledWith('/sign-in');
   });
 

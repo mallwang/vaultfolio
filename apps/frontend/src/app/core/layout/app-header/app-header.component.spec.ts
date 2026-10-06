@@ -60,7 +60,7 @@ describe('AppHeaderComponent (integration)', () => {
     expect(compiled.textContent).toContain('Admin');
   });
 
-  it('clears Auth Status and loads /sign-in afresh when sign-out succeeds, hiding identity content afterward', async () => {
+  it('keeps identity content and loads /sign-in afresh when sign-out succeeds', async () => {
     fakeCurrentUser.setAuthenticated(user);
     const fixture = TestBed.createComponent(AppHeaderComponent);
     await fixture.whenStable();
@@ -73,11 +73,11 @@ describe('AppHeaderComponent (integration)', () => {
     req.flush(null);
     fixture.detectChanges();
 
-    expect(fakeCurrentUser.status()).toBe('unauthenticated');
+    expect(fakeCurrentUser.status()).toBe('authenticated');
     expect(pageLoader.assign).toHaveBeenCalledWith('/sign-in');
 
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.app-header__meta')).toBeFalsy();
+    expect(compiled.querySelector('.app-header__meta')).toBeTruthy();
   });
 
   it('renders the theme toggle alone in the header when signed out', async () => {

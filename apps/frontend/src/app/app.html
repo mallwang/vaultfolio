@@ -1,3 +1,9 @@
 <p-toast />
 <app-header />
 <router-outlet />
+@if (leaving()) {
+<div class="leaving-overlay" role="status" aria-live="polite" data-testid="leaving-overlay">
+  <p-progress-spinner strokeWidth="4" ariaLabel="" />
+  <span>{{ 'header.signingOut' | translate }}</span>
+</div>
+}
