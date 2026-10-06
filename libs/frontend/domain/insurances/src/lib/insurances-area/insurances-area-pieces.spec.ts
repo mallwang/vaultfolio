@@ -125,6 +125,33 @@ describe('insurances area pieces', () => {
     });
   });
 
+  describe('InsurancesAreaComponent reminder count', () => {
+    const count = (enabled: boolean, reminderEnabled: boolean) => {
+      const c = TestBed.createComponent(InsurancesAreaComponent).componentInstance as Internals;
+      http.expectOne({ method: 'GET', url: '/api/insurances' }).flush(
+        data({
+          contracts: [buildInsuranceContract({ id: 'c1', reminderEnabled })] as never,
+          settings: { ...structuredClone(DEFAULT_SETTINGS), reminders: { enabled, leadDays: 30 } },
+        }),
+      );
+      return c;
+    };
+
+    it('counts contracts that will remind', () => {
+      const c = count(true, true);
+      expect(c.activeReminders()).toBe(1);
+      expect(c.remindersLabel()).toBe('1 reminder on');
+    });
+
+    it('is zero when the global switch is off', () => {
+      expect(count(false, true).activeReminders()).toBe(0);
+    });
+
+    it('is zero when the contract switch is off', () => {
+      expect(count(true, false).activeReminders()).toBe(0);
+    });
+  });
+
   describe('InsurancesRemindersComponent', () => {
     const create = () => {
       const c = TestBed.createComponent(InsurancesRemindersComponent)
