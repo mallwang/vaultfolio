@@ -1,3 +1,15 @@
+## 0.0.15 (2026-10-07)
+
+### 🚀 Features
+
+- **account-overview:** add dashboard tile, encryption, delete-all and rework export ([#89](https://github.com/mallwang/vaultfolio/pull/89))
+- **encryption:** add envelope encryption with key rotation and admin console ([#90](https://github.com/mallwang/vaultfolio/pull/90))
+- **insurances:** rework reminders dialog with email preview and send dates ([#88](https://github.com/mallwang/vaultfolio/pull/88))
+
+### 🩹 Fixes
+
+- **frontend:** show blocking overlay on sign-out instead of blanking the UI ([#86](https://github.com/mallwang/vaultfolio/pull/86))
+
 ## 0.0.14 (2026-10-05)
 
 ### 🚀 Features
