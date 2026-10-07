@@ -13,22 +13,6 @@ import { DASHBOARD_WIDGET_CONTRIBUTIONS } from './dashboard-widgets.registry';
 
 const STORAGE_KEY_PREFIX = 'vaultfolio.dashboard-layout.';
 
-/** The tiles that are not contributed by a domain library (still "coming soon" shells). */
-const STATIC_TILES: DashboardTileDefinition[] = [
-  {
-    id: 'totalValue',
-    titleKey: 'dashboard.totalValue',
-    source: { kind: 'placeholder', icon: 'wallet', bodyKey: 'dashboard.totalValueBody' },
-    entitled: true,
-  },
-  {
-    id: 'todaysChange',
-    titleKey: 'dashboard.todaysChange',
-    source: { kind: 'placeholder', icon: 'trending-up', bodyKey: 'dashboard.todaysChangeBody' },
-    entitled: true,
-  },
-];
-
 /**
  * The user's Dashboard arrangement (tile order + switched-off tiles), kept in this browser's
  * `localStorage` — per signed-in user, so several accounts on one device do not share a layout.
@@ -47,18 +31,17 @@ export class DashboardLayoutStore {
     parseDashboardLayout(this.read(this.storageKey())),
   );
 
-  /** Every tile in the user's order, including switched-off ones and ones the account lacks. */
+  /** Every tile of a domain the account has access to, in the user's order (incl. switched-off). */
   readonly tiles = computed<DashboardTile[]>(() => {
     const user = this.currentUser.current();
-    const catalog: DashboardTileDefinition[] = [
-      ...STATIC_TILES,
-      ...DASHBOARD_WIDGET_CONTRIBUTIONS.map((widget) => ({
-        id: widget.domainId,
-        titleKey: widget.titleKey,
-        source: { kind: 'widget', widget } as const,
-        entitled: isDomainEntitled(user, widget.domainId),
-      })),
-    ];
+    const catalog: DashboardTileDefinition[] = DASHBOARD_WIDGET_CONTRIBUTIONS.filter((widget) =>
+      isDomainEntitled(user, widget.domainId),
+    ).map((widget) => ({
+      id: widget.id,
+      domainId: widget.domainId,
+      titleKey: widget.titleKey,
+      widget,
+    }));
     return resolveTiles(catalog, this.layout());
   });
 

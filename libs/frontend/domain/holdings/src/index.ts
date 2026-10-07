@@ -1,3 +1,4 @@
+export { HoldingsTotalValueComponent } from './lib/holdings-total-value/holdings-total-value.component.js';
 export { HoldingsComponent } from './lib/holdings.component.js';
 // Also consumed directly by `apps/frontend/src/app/dashboard` (the
 // Allocation card embeds the same distribution chart the Holdings page

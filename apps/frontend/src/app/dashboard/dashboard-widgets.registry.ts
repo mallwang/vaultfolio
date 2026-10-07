@@ -8,12 +8,21 @@ import type { DashboardWidgetContribution } from '@vaultfolio/frontend-domain-ac
  */
 export const DASHBOARD_WIDGET_CONTRIBUTIONS: DashboardWidgetContribution[] = [
   {
+    id: 'holdings-total-value',
+    domainId: 'holdings',
+    titleKey: 'dashboard.totalValue',
+    loadComponent: () =>
+      import('@vaultfolio/frontend-domain-holdings').then((m) => m.HoldingsTotalValueComponent),
+  },
+  {
+    id: 'holdings-distribution',
     domainId: 'holdings',
     titleKey: 'dashboard.allocation',
     loadComponent: () =>
       import('@vaultfolio/frontend-domain-holdings').then((m) => m.HoldingsDistributionComponent),
   },
   {
+    id: 'earnings',
     domainId: 'earnings',
     titleKey: 'dashboard.earnings',
     loadComponent: () =>
@@ -22,6 +31,7 @@ export const DASHBOARD_WIDGET_CONTRIBUTIONS: DashboardWidgetContribution[] = [
       ),
   },
   {
+    id: 'retirement',
     domainId: 'retirement',
     titleKey: 'dashboard.retirement',
     loadComponent: () =>
@@ -30,6 +40,7 @@ export const DASHBOARD_WIDGET_CONTRIBUTIONS: DashboardWidgetContribution[] = [
       ),
   },
   {
+    id: 'insurances',
     domainId: 'insurances',
     titleKey: 'dashboard.insurances',
     loadComponent: () =>
@@ -38,6 +49,7 @@ export const DASHBOARD_WIDGET_CONTRIBUTIONS: DashboardWidgetContribution[] = [
       ),
   },
   {
+    id: 'historic-wealth-development',
     domainId: 'historic-wealth-development',
     titleKey: 'dashboard.wealth',
     loadComponent: () =>
@@ -46,6 +58,7 @@ export const DASHBOARD_WIDGET_CONTRIBUTIONS: DashboardWidgetContribution[] = [
       ),
   },
   {
+    id: 'account-overview',
     domainId: 'account-overview',
     titleKey: 'dashboard.accounts',
     loadComponent: () =>

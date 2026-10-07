@@ -14,12 +14,10 @@ import { DashboardEditDialogComponent } from './dashboard-edit-dialog.component'
 import { DashboardLayoutStore } from './dashboard-layout.store';
 
 /**
- * Dashboard area (FR-005): total value and today's change remain placeholder
- * shells; a `p-card` per `DASHBOARD_WIDGET_CONTRIBUTIONS` entry the current
- * user is entitled to renders that widget (FR-001, FR-004,
- * 021-frontend-extension-points), via the generic `DynamicOutletComponent`,
- * headed by the contribution's own `titleKey`. A widget the user is not
- * entitled to renders a placeholder card in its slot instead.
+ * Dashboard area (FR-005): a `p-card` per `DASHBOARD_WIDGET_CONTRIBUTIONS` entry of a domain the
+ * current user has access to (FR-001, FR-004, 021-frontend-extension-points), via the generic
+ * `DynamicOutletComponent`, headed by the contribution's own `titleKey`. Without any domain there
+ * are no tiles. A domain in maintenance replaces its tiles' content (041).
  *
  * The user can drag the cards into their own order and switch individual
  * ones off ("Edit dashboard"); both live in `DashboardLayoutStore`

@@ -65,8 +65,6 @@ export const de: TranslationDictionary = {
     genericError: 'Anmeldung fehlgeschlagen. Bitte erneut versuchen.',
   },
   dashboard: {
-    tileDisabled:
-      'Dieses Feature ist für Ihr Konto deaktiviert. Wenden Sie sich an den Administrator, um es freischalten zu lassen.',
     moveTile: 'Kachel verschieben',
     edit: {
       link: 'Dashboard bearbeiten',
@@ -80,13 +78,10 @@ export const de: TranslationDictionary = {
     earnings: 'Einkommen',
     accounts: 'Konten',
     totalValue: 'Gesamtwert',
-    todaysChange: 'Heutige Veränderung',
     allocation: 'Verteilung',
     comingSoon: 'Bald verfügbar',
     totalValueBody:
       'Diese Karte zeigt den Gesamtwert Ihrer Bestände, sobald Portfoliodaten verfügbar sind.',
-    todaysChangeBody:
-      'Diese Karte zeigt die heutige Wertentwicklung Ihres Portfolios, sobald Portfoliodaten verfügbar sind.',
   },
   holdingsDistribution: {
     title: 'Verteilung nach Wert',

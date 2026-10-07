@@ -133,9 +133,11 @@ with each new domain.
 
 **Arranging your dashboard.** Drag a tile by the handle in its top-right corner to move it
 (or focus the handle and use the arrow keys). Choose **Edit dashboard** above the tiles to switch
-individual tiles on or off. A tile for a feature that is disabled for your account stays in its
-place as a placeholder; its switch is greyed out — ask your administrator to enable the feature.
-Your arrangement is saved in this browser only, per account, and **Reset** restores the default.
+individual tiles on or off. The dashboard only shows tiles of features that are enabled for your
+account; with no feature enabled there are no tiles — ask your administrator. The Holdings feature
+provides the **Total value** and **Allocation** tiles, which can be switched on or off
+individually. Your arrangement is saved in this browser only, per account, and **Reset** restores
+the default.
 
 ---
 

@@ -25,34 +25,16 @@
         <app-icon name="drag-handle" />
       </button>
       <p-card [header]="tile.titleKey | translate">
-        @if (!tile.entitled) {
-          <div
-            class="stat-card__placeholder"
-            [attr.data-testid]="'dashboard-tile-disabled-' + tile.id"
-          >
-            <app-icon name="lock" class="stat-card__placeholder-icon" />
-            <p>{{ 'dashboard.tileDisabled' | translate }}</p>
-          </div>
-        } @else if (tile.source.kind === 'widget') {
-          @if (maintenance.isInMaintenance(tile.id)) {
-            @if (isAdmin()) {
-              <app-maintenance-tile
-                [badge]="true"
-                [testId]="'dashboard-tile-maintenance-badge-' + tile.id"
-              />
-              <app-dynamic-outlet [loader]="tile.source.widget.loadComponent" />
-            } @else {
-              <app-maintenance-tile [testId]="'dashboard-tile-maintenance-' + tile.id" />
-            }
-          } @else {
-            <app-dynamic-outlet [loader]="tile.source.widget.loadComponent" />
-          }
+        @if (maintenance.isInMaintenance(tile.domainId) && !isAdmin()) {
+          <app-maintenance-tile [testId]="'dashboard-tile-maintenance-' + tile.id" />
         } @else {
-          <div class="stat-card__placeholder">
-            <app-icon [name]="tile.source.icon" class="stat-card__placeholder-icon" />
-            <span>{{ 'dashboard.comingSoon' | translate }}</span>
-            <p>{{ tile.source.bodyKey | translate }}</p>
-          </div>
+          @if (maintenance.isInMaintenance(tile.domainId)) {
+            <app-maintenance-tile
+              [badge]="true"
+              [testId]="'dashboard-tile-maintenance-badge-' + tile.id"
+            />
+          }
+          <app-dynamic-outlet [loader]="tile.widget.loadComponent" />
         }
       </p-card>
     </div>

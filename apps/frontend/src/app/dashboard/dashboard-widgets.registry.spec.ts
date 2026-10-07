@@ -18,12 +18,18 @@ describe('DASHBOARD_WIDGET_CONTRIBUTIONS', () => {
   it('only holdings, earnings, retirement, insurances, wealth and account-overview contribute a Dashboard widget', () => {
     expect(DASHBOARD_WIDGET_CONTRIBUTIONS.map((c) => c.domainId)).toEqual([
       'holdings',
+      'holdings',
       'earnings',
       'retirement',
       'insurances',
       'historic-wealth-development',
       'account-overview',
     ]);
+  });
+
+  it('uses unique tile ids', () => {
+    const ids = DASHBOARD_WIDGET_CONTRIBUTIONS.map((c) => c.id);
+    expect(new Set(ids).size).toBe(ids.length);
   });
 
   it('lazy-loads a component for every entry', async () => {

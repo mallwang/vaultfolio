@@ -193,11 +193,11 @@ describe('DashboardComponent', () => {
 
     expect(
       (fixture.nativeElement as HTMLElement).querySelectorAll('app-dynamic-outlet'),
-    ).toHaveLength(1);
+    ).toHaveLength(2);
     httpMock.match('/api/holdings');
   });
 
-  it('hides the widget for a user not entitled to holdings (Acceptance Scenario 2)', async () => {
+  it('shows no tiles at all for a user without any domain (Acceptance Scenario 2)', async () => {
     fakeCurrentUser.setAuthenticated(unentitledUser);
     fixture.detectChanges();
     await new Promise((resolve) => setTimeout(resolve, 0));
@@ -205,71 +205,44 @@ describe('DashboardComponent', () => {
 
     const el = fixture.nativeElement as HTMLElement;
     expect(el.querySelector('app-dynamic-outlet')).toBeNull();
+    expect(el.querySelector('[data-testid^="dashboard-tile-"]')).toBeNull();
   });
 
-  it('renders the other Dashboard cards without error when no widget is visible (Acceptance Scenario 4)', () => {
-    fakeCurrentUser.setAuthenticated(unentitledUser);
-    fixture.detectChanges();
-
-    const el = fixture.nativeElement as HTMLElement;
-    const text = el.textContent ?? '';
-    expect(text).toContain('Total value');
-    expect(text).toContain("Today's change");
-    // Each widget gets its own p-card (one per DASHBOARD_WIDGET_CONTRIBUTIONS
-    // entry the user is entitled to) rather than a permanent "Allocation"
-    // card — with no widget visible, no such card renders at all.
-    expect(el.querySelector('app-dynamic-outlet')).toBeNull();
-  });
-
-  it('renders only non-domain-specific content for a user entitled to a new placeholder domain and no other domain (FR-005)', () => {
+  it('shows no tile for a user entitled only to a placeholder domain (FR-005)', () => {
     fakeCurrentUser.setAuthenticated(newDomainOnlyUser);
     fixture.detectChanges();
 
     const el = fixture.nativeElement as HTMLElement;
-    const text = el.textContent ?? '';
-    expect(text).toContain('Total value');
-    expect(text).toContain("Today's change");
-    expect(el.querySelector('app-dynamic-outlet')).toBeNull();
+    expect(el.querySelector('[data-testid^="dashboard-tile-"]')).toBeNull();
   });
 
   describe('arranging tiles', () => {
     const tileIds = (el: HTMLElement) =>
       Array.from(el.querySelectorAll('[data-testid^="dashboard-tile-"]'))
         .map((node) => node.getAttribute('data-testid') ?? '')
-        .filter((id) => !id.includes('handle') && !id.includes('disabled'));
+        .filter((id) => !id.includes('handle') && !id.includes('maintenance'));
     const byTestId = (el: HTMLElement, id: string) =>
       el.querySelector(`[data-testid="${id}"]`) as HTMLElement;
 
-    it('keeps a placeholder in the slot of a tile the account is not entitled to', () => {
-      fakeCurrentUser.setAuthenticated(unentitledUser);
-      fixture.detectChanges();
-
-      const el = fixture.nativeElement as HTMLElement;
-      expect(tileIds(el)).toContain('dashboard-tile-holdings');
-      expect(byTestId(el, 'dashboard-tile-disabled-holdings').textContent).toContain(
-        'administrator',
-      );
-    });
-
     it('moves a tile with the arrow keys and remembers the order', () => {
-      fakeCurrentUser.setAuthenticated(unentitledUser);
+      fakeCurrentUser.setAuthenticated(entitledUser);
       fixture.detectChanges();
       const el = fixture.nativeElement as HTMLElement;
 
-      byTestId(el, 'dashboard-tile-handle-totalValue').dispatchEvent(
+      byTestId(el, 'dashboard-tile-handle-holdings-total-value').dispatchEvent(
         new KeyboardEvent('keydown', { key: 'ArrowRight' }),
       );
       fixture.detectChanges();
 
-      expect(tileIds(el).slice(0, 2)).toEqual([
-        'dashboard-tile-todaysChange',
-        'dashboard-tile-totalValue',
+      expect(tileIds(el)).toEqual([
+        'dashboard-tile-holdings-distribution',
+        'dashboard-tile-holdings-total-value',
       ]);
-      expect(localStorage.getItem('vaultfolio.dashboard-layout.user-2')).toContain('"order"');
+      expect(localStorage.getItem('vaultfolio.dashboard-layout.user-1')).toContain('"order"');
     });
 
-    it('switches a tile off through the edit dialog and keeps unavailable ones locked', async () => {
-      fakeCurrentUser.setAuthenticated(unentitledUser);
+    it('switches a tile off through the edit dialog', async () => {
+      fakeCurrentUser.setAuthenticated(entitledUser);
       fixture.detectChanges();
       const el = fixture.nativeElement as HTMLElement;
 
@@ -278,12 +251,11 @@ describe('DashboardComponent', () => {
       await fixture.whenStable();
       fixture.detectChanges();
 
-      expect(byTestId(document.body, 'dashboard-edit-locked-holdings')).not.toBeNull();
-      const toggle = byTestId(document.body, 'dashboard-edit-toggle-todaysChange');
+      const toggle = byTestId(document.body, 'dashboard-edit-toggle-holdings-total-value');
       (toggle.querySelector('input') as HTMLInputElement).click();
       fixture.detectChanges();
 
-      expect(tileIds(el)).not.toContain('dashboard-tile-todaysChange');
+      expect(tileIds(el)).toEqual(['dashboard-tile-holdings-distribution']);
     });
   });
 
@@ -298,12 +270,12 @@ describe('DashboardComponent', () => {
       fixture.detectChanges();
 
       const el = fixture.nativeElement as HTMLElement;
-      expect(
-        el.querySelector('[data-testid="dashboard-tile-maintenance-holdings"]'),
-      ).not.toBeNull();
-      expect(
-        el.querySelector('[data-testid="dashboard-tile-holdings"] app-dynamic-outlet'),
-      ).toBeNull();
+      for (const id of ['holdings-total-value', 'holdings-distribution']) {
+        expect(el.querySelector(`[data-testid="dashboard-tile-maintenance-${id}"]`)).not.toBeNull();
+        expect(
+          el.querySelector(`[data-testid="dashboard-tile-${id}"] app-dynamic-outlet`),
+        ).toBeNull();
+      }
       httpMock.expectNone('/api/holdings');
     });
 
@@ -315,10 +287,10 @@ describe('DashboardComponent', () => {
 
       const el = fixture.nativeElement as HTMLElement;
       expect(
-        el.querySelector('[data-testid="dashboard-tile-maintenance-badge-holdings"]'),
+        el.querySelector('[data-testid="dashboard-tile-maintenance-badge-holdings-distribution"]'),
       ).not.toBeNull();
       expect(
-        el.querySelector('[data-testid="dashboard-tile-holdings"] app-dynamic-outlet'),
+        el.querySelector('[data-testid="dashboard-tile-holdings-distribution"] app-dynamic-outlet'),
       ).not.toBeNull();
       // An admin renders every widget; let their lazy chunks finish loading so the worker is not
       // torn down mid-fetch ("Closing rpc while fetch was pending").

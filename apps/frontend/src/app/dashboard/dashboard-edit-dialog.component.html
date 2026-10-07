@@ -15,22 +15,14 @@
   <p class="hint">{{ 'dashboard.edit.hint' | translate }}</p>
   <ul class="tiles">
     @for (tile of tiles(); track tile.id) {
-      <li class="tile" [class.tile--locked]="!tile.entitled">
-        <div class="tile__text">
-          <label class="tile__title" [for]="'dashboard-tile-toggle-' + tile.id">
-            {{ tile.titleKey | translate }}
-          </label>
-          @if (!tile.entitled) {
-            <p class="tile__note" [attr.data-testid]="'dashboard-edit-locked-' + tile.id">
-              <app-icon name="lock" />{{ 'dashboard.tileDisabled' | translate }}
-            </p>
-          }
-        </div>
+      <li class="tile">
+        <label class="tile__title" [for]="'dashboard-tile-toggle-' + tile.id">
+          {{ tile.titleKey | translate }}
+        </label>
         <p-toggleswitch
           [inputId]="'dashboard-tile-toggle-' + tile.id"
           [attr.data-testid]="'dashboard-edit-toggle-' + tile.id"
-          [ngModel]="tile.entitled && !tile.hidden"
-          [disabled]="!tile.entitled"
+          [ngModel]="!tile.hidden"
           (ngModelChange)="setVisible(tile.id, $event)"
         />
       </li>
