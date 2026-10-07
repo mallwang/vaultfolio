@@ -4,6 +4,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import type { SessionUser } from '@vaultfolio/api-contract';
 import { DashboardComponent } from './dashboard.component';
+import { CURRENT_USER_SOURCE } from '@vaultfolio/frontend-domain-access';
 import { CurrentUserStore } from '../auth/current-user.store';
 import { FakeCurrentUserStore } from '../auth/testing/current-user-store.testing';
 import { DomainMaintenanceStore } from '../core/maintenance/domain-maintenance.store';
@@ -74,6 +75,7 @@ describe('DashboardComponent', () => {
         provideHttpClientTesting(),
         provideRouter([]),
         { provide: CurrentUserStore, useValue: fakeCurrentUser },
+        { provide: CURRENT_USER_SOURCE, useExisting: CurrentUserStore },
       ],
     }).compileComponents();
 
@@ -318,6 +320,16 @@ describe('DashboardComponent', () => {
       expect(
         el.querySelector('[data-testid="dashboard-tile-holdings"] app-dynamic-outlet'),
       ).not.toBeNull();
+      // An admin renders every widget; let their lazy chunks finish loading so the worker is not
+      // torn down mid-fetch ("Closing rpc while fetch was pending").
+      await Promise.all([
+        import('@vaultfolio/frontend-domain-holdings'),
+        import('@vaultfolio/frontend-domain-earnings'),
+        import('@vaultfolio/frontend-domain-retirement'),
+        import('@vaultfolio/frontend-domain-insurances'),
+        import('@vaultfolio/frontend-domain-historic-wealth-development'),
+        import('@vaultfolio/frontend-domain-account-overview'),
+      ]);
       await new Promise((resolve) => setTimeout(resolve, 0));
       httpMock.match(() => true).forEach((request) => request.flush([]));
     });
