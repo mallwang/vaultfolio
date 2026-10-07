@@ -3,7 +3,8 @@ import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
-import { IconComponent, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
+import { IconComponent, I18nService, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
+import { tileDomainOf } from './dashboard-tile-domain';
 import { DashboardLayoutStore } from './dashboard-layout.store';
 
 /** Modal to switch individual Dashboard tiles on or off. */
@@ -24,6 +25,13 @@ export class DashboardEditDialogComponent {
   private readonly layout = inject(DashboardLayoutStore);
 
   readonly visible = model(false);
+  private readonly i18n = inject(I18nService);
+
+  protected readonly domainOf = tileDomainOf;
+
+  protected domainHint(labelKey: string): string {
+    return `${this.i18n.translate('dashboard.tile.domain')}: ${this.i18n.translate(labelKey)}`;
+  }
 
   protected readonly tiles = this.layout.tiles;
   protected readonly isCustomized = computed(() => this.layout.isCustomized());

@@ -56,7 +56,7 @@ describe('RetirementDashboardWidgetComponent', () => {
     ];
     const summary = summarize(records, NOW);
     const el = render((req) => req.flush(summary), true);
-    expect(byTestId(el, 'retirement-widget-toggle')).not.toBeNull();
+    expect(byTestId(el, 'retirement-widget-toggle')).toBeNull();
     expect(byTestId(el, 'retirement-widget-expected')?.textContent).toMatch(/2[.,]?350/);
     expect(byTestId(el, 'retirement-widget-guaranteed')?.textContent).toMatch(/100/);
     expect(byTestId(el, 'retirement-widget-savings')?.textContent).toMatch(/60/);

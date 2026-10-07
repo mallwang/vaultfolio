@@ -6,6 +6,7 @@ import {
   DASHBOARD_TILE_EXPANSION,
   DashboardTileComponent,
   IconComponent,
+  I18nService,
   TranslatePipe,
   DynamicOutletComponent,
   MaintenanceTileComponent,
@@ -14,6 +15,7 @@ import { CurrentUserStore } from '../auth/current-user.store';
 import { DomainMaintenanceStore } from '../core/maintenance/domain-maintenance.store';
 import { DashboardEditDialogComponent } from './dashboard-edit-dialog.component';
 import { DashboardLayoutStore } from './dashboard-layout.store';
+import { tileDomainOf } from './dashboard-tile-domain';
 
 /**
  * Dashboard area (FR-005): a `p-card` per `DASHBOARD_WIDGET_CONTRIBUTIONS` entry of a domain the
@@ -61,6 +63,13 @@ export class DashboardComponent {
 
   protected readonly tiles = this.layout.visibleTiles;
   protected readonly editOpen = signal(false);
+  private readonly i18n = inject(I18nService);
+
+  protected readonly domainOf = tileDomainOf;
+
+  protected domainHint(labelKey: string): string {
+    return `${this.i18n.translate('dashboard.tile.domain')}: ${this.i18n.translate(labelKey)}`;
+  }
 
   protected onDrop(event: CdkDragDrop<unknown>): void {
     this.layout.moveVisible(event.previousIndex, event.currentIndex);

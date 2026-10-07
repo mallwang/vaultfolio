@@ -122,12 +122,10 @@ describe('EarningsDashboardWidgetComponent', () => {
     );
   });
 
-  it('keeps the details collapsed until the toggle is used', () => {
+  it('shows the stats without a details toggle', () => {
     const root = render((req) => req.flush(OVERVIEW));
-    expect(root.querySelector('[data-testid="earnings-widget-netRatio"]')).toBeNull();
-    expect(
-      root.querySelector('[data-testid="earnings-widget-toggle"]')?.getAttribute('aria-expanded'),
-    ).toBe('false');
+    expect(root.querySelector('[data-testid="earnings-widget-netRatio"]')).not.toBeNull();
+    expect(root.querySelector('[data-testid="earnings-widget-toggle"]')).toBeNull();
   });
 
   it('updates the readout for the hovered bar', () => {

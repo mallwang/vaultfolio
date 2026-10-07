@@ -4,7 +4,7 @@
   [dismissableMask]="true"
   [draggable]="false"
   [(visible)]="visible"
-  [style]="{ width: '32rem' }"
+  [style]="{ width: '44rem' }"
   [breakpoints]="{ '640px': '92vw' }"
   [pt]="{
     root: { 'data-testid': 'dashboard-edit-dialog' },
@@ -17,6 +17,17 @@
     @for (tile of tiles(); track tile.id) {
       <li class="tile">
         <label class="tile__title" [for]="'dashboard-tile-toggle-' + tile.id">
+          @if (domainOf(tile.domainId); as domain) {
+            <span
+              class="tile__domain"
+              role="img"
+              [attr.title]="domainHint(domain.labelKey)"
+              [attr.aria-label]="domainHint(domain.labelKey)"
+              [attr.data-testid]="'dashboard-edit-domain-' + tile.id"
+            >
+              <app-icon [name]="domain.icon" size="1rem" />
+            </span>
+          }
           {{ tile.titleKey | translate }}
         </label>
         <p-toggleswitch

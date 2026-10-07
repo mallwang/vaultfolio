@@ -43,6 +43,17 @@
           <app-dynamic-outlet [loader]="tile.widget.loadComponent" />
         }
       </p-card>
+      @if (domainOf(tile.domainId); as domain) {
+        <span
+          class="tile__domain"
+          role="img"
+          [attr.title]="domainHint(domain.labelKey)"
+          [attr.aria-label]="domainHint(domain.labelKey)"
+          [attr.data-testid]="'tile-domain-' + tile.id"
+        >
+          <app-icon [name]="domain.icon" size="1rem" />
+        </span>
+      }
     </div>
   }
 </div>

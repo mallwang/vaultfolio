@@ -108,6 +108,21 @@
   outline: 2px solid var(--p-primary-color);
 }
 
+/* Sits in the card's bottom padding, so it never changes the tile height or overlaps content. */
+.tile__domain {
+  position: absolute;
+  right: 0.6rem;
+  bottom: 0.35rem;
+  display: inline-flex;
+  color: var(--p-text-muted-color);
+  opacity: 0.55;
+  cursor: help;
+}
+
+.tile__domain:hover {
+  opacity: 1;
+}
+
 .tile.cdk-drag-placeholder {
   opacity: 0.35;
 }

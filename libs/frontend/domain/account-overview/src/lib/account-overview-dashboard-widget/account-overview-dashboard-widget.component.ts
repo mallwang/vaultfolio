@@ -3,7 +3,6 @@ import type { AccountOverviewEntry } from '@vaultfolio/api-contract';
 import {
   DashboardTileComponent,
   EmptyTileComponent,
-  TileDetailsDirective,
   TileValueComponent,
   TranslatePipe,
 } from '@vaultfolio/frontend-shared-ui';
@@ -18,13 +17,7 @@ const AREA = '/app/account-overview';
  */
 @Component({
   selector: 'app-account-overview-dashboard-widget',
-  imports: [
-    TranslatePipe,
-    EmptyTileComponent,
-    DashboardTileComponent,
-    TileDetailsDirective,
-    TileValueComponent,
-  ],
+  imports: [TranslatePipe, EmptyTileComponent, DashboardTileComponent, TileValueComponent],
   template: `
     <div class="widget" data-testid="account-overview-widget">
       @if (failed()) {
@@ -67,7 +60,7 @@ const AREA = '/app/account-overview';
             <app-tile-value data-testid="account-overview-widget-total">{{
               list.length
             }}</app-tile-value>
-            <div tileDetails class="details">
+            <div class="details">
               <ul class="legend" data-testid="account-overview-widget-categories">
                 @for (entry of categories(); track entry.category) {
                   <li [attr.data-testid]="'account-overview-widget-category-' + entry.category">
@@ -112,6 +105,7 @@ const AREA = '/app/account-overview';
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
+      margin-top: 0.5rem;
     }
     .muted {
       margin: 0;

@@ -6,7 +6,6 @@ import {
   I18nService,
   DashboardTileComponent,
   IconComponent,
-  TileDetailsDirective,
   TileValueComponent,
   TranslatePipe,
 } from '@vaultfolio/frontend-shared-ui';
@@ -30,7 +29,6 @@ import { MAX_BARS, widgetFigures } from './widget-figures';
     TranslatePipe,
     EmptyTileComponent,
     DashboardTileComponent,
-    TileDetailsDirective,
     TileValueComponent,
   ],
   template: `
@@ -66,69 +64,71 @@ import { MAX_BARS, widgetFigures } from './widget-figures';
                 }
               </span>
             }
-            @if (bars().length > 1) {
-              <div tileChart class="chart" data-testid="earnings-widget-chart">
-                <p
-                  class="readout"
-                  aria-live="polite"
-                  [attr.title]="readout()"
-                  data-testid="earnings-widget-readout"
-                >
-                  {{ readout() }}
-                </p>
-                <svg
-                  viewBox="0 0 300 56"
-                  preserveAspectRatio="none"
-                  role="group"
-                  [attr.aria-label]="'earnings.widget.chart' | translate"
-                >
-                  @for (bar of bars(); track bar.year) {
-                    <rect
-                      class="bar"
-                      [class.bar--partial]="bar.partial"
-                      tabindex="0"
-                      rx="2"
-                      [attr.x]="bar.x"
-                      [attr.y]="bar.y"
-                      [attr.width]="bar.width"
-                      [attr.height]="bar.height"
-                      [attr.aria-label]="bar.label"
-                      [attr.data-testid]="'earnings-widget-bar-' + bar.year"
-                      (mouseenter)="hovered.set(bar.year)"
-                      (focus)="hovered.set(bar.year)"
-                      (mouseleave)="hovered.set(null)"
-                      (blur)="hovered.set(null)"
-                    />
-                  }
-                </svg>
+            <div tileChart class="chart">
+              @if (bars().length > 1) {
+                <div class="plot" data-testid="earnings-widget-chart">
+                  <p
+                    class="readout"
+                    aria-live="polite"
+                    [attr.title]="readout()"
+                    data-testid="earnings-widget-readout"
+                  >
+                    {{ readout() }}
+                  </p>
+                  <svg
+                    viewBox="0 0 300 56"
+                    preserveAspectRatio="none"
+                    role="group"
+                    [attr.aria-label]="'earnings.widget.chart' | translate"
+                  >
+                    @for (bar of bars(); track bar.year) {
+                      <rect
+                        class="bar"
+                        [class.bar--partial]="bar.partial"
+                        tabindex="0"
+                        rx="2"
+                        [attr.x]="bar.x"
+                        [attr.y]="bar.y"
+                        [attr.width]="bar.width"
+                        [attr.height]="bar.height"
+                        [attr.aria-label]="bar.label"
+                        [attr.data-testid]="'earnings-widget-bar-' + bar.year"
+                        (mouseenter)="hovered.set(bar.year)"
+                        (focus)="hovered.set(bar.year)"
+                        (mouseleave)="hovered.set(null)"
+                        (blur)="hovered.set(null)"
+                      />
+                    }
+                  </svg>
+                </div>
+              }
+              <div class="details">
+                @if (netRatioTile(); as ratio) {
+                  <span data-testid="earnings-widget-netRatio">
+                    {{ ratio.label }} <strong>{{ ratio.value }}</strong>
+                  </span>
+                }
+                @if (growth(); as g) {
+                  <span data-testid="earnings-widget-growth">
+                    {{ g.label }}
+                    <strong [class]="'delta--' + g.tone">{{ g.value }}</strong>
+                  </span>
+                }
+                @if (perMonth(); as value) {
+                  <span data-testid="earnings-widget-permonth">
+                    {{ 'earnings.widget.perMonth' | translate }} <strong>{{ value }}</strong>
+                  </span>
+                }
+                @if (data.dataCheckIssues > 0) {
+                  <a
+                    class="issues"
+                    routerLink="/app/earnings/check"
+                    data-testid="earnings-widget-issues"
+                  >
+                    <app-icon name="warning" /> {{ issuesText() }}
+                  </a>
+                }
               </div>
-            }
-            <div tileDetails class="details">
-              @if (netRatioTile(); as ratio) {
-                <span data-testid="earnings-widget-netRatio">
-                  {{ ratio.label }} <strong>{{ ratio.value }}</strong>
-                </span>
-              }
-              @if (growth(); as g) {
-                <span data-testid="earnings-widget-growth">
-                  {{ g.label }}
-                  <strong [class]="'delta--' + g.tone">{{ g.value }}</strong>
-                </span>
-              }
-              @if (perMonth(); as value) {
-                <span data-testid="earnings-widget-permonth">
-                  {{ 'earnings.widget.perMonth' | translate }} <strong>{{ value }}</strong>
-                </span>
-              }
-              @if (data.dataCheckIssues > 0) {
-                <a
-                  class="issues"
-                  routerLink="/app/earnings/check"
-                  data-testid="earnings-widget-issues"
-                >
-                  <app-icon name="warning" /> {{ issuesText() }}
-                </a>
-              }
             </div>
           </app-dashboard-tile>
         } @else {
@@ -191,9 +191,16 @@ import { MAX_BARS, widgetFigures } from './widget-figures';
       display: flex;
       flex: 1;
       flex-direction: column;
-      gap: 0.15rem;
+      gap: 0.5rem;
       align-self: stretch;
       min-width: 0;
+    }
+    .plot {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      gap: 0.15rem;
+      min-height: 3.25rem;
     }
     .readout {
       margin: 0;

@@ -72,34 +72,48 @@ const AREA = '/app/insurances';
           >
             <app-tile-value data-testid="insurances-widget-monthly">{{ monthly() }}</app-tile-value>
             <span class="muted" data-testid="insurances-widget-yearly">{{ yearly() }}</span>
+            <span class="muted" [class.warn]="warn()" data-testid="insurances-widget-next">{{
+              next()
+            }}</span>
             @if (parts().length > 0) {
-              <div
-                tileChart
-                class="bar"
-                role="img"
-                [attr.aria-label]="'insurances.chart.groupTitle' | translate"
-                data-testid="insurances-widget-chart"
-              >
-                @for (part of parts(); track part.group) {
-                  <span
-                    class="bar__part"
-                    [class.dim]="hovered() !== null && hovered() !== part.group"
-                    [style.flex-grow]="part.weight"
-                    [style.background]="part.color"
-                    [title]="part.label + ': ' + part.value"
-                    (mouseenter)="hovered.set(part.group)"
-                    (mouseleave)="hovered.set(null)"
-                  ></span>
-                }
+              <div tileChart class="chart">
+                <div
+                  class="bar"
+                  role="img"
+                  [attr.aria-label]="'insurances.chart.groupTitle' | translate"
+                  data-testid="insurances-widget-chart"
+                >
+                  @for (part of parts(); track part.group) {
+                    <span
+                      class="bar__part"
+                      [class.dim]="hovered() !== null && hovered() !== part.group"
+                      [style.flex-grow]="part.weight"
+                      [style.background]="part.color"
+                      [title]="part.label + ': ' + part.value"
+                      (mouseenter)="hovered.set(part.group)"
+                      (mouseleave)="hovered.set(null)"
+                    ></span>
+                  }
+                </div>
+                <ul class="legend" data-testid="insurances-widget-top">
+                  @for (part of topParts(); track part.group) {
+                    <li
+                      [class.active]="hovered() === part.group"
+                      (mouseenter)="hovered.set(part.group)"
+                      (mouseleave)="hovered.set(null)"
+                    >
+                      <span class="swatch" [style.background]="part.color"></span>
+                      <span class="legend__name">{{ part.label }}</span>
+                      <span class="legend__share">{{ part.value }}</span>
+                    </li>
+                  }
+                </ul>
               </div>
             }
             <div tileDetails class="details">
-              <span class="muted" [class.warn]="warn()" data-testid="insurances-widget-next">{{
-                next()
-              }}</span>
-              @if (parts().length > 0) {
+              @if (restParts().length > 0) {
                 <ul class="legend" data-testid="insurances-widget-legend">
-                  @for (part of parts(); track part.group) {
+                  @for (part of restParts(); track part.group) {
                     <li
                       [class.active]="hovered() === part.group"
                       (mouseenter)="hovered.set(part.group)"
@@ -112,7 +126,7 @@ const AREA = '/app/insurances';
                   }
                 </ul>
               }
-              <div class="foot">
+              <div class="foot" [class.foot--divided]="restParts().length > 0">
                 <span data-testid="insurances-widget-active">{{ activeText() }}</span>
                 @if (gapCount() > 0) {
                   <a class="gaps" [routerLink]="gapCheckPath" data-testid="insurances-widget-gaps">
@@ -156,10 +170,16 @@ const AREA = '/app/insurances';
       color: var(--p-orange-600);
       font-weight: 600;
     }
+    .chart {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      width: 100%;
+    }
     .bar {
       display: flex;
       width: 100%;
-      height: 0.75rem;
+      height: 1rem;
       border-radius: 0.375rem;
       overflow: hidden;
     }
@@ -208,6 +228,10 @@ const AREA = '/app/insurances';
       gap: 0.5rem;
       flex-wrap: wrap;
       font-size: 0.9rem;
+    }
+    .foot--divided {
+      padding-top: 0.5rem;
+      border-top: 1px solid var(--p-content-border-color);
     }
     .gaps {
       display: inline-flex;
@@ -274,6 +298,9 @@ export class InsurancesDashboardWidgetComponent {
       }).format(g.share / 100)})`,
     }));
   });
+  private readonly bySize = computed(() => [...this.parts()].sort((a, b) => b.weight - a.weight));
+  protected readonly topParts = computed(() => this.bySize().slice(0, 3));
+  protected readonly restParts = computed(() => this.bySize().slice(3));
   protected readonly activeText = computed(() => {
     const active = fill(this.i18n.translate('insurances.widget.active'), {
       count: this.store.summary().activeCount,

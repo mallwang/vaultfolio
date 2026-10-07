@@ -22,7 +22,12 @@ let nextDetailsId = 0;
     <header class="head">
       <strong class="head__title" [attr.title]="title">{{ title }}</strong>
       @if (link) {
-        <a [routerLink]="link" [attr.data-testid]="linkTestId">
+        <a
+          [routerLink]="link"
+          [attr.aria-label]="linkLabel"
+          [attr.title]="linkLabel"
+          [attr.data-testid]="linkTestId"
+        >
           <span class="label">{{ linkLabel }}</span> <app-icon name="chevron-right" />
         </a>
       }
@@ -48,16 +53,18 @@ let nextDetailsId = 0;
         </button>
       </div>
     }
-    <div
-      class="details"
-      [id]="detailsId"
-      [attr.data-testid]="testIdPrefix + '-details'"
-      [hidden]="!isExpanded()"
-    >
-      @if (isExpanded()) {
-        <ng-content select="[tileDetails]" />
-      }
-    </div>
+    @if (hasDetails()) {
+      <div
+        class="details"
+        [id]="detailsId"
+        [attr.data-testid]="testIdPrefix + '-details'"
+        [hidden]="!isExpanded()"
+      >
+        @if (isExpanded()) {
+          <ng-content select="[tileDetails]" />
+        }
+      </div>
+    }
   `,
   styles: `
     :host {
@@ -69,7 +76,7 @@ let nextDetailsId = 0;
     }
     .head {
       display: flex;
-      align-items: baseline;
+      align-items: center;
       justify-content: space-between;
       gap: 0.5rem;
       margin-bottom: 0.6rem;
@@ -93,6 +100,15 @@ let nextDetailsId = 0;
     }
     a:hover .label {
       text-decoration: underline;
+    }
+    /* On narrow tiles (small screens, zoom) the title keeps its room and the link shrinks to its chevron. */
+    :host {
+      container-type: inline-size;
+    }
+    @container (max-width: 19rem) {
+      .label {
+        display: none;
+      }
     }
     /* Equal main-content height keeps the toggles of a row aligned even when sub lines differ. */
     .main {

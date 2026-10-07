@@ -87,30 +87,27 @@ const AREA = '/app/historic-wealth-development';
                 </span>
               }
               @if (parts().length > 0) {
-                <div
-                  tileChart
-                  class="bar"
-                  role="img"
-                  [attr.aria-label]="'wealth.single.composition' | translate"
-                  data-testid="wealth-widget-composition"
-                >
-                  @for (part of parts(); track part.key) {
-                    <span
-                      class="bar__part"
-                      [class.dim]="hovered() !== null && hovered() !== part.key"
-                      [style.flex-grow]="part.weight"
-                      [style.background]="part.color"
-                      [title]="part.label + ': ' + part.amount + ' (' + part.share + ')'"
-                      (mouseenter)="hovered.set(part.key)"
-                      (mouseleave)="hovered.set(null)"
-                    ></span>
-                  }
-                </div>
-              }
-              <div tileDetails class="details">
-                @if (parts().length > 0) {
-                  <ul class="legend" data-testid="wealth-widget-legend">
+                <div tileChart class="chart">
+                  <div
+                    class="bar"
+                    role="img"
+                    [attr.aria-label]="'wealth.single.composition' | translate"
+                    data-testid="wealth-widget-composition"
+                  >
                     @for (part of parts(); track part.key) {
+                      <span
+                        class="bar__part"
+                        [class.dim]="hovered() !== null && hovered() !== part.key"
+                        [style.flex-grow]="part.weight"
+                        [style.background]="part.color"
+                        [title]="part.label + ': ' + part.amount + ' (' + part.share + ')'"
+                        (mouseenter)="hovered.set(part.key)"
+                        (mouseleave)="hovered.set(null)"
+                      ></span>
+                    }
+                  </div>
+                  <ul class="legend" data-testid="wealth-widget-top">
+                    @for (part of topParts(); track part.key) {
                       <li
                         [class.active]="hovered() === part.key"
                         (mouseenter)="hovered.set(part.key)"
@@ -122,9 +119,23 @@ const AREA = '/app/historic-wealth-development';
                       </li>
                     }
                   </ul>
-                  <span class="muted" data-testid="wealth-widget-legend-hint">
-                    {{ 'wealth.widget.legendHint' | translate }}
-                  </span>
+                </div>
+              }
+              <div tileDetails class="details">
+                @if (restParts().length > 0) {
+                  <ul class="legend" data-testid="wealth-widget-legend">
+                    @for (part of restParts(); track part.key) {
+                      <li
+                        [class.active]="hovered() === part.key"
+                        (mouseenter)="hovered.set(part.key)"
+                        (mouseleave)="hovered.set(null)"
+                      >
+                        <span class="swatch" [style.background]="part.color"></span>
+                        <span class="legend__name">{{ part.label }}</span>
+                        <span class="legend__share">{{ part.amount }} ({{ part.share }})</span>
+                      </li>
+                    }
+                  </ul>
                 }
                 <dl class="foot">
                   <div>
@@ -203,10 +214,16 @@ const AREA = '/app/historic-wealth-development';
     .liability {
       color: var(--p-red-600);
     }
+    .chart {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      width: 100%;
+    }
     .bar {
       display: flex;
       width: 100%;
-      height: 0.75rem;
+      height: 1rem;
       border-radius: 0.375rem;
       overflow: hidden;
     }
@@ -271,6 +288,9 @@ export class WealthDashboardWidgetComponent implements OnInit {
       }))
       .filter((part) => part.weight > 0);
   });
+  private readonly bySize = computed(() => [...this.parts()].sort((a, b) => b.weight - a.weight));
+  protected readonly topParts = computed(() => this.bySize().slice(0, 3));
+  protected readonly restParts = computed(() => this.bySize().slice(3));
   protected readonly negative = computed(() => Number(this.figures().delta ?? 0) < 0);
 
   protected readonly text = computed(() => {

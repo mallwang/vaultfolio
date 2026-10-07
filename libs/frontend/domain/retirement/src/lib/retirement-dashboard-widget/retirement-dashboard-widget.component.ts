@@ -5,7 +5,6 @@ import {
   I18nService,
   DashboardTileComponent,
   IconComponent,
-  TileDetailsDirective,
   TileValueComponent,
   TranslatePipe,
 } from '@vaultfolio/frontend-shared-ui';
@@ -27,7 +26,6 @@ import { RetirementService } from '../retirement.service';
     TranslatePipe,
     EmptyTileComponent,
     DashboardTileComponent,
-    TileDetailsDirective,
     TileValueComponent,
   ],
   template: `
@@ -74,45 +72,6 @@ import { RetirementService } from '../retirement.service';
               {{ 'retirement.widget.perMonth' | translate }}
             </span>
             <div tileChart class="chart" data-testid="retirement-widget-chart">
-              <p
-                class="readout"
-                aria-live="polite"
-                [attr.title]="readout()"
-                data-testid="retirement-widget-readout"
-              >
-                {{ readout() }}
-              </p>
-              <div
-                class="bar"
-                role="group"
-                [attr.aria-label]="'retirement.widget.barLabel' | translate"
-              >
-                <div
-                  class="bar__guaranteed"
-                  tabindex="0"
-                  [style.width.%]="guaranteedShare()"
-                  [attr.aria-label]="guaranteedText()"
-                  [attr.title]="guaranteedText()"
-                  data-testid="retirement-widget-bar-guaranteed"
-                  (mouseenter)="hovered.set('guaranteed')"
-                  (focus)="hovered.set('guaranteed')"
-                  (mouseleave)="hovered.set(null)"
-                  (blur)="hovered.set(null)"
-                ></div>
-                <div
-                  class="bar__additional"
-                  tabindex="0"
-                  [attr.aria-label]="additionalText()"
-                  [attr.title]="additionalText()"
-                  data-testid="retirement-widget-bar-additional"
-                  (mouseenter)="hovered.set('additional')"
-                  (focus)="hovered.set('additional')"
-                  (mouseleave)="hovered.set(null)"
-                  (blur)="hovered.set(null)"
-                ></div>
-              </div>
-            </div>
-            <div tileDetails class="details">
               <dl class="kpis">
                 <div class="kpi">
                   <dt>{{ 'retirement.widget.start' | translate }}</dt>
@@ -131,6 +90,27 @@ import { RetirementService } from '../retirement.service';
                   <dd data-testid="retirement-widget-savings">{{ money(s.monthlySavings) }}</dd>
                 </div>
               </dl>
+              <div
+                class="bar"
+                role="group"
+                [attr.aria-label]="'retirement.widget.barLabel' | translate"
+              >
+                <div
+                  class="bar__guaranteed"
+                  tabindex="0"
+                  [style.width.%]="guaranteedShare()"
+                  [attr.aria-label]="guaranteedText()"
+                  [attr.title]="guaranteedText()"
+                  data-testid="retirement-widget-bar-guaranteed"
+                ></div>
+                <div
+                  class="bar__additional"
+                  tabindex="0"
+                  [attr.aria-label]="additionalText()"
+                  [attr.title]="additionalText()"
+                  data-testid="retirement-widget-bar-additional"
+                ></div>
+              </div>
               <div class="legend">
                 <span class="legend__item">
                   <i class="swatch swatch--guaranteed"></i>
@@ -213,7 +193,7 @@ import { RetirementService } from '../retirement.service';
     .kpis {
       display: flex;
       flex-direction: column;
-      gap: 0.35rem;
+      gap: 0.1rem;
       margin: 0;
     }
     .kpi {
@@ -235,22 +215,12 @@ import { RetirementService } from '../retirement.service';
       display: flex;
       flex: 1;
       flex-direction: column;
-      gap: 0.4rem;
+      gap: 0.5rem;
       min-width: 0;
-    }
-    .readout {
-      margin: 0;
-      overflow: hidden;
-      line-height: 1.1rem;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      font-size: 0.8125rem;
-      color: var(--p-text-muted-color);
-      font-variant-numeric: tabular-nums;
     }
     .bar {
       display: flex;
-      height: 0.75rem;
+      height: 1rem;
       border-radius: 0.3rem;
       overflow: hidden;
     }
@@ -323,8 +293,6 @@ export class RetirementDashboardWidgetComponent implements OnInit {
     return Math.min(100, (Number(s.guaranteedMonthly) / expected) * 100);
   });
 
-  protected readonly hovered = signal<'guaranteed' | 'additional' | null>(null);
-
   protected readonly guaranteedText = computed(() => {
     const s = this.summary();
     return fill(this.i18n.translate('retirement.widget.barGuaranteed'), {
@@ -338,18 +306,6 @@ export class RetirementDashboardWidgetComponent implements OnInit {
       amount: this.money(this.summary()?.differenceMonthly ?? '0'),
     }),
   );
-
-  /** The hovered or focused segment; the overall explanation while nothing is. */
-  protected readonly readout = computed(() => {
-    switch (this.hovered()) {
-      case 'guaranteed':
-        return this.guaranteedText();
-      case 'additional':
-        return this.additionalText();
-      default:
-        return this.i18n.translate('retirement.widget.barHint');
-    }
-  });
 
   protected readonly contracts = computed(() => {
     const n = this.summary()?.items.length ?? 0;
