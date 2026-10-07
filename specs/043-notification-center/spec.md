@@ -6,6 +6,8 @@
 
 **Status**: Draft
 
+**Design**: [design.md](./design.md)
+
 **Input**: User description: "Wiederverwendbares Hinweiscenter (Postfach): Features stellen Hinweise bereit (z. B. mögliche Versicherungsdopplungen, Datenprüfungshinweise der Einkommensentwicklung, später ein nicht versendeter Feedback-Entwurf). Die UI zeigt ein Badge mit der Anzahl offener Hinweise. Hinweise dürfen ausgeblendet werden und sind dann unter 'Ausgeblendet' wieder einblendbar; ausgeblendete Hinweise zählen nicht ins Badge. Das Ausblenden wird lokal gespeichert. Ändert sich der Inhalt eines ausgeblendeten Hinweises (z. B. neue Einkommensdaten erzeugen einen neuen Hinweis), wird er wieder aktiv."
 
 ## User Scenarios & Testing _(mandatory)_

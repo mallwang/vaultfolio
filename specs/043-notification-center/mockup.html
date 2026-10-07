@@ -1,0 +1,823 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Hinweiscenter – Review-Mockup</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f8fafc;
+        --surface: #ffffff;
+        --text: #1e293b;
+        --muted: #64748b;
+        --line: #e2e8f0;
+        --primary: #10b981;
+        --primary-strong: #059669;
+        --warn: #d97706;
+        --warn-bg: #fff7ed;
+        --info: #2563eb;
+        --info-bg: #eff6ff;
+        --danger: #dc2626;
+        --review-bg: #f3f2ee;
+        --review-ink: #2c2a25;
+        --review-muted: #7a7669;
+        --review-line: #ddd9d0;
+        --review-accent: #b45f2c;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--review-bg);
+        color: var(--review-ink);
+        font-family:
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          sans-serif;
+      }
+
+      /* review chrome */
+      .review-header {
+        padding: 1.5rem 2rem 1rem;
+        border-bottom: 1px solid var(--review-line);
+      }
+      .review-eyebrow {
+        font-size: 0.72rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--review-accent);
+        font-weight: 700;
+        margin: 0 0 0.25rem;
+      }
+      .review-header h1 {
+        margin: 0 0 0.35rem;
+        font-size: 1.35rem;
+      }
+      .review-header p {
+        margin: 0;
+        color: var(--review-muted);
+        font-size: 0.9rem;
+        max-width: 72ch;
+        line-height: 1.5;
+      }
+      .review-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.25rem;
+        align-items: center;
+        padding: 0.85rem 2rem;
+        background: #fff;
+        border-bottom: 1px solid var(--review-line);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+      .control-group {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .label {
+        font-size: 0.72rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--review-muted);
+        font-weight: 700;
+      }
+      .segmented {
+        display: inline-flex;
+        border: 1px solid var(--review-line);
+        border-radius: 8px;
+        overflow: hidden;
+        flex-wrap: wrap;
+      }
+      .segmented button {
+        appearance: none;
+        border: none;
+        background: #fff;
+        color: var(--review-ink);
+        font: inherit;
+        font-size: 0.83rem;
+        font-weight: 600;
+        padding: 0.4rem 0.75rem;
+        cursor: pointer;
+        border-right: 1px solid var(--review-line);
+      }
+      .segmented button:last-child {
+        border-right: none;
+      }
+      .segmented button[aria-pressed='true'] {
+        background: var(--review-accent);
+        color: #fff;
+      }
+      .review-stage {
+        padding: 2rem;
+        display: flex;
+        justify-content: center;
+      }
+      .stage-frame {
+        width: 100%;
+        max-width: 1180px;
+        background: #d9d4c8;
+        border-radius: 14px;
+        padding: 1.25rem;
+        transition: max-width 0.2s ease;
+      }
+      .stage-frame[data-viewport='mobile'] {
+        max-width: 400px;
+      }
+      .stage-frame-label {
+        font-size: 0.72rem;
+        color: var(--review-muted);
+        text-align: center;
+        margin: 0 0 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      .canvas {
+        background: var(--bg);
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+        color: var(--text);
+        font-size: 14px;
+        position: relative;
+      }
+      .review-footer {
+        padding: 0 2rem 2rem;
+        max-width: 1180px;
+        margin: 0 auto;
+        font-size: 0.85rem;
+        color: var(--review-muted);
+      }
+      .review-footer ul {
+        padding-left: 1.1rem;
+      }
+
+      /* app chrome */
+      .shell {
+        display: grid;
+        grid-template-columns: 232px 1fr;
+        min-height: 640px;
+      }
+      .stage-frame[data-viewport='mobile'] .shell {
+        grid-template-columns: 1fr;
+      }
+      .sidebar {
+        background: var(--surface);
+        border-right: 1px solid var(--line);
+        padding: 1rem 0.75rem;
+        border-radius: 8px 0 0 8px;
+      }
+      .stage-frame[data-viewport='mobile'] .sidebar {
+        display: flex;
+        overflow-x: auto;
+        gap: 0.25rem;
+        border-right: none;
+        border-bottom: 1px solid var(--line);
+        padding: 0.5rem;
+        border-radius: 8px 8px 0 0;
+      }
+      .stage-frame[data-viewport='mobile'] .brand {
+        display: none;
+      }
+      .brand {
+        font-weight: 800;
+        font-size: 1.05rem;
+        padding: 0.25rem 0.5rem 1rem;
+        color: var(--primary-strong);
+      }
+      .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.5rem 0.6rem;
+        border-radius: 8px;
+        font-weight: 500;
+        white-space: nowrap;
+      }
+      .nav-item.active {
+        background: #ecfdf5;
+        color: var(--primary-strong);
+        font-weight: 700;
+      }
+      .ic {
+        width: 18px;
+        text-align: center;
+      }
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.9rem 1.25rem;
+        background: var(--surface);
+        border-bottom: 1px solid var(--line);
+        border-radius: 0 8px 0 0;
+        gap: 0.5rem;
+      }
+      .header h2 {
+        margin: 0;
+        font-size: 1.15rem;
+      }
+      .crumb {
+        margin: 0;
+        font-size: 0.72rem;
+        color: var(--muted);
+      }
+      .meta {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: 0.85rem;
+        position: relative;
+      }
+      .stage-frame[data-viewport='mobile'] .hide-mobile {
+        display: none;
+      }
+      .role {
+        background: #e0e7ff;
+        color: #3730a3;
+        border-radius: 999px;
+        padding: 0.1rem 0.5rem;
+        font-size: 0.72rem;
+        font-weight: 700;
+      }
+      .icon-btn {
+        appearance: none;
+        border: none;
+        background: transparent;
+        color: var(--muted);
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        font-size: 1rem;
+        cursor: pointer;
+        position: relative;
+        display: grid;
+        place-items: center;
+      }
+      .icon-btn:hover,
+      .icon-btn[aria-expanded='true'] {
+        background: #f1f5f9;
+        color: var(--text);
+      }
+      .icon-btn:focus-visible {
+        outline: 2px solid var(--primary);
+      }
+      .bell-count {
+        position: absolute;
+        top: -1px;
+        right: -3px;
+        min-width: 17px;
+        height: 17px;
+        padding: 0 4px;
+        border-radius: 999px;
+        background: var(--danger);
+        color: #fff;
+        font-size: 0.65rem;
+        font-weight: 700;
+        display: grid;
+        place-items: center;
+        border: 2px solid var(--surface);
+        box-sizing: content-box;
+      }
+      .bell-count[hidden] {
+        display: none;
+      }
+      .bell-dot {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--muted);
+        border: 2px solid var(--surface);
+        box-sizing: content-box;
+      }
+      .bell-dot[hidden] {
+        display: none;
+      }
+      .content {
+        padding: 1.25rem;
+      }
+      .tiles {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+      }
+      .stage-frame[data-viewport='mobile'] .tiles {
+        grid-template-columns: 1fr;
+      }
+      .tile {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 1rem;
+        min-height: 110px;
+      }
+      .tile h3 {
+        margin: 0 0 0.4rem;
+        font-size: 0.9rem;
+      }
+      .muted {
+        color: var(--muted);
+      }
+
+      /* notification panel */
+      .panel {
+        position: absolute;
+        top: 42px;
+        right: 0;
+        width: 400px;
+        max-height: 560px;
+        overflow-y: auto;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        box-shadow: 0 12px 32px rgba(15, 23, 42, 0.18);
+        z-index: 20;
+        color: var(--text);
+      }
+      .panel[hidden] {
+        display: none;
+      }
+      .panel-backdrop {
+        display: none;
+      }
+      .stage-frame[data-viewport='mobile'] .meta {
+        position: static;
+      }
+      .stage-frame[data-viewport='mobile'] .panel {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: calc(100% - 32px);
+        max-height: 78%;
+        z-index: 31;
+      }
+      .stage-frame[data-viewport='mobile'] .panel-backdrop.open {
+        display: block;
+        position: absolute;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.5);
+        border-radius: 8px;
+        z-index: 30;
+      }
+      .panel-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.8rem 1rem;
+        border-bottom: 1px solid var(--line);
+      }
+      .panel-head h3 {
+        margin: 0;
+        font-size: 0.95rem;
+      }
+      .panel-close {
+        font-size: 0.9rem;
+      }
+      .group-title {
+        margin: 0;
+        padding: 0.7rem 1rem 0.3rem;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      .hint {
+        display: grid;
+        grid-template-columns: 28px 1fr auto;
+        gap: 0.6rem;
+        padding: 0.7rem 1rem;
+        border-top: 1px solid var(--line);
+        align-items: start;
+      }
+      .hint:first-of-type {
+        border-top: none;
+      }
+      .sev {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-size: 0.85rem;
+        font-weight: 700;
+      }
+      .sev.warning {
+        background: var(--warn-bg);
+        color: var(--warn);
+      }
+      .sev.info {
+        background: var(--info-bg);
+        color: var(--info);
+      }
+      .hint-title {
+        margin: 0;
+        font-weight: 700;
+        font-size: 0.88rem;
+      }
+      .hint-desc {
+        margin: 0.15rem 0 0.35rem;
+        color: var(--muted);
+        font-size: 0.82rem;
+        line-height: 1.4;
+      }
+      .hint-link {
+        color: var(--primary-strong);
+        font-weight: 600;
+        font-size: 0.82rem;
+        text-decoration: none;
+        cursor: pointer;
+      }
+      .hint-link:hover {
+        text-decoration: underline;
+      }
+      .hint-action {
+        appearance: none;
+        border: none;
+        background: transparent;
+        color: var(--muted);
+        font: inherit;
+        font-size: 0.78rem;
+        font-weight: 600;
+        cursor: pointer;
+        padding: 0.2rem 0.4rem;
+        border-radius: 6px;
+      }
+      .hint-action:hover {
+        background: #f1f5f9;
+        color: var(--text);
+      }
+      .hidden-toggle {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        appearance: none;
+        border: none;
+        border-top: 1px solid var(--line);
+        background: #f8fafc;
+        font: inherit;
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: var(--muted);
+        padding: 0.7rem 1rem;
+        cursor: pointer;
+      }
+      .hidden-toggle:hover {
+        color: var(--text);
+      }
+      .hidden-list .hint {
+        opacity: 0.8;
+        background: #fcfcfd;
+      }
+      .empty {
+        padding: 2rem 1rem;
+        text-align: center;
+        color: var(--muted);
+      }
+      .empty .big {
+        font-size: 1.8rem;
+        display: block;
+        margin-bottom: 0.3rem;
+      }
+      .panel-foot {
+        padding: 0.55rem 1rem;
+        font-size: 0.72rem;
+        color: var(--muted);
+        border-top: 1px solid var(--line);
+      }
+    </style>
+  </head>
+  <body>
+    <header class="review-header">
+      <p class="review-eyebrow">Non-functional review mockup</p>
+      <h1>043 – Hinweiscenter</h1>
+      <p>
+        Benachrichtigungs-Glocke mit Badge in der Kopfzeile, vor Sprache und Theme. Klick öffnet ein
+        Panel mit aktiven Hinweisen (nach Quelle gruppiert, Warnungen zuerst) und einem
+        einklappbaren Bereich „Ausgeblendet“. „Ausblenden“ und „Einblenden“ funktionieren im Mockup.
+        Alle Daten sind erfunden.
+      </p>
+    </header>
+
+    <div class="review-controls">
+      <div class="control-group">
+        <span class="label">Viewport</span>
+        <div class="segmented" id="viewport-toggle">
+          <button type="button" data-viewport="desktop" aria-pressed="true">Desktop</button>
+          <button type="button" data-viewport="mobile" aria-pressed="false">Mobile</button>
+        </div>
+      </div>
+      <div class="control-group">
+        <span class="label">Zustand</span>
+        <div class="segmented" id="preset-toggle">
+          <button type="button" data-preset="open" aria-pressed="true">Panel offen (3 + 1)</button>
+          <button type="button" data-preset="closed" aria-pressed="false">Panel zu (Badge)</button>
+          <button type="button" data-preset="empty" aria-pressed="false">Keine Hinweise</button>
+          <button type="button" data-preset="onlyhidden" aria-pressed="false">
+            Nur ausgeblendete
+          </button>
+          <button type="button" data-preset="many" aria-pressed="false">Viele (9+)</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="review-stage">
+      <div class="stage-frame" id="stage-frame" data-viewport="desktop">
+        <p class="stage-frame-label" id="stage-frame-label">Desktop</p>
+        <div class="canvas" id="canvas">
+          <div class="panel-backdrop" id="panel-backdrop"></div>
+          <div class="shell">
+            <nav class="sidebar" aria-label="Primary">
+              <div class="brand">Vaultfolio</div>
+              <div class="nav-item active"><span class="ic">▦</span>Dashboard</div>
+              <div class="nav-item"><span class="ic">💼</span>Bestände</div>
+              <div class="nav-item"><span class="ic">🧓</span>Altersvorsorge</div>
+              <div class="nav-item"><span class="ic">🛡</span>Versicherungen</div>
+              <div class="nav-item"><span class="ic">💶</span>Einkommen</div>
+            </nav>
+
+            <div>
+              <div class="header">
+                <div>
+                  <p class="crumb">Vaultfolio</p>
+                  <h2>Dashboard</h2>
+                </div>
+                <div class="meta">
+                  <span class="hide-mobile">Erika Muster</span>
+                  <span class="role hide-mobile">Member</span>
+                  <button
+                    type="button"
+                    class="icon-btn"
+                    id="bell"
+                    aria-haspopup="dialog"
+                    aria-expanded="true"
+                    aria-label="Hinweise"
+                    data-testid="notification-center-trigger"
+                  >
+                    <svg
+                      width="22"
+                      height="22"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"
+                      />
+                    </svg>
+                    <span class="bell-count" id="bell-count"></span
+                    ><span class="bell-dot" id="bell-dot" hidden></span>
+                  </button>
+                  <button type="button" class="icon-btn" aria-label="Sprache">🇩🇪</button>
+                  <button type="button" class="icon-btn" aria-label="Dunkles Theme">☀</button>
+                  <button type="button" class="icon-btn" aria-label="Abmelden">⏻</button>
+
+                  <section
+                    class="panel"
+                    id="panel"
+                    role="dialog"
+                    aria-label="Hinweise"
+                    data-testid="notification-center-panel"
+                  >
+                    <div class="panel-head">
+                      <h3 id="panel-title">Hinweise</h3>
+                      <button
+                        type="button"
+                        class="icon-btn panel-close"
+                        id="panel-close"
+                        aria-label="Schließen"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    <div id="active-list"></div>
+                    <button type="button" class="hidden-toggle" id="hidden-toggle">
+                      <span id="hidden-label">Ausgeblendet (1)</span
+                      ><span id="hidden-chevron">▾</span>
+                    </button>
+                    <div class="hidden-list" id="hidden-list"></div>
+                    <div class="panel-foot">
+                      Ausgeblendete Hinweise zählen nicht im Badge. Ändert sich ein Hinweis, wird er
+                      wieder aktiv.
+                    </div>
+                  </section>
+                </div>
+              </div>
+
+              <div class="content">
+                <div class="tiles">
+                  <div class="tile">
+                    <h3>Gesamtvermögen</h3>
+                    <p class="muted">[Kachel – Platzhalter]</p>
+                  </div>
+                  <div class="tile">
+                    <h3>Altersvorsorge</h3>
+                    <p class="muted">[Kachel – Platzhalter]</p>
+                  </div>
+                  <div class="tile">
+                    <h3>Versicherungen</h3>
+                    <p class="muted">[Kachel – Platzhalter]</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="review-footer">
+      <p><strong>Hinweise zur Review</strong></p>
+      <ul>
+        <li>Platzierung: Glocke in der Kopfzeile, links von Sprache und Theme.</li>
+        <li>
+          Badge zählt nur aktive Hinweise; über 9 wird „9+“ gezeigt. Gibt es nur ausgeblendete
+          Hinweise, zeigt die Glocke einen kleinen grauen Punkt statt einer Zahl.
+        </li>
+        <li>Mobile: Das Panel wird zum Modal mit Abdunklung, kein eigener Screen.</li>
+        <li>
+          Außerhalb des Mockups: Provider-Vertrag, lokale Speicherung des Ausblendens,
+          Inhalts-Signatur.
+        </li>
+      </ul>
+    </footer>
+
+    <script>
+      const stageFrame = document.getElementById('stage-frame');
+      const stageLabel = document.getElementById('stage-frame-label');
+      const panel = document.getElementById('panel');
+      const backdrop = document.getElementById('panel-backdrop');
+      const bell = document.getElementById('bell');
+      const bellCount = document.getElementById('bell-count');
+      const bellDot = document.getElementById('bell-dot');
+      const activeList = document.getElementById('active-list');
+      const hiddenList = document.getElementById('hidden-list');
+      const hiddenToggle = document.getElementById('hidden-toggle');
+      const hiddenLabel = document.getElementById('hidden-label');
+      const hiddenChevron = document.getElementById('hidden-chevron');
+
+      const base = [
+        {
+          id: 'ins-dup',
+          group: 'Versicherungen',
+          sev: 'warning',
+          title: 'Mögliche Doppelung',
+          desc: '„Haftpflicht Allianz“ und „Privathaftpflicht Allianz“ decken dasselbe Risiko ab.',
+          link: 'Zu den Versicherungen',
+        },
+        {
+          id: 'earn-gap',
+          group: 'Einkommen',
+          sev: 'warning',
+          title: 'Datenprüfung: Lücke 2019',
+          desc: 'Für 2019 fehlen Einträge zwischen März und Juni.',
+          link: 'Zur Einkommensentwicklung',
+        },
+        {
+          id: 'fb-draft',
+          group: 'Feedback',
+          sev: 'info',
+          title: 'Nicht gesendeter Entwurf',
+          desc: 'Dein Feedback „Export als CSV“ wurde noch nicht versendet.',
+          link: 'Entwurf öffnen',
+        },
+        {
+          id: 'earn-old',
+          group: 'Einkommen',
+          sev: 'info',
+          title: 'Datenprüfung: Ausreißer 2021',
+          desc: 'Ein Monatswert liegt deutlich über dem Durchschnitt.',
+          link: 'Zur Einkommensentwicklung',
+        },
+      ];
+
+      let hints = [];
+      let hiddenOpen = false;
+
+      const presets = {
+        open: () => ({ open: true, hidden: ['earn-old'], extra: 0 }),
+        closed: () => ({ open: false, hidden: ['earn-old'], extra: 0 }),
+        empty: () => ({ open: true, hidden: [], none: true, extra: 0 }),
+        onlyhidden: () => ({ open: true, hidden: base.map((h) => h.id), extra: 0 }),
+        many: () => ({ open: false, hidden: [], extra: 8 }),
+      };
+
+      function hintHtml(h, isHidden) {
+        const icon = h.sev === 'warning' ? '!' : 'i';
+        const action = isHidden ? 'Einblenden' : 'Ausblenden';
+        return `<div class="hint" data-testid="notification-hint" data-id="${h.id}">
+          <span class="sev ${h.sev}" aria-hidden="true">${icon}</span>
+          <div>
+            <p class="hint-title">${h.title}</p>
+            <p class="hint-desc">${h.desc}</p>
+            <a class="hint-link">${h.link} →</a>
+          </div>
+          <button type="button" class="hint-action" data-action="${isHidden ? 'show' : 'hide'}" data-id="${h.id}">${action}</button>
+        </div>`;
+      }
+
+      function render() {
+        const active = hints
+          .filter((h) => !h.hidden)
+          .sort((a, b) => (a.sev === b.sev ? 0 : a.sev === 'warning' ? -1 : 1));
+        const hidden = hints.filter((h) => h.hidden);
+
+        let html = '';
+        if (active.length === 0) {
+          html = `<div class="empty"><span class="big">✓</span>Keine offenen Hinweise</div>`;
+        } else {
+          [...new Set(active.map((h) => h.group))].forEach((g) => {
+            html += `<p class="group-title">${g}</p>`;
+            html += active
+              .filter((h) => h.group === g)
+              .map((h) => hintHtml(h, false))
+              .join('');
+          });
+        }
+        activeList.innerHTML = html;
+
+        hiddenToggle.style.display = hidden.length ? 'flex' : 'none';
+        hiddenLabel.textContent = `Ausgeblendet (${hidden.length})`;
+        hiddenChevron.textContent = hiddenOpen ? '▴' : '▾';
+        hiddenToggle.setAttribute('aria-expanded', String(hiddenOpen));
+        hiddenList.innerHTML = hiddenOpen ? hidden.map((h) => hintHtml(h, true)).join('') : '';
+
+        const n = active.length;
+        bellCount.hidden = n === 0;
+        bellCount.textContent = n > 9 ? '9+' : String(n);
+        bellDot.hidden = !(n === 0 && hidden.length > 0);
+        bell.setAttribute('aria-label', n ? `Hinweise, ${n} offen` : 'Hinweise');
+      }
+
+      function setOpen(open) {
+        panel.hidden = !open;
+        backdrop.classList.toggle('open', open);
+        bell.setAttribute('aria-expanded', String(open));
+      }
+
+      function applyPreset(name) {
+        const p = presets[name]();
+        hints = p.none ? [] : base.map((h) => ({ ...h, hidden: p.hidden.includes(h.id) }));
+        for (let i = 0; i < p.extra; i++) {
+          hints.push({
+            id: 'x' + i,
+            group: 'Einkommen',
+            sev: 'info',
+            title: 'Datenprüfung: Hinweis ' + (i + 1),
+            desc: 'Beispiel-Hinweis zur Darstellung vieler Einträge.',
+            link: 'Zur Einkommensentwicklung',
+            hidden: false,
+          });
+        }
+        hiddenOpen = name === 'onlyhidden';
+        setOpen(p.open);
+        render();
+      }
+
+      panel.addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-action]');
+        if (!btn) return;
+        const h = hints.find((x) => x.id === btn.getAttribute('data-id'));
+        h.hidden = btn.getAttribute('data-action') === 'hide';
+        render();
+      });
+      hiddenToggle.addEventListener('click', () => {
+        hiddenOpen = !hiddenOpen;
+        render();
+      });
+      bell.addEventListener('click', () => setOpen(panel.hidden));
+      document.getElementById('panel-close').addEventListener('click', () => setOpen(false));
+      backdrop.addEventListener('click', () => setOpen(false));
+
+      document.getElementById('viewport-toggle').addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-viewport]');
+        if (!btn) return;
+        const value = btn.getAttribute('data-viewport');
+        stageFrame.setAttribute('data-viewport', value);
+        stageLabel.textContent = value === 'mobile' ? 'Mobile (400 px)' : 'Desktop';
+        [...document.querySelectorAll('#viewport-toggle button')].forEach((b) =>
+          b.setAttribute('aria-pressed', String(b === btn)),
+        );
+      });
+      document.getElementById('preset-toggle').addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-preset]');
+        if (!btn) return;
+        applyPreset(btn.getAttribute('data-preset'));
+        [...document.querySelectorAll('#preset-toggle button')].forEach((b) =>
+          b.setAttribute('aria-pressed', String(b === btn)),
+        );
+      });
+
+      applyPreset('open');
+    </script>
+  </body>
+</html>
