@@ -1,0 +1,901 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Vereinheitlichte Dashboard-Kacheln – Review-Mockup</title>
+    <style>
+      :root {
+        color-scheme: light;
+
+        /* Approximation der PrimeNG Aura-Defaults */
+        --bg: #f8fafc;
+        --card: #ffffff;
+        --border: #e2e8f0;
+        --text: #334155;
+        --muted: #64748b;
+        --primary: #10b981;
+        --primary-soft: #ecfdf5;
+        --danger: #dc2626;
+        --warn: #d97706;
+        --warn-soft: #fffbeb;
+        --hover: #f1f5f9;
+
+        /* Vorschlag aus diesem Review */
+        --tile-min-height: 14rem;
+        --tile-value-size: 1.875rem;
+
+        --review-bg: #f3f2ee;
+        --review-ink: #2c2a25;
+        --review-muted: #7a7669;
+        --review-line: #ddd9d0;
+        --review-accent: #b45f2c;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--review-bg);
+        color: var(--review-ink);
+        font-family:
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      h1,
+      h2,
+      h3,
+      p {
+        text-wrap: balance;
+      }
+
+      /* ===== Review chrome ===== */
+      .review-header {
+        padding: 1.5rem 2rem 1rem;
+        border-bottom: 1px solid var(--review-line);
+      }
+      .review-eyebrow {
+        font-size: 0.72rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--review-accent);
+        font-weight: 700;
+        margin: 0 0 0.25rem;
+      }
+      .review-header h1 {
+        margin: 0 0 0.35rem;
+        font-size: 1.35rem;
+        font-weight: 800;
+      }
+      .review-header p {
+        margin: 0;
+        color: var(--review-muted);
+        font-size: 0.9rem;
+        max-width: 72ch;
+        line-height: 1.5;
+      }
+      .review-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.25rem;
+        align-items: center;
+        padding: 0.85rem 2rem;
+        background: #fff;
+        border-bottom: 1px solid var(--review-line);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+      .control-group {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .control-group .label {
+        font-size: 0.72rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--review-muted);
+        font-weight: 700;
+      }
+      .segmented {
+        display: inline-flex;
+        border: 1px solid var(--review-line);
+        border-radius: 8px;
+        overflow: hidden;
+        flex-wrap: wrap;
+      }
+      .segmented button {
+        appearance: none;
+        border: none;
+        background: #fff;
+        color: var(--review-ink);
+        font: inherit;
+        font-size: 0.83rem;
+        font-weight: 600;
+        padding: 0.4rem 0.75rem;
+        cursor: pointer;
+        border-right: 1px solid var(--review-line);
+      }
+      .segmented button:last-child {
+        border-right: none;
+      }
+      .segmented button:hover {
+        background: #f1efe9;
+      }
+      .segmented button:focus-visible {
+        outline: 2px solid var(--review-accent);
+        outline-offset: -2px;
+      }
+      .segmented button[aria-pressed='true'] {
+        background: var(--review-accent);
+        color: #fff;
+      }
+      .review-stage {
+        padding: 2rem;
+        display: flex;
+        justify-content: center;
+      }
+      .stage-frame {
+        width: 100%;
+        max-width: 1180px;
+        background: #d9d4c8;
+        border-radius: 14px;
+        padding: 1.25rem;
+        transition: max-width 0.2s ease;
+      }
+      .stage-frame[data-viewport='mobile'] {
+        max-width: 400px;
+      }
+      .stage-frame-label {
+        font-size: 0.72rem;
+        color: var(--review-muted);
+        text-align: center;
+        margin: 0 0 0.5rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      .canvas {
+        background: var(--bg);
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+        color: var(--text);
+        padding: 1.25rem;
+      }
+      .review-footer {
+        padding: 0 2rem 2rem;
+        max-width: 1180px;
+        margin: 0 auto;
+        font-size: 0.85rem;
+        color: var(--review-muted);
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+      }
+      .review-footer code {
+        background: #fff;
+        border: 1px solid var(--review-line);
+        border-radius: 4px;
+        padding: 0.1em 0.4em;
+        font-size: 0.8em;
+      }
+      .review-footer h3 {
+        margin: 0.5rem 0 0;
+        font-size: 0.8rem;
+        color: var(--review-ink);
+      }
+      .review-footer ul {
+        margin: 0.25rem 0 0.5rem;
+        padding-left: 1.1rem;
+      }
+
+      [data-screen] [data-show] {
+        display: none;
+      }
+      [data-screen='default'] [data-show~='default'],
+      [data-screen='edge'] [data-show~='edge'] {
+        display: block;
+      }
+      [data-screen='default'] .tile__body[data-show~='default'],
+      [data-screen='edge'] .tile__body[data-show~='edge'] {
+        display: flex;
+      }
+
+      /* ===== Feature styles ===== */
+      .toolbar {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 0.65rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--primary);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.85rem;
+        align-items: stretch;
+      }
+      .stage-frame[data-viewport='mobile'] .grid {
+        grid-template-columns: 1fr;
+      }
+
+      /* Gemeinsamer Kachelrahmen */
+      .tile {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        min-height: var(--tile-min-height);
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1rem 1.1rem 0.75rem;
+      }
+      .tile__header {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 0.5rem;
+        padding-right: 1.6rem; /* Platz für den Drag-Handle */
+        margin-bottom: 0.6rem;
+      }
+      .tile__title {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 600;
+      }
+      .tile__link {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--primary);
+        text-decoration: none;
+        white-space: nowrap;
+      }
+      .tile__handle {
+        position: absolute;
+        top: 0.65rem;
+        right: 0.6rem;
+        color: var(--muted);
+        font-size: 0.9rem;
+        line-height: 1;
+        cursor: grab;
+        letter-spacing: -2px;
+      }
+
+      /* Hauptinhalt: feste Zonen, damit Betrag / Stand / Diagramm überall auf gleicher Höhe sitzen */
+      .tile__main {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+      }
+      .tile__value {
+        font-size: var(--tile-value-size);
+        font-weight: 700;
+        line-height: 1.15;
+        letter-spacing: -0.01em;
+        font-variant-numeric: tabular-nums;
+      }
+      .tile__sub {
+        font-size: 0.8rem;
+        color: var(--muted);
+        min-height: 1.1rem;
+      }
+      .tile__chart {
+        margin-top: 0.55rem;
+        height: 3.25rem;
+        display: flex;
+        align-items: flex-end;
+      }
+      .delta-pos {
+        color: #059669;
+        font-weight: 600;
+      }
+
+      .stackbar {
+        display: flex;
+        width: 100%;
+        height: 0.75rem;
+        border-radius: 999px;
+        overflow: hidden;
+        gap: 2px;
+      }
+      .stackbar span {
+        display: block;
+        height: 100%;
+      }
+      .bars {
+        display: flex;
+        align-items: flex-end;
+        gap: 4px;
+        width: 100%;
+        height: 100%;
+      }
+      .bars i {
+        flex: 1;
+        background: var(--primary);
+        border-radius: 2px;
+        opacity: 0.85;
+      }
+      .donut {
+        width: 3.25rem;
+        height: 3.25rem;
+        border-radius: 50%;
+        background: conic-gradient(
+          #10b981 0 45%,
+          #3b82f6 45% 72%,
+          #f59e0b 72% 90%,
+          #94a3b8 90% 100%
+        );
+        mask: radial-gradient(circle at center, transparent 55%, #000 56%);
+        -webkit-mask: radial-gradient(circle at center, transparent 55%, #000 56%);
+      }
+
+      /* Details */
+      .tile__details {
+        display: none;
+        margin-top: 0.75rem;
+        padding-top: 0.75rem;
+        border-top: 1px dashed var(--border);
+        font-size: 0.85rem;
+      }
+      .tile[data-expanded='true'] .tile__details {
+        display: block;
+      }
+      .details-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+      }
+      .details-list li {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.75rem;
+      }
+      .details-list .k {
+        color: var(--muted);
+      }
+      .details-list .v {
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+      }
+      .swatch {
+        display: inline-block;
+        width: 0.6rem;
+        height: 0.6rem;
+        border-radius: 50%;
+        margin-right: 0.4rem;
+      }
+      .warn-link {
+        color: var(--warn);
+        font-weight: 600;
+      }
+
+      /* Toggle direkt unter dem Hauptinhalt – nur wenn Details vorhanden */
+      .tile__footer {
+        padding-top: 0.5rem;
+        display: flex;
+        justify-content: center;
+      }
+      .tile__toggle {
+        appearance: none;
+        border: 0;
+        background: none;
+        font: inherit;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--muted);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.3rem 0.6rem;
+        border-radius: 6px;
+        cursor: pointer;
+      }
+      .tile__toggle:hover {
+        background: var(--hover);
+        color: var(--text);
+      }
+      .tile__toggle:focus-visible {
+        outline: 2px solid var(--primary);
+      }
+      .tile__toggle .chev {
+        display: inline-block;
+        transition: transform 0.15s;
+      }
+      .tile__toggle[aria-expanded='true'] .chev {
+        transform: rotate(180deg);
+      }
+
+      /* Randzustände im selben Rahmen */
+      .tile__body {
+        flex-direction: column;
+        flex: 1;
+      }
+      .state {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        gap: 0.4rem;
+        color: var(--muted);
+        font-size: 0.85rem;
+      }
+      .state strong {
+        color: var(--text);
+      }
+      .state--maint {
+        background: var(--warn-soft);
+        border-radius: 8px;
+        color: #92400e;
+      }
+      .skel {
+        display: block;
+        border-radius: 6px;
+        background: linear-gradient(90deg, #e2e8f0, #f1f5f9, #e2e8f0);
+        background-size: 200% 100%;
+        animation: sh 1.2s infinite;
+      }
+      @keyframes sh {
+        to {
+          background-position: -200% 0;
+        }
+      }
+
+      .callout {
+        margin-top: 0.75rem;
+        font-size: 0.78rem;
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <header class="review-header">
+      <p class="review-eyebrow">Non-functional review mockup</p>
+      <h1>Vereinheitlichte Dashboard-Kacheln (042)</h1>
+      <p>
+        Alle Kacheln teilen sich Header, Hauptinhalt und optional einklappbare Details. Klicke bei
+        „Details anzeigen“ in einer beliebigen Kachel: Sie wächst, die Nachbarn in der Reihe werden
+        gleich hoch, zeigen ihre Details aber nicht. Mit dem Umschalter oben siehst du Lade-, Leer-,
+        Wartungs- und Fehlerzustand im selben Rahmen.
+      </p>
+    </header>
+
+    <div class="review-controls">
+      <div class="control-group">
+        <span class="label">Viewport</span>
+        <div class="segmented" id="viewport-toggle">
+          <button type="button" data-viewport="desktop" aria-pressed="true">Desktop</button>
+          <button type="button" data-viewport="mobile" aria-pressed="false">Mobil</button>
+        </div>
+      </div>
+      <div class="control-group">
+        <span class="label">Zustand</span>
+        <div class="segmented" id="screen-toggle">
+          <button type="button" data-screen="default" aria-pressed="true">Gefüllt</button>
+          <button type="button" data-screen="edge" aria-pressed="false">
+            Rand­zustände (laden / leer / Wartung / Fehler)
+          </button>
+        </div>
+      </div>
+      <div class="control-group">
+        <span class="label">Details</span>
+        <div class="segmented">
+          <button type="button" id="expand-all">Alle aufklappen</button>
+          <button type="button" id="collapse-all">Alle einklappen</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="review-stage">
+      <div class="stage-frame" id="stage-frame" data-viewport="desktop">
+        <p class="stage-frame-label" id="stage-frame-label">Desktop – 3 Kacheln pro Reihe</p>
+        <div class="canvas" data-screen="default" id="canvas">
+          <div class="toolbar">✎ Dashboard anpassen</div>
+
+          <div class="grid">
+            <!-- 1 Holdings Gesamtwert (nur Hauptinhalt, keine Details) -->
+            <article class="tile" data-expanded="false">
+              <span class="tile__handle" aria-hidden="true">⋮⋮</span>
+              <header class="tile__header">
+                <h2 class="tile__title">Gesamtwert</h2>
+                <a class="tile__link">Öffnen</a>
+              </header>
+              <div class="tile__body" data-show="default edge">
+                <div class="tile__main">
+                  <div class="tile__value">184.300 €</div>
+                  <div class="tile__sub">Stand 30.09.2026</div>
+                  <div class="tile__chart"></div>
+                </div>
+              </div>
+            </article>
+
+            <!-- 2 Verteilung (Diagramm, Details = Hinweis) -->
+            <article class="tile" data-expanded="false">
+              <span class="tile__handle" aria-hidden="true">⋮⋮</span>
+              <header class="tile__header">
+                <h2 class="tile__title">Verteilung</h2>
+                <a class="tile__link">Öffnen</a>
+              </header>
+              <div class="tile__body" data-show="default edge">
+                <div class="tile__main">
+                  <div class="tile__value">5 Typen</div>
+                  <div class="tile__sub">nach Wert</div>
+                  <div class="tile__chart">
+                    <div class="donut" role="img" aria-label="Verteilung"></div>
+                  </div>
+                </div>
+                <div class="tile__footer">
+                  <button type="button" class="tile__toggle" aria-expanded="false">
+                    <span class="lbl">Details anzeigen</span><span class="chev">▾</span>
+                  </button>
+                </div>
+                <div class="tile__details">
+                  <ul class="details-list">
+                    <li>
+                      <span class="k"><i class="swatch" style="background: #10b981"></i>Aktien</span
+                      ><span class="v">45 %</span>
+                    </li>
+                    <li>
+                      <span class="k"><i class="swatch" style="background: #3b82f6"></i>ETFs</span
+                      ><span class="v">27 %</span>
+                    </li>
+                    <li>
+                      <span class="k"
+                        ><i class="swatch" style="background: #f59e0b"></i>Anleihen</span
+                      ><span class="v">18 %</span>
+                    </li>
+                    <li>
+                      <span class="k"
+                        ><i class="swatch" style="background: #94a3b8"></i>Sonstige</span
+                      ><span class="v">10 %</span>
+                    </li>
+                  </ul>
+                  <p class="callout">2 Positionen ohne Wert ausgeschlossen.</p>
+                </div>
+              </div>
+            </article>
+
+            <!-- 3 Einkommen: gefüllt / Laden -->
+            <article class="tile" data-expanded="false">
+              <span class="tile__handle" aria-hidden="true">⋮⋮</span>
+              <header class="tile__header">
+                <h2 class="tile__title">Einkommen brutto 2025</h2>
+                <a class="tile__link">Öffnen</a>
+              </header>
+              <div class="tile__body" data-show="default">
+                <div class="tile__main">
+                  <div class="tile__value">78.400 €</div>
+                  <div class="tile__sub">
+                    Netto 52.100 € · <span class="delta-pos">+3,2 %</span>
+                  </div>
+                  <div class="tile__chart">
+                    <div class="bars" role="img" aria-label="Verlauf">
+                      <i style="height: 40%"></i><i style="height: 48%"></i
+                      ><i style="height: 55%"></i><i style="height: 62%"></i
+                      ><i style="height: 70%"></i><i style="height: 85%"></i
+                      ><i style="height: 100%"></i>
+                    </div>
+                  </div>
+                </div>
+                <div class="tile__footer">
+                  <button type="button" class="tile__toggle" aria-expanded="false">
+                    <span class="lbl">Details anzeigen</span><span class="chev">▾</span>
+                  </button>
+                </div>
+                <div class="tile__details">
+                  <ul class="details-list">
+                    <li><span class="k">Steuern</span><span class="v">19.800 €</span></li>
+                    <li><span class="k">Sozialabgaben</span><span class="v">6.500 €</span></li>
+                    <li>
+                      <span class="k">Ø pro Monat (netto)</span><span class="v">4.342 €</span>
+                    </li>
+                    <li>
+                      <span class="k">Zu Vorjahr</span><span class="v delta-pos">+3,2 %</span>
+                    </li>
+                  </ul>
+                  <p class="callout">
+                    <span class="warn-link">⚠ 2 Hinweise in der Datenprüfung</span>
+                  </p>
+                </div>
+              </div>
+              <div class="tile__body" data-show="edge">
+                <div class="tile__main" aria-busy="true">
+                  <span class="skel" style="width: 70%; height: 1.9rem"></span>
+                  <span class="skel" style="width: 45%; height: 0.8rem; margin-top: 0.4rem"></span>
+                  <span
+                    class="skel"
+                    style="width: 100%; height: 3.25rem; margin-top: 0.7rem"
+                  ></span>
+                </div>
+              </div>
+            </article>
+
+            <!-- 4 Altersvorsorge: gefüllt / Fehler -->
+            <article class="tile" data-expanded="false">
+              <span class="tile__handle" aria-hidden="true">⋮⋮</span>
+              <header class="tile__header">
+                <h2 class="tile__title">Erwartete Rente</h2>
+                <a class="tile__link">Öffnen</a>
+              </header>
+              <div class="tile__body" data-show="default">
+                <div class="tile__main">
+                  <div class="tile__value">≈ 2.140 €</div>
+                  <div class="tile__sub">pro Monat · Prognose</div>
+                  <div class="tile__chart">
+                    <div class="stackbar" role="img" aria-label="Garantiert / zusätzlich">
+                      <span style="width: 58%; background: #10b981"></span
+                      ><span style="flex: 1; background: #a7f3d0"></span>
+                    </div>
+                  </div>
+                </div>
+                <div class="tile__footer">
+                  <button type="button" class="tile__toggle" aria-expanded="false">
+                    <span class="lbl">Details anzeigen</span><span class="chev">▾</span>
+                  </button>
+                </div>
+                <div class="tile__details">
+                  <ul class="details-list">
+                    <li><span class="k">Rentenbeginn</span><span class="v">01.07.2046</span></li>
+                    <li>
+                      <span class="k"
+                        ><i class="swatch" style="background: #10b981"></i>Garantiert</span
+                      ><span class="v">1.240 €</span>
+                    </li>
+                    <li>
+                      <span class="k"
+                        ><i class="swatch" style="background: #a7f3d0"></i>Zusätzlich</span
+                      ><span class="v">900 €</span>
+                    </li>
+                    <li><span class="k">Sparrate</span><span class="v">350 €</span></li>
+                  </ul>
+                </div>
+              </div>
+              <div class="tile__body" data-show="edge">
+                <div class="state">
+                  <strong>Nicht verfügbar</strong>Die Daten konnten nicht geladen werden.
+                </div>
+              </div>
+            </article>
+
+            <!-- 5 Versicherungen: gefüllt / leer -->
+            <article class="tile" data-expanded="false">
+              <span class="tile__handle" aria-hidden="true">⋮⋮</span>
+              <header class="tile__header">
+                <h2 class="tile__title">Versicherungen monatlich</h2>
+                <a class="tile__link">Öffnen</a>
+              </header>
+              <div class="tile__body" data-show="default">
+                <div class="tile__main">
+                  <div class="tile__value">412 €</div>
+                  <div class="tile__sub">4.944 € pro Jahr</div>
+                  <div class="tile__chart">
+                    <div class="stackbar" role="img" aria-label="Aufteilung">
+                      <span style="flex: 5; background: #3b82f6"></span
+                      ><span style="flex: 3; background: #10b981"></span
+                      ><span style="flex: 2; background: #f59e0b"></span>
+                    </div>
+                  </div>
+                </div>
+                <div class="tile__footer">
+                  <button type="button" class="tile__toggle" aria-expanded="false">
+                    <span class="lbl">Details anzeigen</span><span class="chev">▾</span>
+                  </button>
+                </div>
+                <div class="tile__details">
+                  <ul class="details-list">
+                    <li>
+                      <span class="k"
+                        ><i class="swatch" style="background: #3b82f6"></i>Haftpflicht &amp;
+                        Sach</span
+                      ><span class="v">206 €</span>
+                    </li>
+                    <li>
+                      <span class="k"
+                        ><i class="swatch" style="background: #10b981"></i>Kranken</span
+                      ><span class="v">124 €</span>
+                    </li>
+                    <li>
+                      <span class="k"
+                        ><i class="swatch" style="background: #f59e0b"></i>Vorsorge</span
+                      ><span class="v">82 €</span>
+                    </li>
+                    <li>
+                      <span class="k">Nächste Fälligkeit</span><span class="v">15.11.2026</span>
+                    </li>
+                    <li><span class="k">Aktive Verträge</span><span class="v">7</span></li>
+                  </ul>
+                  <p class="callout"><span class="warn-link">⚠ 1 Absicherungslücke</span></p>
+                </div>
+              </div>
+              <div class="tile__body" data-show="edge">
+                <div class="state">
+                  <strong>Noch keine Versicherungen</strong>Lege deinen ersten Vertrag an.<span
+                    class="warn-link"
+                    style="color: var(--primary)"
+                    >Vertrag anlegen</span
+                  >
+                </div>
+              </div>
+            </article>
+
+            <!-- 6 Vermögen: gefüllt / Wartung -->
+            <article class="tile" data-expanded="false">
+              <span class="tile__handle" aria-hidden="true">⋮⋮</span>
+              <header class="tile__header">
+                <h2 class="tile__title">Nettovermögen</h2>
+                <a class="tile__link">Öffnen</a>
+              </header>
+              <div class="tile__body" data-show="default">
+                <div class="tile__main">
+                  <div class="tile__value">312.800 €</div>
+                  <div class="tile__sub">
+                    Stand 30.09.2026 · <span class="delta-pos">+4.200 € ggü. Vormonat</span>
+                  </div>
+                  <div class="tile__chart">
+                    <div class="stackbar" role="img" aria-label="Zusammensetzung">
+                      <span style="flex: 6; background: #10b981"></span
+                      ><span style="flex: 3; background: #3b82f6"></span
+                      ><span style="flex: 1; background: #f59e0b"></span>
+                    </div>
+                  </div>
+                </div>
+                <div class="tile__footer">
+                  <button type="button" class="tile__toggle" aria-expanded="false">
+                    <span class="lbl">Details anzeigen</span><span class="chev">▾</span>
+                  </button>
+                </div>
+                <div class="tile__details">
+                  <ul class="details-list">
+                    <li>
+                      <span class="k"
+                        ><i class="swatch" style="background: #10b981"></i>Wertpapiere</span
+                      ><span class="v">190.000 € (58 %)</span>
+                    </li>
+                    <li>
+                      <span class="k"
+                        ><i class="swatch" style="background: #3b82f6"></i>Immobilien</span
+                      ><span class="v">100.000 € (31 %)</span>
+                    </li>
+                    <li>
+                      <span class="k"
+                        ><i class="swatch" style="background: #f59e0b"></i>Bargeld</span
+                      ><span class="v">35.000 € (11 %)</span>
+                    </li>
+                    <li><span class="k">Vermögen</span><span class="v">345.000 €</span></li>
+                    <li>
+                      <span class="k">Verbindlichkeiten</span
+                      ><span class="v" style="color: var(--danger)">−32.200 €</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+              <div class="tile__body" data-show="edge">
+                <div class="state state--maint">
+                  <strong>🔧 Wartungsarbeiten</strong>Dieser Bereich ist vorübergehend nicht
+                  verfügbar.
+                </div>
+              </div>
+            </article>
+
+            <!-- 7 Konten -->
+            <article class="tile" data-expanded="false">
+              <span class="tile__handle" aria-hidden="true">⋮⋮</span>
+              <header class="tile__header">
+                <h2 class="tile__title">Konten</h2>
+                <a class="tile__link">Öffnen</a>
+              </header>
+              <div class="tile__body" data-show="default edge">
+                <div class="tile__main">
+                  <div class="tile__value">12</div>
+                  <div class="tile__sub">Konten gesamt</div>
+                  <div class="tile__chart"></div>
+                </div>
+                <div class="tile__footer">
+                  <button type="button" class="tile__toggle" aria-expanded="false">
+                    <span class="lbl">Details anzeigen</span><span class="chev">▾</span>
+                  </button>
+                </div>
+                <div class="tile__details">
+                  <ul class="details-list">
+                    <li><span class="k">Girokonten</span><span class="v">3</span></li>
+                    <li><span class="k">Depots</span><span class="v">4</span></li>
+                    <li><span class="k">Kreditkarten</span><span class="v">2</span></li>
+                    <li><span class="k">Sonstige</span><span class="v">3</span></li>
+                  </ul>
+                  <p class="callout">1 stillgelegt</p>
+                </div>
+              </div>
+            </article>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="review-footer">
+      <h3>Vorschlag zur Entscheidung</h3>
+      <ul>
+        <li>
+          Betragsgröße einheitlich <code>1,875rem / 700</code>, Mindesthöhe
+          <code>14rem</code> (Header, Betrag, Stand, Diagrammzone von <code>3,25rem</code>).
+        </li>
+        <li>
+          Kacheln ohne Diagramm (Gesamtwert, Konten) behalten die leere Diagrammzone, damit Betrag
+          und Toggle in der Reihe auf gleicher Höhe liegen.
+        </li>
+        <li>
+          „Details anzeigen“ sitzt direkt unter dem Hauptinhalt und fehlt, wenn eine Kachel keine
+          Details hat (Gesamtwert).
+        </li>
+        <li>
+          Aufgeklappt: Die Kachel wächst nach unten, die Nachbarn strecken sich gleich hoch, der
+          Leerraum liegt unterhalb des Toggles (eingeklappte Kacheln behalten ihn oben).
+        </li>
+        <li>
+          Das Mockup nähert die Aura-Defaults an; Texte und Zahlen sind Platzhalter. Dunkles Theme
+          nicht dargestellt.
+        </li>
+      </ul>
+    </footer>
+
+    <script>
+      const canvas = document.getElementById('canvas');
+      const stageFrame = document.getElementById('stage-frame');
+      const stageLabel = document.getElementById('stage-frame-label');
+
+      document.getElementById('viewport-toggle').addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-viewport]');
+        if (!btn) return;
+        const value = btn.getAttribute('data-viewport');
+        stageFrame.setAttribute('data-viewport', value);
+        stageLabel.textContent =
+          value === 'mobile' ? 'Mobil – 1 Kachel pro Reihe' : 'Desktop – 3 Kacheln pro Reihe';
+        document
+          .querySelectorAll('#viewport-toggle button')
+          .forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+      });
+
+      document.getElementById('screen-toggle').addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-screen]');
+        if (!btn) return;
+        canvas.setAttribute('data-screen', btn.getAttribute('data-screen'));
+        document
+          .querySelectorAll('#screen-toggle button')
+          .forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+      });
+
+      function setExpanded(tile, open) {
+        tile.dataset.expanded = String(open);
+        const btn = tile.querySelector('.tile__toggle');
+        if (!btn) return;
+        btn.setAttribute('aria-expanded', String(open));
+        btn.querySelector('.lbl').textContent = open ? 'Details ausblenden' : 'Details anzeigen';
+      }
+
+      canvas.addEventListener('click', (e) => {
+        const btn = e.target.closest('.tile__toggle');
+        if (!btn) return;
+        const tile = btn.closest('.tile');
+        setExpanded(tile, tile.dataset.expanded !== 'true');
+      });
+
+      document.getElementById('expand-all').addEventListener('click', () => {
+        canvas.querySelectorAll('.tile').forEach((t) => setExpanded(t, true));
+      });
+      document.getElementById('collapse-all').addEventListener('click', () => {
+        canvas.querySelectorAll('.tile').forEach((t) => setExpanded(t, false));
+      });
+    </script>
+  </body>
+</html>

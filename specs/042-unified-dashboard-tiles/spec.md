@@ -6,6 +6,8 @@
 
 **Status**: Draft
 
+**Design**: [design.md](./design.md)
+
 **Input**: User description: "Unify the filled dashboard tiles. Displayed amounts currently differ in size per tile (net worth is large, gross income is small) — use one common size. Tiles with larger content (charts, extra texts) stretch the other tiles in the same row, so define a minimum size per tile that all tiles respect, and show only the main information by default (e.g. for net worth: amount, as-of date and chart, but no details per position). Details are optional (some tiles have nothing beyond their main content) and can be expanded/collapsed. An expanded tile makes its row neighbours taller too, but the neighbours must NOT show their details — only the tile itself grows. Every tile consists of the same elements: header, main content, collapsible details."
 
 ## User Scenarios & Testing _(mandatory)_
