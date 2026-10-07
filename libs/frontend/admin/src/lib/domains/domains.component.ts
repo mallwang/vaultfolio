@@ -110,14 +110,17 @@ import { DomainsService } from './domains.service';
     </section>
   `,
   styles: `
-    .domains {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
+    :host {
+      display: block;
+      max-width: 1100px;
+      margin: 0 auto;
     }
-    .domains h2,
-    .domains p {
-      margin: 0;
+    .domains {
+      display: block;
+    }
+    .domains p-table {
+      display: block;
+      margin-top: 1rem;
     }
     .domains__name {
       display: inline-flex;

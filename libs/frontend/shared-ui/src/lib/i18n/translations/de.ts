@@ -249,7 +249,7 @@ export const de: TranslationDictionary = {
     deleteAccountError: 'Etwas ist schiefgelaufen. Ihr Konto wurde nicht geändert.',
   },
   admin: {
-    general: 'Allgemein',
+    general: 'System',
   },
   holdingsArea: {
     list: 'Liste',
@@ -415,7 +415,9 @@ export const de: TranslationDictionary = {
     signIn: 'Anmelden',
   },
   healthStatus: {
-    title: 'Systemstatus',
+    title: 'System',
+    columnCategory: 'Kategorie',
+    columnStatus: 'Status',
     version: 'Version',
     backend: 'Backend',
     database: 'Datenbank',
@@ -574,7 +576,7 @@ export const de: TranslationDictionary = {
     adminSignups: 'Verwaltung · Anmeldungen',
     adminInvitations: 'Verwaltung · Einladungen',
     adminRequests: 'Verwaltung · Anfragen',
-    adminGeneral: 'Verwaltung · Allgemein',
+    adminGeneral: 'Verwaltung · System',
     adminEncryption: 'Verwaltung · Verschlüsselung',
     adminDomains: 'Verwaltung · Domänen',
     notFound: 'Nicht gefunden',

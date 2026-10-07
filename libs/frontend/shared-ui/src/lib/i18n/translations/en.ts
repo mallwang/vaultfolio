@@ -252,7 +252,7 @@ export const en: TranslationDictionary = {
     deleteAccountError: 'Something went wrong. Your account was not changed.',
   },
   admin: {
-    general: 'General',
+    general: 'System',
   },
   holdingsArea: {
     list: 'List',
@@ -414,7 +414,9 @@ export const en: TranslationDictionary = {
     signIn: 'Sign in',
   },
   healthStatus: {
-    title: 'System health',
+    title: 'System',
+    columnCategory: 'Category',
+    columnStatus: 'Status',
     version: 'Version',
     backend: 'Backend',
     database: 'Database',
@@ -572,7 +574,7 @@ export const en: TranslationDictionary = {
     adminSignups: 'Admin · Sign-ups',
     adminInvitations: 'Admin · Invitations',
     adminRequests: 'Admin · Requests',
-    adminGeneral: 'Admin · General',
+    adminGeneral: 'Admin · System',
     adminEncryption: 'Admin · Encryption',
     adminDomains: 'Admin · Domains',
     notFound: 'Not Found',
