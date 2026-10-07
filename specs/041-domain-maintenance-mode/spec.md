@@ -6,6 +6,8 @@
 
 **Status**: Draft
 
+**Design**: [design.md](./design.md)
+
 **Input**: User description: "Domänen in Wartungsmodus versetzen. Admins need a domain administration where individual domains can be temporarily deactivated (faulty calculations, faulty export, faulty data, general maintenance) — under Administration, preferably in its own tab. A deactivated domain shows a maintenance notice on its dashboard tile, and a centered orange notice with icon when its navigation item is opened (similar to an empty Altersvorsorge, but orange). Deactivated must not be equated with 'feature not unlocked': the navigation item stays visible. The API must not accept requests for a deactivated domain and returns a matching response. All data in the database must be preserved."
 
 ## User Scenarios & Testing _(mandatory)_
