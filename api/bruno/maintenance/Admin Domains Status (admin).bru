@@ -1,0 +1,17 @@
+meta {
+  name: Admin Domains Status (admin)
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/admin/domains
+  body: none
+  auth: none
+}
+
+docs {
+  Maintenance status of every maintainable domain.
+  Admin-only request — requires the `vaultfolio_session` cookie of an ADMIN
+  account, captured by `auth/Login`.
+}

@@ -1,5 +1,6 @@
 import { requestsDe } from './requests.de';
 import { encryptionDe } from './encryption.de';
+import { maintenanceDe } from './maintenance.de';
 import { earningsDe } from './earnings.de';
 import { retirementDe } from './retirement.de';
 import { wealthDe } from './wealth.de';
@@ -47,6 +48,7 @@ export const de: TranslationDictionary = {
     invitations: 'Einladungen',
     requests: 'Anfragen',
     encryption: 'Verschlüsselung',
+    domains: 'Domänen',
     signups: 'Anmeldungen',
     healthStatus: 'Systemstatus',
     collapseSidebar: 'Navigation einklappen',
@@ -247,7 +249,7 @@ export const de: TranslationDictionary = {
     deleteAccountError: 'Etwas ist schiefgelaufen. Ihr Konto wurde nicht geändert.',
   },
   admin: {
-    general: 'Allgemein',
+    general: 'System',
   },
   holdingsArea: {
     list: 'Liste',
@@ -413,7 +415,9 @@ export const de: TranslationDictionary = {
     signIn: 'Anmelden',
   },
   healthStatus: {
-    title: 'Systemstatus',
+    title: 'System',
+    columnCategory: 'Kategorie',
+    columnStatus: 'Status',
     version: 'Version',
     backend: 'Backend',
     database: 'Datenbank',
@@ -572,8 +576,9 @@ export const de: TranslationDictionary = {
     adminSignups: 'Verwaltung · Anmeldungen',
     adminInvitations: 'Verwaltung · Einladungen',
     adminRequests: 'Verwaltung · Anfragen',
-    adminGeneral: 'Verwaltung · Allgemein',
+    adminGeneral: 'Verwaltung · System',
     adminEncryption: 'Verwaltung · Verschlüsselung',
+    adminDomains: 'Verwaltung · Domänen',
     notFound: 'Nicht gefunden',
   },
   accountOverviewForm: {
@@ -735,4 +740,5 @@ export const de: TranslationDictionary = {
   ocr: ocrDe,
   requests: requestsDe,
   encryption: encryptionDe,
+  maintenance: maintenanceDe,
 };

@@ -1,0 +1,16 @@
+meta {
+  name: Domain Maintenance List
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/domains/maintenance
+  body: none
+  auth: none
+}
+
+docs {
+  Ids of the domains currently in maintenance. Any signed-in user; requires the
+  `vaultfolio_session` cookie captured by `auth/Login`.
+}

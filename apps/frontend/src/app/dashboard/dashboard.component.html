@@ -34,7 +34,19 @@
             <p>{{ 'dashboard.tileDisabled' | translate }}</p>
           </div>
         } @else if (tile.source.kind === 'widget') {
-          <app-dynamic-outlet [loader]="tile.source.widget.loadComponent" />
+          @if (maintenance.isInMaintenance(tile.id)) {
+            @if (isAdmin()) {
+              <app-maintenance-tile
+                [badge]="true"
+                [testId]="'dashboard-tile-maintenance-badge-' + tile.id"
+              />
+              <app-dynamic-outlet [loader]="tile.source.widget.loadComponent" />
+            } @else {
+              <app-maintenance-tile [testId]="'dashboard-tile-maintenance-' + tile.id" />
+            }
+          } @else {
+            <app-dynamic-outlet [loader]="tile.source.widget.loadComponent" />
+          }
         } @else {
           <div class="stat-card__placeholder">
             <app-icon [name]="tile.source.icon" class="stat-card__placeholder-icon" />

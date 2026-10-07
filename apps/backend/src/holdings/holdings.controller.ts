@@ -15,6 +15,7 @@ import { CurrentUser } from '../auth/current-user.decorator';
 import type { RequestUser } from '../auth/current-user.decorator';
 import { RequiresDomain } from '../auth/domain.decorator';
 import { ApiVaultfolioSessionAuth } from '../openapi/api-vaultfolio-auth.decorator';
+import { ApiDomainMaintenanceResponse } from '../openapi/api-domain-maintenance.decorator';
 import {
   CreateCryptoHoldingRequestDto,
   CreateDepositMoneyHoldingRequestDto,
@@ -49,6 +50,7 @@ const NOT_FOUND_BODY: HoldingNotFoundErrorResponse = {
 /** REST surface for `/holdings`, per contracts/holdings-api.md (Principle II). `@RequiresDomain('holdings')` — `AuthGuard`/`DomainGuard` run globally (AuthModule) — mirrors the frontend's `domainGuard('holdings')`. */
 @ApiTags('holdings')
 @ApiVaultfolioSessionAuth()
+@ApiDomainMaintenanceResponse()
 @Controller('holdings')
 @RequiresDomain('holdings')
 export class HoldingsController {

@@ -20,6 +20,7 @@ import { CurrentUser } from '../auth/current-user.decorator';
 import type { RequestUser } from '../auth/current-user.decorator';
 import { RequiresDomain } from '../auth/domain.decorator';
 import { ApiVaultfolioSessionAuth } from '../openapi/api-vaultfolio-auth.decorator';
+import { ApiDomainMaintenanceResponse } from '../openapi/api-domain-maintenance.decorator';
 import {
   ErrorResponseDto,
   InsuranceContractDto,
@@ -38,6 +39,7 @@ import { InsurancesService } from './insurances.service';
  */
 @ApiTags('insurances')
 @ApiVaultfolioSessionAuth()
+@ApiDomainMaintenanceResponse()
 @Controller('insurances')
 @RequiresDomain('insurances')
 @UseGuards(InsurancesAvailableGuard)

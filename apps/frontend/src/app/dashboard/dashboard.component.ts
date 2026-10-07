@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { CdkDrag, CdkDragHandle, CdkDropList, type CdkDragDrop } from '@angular/cdk/drag-drop';
 import { CardModule } from 'primeng/card';
 import { TagModule } from 'primeng/tag';
@@ -6,7 +6,10 @@ import {
   IconComponent,
   TranslatePipe,
   DynamicOutletComponent,
+  MaintenanceTileComponent,
 } from '@vaultfolio/frontend-shared-ui';
+import { CurrentUserStore } from '../auth/current-user.store';
+import { DomainMaintenanceStore } from '../core/maintenance/domain-maintenance.store';
 import { DashboardEditDialogComponent } from './dashboard-edit-dialog.component';
 import { DashboardLayoutStore } from './dashboard-layout.store';
 
@@ -40,6 +43,7 @@ import { DashboardLayoutStore } from './dashboard-layout.store';
     TranslatePipe,
     IconComponent,
     DynamicOutletComponent,
+    MaintenanceTileComponent,
     DashboardEditDialogComponent,
   ],
   templateUrl: './dashboard.component.html',
@@ -47,6 +51,10 @@ import { DashboardLayoutStore } from './dashboard-layout.store';
 })
 export class DashboardComponent {
   private readonly layout = inject(DashboardLayoutStore);
+  protected readonly maintenance = inject(DomainMaintenanceStore);
+  private readonly currentUser = inject(CurrentUserStore);
+
+  protected readonly isAdmin = computed(() => this.currentUser.current()?.role === 'ADMIN');
 
   protected readonly tiles = this.layout.visibleTiles;
   protected readonly editOpen = signal(false);

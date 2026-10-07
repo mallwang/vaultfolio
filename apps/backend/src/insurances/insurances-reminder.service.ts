@@ -5,6 +5,7 @@ import { renderNotification, resolveLanguage } from '@vaultfolio/notifications';
 import { type User, UsersRepository } from '../auth/users.repository';
 import { requireAbsoluteUrl } from '../mail/absolute-url';
 import { MailerService } from '../mail/mailer.service';
+import { MaintenanceService } from '../maintenance/maintenance.service';
 import { InsurancesCryptoService } from './insurances-crypto.service';
 import { insuranceTypeLabel } from './insurance-type-labels';
 import { InsurancesRepository } from './insurances.repository';
@@ -26,6 +27,7 @@ export class InsurancesReminderService implements OnModuleInit {
     private readonly crypto: InsurancesCryptoService,
     private readonly users: UsersRepository,
     private readonly mailer: MailerService,
+    private readonly maintenance: MaintenanceService,
   ) {}
 
   onModuleInit(): void {
@@ -35,6 +37,8 @@ export class InsurancesReminderService implements OnModuleInit {
   /** Returns the number of reminders sent. */
   async sweep(today: string = new Date().toISOString().slice(0, 10)): Promise<number> {
     if (!this.crypto.available) return 0;
+    // Nothing is claimed while skipped, so the first sweep after maintenance catches up (041).
+    if (this.maintenance.isInMaintenance('insurances')) return 0;
     let sent = 0;
     for (const ownerId of this.repository.ownersWithSettings()) {
       try {

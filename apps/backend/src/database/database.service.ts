@@ -545,6 +545,29 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     db.exec(
       'CREATE INDEX IF NOT EXISTS request_download_audit_request_idx ON request_download_audit (request_id)',
     );
+
+    // 041-domain-maintenance-mode: brand-new tables. A missing `domain_maintenance` row means the
+    // domain is active; the audit table is append-only. No FK on user ids so the audit outlives users.
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS domain_maintenance (
+        domain_id      TEXT PRIMARY KEY,
+        in_maintenance INTEGER NOT NULL CHECK (in_maintenance IN (0, 1)),
+        updated_at     TEXT NOT NULL,
+        updated_by     TEXT NOT NULL
+      )
+    `);
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS domain_maintenance_audit (
+        id             TEXT PRIMARY KEY,
+        domain_id      TEXT NOT NULL,
+        in_maintenance INTEGER NOT NULL CHECK (in_maintenance IN (0, 1)),
+        actor_id       TEXT NOT NULL,
+        changed_at     TEXT NOT NULL
+      )
+    `);
+    db.exec(
+      'CREATE INDEX IF NOT EXISTS domain_maintenance_audit_domain_idx ON domain_maintenance_audit (domain_id, changed_at)',
+    );
   }
 
   /**

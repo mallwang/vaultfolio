@@ -55,6 +55,7 @@ infrastructure.
    - 9.3 [Sign-Up Requests](#93-sign-up-requests)
    - 9.4 [Parser and Other Requests](#94-parser-and-other-requests)
    - 9.5 [System Health](#95-system-health)
+   - 9.6 [Domain Maintenance](#96-domain-maintenance)
 
 ---
 
@@ -686,3 +687,23 @@ stay. Nobody but administrators can see requests, not even the person who sent t
 **Admin → General** shows the current system status: backend health (ok / degraded)
 and database connectivity (connected / unreachable), with a "last checked" timestamp.
 Use this if the app is behaving unexpectedly to confirm the backend is reachable.
+
+### 9.6 Domain Maintenance
+
+**Admin → Domains** lists every domain with its state (Active / In maintenance) and who
+changed it last. Use the switch to put a single domain into maintenance, for example while
+calculations, an export or data are being fixed; switching it on asks for confirmation,
+switching it off does not.
+
+While a domain is in maintenance:
+
+- Members still see its navigation item (marked with a wrench), but opening it shows an
+  orange "Temporarily unavailable" notice, and its dashboard tile shows a maintenance text.
+- All requests of members to that domain are rejected with a maintenance response, so
+  nothing is read, changed or exported.
+- Admins keep full access and see a banner (page) or badge (dashboard tile).
+- Insurance reminder e-mails pause and are sent after maintenance ends, provided the
+  deadline has not passed.
+
+No data is changed or deleted, and every change is recorded in an audit log. Members see a
+change on their next page load.

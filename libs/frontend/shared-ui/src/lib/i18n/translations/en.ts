@@ -1,5 +1,6 @@
 import { requestsEn } from './requests.en';
 import { encryptionEn } from './encryption.en';
+import { maintenanceEn } from './maintenance.en';
 import { earningsEn } from './earnings.en';
 import { retirementEn } from './retirement.en';
 import { wealthEn } from './wealth.en';
@@ -53,6 +54,7 @@ export const en: TranslationDictionary = {
     invitations: 'Invitations',
     requests: 'Requests',
     encryption: 'Encryption',
+    domains: 'Domains',
     signups: 'Sign-ups',
     healthStatus: 'Health status',
     collapseSidebar: 'Collapse sidebar',
@@ -250,7 +252,7 @@ export const en: TranslationDictionary = {
     deleteAccountError: 'Something went wrong. Your account was not changed.',
   },
   admin: {
-    general: 'General',
+    general: 'System',
   },
   holdingsArea: {
     list: 'List',
@@ -412,7 +414,9 @@ export const en: TranslationDictionary = {
     signIn: 'Sign in',
   },
   healthStatus: {
-    title: 'System health',
+    title: 'System',
+    columnCategory: 'Category',
+    columnStatus: 'Status',
     version: 'Version',
     backend: 'Backend',
     database: 'Database',
@@ -570,8 +574,9 @@ export const en: TranslationDictionary = {
     adminSignups: 'Admin · Sign-ups',
     adminInvitations: 'Admin · Invitations',
     adminRequests: 'Admin · Requests',
-    adminGeneral: 'Admin · General',
+    adminGeneral: 'Admin · System',
     adminEncryption: 'Admin · Encryption',
+    adminDomains: 'Admin · Domains',
     notFound: 'Not Found',
   },
   accountOverviewForm: {
@@ -731,4 +736,5 @@ export const en: TranslationDictionary = {
   ocr: ocrEn,
   requests: requestsEn,
   encryption: encryptionEn,
+  maintenance: maintenanceEn,
 };

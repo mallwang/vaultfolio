@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { DomainMaintenanceGateComponent } from '../../maintenance/domain-maintenance-gate.component';
 import { AppSidebarComponent } from '../app-sidebar/app-sidebar.component';
 
 /**
@@ -11,7 +11,7 @@ import { AppSidebarComponent } from '../app-sidebar/app-sidebar.component';
  */
 @Component({
   selector: 'app-shell',
-  imports: [AppSidebarComponent, RouterOutlet],
+  imports: [AppSidebarComponent, DomainMaintenanceGateComponent],
   templateUrl: './app-shell.component.html',
   styleUrl: './app-shell.component.css',
 })

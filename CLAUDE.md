@@ -75,5 +75,5 @@
 
 ## Current Feature Plan
 
-Active implementation plan: [specs/040-encryption-key-rotation/plan.md](specs/040-encryption-key-rotation/plan.md)
+Active implementation plan: [specs/041-domain-maintenance-mode/plan.md](specs/041-domain-maintenance-mode/plan.md)
 <!-- SPECKIT END -->

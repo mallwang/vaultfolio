@@ -1,0 +1,803 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Domänen-Wartungsmodus – Review-Mockup</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f8fafc;
+        --surface: #ffffff;
+        --text: #1e293b;
+        --muted: #64748b;
+        --line: #e2e8f0;
+        --primary: #10b981;
+        --primary-strong: #059669;
+        --warn: #d97706;
+        --warn-bg: #fff7ed;
+        --warn-line: #fdba74;
+        --review-bg: #f3f2ee;
+        --review-ink: #2c2a25;
+        --review-muted: #7a7669;
+        --review-line: #ddd9d0;
+        --review-accent: #b45f2c;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--review-bg);
+        color: var(--review-ink);
+        font-family:
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          sans-serif;
+      }
+
+      /* review chrome */
+      .review-header {
+        padding: 1.5rem 2rem 1rem;
+        border-bottom: 1px solid var(--review-line);
+      }
+      .review-eyebrow {
+        font-size: 0.72rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--review-accent);
+        font-weight: 700;
+        margin: 0 0 0.25rem;
+      }
+      .review-header h1 {
+        margin: 0 0 0.35rem;
+        font-size: 1.35rem;
+      }
+      .review-header p {
+        margin: 0;
+        color: var(--review-muted);
+        font-size: 0.9rem;
+        max-width: 72ch;
+        line-height: 1.5;
+      }
+      .review-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.25rem;
+        align-items: center;
+        padding: 0.85rem 2rem;
+        background: #fff;
+        border-bottom: 1px solid var(--review-line);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+      .control-group {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .label {
+        font-size: 0.72rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--review-muted);
+        font-weight: 700;
+      }
+      .segmented {
+        display: inline-flex;
+        border: 1px solid var(--review-line);
+        border-radius: 8px;
+        overflow: hidden;
+        flex-wrap: wrap;
+      }
+      .segmented button {
+        appearance: none;
+        border: none;
+        background: #fff;
+        color: var(--review-ink);
+        font: inherit;
+        font-size: 0.83rem;
+        font-weight: 600;
+        padding: 0.4rem 0.75rem;
+        cursor: pointer;
+        border-right: 1px solid var(--review-line);
+      }
+      .segmented button:last-child {
+        border-right: none;
+      }
+      .segmented button[aria-pressed='true'] {
+        background: var(--review-accent);
+        color: #fff;
+      }
+      .review-stage {
+        padding: 2rem;
+        display: flex;
+        justify-content: center;
+      }
+      .stage-frame {
+        width: 100%;
+        max-width: 1180px;
+        background: #d9d4c8;
+        border-radius: 14px;
+        padding: 1.25rem;
+        transition: max-width 0.2s ease;
+      }
+      .stage-frame[data-viewport='mobile'] {
+        max-width: 400px;
+      }
+      .stage-frame-label {
+        font-size: 0.72rem;
+        color: var(--review-muted);
+        text-align: center;
+        margin: 0 0 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      .canvas {
+        background: var(--bg);
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+        color: var(--text);
+        font-size: 14px;
+      }
+      .review-footer {
+        padding: 0 2rem 2rem;
+        max-width: 1180px;
+        margin: 0 auto;
+        font-size: 0.85rem;
+        color: var(--review-muted);
+      }
+      .review-footer ul {
+        padding-left: 1.1rem;
+      }
+
+      /* state visibility */
+      [data-screen] [data-show] {
+        display: none;
+      }
+      [data-screen='admin-tab'] [data-show~='admin-tab'],
+      [data-screen='dashboard-member'] [data-show~='dashboard-member'],
+      [data-screen='page-member'] [data-show~='page-member'],
+      [data-screen='page-admin'] [data-show~='page-admin'],
+      [data-screen='dashboard-admin'] [data-show~='dashboard-admin'] {
+        display: block;
+      }
+      [data-screen] [data-show].flex-block {
+        display: none;
+      }
+      [data-screen='dashboard-member'] [data-show~='dashboard-member'].flex-block,
+      [data-screen='dashboard-admin'] [data-show~='dashboard-admin'].flex-block {
+        display: flex;
+      }
+      [data-screen='dashboard-member'] [data-show~='dashboard-member'].grid-block,
+      [data-screen='dashboard-admin'] [data-show~='dashboard-admin'].grid-block {
+        display: grid;
+      }
+
+      /* app chrome */
+      .shell {
+        display: grid;
+        grid-template-columns: 232px 1fr;
+        min-height: 560px;
+      }
+      .stage-frame[data-viewport='mobile'] .shell {
+        grid-template-columns: 1fr;
+      }
+      .sidebar {
+        background: var(--surface);
+        border-right: 1px solid var(--line);
+        padding: 1rem 0.75rem;
+      }
+      .stage-frame[data-viewport='mobile'] .sidebar {
+        display: flex;
+        overflow-x: auto;
+        gap: 0.25rem;
+        border-right: none;
+        border-bottom: 1px solid var(--line);
+        padding: 0.5rem;
+      }
+      .stage-frame[data-viewport='mobile'] .brand {
+        display: none;
+      }
+      .brand {
+        font-weight: 800;
+        font-size: 1.05rem;
+        padding: 0.25rem 0.5rem 1rem;
+        color: var(--primary-strong);
+      }
+      .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.5rem 0.6rem;
+        border-radius: 8px;
+        color: var(--text);
+        font-weight: 500;
+        white-space: nowrap;
+      }
+      .nav-item.active {
+        background: #ecfdf5;
+        color: var(--primary-strong);
+        font-weight: 700;
+      }
+      .nav-item .ic {
+        width: 18px;
+        text-align: center;
+      }
+      .nav-item .wrench {
+        margin-left: auto;
+        color: var(--warn);
+        font-size: 0.8rem;
+      }
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.9rem 1.25rem;
+        background: var(--surface);
+        border-bottom: 1px solid var(--line);
+      }
+      .header h2 {
+        margin: 0;
+        font-size: 1.15rem;
+      }
+      .crumb {
+        margin: 0;
+        font-size: 0.72rem;
+        color: var(--muted);
+      }
+      .meta {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+      }
+      .badge {
+        background: #e0e7ff;
+        color: #3730a3;
+        border-radius: 999px;
+        padding: 0.1rem 0.5rem;
+        font-size: 0.72rem;
+        font-weight: 700;
+      }
+      .avatar {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: var(--primary);
+        color: #fff;
+        display: grid;
+        place-items: center;
+        font-size: 0.7rem;
+        font-weight: 700;
+      }
+      .content {
+        padding: 1.25rem;
+      }
+
+      /* tabs */
+      .tabs {
+        display: flex;
+        gap: 0.25rem;
+        border-bottom: 1px solid var(--line);
+        margin-bottom: 1.25rem;
+        overflow-x: auto;
+      }
+      .tab {
+        padding: 0.6rem 0.9rem;
+        color: var(--muted);
+        font-weight: 600;
+        border-bottom: 2px solid transparent;
+        white-space: nowrap;
+      }
+      .tab.active {
+        color: var(--primary-strong);
+        border-bottom-color: var(--primary);
+      }
+
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 1rem;
+      }
+      .muted {
+        color: var(--muted);
+      }
+      .intro {
+        margin: 0 0 1rem;
+        color: var(--muted);
+        max-width: 70ch;
+      }
+
+      /* domain table */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th {
+        text-align: left;
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--muted);
+        padding: 0.5rem 0.6rem;
+        border-bottom: 1px solid var(--line);
+      }
+      td {
+        padding: 0.7rem 0.6rem;
+        border-bottom: 1px solid var(--line);
+        vertical-align: middle;
+      }
+      tr:last-child td {
+        border-bottom: none;
+      }
+      .dom {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        font-weight: 600;
+      }
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        border-radius: 999px;
+        padding: 0.15rem 0.6rem;
+        font-size: 0.75rem;
+        font-weight: 700;
+      }
+      .tag.ok {
+        background: #d1fae5;
+        color: #065f46;
+      }
+      .tag.maint {
+        background: #ffedd5;
+        color: #9a3412;
+      }
+      .switch {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+      .track {
+        width: 38px;
+        height: 22px;
+        border-radius: 999px;
+        background: #cbd5e1;
+        position: relative;
+      }
+      .track::after {
+        content: '';
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #fff;
+      }
+      .track.on {
+        background: var(--warn);
+      }
+      .track.on::after {
+        left: 18px;
+      }
+      .audit {
+        font-size: 0.78rem;
+        color: var(--muted);
+      }
+      .dialog {
+        margin-top: 1rem;
+        border: 1px dashed var(--review-line);
+        border-radius: 10px;
+        padding: 0.9rem 1rem;
+        background: #fffdf8;
+        font-size: 0.85rem;
+        color: var(--review-muted);
+      }
+      .stage-frame[data-viewport='mobile'] .hide-mobile {
+        display: none;
+      }
+
+      /* dashboard tiles */
+      .tiles {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+      }
+      .stage-frame[data-viewport='mobile'] .tiles {
+        grid-template-columns: 1fr;
+      }
+      .tile h3 {
+        margin: 0 0 0.6rem;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+      .tile .big {
+        font-size: 1.5rem;
+        font-weight: 800;
+      }
+      .tile.maint {
+        border-color: var(--warn-line);
+        background: var(--warn-bg);
+      }
+      .maint-tile {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+        color: #9a3412;
+      }
+      .maint-tile .row {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-weight: 700;
+      }
+      .maint-tile .small {
+        font-size: 0.85rem;
+        color: #b45309;
+      }
+      .admin-note {
+        margin-top: 0.6rem;
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: #9a3412;
+        background: #ffedd5;
+        border-radius: 6px;
+        padding: 0.25rem 0.5rem;
+        display: inline-flex;
+        gap: 0.3rem;
+      }
+      .spark {
+        height: 36px;
+        background: repeating-linear-gradient(90deg, #d1fae5 0 8px, transparent 8px 12px);
+        border-radius: 4px;
+        margin-top: 0.5rem;
+      }
+
+      /* maintenance page */
+      .maint-page {
+        min-height: 380px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        flex-direction: column;
+        gap: 0.6rem;
+        color: #9a3412;
+        padding: 2rem;
+      }
+      .maint-page .icon-wrap {
+        width: 76px;
+        height: 76px;
+        border-radius: 50%;
+        background: #ffedd5;
+        display: grid;
+        place-items: center;
+        font-size: 2rem;
+        border: 1px solid var(--warn-line);
+      }
+      .maint-page h3 {
+        margin: 0;
+        font-size: 1.2rem;
+      }
+      .maint-page p {
+        margin: 0;
+        max-width: 46ch;
+        color: #b45309;
+        line-height: 1.5;
+      }
+      .banner {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        background: var(--warn-bg);
+        border: 1px solid var(--warn-line);
+        color: #9a3412;
+        padding: 0.6rem 0.9rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        font-weight: 600;
+      }
+      .placeholder {
+        border: 2px dashed var(--line);
+        border-radius: 10px;
+        min-height: 160px;
+        display: grid;
+        place-items: center;
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <header class="review-header">
+      <p class="review-eyebrow">Non-functional review mockup</p>
+      <h1>041 – Domänen-Wartungsmodus</h1>
+      <p>
+        Fünf Zustände: Admin-Tab „Domänen“, Dashboard und Domänenseite aus Sicht eines Members sowie
+        aus Sicht eines Admins. Beispiel: die Domäne „Versicherungen“ ist in Wartung. Alle Daten
+        sind erfunden.
+      </p>
+    </header>
+
+    <div class="review-controls">
+      <div class="control-group">
+        <span class="label">Viewport</span>
+        <div class="segmented" id="viewport-toggle">
+          <button type="button" data-viewport="desktop" aria-pressed="true">Desktop</button>
+          <button type="button" data-viewport="mobile" aria-pressed="false">Mobile</button>
+        </div>
+      </div>
+      <div class="control-group">
+        <span class="label">Zustand</span>
+        <div class="segmented" id="screen-toggle">
+          <button type="button" data-screen="admin-tab" aria-pressed="true">
+            Admin: Tab Domänen
+          </button>
+          <button type="button" data-screen="dashboard-member" aria-pressed="false">
+            Member: Dashboard
+          </button>
+          <button type="button" data-screen="page-member" aria-pressed="false">
+            Member: Domänenseite
+          </button>
+          <button type="button" data-screen="dashboard-admin" aria-pressed="false">
+            Admin: Dashboard
+          </button>
+          <button type="button" data-screen="page-admin" aria-pressed="false">
+            Admin: Domänenseite
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="review-stage">
+      <div class="stage-frame" id="stage-frame" data-viewport="desktop">
+        <p class="stage-frame-label" id="stage-frame-label">Desktop</p>
+        <div class="canvas" data-screen="admin-tab" id="canvas">
+          <div class="shell">
+            <nav class="sidebar" aria-label="Primary">
+              <div class="brand">Vaultfolio</div>
+              <div
+                class="nav-item"
+                data-show="dashboard-member dashboard-admin admin-tab page-member page-admin"
+              >
+                <span class="ic">▦</span>Dashboard
+              </div>
+              <div class="nav-item"><span class="ic">💼</span>Bestände</div>
+              <div class="nav-item"><span class="ic">🧓</span>Altersvorsorge</div>
+              <div class="nav-item" id="nav-ins">
+                <span class="ic">🛡</span>Versicherungen<span class="wrench" title="In Wartung"
+                  >🔧</span
+                >
+              </div>
+              <div class="nav-item"><span class="ic">💶</span>Einkommen</div>
+              <div class="nav-item" data-show="admin-tab"><span class="ic">⚙</span>Verwaltung</div>
+            </nav>
+
+            <div>
+              <div class="header">
+                <div>
+                  <p class="crumb">Vaultfolio</p>
+                  <h2 data-show="admin-tab">Verwaltung</h2>
+                  <h2 data-show="dashboard-member dashboard-admin">Dashboard</h2>
+                  <h2 data-show="page-member page-admin">Versicherungen</h2>
+                </div>
+                <div class="meta">
+                  <span class="hide-mobile" data-show="admin-tab dashboard-admin page-admin"
+                    >Markus Allwang</span
+                  >
+                  <span class="hide-mobile" data-show="dashboard-member page-member"
+                    >Erika Muster</span
+                  >
+                  <span class="badge" data-show="admin-tab dashboard-admin page-admin">Admin</span>
+                  <span
+                    class="badge"
+                    style="background: #e2e8f0; color: #334155"
+                    data-show="dashboard-member page-member"
+                    >Member</span
+                  >
+                  <span class="avatar">MA</span>
+                </div>
+              </div>
+
+              <div class="content">
+                <!-- Admin: Tab Domänen -->
+                <div data-show="admin-tab">
+                  <div class="tabs">
+                    <span class="tab">Konten</span>
+                    <span class="tab">Einladungen</span>
+                    <span class="tab">Anmeldungen</span>
+                    <span class="tab">Anfragen</span>
+                    <span class="tab active">Domänen</span>
+                    <span class="tab">Verschlüsselung</span>
+                    <span class="tab">System</span>
+                  </div>
+                  <p class="intro">
+                    Domänen vorübergehend in den Wartungsmodus setzen, z. B. bei fehlerhaften
+                    Berechnungen, Exporten oder Daten. Member sehen dann einen Hinweis und können
+                    die Domäne nicht nutzen; Admins arbeiten weiter normal. Alle Daten bleiben
+                    erhalten.
+                  </p>
+                  <div class="card">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Domäne</th>
+                          <th>Status</th>
+                          <th class="hide-mobile">Zuletzt geändert</th>
+                          <th>Wartungsmodus</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td><div class="dom">💼 Bestände</div></td>
+                          <td><span class="tag ok">● Aktiv</span></td>
+                          <td class="audit hide-mobile">–</td>
+                          <td>
+                            <span class="switch"><span class="track"></span>Aus</span>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td><div class="dom">🧓 Altersvorsorge</div></td>
+                          <td><span class="tag ok">● Aktiv</span></td>
+                          <td class="audit hide-mobile">–</td>
+                          <td>
+                            <span class="switch"><span class="track"></span>Aus</span>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td><div class="dom">🛡 Versicherungen</div></td>
+                          <td><span class="tag maint">🔧 In Wartung</span></td>
+                          <td class="audit hide-mobile">06.10.2026, 18:42 · Markus Allwang</td>
+                          <td>
+                            <span class="switch"><span class="track on"></span>Ein</span>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td><div class="dom">💶 Einkommen</div></td>
+                          <td><span class="tag ok">● Aktiv</span></td>
+                          <td class="audit hide-mobile">02.10.2026, 09:15 · Markus Allwang</td>
+                          <td>
+                            <span class="switch"><span class="track"></span>Aus</span>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td><div class="dom">📈 Vermögensentwicklung</div></td>
+                          <td><span class="tag ok">● Aktiv</span></td>
+                          <td class="audit hide-mobile">–</td>
+                          <td>
+                            <span class="switch"><span class="track"></span>Aus</span>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div class="dialog">
+                    Beim Einschalten erscheint eine Bestätigung: „Versicherungen in Wartung setzen?
+                    Member können die Domäne nicht mehr nutzen und erhalten keine Erinnerungsmails
+                    dazu, bis die Wartung beendet ist. Admins sind nicht betroffen.“ [Abbrechen] [In
+                    Wartung setzen]. Das Ausschalten erfolgt ohne Bestätigung.
+                  </div>
+                </div>
+
+                <!-- Dashboard (member + admin) -->
+                <div class="grid-block tiles" data-show="dashboard-member dashboard-admin">
+                  <div class="card tile">
+                    <h3>💼 Bestände</h3>
+                    <div class="big">48.210 €</div>
+                    <div class="muted">+1,8 % zum Vormonat</div>
+                    <div class="spark"></div>
+                  </div>
+                  <div class="card tile">
+                    <h3>🧓 Altersvorsorge</h3>
+                    <div class="big">1.240 € / Monat</div>
+                    <div class="muted">voraussichtliche Rente</div>
+                    <div class="spark"></div>
+                  </div>
+
+                  <!-- Versicherungen tile, member view -->
+                  <div class="card tile maint" data-show="dashboard-member">
+                    <h3>🛡 Versicherungen</h3>
+                    <div class="maint-tile">
+                      <div class="row">🔧 Wartungsarbeiten</div>
+                      <div class="small">
+                        Dieser Bereich ist vorübergehend nicht verfügbar. Deine Daten bleiben
+                        erhalten.
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Versicherungen tile, admin view -->
+                  <div class="card tile" data-show="dashboard-admin">
+                    <h3>🛡 Versicherungen</h3>
+                    <div class="big">312 € / Monat</div>
+                    <div class="muted">9 aktive Verträge</div>
+                    <div class="spark"></div>
+                    <span class="admin-note">🔧 In Wartung – für Member nicht sichtbar</span>
+                  </div>
+                </div>
+
+                <!-- Domain page, member -->
+                <div class="card" data-show="page-member">
+                  <div class="maint-page">
+                    <div class="icon-wrap">🔧</div>
+                    <h3>Versicherungen ist vorübergehend nicht verfügbar</h3>
+                    <p>
+                      Wir führen gerade Wartungsarbeiten durch. Deine Daten sind sicher und bleiben
+                      unverändert. Bitte versuche es später erneut.
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Domain page, admin -->
+                <div data-show="page-admin">
+                  <div class="banner">
+                    🔧 Diese Domäne ist in Wartung. Member sehen aktuell nur den Wartungshinweis.
+                  </div>
+                  <div class="tabs">
+                    <span class="tab active">Übersicht</span>
+                    <span class="tab">Verträge</span>
+                    <span class="tab">Lückencheck</span>
+                  </div>
+                  <div class="placeholder">[regulärer Domäneninhalt]</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="review-footer">
+      <p>
+        Nicht funktionales Review-Mockup, nicht die echte UI. Visuelle Sprache orientiert sich an
+        PrimeNG Aura.
+      </p>
+      <ul>
+        <li>
+          Navigationseintrag bleibt für Member sichtbar, mit kleinem Wartungs-Icon (kein
+          Ausblenden).
+        </li>
+        <li>
+          Wartung nutzt Orange, „nicht freigeschaltet“ bleibt unsichtbar; beide Zustände sind klar
+          getrennt.
+        </li>
+        <li>
+          Kachel und Seite nutzen geteilte Komponenten mit Wartungsvariante (analog Empty-Tile).
+        </li>
+        <li>Nicht abgebildet: Audit-Log-Ansicht, API-Fehlerantwort, Erinnerungsmails.</li>
+      </ul>
+    </footer>
+
+    <script>
+      const canvas = document.getElementById('canvas');
+      const frame = document.getElementById('stage-frame');
+      const label = document.getElementById('stage-frame-label');
+      document.getElementById('viewport-toggle').addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-viewport]');
+        if (!btn) return;
+        const v = btn.dataset.viewport;
+        frame.dataset.viewport = v;
+        label.textContent = v === 'mobile' ? 'Mobile (400px)' : 'Desktop';
+        document
+          .querySelectorAll('#viewport-toggle button')
+          .forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+      });
+      document.getElementById('screen-toggle').addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-screen]');
+        if (!btn) return;
+        canvas.dataset.screen = btn.dataset.screen;
+        document
+          .querySelectorAll('#screen-toggle button')
+          .forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+      });
+    </script>
+  </body>
+</html>

@@ -145,3 +145,18 @@
     display: none;
   }
 }
+
+/* Domain in maintenance (041-domain-maintenance-mode): the item stays, a wrench marks it. */
+.app-nav__marker {
+  margin-left: auto;
+  font-size: 1.1rem;
+  color: var(--p-orange-500);
+}
+
+:host(.collapsed) .app-nav__marker {
+  position: absolute;
+  top: 0.15rem;
+  right: 0.15rem;
+  margin-left: 0;
+  font-size: 0.9rem;
+}

@@ -1,8 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 import type { HealthStatus } from '@vaultfolio/api-contract';
-import { CardModule } from 'primeng/card';
 import { MessageModule } from 'primeng/message';
+import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import {
   APP_VERSION,
@@ -31,41 +31,68 @@ import {
  */
 @Component({
   selector: 'app-health-status',
-  imports: [CardModule, TagModule, MessageModule, TranslatePipe, LocaleDateTimePipe, IconComponent],
+  imports: [
+    TableModule,
+    TagModule,
+    MessageModule,
+    TranslatePipe,
+    LocaleDateTimePipe,
+    IconComponent,
+  ],
   providers: [TranslatePipe],
   template: `
-    <p-card [header]="'healthStatus.title' | translate">
-      @if (appVersion) {
-        <p class="health-status__version" data-testid="admin-app-version">
-          {{ 'healthStatus.version' | translate }}: <strong>v{{ appVersion }}</strong>
+    <section class="health-status">
+      <h2>{{ 'healthStatus.title' | translate }}</h2>
+      @if (health(); as result) {
+        <p data-testid="admin-health-checked-at">
+          {{ 'healthStatus.checkedAt' | translate }} {{ result.timestamp | localeDateTime }}
         </p>
       }
       @if (health(); as result) {
-        <div class="health-status__row">
-          <p-tag
-            [severity]="result.status === 'ok' ? 'success' : 'danger'"
-            [value]="
-              ('healthStatus.backend' | translate) +
-              ': ' +
-              (result.status === 'ok'
-                ? ('healthStatus.statusOk' | translate)
-                : ('healthStatus.statusDegraded' | translate))
-            "
-          />
-          <p-tag
-            [severity]="result.database === 'connected' ? 'success' : 'danger'"
-            [value]="
-              ('healthStatus.database' | translate) +
-              ': ' +
-              (result.database === 'connected'
-                ? ('healthStatus.databaseConnected' | translate)
-                : ('healthStatus.databaseUnreachable' | translate))
-            "
-          />
-        </div>
-        <p class="health-status__timestamp">
-          {{ 'healthStatus.checkedAt' | translate }} {{ result.timestamp | localeDateTime }}
-        </p>
+        <p-table [value]="[1]" [tableStyle]="{ 'min-width': '30rem' }">
+          <ng-template #header>
+            <tr>
+              <th scope="col">{{ 'healthStatus.columnCategory' | translate }}</th>
+              <th scope="col">{{ 'healthStatus.columnStatus' | translate }}</th>
+            </tr>
+          </ng-template>
+          <ng-template #body>
+            @if (appVersion) {
+              <tr data-testid="admin-app-version">
+                <td>{{ 'healthStatus.version' | translate }}</td>
+                <td>
+                  <strong>v{{ appVersion }}</strong>
+                </td>
+              </tr>
+            }
+            <tr>
+              <td>{{ 'healthStatus.backend' | translate }}</td>
+              <td>
+                <p-tag
+                  [severity]="result.status === 'ok' ? 'success' : 'danger'"
+                  [value]="
+                    result.status === 'ok'
+                      ? ('healthStatus.statusOk' | translate)
+                      : ('healthStatus.statusDegraded' | translate)
+                  "
+                />
+              </td>
+            </tr>
+            <tr>
+              <td>{{ 'healthStatus.database' | translate }}</td>
+              <td>
+                <p-tag
+                  [severity]="result.database === 'connected' ? 'success' : 'danger'"
+                  [value]="
+                    result.database === 'connected'
+                      ? ('healthStatus.databaseConnected' | translate)
+                      : ('healthStatus.databaseUnreachable' | translate)
+                  "
+                />
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
       } @else if (error()) {
         <p-message severity="error">
           <ng-template #icon><app-icon name="warning" /></ng-template>
@@ -77,29 +104,22 @@ import {
           {{ 'healthStatus.checking' | translate }}
         </p-message>
       }
-    </p-card>
+    </section>
   `,
   styles: `
     :host {
       display: block;
-      max-width: 640px;
+      max-width: 1100px;
       margin: 0 auto;
     }
 
-    .health-status__row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
+    .health-status {
+      display: block;
     }
 
-    .health-status__version {
-      margin: 0 0 0.75rem;
-    }
-
-    .health-status__timestamp {
-      color: var(--p-text-muted-color);
-      font-size: 0.875rem;
-      margin: 0.75rem 0 0;
+    .health-status p-table {
+      display: block;
+      margin-top: 1rem;
     }
   `,
 })
