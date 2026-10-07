@@ -1,8 +1,7 @@
-import { NgTemplateOutlet } from '@angular/common';
-import { Component, ViewChild, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
-import { DialogModule } from 'primeng/dialog';
-import { Popover, PopoverModule } from 'primeng/popover';
+import { DrawerModule } from 'primeng/drawer';
+import { RouterLink } from '@angular/router';
 import { TooltipModule } from 'primeng/tooltip';
 import { IconComponent, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
 import { hintTestId } from '@vaultfolio/frontend-hints';
@@ -10,39 +9,25 @@ import { HintsStore } from '../hints.store';
 
 /**
  * T017: Panel that lists active hints (grouped), with a hidden section.
- * Desktop: p-popover anchored to the bell. Mobile (≤768 px): p-dialog modal.
+ * Rendered as a modal right-hand side drawer with a backdrop.
  */
 @Component({
   selector: 'app-hints-panel',
-  imports: [
-    ButtonModule,
-    DialogModule,
-    NgTemplateOutlet,
-    PopoverModule,
-    TooltipModule,
-    TranslatePipe,
-    IconComponent,
-  ],
+  imports: [ButtonModule, DrawerModule, RouterLink, TooltipModule, TranslatePipe, IconComponent],
   templateUrl: './hints-panel.component.html',
+  styleUrl: './hints-panel.component.css',
 })
 export class HintsPanelComponent {
-  @ViewChild('popover') protected popover?: Popover;
-
   protected readonly store = inject(HintsStore);
   protected readonly view = computed(() => this.store.view());
-  protected readonly isMobile = signal(window.matchMedia('(max-width: 768px)').matches);
-  protected readonly dialogVisible = signal(false);
+  protected readonly visible = signal(false);
   protected readonly showHidden = signal(false);
 
   protected readonly hintTestId = hintTestId;
 
   /** Called by HintsBellComponent's `toggled` output (wired in the header). */
-  toggle(event: MouseEvent): void {
-    if (this.isMobile()) {
-      this.dialogVisible.update((v) => !v);
-    } else {
-      this.popover?.toggle(event);
-    }
+  toggle(): void {
+    this.visible.update((v) => !v);
     this.store.forceRefresh();
   }
 

@@ -12,7 +12,12 @@ export class EarningsHintProvider implements HintProvider {
 
   readonly hints: Signal<readonly Hint[]> = computed(() =>
     this.rows()
-      .filter((row) => row.ytd.differences.length > 0 || row.completeness.status === 'MISSING')
+      .filter(
+        (row) =>
+          row.ytd.differences.length > 0 ||
+          row.certificate.differences.length > 0 ||
+          row.completeness.status === 'MISSING',
+      )
       .map((row) => ({
         id: `earnings.data-check.${row.employerId}.${row.year}`,
         severity: 'warning' as const,

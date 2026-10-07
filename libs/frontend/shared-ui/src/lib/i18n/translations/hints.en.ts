@@ -22,13 +22,27 @@ export const hintsEn: TranslationDictionary = {
   groups: {
     insurances: 'Insurances',
     earnings: 'Earnings',
+    retirement: 'Retirement',
   },
   insurances: {
     redundant: {
       title: 'Overlapping insurance contracts',
       description:
-        'Contracts {{contractId}} and {{otherContractId}} cover the same risk. Consider removing one.',
+        'The contracts “{{contractName}}” and “{{otherContractName}}” cover the same risk. Consider removing one.',
       linkLabel: 'View gap check',
+    },
+  },
+  retirement: {
+    linkLabel: 'Open contract',
+    outdated: {
+      title: 'Statement outdated',
+      description:
+        'The statement for “{{contractName}}” is older than 12 months. Check whether a newer one exists.',
+    },
+    ocr: {
+      title: 'Please check the figures',
+      description:
+        'The figures of “{{contractName}}” were read by text recognition and may contain errors.',
     },
   },
   earnings: {

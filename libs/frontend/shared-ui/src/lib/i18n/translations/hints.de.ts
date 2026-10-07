@@ -22,13 +22,27 @@ export const hintsDe: TranslationDictionary = {
   groups: {
     insurances: 'Versicherungen',
     earnings: 'Einkommen',
+    retirement: 'Altersvorsorge',
   },
   insurances: {
     redundant: {
       title: 'Überlappende Versicherungsverträge',
       description:
-        'Verträge {{contractId}} und {{otherContractId}} decken dasselbe Risiko ab. Erwägen Sie, einen zu entfernen.',
+        'Die Verträge „{{contractName}}“ und „{{otherContractName}}“ decken dasselbe Risiko ab. Erwägen Sie, einen zu entfernen.',
       linkLabel: 'Lückenprüfung anzeigen',
+    },
+  },
+  retirement: {
+    linkLabel: 'Vertrag öffnen',
+    outdated: {
+      title: 'Auskunft veraltet',
+      description:
+        'Die Auskunft zu „{{contractName}}“ ist älter als 12 Monate. Prüfen Sie, ob eine neuere vorliegt.',
+    },
+    ocr: {
+      title: 'Werte bitte prüfen',
+      description:
+        'Die Werte von „{{contractName}}“ wurden per Texterkennung gelesen und können Fehler enthalten.',
     },
   },
   earnings: {

@@ -9,12 +9,16 @@ export class InsurancesHintProvider implements HintProvider {
 
   readonly hints: Signal<readonly Hint[]> = computed(() => {
     if (!this.store.loaded()) return [];
+    const nameOf = (id: string) => this.store.contracts().find((c) => c.id === id)?.name ?? id;
     return this.store.gaps().redundant.map((item) => ({
       id: `insurances.redundant.${item.contractId}.${item.otherContractId}`,
       severity: 'warning' as const,
       titleKey: 'hints.insurances.redundant.title',
       descriptionKey: 'hints.insurances.redundant.description',
-      params: { contractId: item.contractId, otherContractId: item.otherContractId },
+      params: {
+        contractName: nameOf(item.contractId),
+        otherContractName: nameOf(item.otherContractId),
+      },
       target: { commands: ['/app', 'insurances', 'gap-check'] },
       linkLabelKey: 'hints.insurances.redundant.linkLabel',
     }));

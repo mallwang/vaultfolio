@@ -1,28 +1,14 @@
-<p-popover #popover appendTo="body">
-  <ng-template #content>
-    <ng-container *ngTemplateOutlet="panelContent" />
-  </ng-template>
-</p-popover>
-
-@if (isMobile()) {
-  <p-dialog
-    [header]="'hints.panel.title' | translate"
-    [modal]="true"
-    [dismissableMask]="true"
-    [draggable]="false"
-    [visible]="dialogVisible()"
-    (visibleChange)="dialogVisible.set($event)"
-    [pt]="{ root: { 'data-testid': 'hints-panel' } }"
-  >
-    <ng-template #closeicon><app-icon name="close" /></ng-template>
-    <ng-container *ngTemplateOutlet="panelContent" />
-  </p-dialog>
-}
-
-<ng-template #panelContent>
+<p-drawer
+  position="right"
+  [modal]="true"
+  [dismissible]="true"
+  [header]="'hints.panel.title' | translate"
+  [style]="{ width: 'min(26rem, 100vw)' }"
+  [visible]="visible()"
+  (visibleChange)="visible.set($event)"
+>
+  <ng-template #closeicon><app-icon name="close" /></ng-template>
   <div class="hints-panel" data-testid="hints-panel">
-    <h2 class="hints-panel__title">{{ 'hints.panel.title' | translate }}</h2>
-
     @if (view().active.length === 0 && view().hidden.length === 0) {
       <p class="hints-panel__empty">{{ 'hints.panel.empty' | translate }}</p>
     } @else {
@@ -35,19 +21,25 @@
             <div class="hints-panel__content">
               <strong>{{ hint.titleKey | translate }}</strong>
               <p>{{ hint.descriptionKey | translate: hint.params }}</p>
+              <a
+                class="hints-panel__link"
+                [routerLink]="hint.target.commands"
+                [queryParams]="hint.target.queryParams"
+                [attr.data-testid]="'hints-link-' + hintTestId(hint.id)"
+                (click)="visible.set(false)"
+              >
+                {{ hint.linkLabelKey | translate }}
+              </a>
             </div>
             <button
-              pButton
               type="button"
-              severity="secondary"
-              [text]="true"
-              iconOnly
+              class="hints-panel__hide"
               [attr.aria-label]="'hints.hint.hide' | translate"
               [pTooltip]="'hints.hint.hide' | translate"
               [attr.data-testid]="'hints-hide-' + hintTestId(hint.id)"
               (click)="hide(hint.id)"
             >
-              <app-icon name="visibility-off" />
+              <app-icon name="visibility-off" size="1rem" />
             </button>
           </li>
         }
@@ -100,4 +92,4 @@
       }
     }
   </div>
-</ng-template>
+</p-drawer>

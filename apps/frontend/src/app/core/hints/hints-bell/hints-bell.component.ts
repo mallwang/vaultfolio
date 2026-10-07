@@ -13,6 +13,7 @@ import { HintsStore } from '../hints.store';
   selector: 'app-hints-bell',
   imports: [BadgeModule, ButtonModule, TooltipModule, TranslatePipe, IconComponent],
   templateUrl: './hints-bell.component.html',
+  styleUrl: './hints-bell.component.css',
 })
 export class HintsBellComponent {
   protected readonly store = inject(HintsStore);

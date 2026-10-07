@@ -25,6 +25,13 @@ export const HINT_PROVIDER_CONTRIBUTIONS = new InjectionToken<HintProviderContri
         loadProvider: () =>
           import('@vaultfolio/frontend-domain-earnings').then((m) => m.EarningsHintProvider),
       },
+      {
+        sourceId: 'retirement',
+        domainId: 'retirement',
+        groupLabelKey: 'hints.groups.retirement',
+        loadProvider: () =>
+          import('@vaultfolio/frontend-domain-retirement').then((m) => m.RetirementHintProvider),
+      },
     ],
   },
 );
