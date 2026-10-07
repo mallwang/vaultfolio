@@ -17,7 +17,9 @@
           <app-icon [name]="area.icon" />
         }
         @if (!collapsed()) {
-          <span>{{ area.labelKey | translate }}</span>
+          <span class="app-nav__label" [attr.title]="area.labelKey | translate">{{
+            area.labelKey | translate
+          }}</span>
         }
         @if (area.domainId && maintenance.isInMaintenance(area.domainId)) {
           <app-icon

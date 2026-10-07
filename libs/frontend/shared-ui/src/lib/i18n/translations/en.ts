@@ -71,8 +71,6 @@ export const en: TranslationDictionary = {
     genericError: 'Sign in failed. Please try again.',
   },
   dashboard: {
-    tileDisabled:
-      'This feature is disabled for your account. Contact your administrator to have it enabled.',
     moveTile: 'Move tile',
     edit: {
       link: 'Edit dashboard',
@@ -86,13 +84,10 @@ export const en: TranslationDictionary = {
     earnings: 'Earnings',
     accounts: 'Accounts',
     totalValue: 'Total value',
-    todaysChange: "Today's change",
     allocation: 'Allocation',
     comingSoon: 'Coming soon',
     totalValueBody:
       "This card will show your holdings' combined total value once portfolio data is available.",
-    todaysChangeBody:
-      "This card will show how your portfolio's value moved today once portfolio data is available.",
   },
   holdingsDistribution: {
     title: 'Distribution by value',

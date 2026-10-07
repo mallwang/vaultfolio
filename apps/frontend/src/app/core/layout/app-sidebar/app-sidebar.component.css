@@ -51,6 +51,12 @@
   flex: 0 0 auto;
 }
 
+.app-nav__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* Klaro's logo mark (028-klaro-nav-integration): matches app-icon's slot
    dimensions (24x24px) so the one image-backed entry sits flush with every
    glyph entry, in desktop, collapsed, and mobile-top-bar states. */
@@ -149,6 +155,7 @@
 /* Domain in maintenance (041-domain-maintenance-mode): the item stays, a wrench marks it. */
 .app-nav__marker {
   margin-left: auto;
+  flex: 0 0 auto;
   font-size: 1.1rem;
   color: var(--p-orange-500);
 }

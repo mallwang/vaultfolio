@@ -9,6 +9,8 @@ import type { Type } from '@angular/core';
  * library (FR-007, research.md #2).
  */
 export interface DashboardWidgetContribution {
+  /** Stable tile id, persisted in the user's dashboard layout. A domain may contribute several tiles. */
+  id: string;
   /** Matches a `DomainDescriptor.id` (`DOMAIN_REGISTRY`) — the domain this widget belongs to. */
   domainId: string;
   /** i18n translation key for the widget's own `p-card` header, matching `SettingsTabContribution.labelKey`'s existing convention. */

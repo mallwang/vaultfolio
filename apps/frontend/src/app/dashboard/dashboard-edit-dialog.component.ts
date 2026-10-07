@@ -6,11 +6,7 @@ import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { IconComponent, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
 import { DashboardLayoutStore } from './dashboard-layout.store';
 
-/**
- * Modal to switch individual Dashboard tiles on or off. A tile whose feature is disabled for the
- * account is still listed, but with a greyed-out switch and a pointer to the administrator —
- * the user cannot enable what the admin has not released.
- */
+/** Modal to switch individual Dashboard tiles on or off. */
 @Component({
   selector: 'app-dashboard-edit-dialog',
   imports: [

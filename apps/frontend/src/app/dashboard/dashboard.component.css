@@ -110,28 +110,3 @@
 .card-row.cdk-drop-list-dragging .tile:not(.cdk-drag-placeholder) {
   transition: transform 200ms cubic-bezier(0, 0, 0.2, 1);
 }
-
-.stat-card__placeholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.5rem 0;
-  text-align: center;
-  color: var(--p-text-muted-color);
-}
-
-.stat-card__placeholder-icon {
-  font-size: 1.5rem;
-}
-
-.stat-card__placeholder span {
-  font-style: italic;
-  font-size: 0.85rem;
-}
-
-.stat-card__placeholder p {
-  margin: 0;
-  font-size: 0.75rem;
-  max-width: 26ch;
-}

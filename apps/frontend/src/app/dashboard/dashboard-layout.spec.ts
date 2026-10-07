@@ -5,11 +5,11 @@ import {
   type DashboardTileDefinition,
 } from './dashboard-layout';
 
-const tile = (id: string, entitled = true): DashboardTileDefinition => ({
+const tile = (id: string): DashboardTileDefinition => ({
   id,
   titleKey: `t.${id}`,
-  source: { kind: 'placeholder', icon: 'x', bodyKey: 'b' },
-  entitled,
+  domainId: 'd',
+  widget: { id, domainId: 'd', titleKey: `t.${id}`, loadComponent: () => Promise.reject() },
 });
 
 const catalog = [tile('a'), tile('b'), tile('c')];
@@ -32,17 +32,8 @@ describe('resolveTiles', () => {
     ]);
   });
 
-  it('keeps a not-entitled tile in its slot', () => {
-    const tiles = resolveTiles([tile('a'), tile('b', false), tile('c')], {
-      order: ['c', 'b', 'a'],
-      hidden: [],
-    });
-    expect(ids(tiles)).toEqual(['c', 'b', 'a']);
-    expect(tiles[1].entitled).toBe(false);
-  });
-
-  it('flags hidden tiles but never hides a not-entitled tile', () => {
-    const tiles = resolveTiles([tile('a'), tile('b', false)], { order: [], hidden: ['a', 'b'] });
+  it('flags hidden tiles', () => {
+    const tiles = resolveTiles([tile('a'), tile('b')], { order: [], hidden: ['a'] });
     expect(tiles.map((t) => t.hidden)).toEqual([true, false]);
   });
 });
