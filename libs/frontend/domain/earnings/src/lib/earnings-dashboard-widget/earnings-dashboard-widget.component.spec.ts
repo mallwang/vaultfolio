@@ -60,16 +60,22 @@ describe('EarningsDashboardWidgetComponent', () => {
 
   function render(
     flush: (req: ReturnType<HttpTestingController['expectOne']>) => void,
+    expand = false,
   ): HTMLElement {
     const fixture = TestBed.createComponent(EarningsDashboardWidgetComponent);
     fixture.detectChanges();
     flush(http.expectOne('/api/earnings/overview'));
     fixture.detectChanges();
-    return fixture.nativeElement as HTMLElement;
+    const root = fixture.nativeElement as HTMLElement;
+    if (expand) {
+      root.querySelector<HTMLElement>('[data-testid="earnings-widget-toggle"]')?.click();
+      fixture.detectChanges();
+    }
+    return root;
   }
 
   it('shows gross, net with its change and the net ratio of the latest year', () => {
-    const root = render((req) => req.flush(OVERVIEW));
+    const root = render((req) => req.flush(OVERVIEW), true);
 
     expect(root.textContent).toContain('2026 · Jan–Sep');
     expect(root.querySelector('[data-testid="earnings-widget-gross"]')?.textContent).toContain(
@@ -87,12 +93,14 @@ describe('EarningsDashboardWidgetComponent', () => {
   });
 
   it('shows the yearly gross bars, the growth between complete years and the monthly average', () => {
-    const root = render((req) =>
-      req.flush({
-        ...OVERVIEW,
-        yearly: [yearly(2024, '80000.00'), yearly(2025, '86400.00'), yearly(2026, '45000.00')],
-        dataCheckIssues: 2,
-      }),
+    const root = render(
+      (req) =>
+        req.flush({
+          ...OVERVIEW,
+          yearly: [yearly(2024, '80000.00'), yearly(2025, '86400.00'), yearly(2026, '45000.00')],
+          dataCheckIssues: 2,
+        }),
+      true,
     );
 
     expect(root.querySelectorAll('[data-testid^="earnings-widget-bar-"]')).toHaveLength(3);
@@ -112,6 +120,14 @@ describe('EarningsDashboardWidgetComponent', () => {
     expect(root.querySelector('[data-testid="earnings-widget-issues"]')?.getAttribute('href')).toBe(
       '/app/earnings/check',
     );
+  });
+
+  it('keeps the details collapsed until the toggle is used', () => {
+    const root = render((req) => req.flush(OVERVIEW));
+    expect(root.querySelector('[data-testid="earnings-widget-netRatio"]')).toBeNull();
+    expect(
+      root.querySelector('[data-testid="earnings-widget-toggle"]')?.getAttribute('aria-expanded'),
+    ).toBe('false');
   });
 
   it('updates the readout for the hovered bar', () => {

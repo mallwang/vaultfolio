@@ -24,9 +24,15 @@
       >
         <app-icon name="drag-handle" />
       </button>
-      <p-card [header]="tile.titleKey | translate">
+      <p-card>
         @if (maintenance.isInMaintenance(tile.domainId) && !isAdmin()) {
-          <app-maintenance-tile [testId]="'dashboard-tile-maintenance-' + tile.id" />
+          <app-dashboard-tile
+            [tileId]="tile.id"
+            [testIdPrefix]="'dashboard-tile-' + tile.id"
+            [title]="tile.titleKey | translate"
+          >
+            <app-maintenance-tile [testId]="'dashboard-tile-maintenance-' + tile.id" />
+          </app-dashboard-tile>
         } @else {
           @if (maintenance.isInMaintenance(tile.domainId)) {
             <app-maintenance-tile

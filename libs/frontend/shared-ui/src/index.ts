@@ -12,7 +12,13 @@ export { IconComponent } from './lib/icon/icon.component';
 export { EmptyTileComponent } from './lib/empty-tile/empty-tile.component';
 export { MaintenanceNoticeComponent } from './lib/maintenance/maintenance-notice.component';
 export { MaintenanceTileComponent } from './lib/maintenance/maintenance-tile.component';
-export { WidgetHeaderComponent } from './lib/widget-header/widget-header.component';
+export {
+  DashboardTileComponent,
+  TileDetailsDirective,
+} from './lib/dashboard-tile/dashboard-tile.component';
+export { TileValueComponent } from './lib/dashboard-tile/tile-value.component';
+export { DASHBOARD_TILE_EXPANSION } from './lib/dashboard-tile/dashboard-tile-expansion.token';
+export type { DashboardTileExpansion } from './lib/dashboard-tile/dashboard-tile-expansion.token';
 export { ICON_NAME_MAP } from './lib/icon/icon-name.map';
 export { EchartComponent } from './lib/chart/echart.component';
 export type { EchartClickEvent } from './lib/chart/echart.component';

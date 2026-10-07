@@ -4,9 +4,11 @@ import type { EarningsOverview } from '@vaultfolio/api-contract';
 import {
   EmptyTileComponent,
   I18nService,
+  DashboardTileComponent,
   IconComponent,
+  TileDetailsDirective,
+  TileValueComponent,
   TranslatePipe,
-  WidgetHeaderComponent,
 } from '@vaultfolio/frontend-shared-ui';
 import { EarningsService } from '../earnings.service';
 import { fill, formatMoney, monthName } from '../earnings-format';
@@ -22,162 +24,192 @@ import { MAX_BARS, widgetFigures } from './widget-figures';
  */
 @Component({
   selector: 'app-earnings-dashboard-widget',
-  imports: [RouterLink, IconComponent, TranslatePipe, EmptyTileComponent, WidgetHeaderComponent],
+  imports: [
+    RouterLink,
+    IconComponent,
+    TranslatePipe,
+    EmptyTileComponent,
+    DashboardTileComponent,
+    TileDetailsDirective,
+    TileValueComponent,
+  ],
   template: `
     <div class="widget" data-testid="earnings-widget">
       @if (api.unavailable()) {
-        <p class="muted" data-testid="earnings-widget-unavailable">
-          {{ 'earnings.unavailable.title' | translate }}
-        </p>
+        <app-dashboard-tile
+          tileId="earnings"
+          testIdPrefix="earnings-widget"
+          [title]="'dashboard.earnings' | translate"
+        >
+          <p class="muted" data-testid="earnings-widget-unavailable">
+            {{ 'earnings.unavailable.title' | translate }}
+          </p>
+        </app-dashboard-tile>
       } @else if (overview(); as data) {
         @if (data.latestYear; as year) {
-          <app-widget-header
+          <app-dashboard-tile
+            tileId="earnings"
+            testIdPrefix="earnings-widget"
             link="/app/earnings"
             linkTestId="earnings-widget-open"
             [title]="heading()"
             [linkLabel]="'earnings.widget.open' | translate"
-          />
-          <dl class="kpis">
-            @for (tile of tiles(); track tile.key) {
-              <div class="kpi" [attr.data-testid]="'earnings-widget-' + tile.key">
-                <dt>{{ tile.label }}</dt>
-                <dd>{{ tile.value }}</dd>
-                @if (tile.key === 'net' && tile.delta) {
-                  <dd class="delta" [class]="'delta delta--' + tile.tone">{{ tile.delta }}</dd>
+          >
+            @if (grossTile(); as gross) {
+              <app-tile-value data-testid="earnings-widget-gross">{{ gross.value }}</app-tile-value>
+            }
+            @if (netTile(); as net) {
+              <span class="sub" data-testid="earnings-widget-net">
+                {{ net.label }} {{ net.value }}
+                @if (net.delta) {
+                  <span [class]="'delta delta--' + net.tone">{{ net.delta }}</span>
                 }
+              </span>
+            }
+            @if (bars().length > 1) {
+              <div tileChart class="chart" data-testid="earnings-widget-chart">
+                <p
+                  class="readout"
+                  aria-live="polite"
+                  [attr.title]="readout()"
+                  data-testid="earnings-widget-readout"
+                >
+                  {{ readout() }}
+                </p>
+                <svg
+                  viewBox="0 0 300 56"
+                  preserveAspectRatio="none"
+                  role="group"
+                  [attr.aria-label]="'earnings.widget.chart' | translate"
+                >
+                  @for (bar of bars(); track bar.year) {
+                    <rect
+                      class="bar"
+                      [class.bar--partial]="bar.partial"
+                      tabindex="0"
+                      rx="2"
+                      [attr.x]="bar.x"
+                      [attr.y]="bar.y"
+                      [attr.width]="bar.width"
+                      [attr.height]="bar.height"
+                      [attr.aria-label]="bar.label"
+                      [attr.data-testid]="'earnings-widget-bar-' + bar.year"
+                      (mouseenter)="hovered.set(bar.year)"
+                      (focus)="hovered.set(bar.year)"
+                      (mouseleave)="hovered.set(null)"
+                      (blur)="hovered.set(null)"
+                    />
+                  }
+                </svg>
               </div>
             }
-          </dl>
-          @if (bars().length > 1) {
-            <div class="chart" data-testid="earnings-widget-chart">
-              <p class="readout" aria-live="polite" data-testid="earnings-widget-readout">
-                {{ readout() }}
-              </p>
-              <svg
-                viewBox="0 0 300 56"
-                role="group"
-                [attr.aria-label]="'earnings.widget.chart' | translate"
-              >
-                @for (bar of bars(); track bar.year) {
-                  <rect
-                    class="bar"
-                    [class.bar--partial]="bar.partial"
-                    tabindex="0"
-                    rx="2"
-                    [attr.x]="bar.x"
-                    [attr.y]="bar.y"
-                    [attr.width]="bar.width"
-                    [attr.height]="bar.height"
-                    [attr.aria-label]="bar.label"
-                    [attr.data-testid]="'earnings-widget-bar-' + bar.year"
-                    (mouseenter)="hovered.set(bar.year)"
-                    (focus)="hovered.set(bar.year)"
-                    (mouseleave)="hovered.set(null)"
-                    (blur)="hovered.set(null)"
-                  />
-                }
-              </svg>
-              <div class="axis" [style.padding-left.%]="(barsOffset() / 300) * 100">
-                <span>{{ bars()[0].year }}</span>
-                <span>{{ bars()[bars().length - 1].year }}</span>
-              </div>
+            <div tileDetails class="details">
+              @if (netRatioTile(); as ratio) {
+                <span data-testid="earnings-widget-netRatio">
+                  {{ ratio.label }} <strong>{{ ratio.value }}</strong>
+                </span>
+              }
+              @if (growth(); as g) {
+                <span data-testid="earnings-widget-growth">
+                  {{ g.label }}
+                  <strong [class]="'delta--' + g.tone">{{ g.value }}</strong>
+                </span>
+              }
+              @if (perMonth(); as value) {
+                <span data-testid="earnings-widget-permonth">
+                  {{ 'earnings.widget.perMonth' | translate }} <strong>{{ value }}</strong>
+                </span>
+              }
+              @if (data.dataCheckIssues > 0) {
+                <a
+                  class="issues"
+                  routerLink="/app/earnings/check"
+                  data-testid="earnings-widget-issues"
+                >
+                  <app-icon name="warning" /> {{ issuesText() }}
+                </a>
+              }
             </div>
-          }
-          <div class="foot">
-            @if (growth(); as g) {
-              <span data-testid="earnings-widget-growth">
-                {{ g.label }}
-                <strong [class]="'delta--' + g.tone">{{ g.value }}</strong>
-              </span>
-            }
-            @if (perMonth(); as value) {
-              <span data-testid="earnings-widget-permonth">
-                {{ 'earnings.widget.perMonth' | translate }} <strong>{{ value }}</strong>
-              </span>
-            }
-            @if (data.dataCheckIssues > 0) {
-              <a
-                class="issues"
-                routerLink="/app/earnings/check"
-                data-testid="earnings-widget-issues"
-              >
-                <app-icon name="warning" /> {{ issuesText() }}
-              </a>
-            }
-          </div>
+          </app-dashboard-tile>
         } @else {
-          <app-empty-tile
-            link="/app/earnings"
-            testId="earnings-widget-empty"
-            [title]="'earnings.empty.title' | translate"
-            [body]="'earnings.widget.emptyBody' | translate"
-            [ctaLabel]="'earnings.widget.emptyCta' | translate"
-          />
+          <app-dashboard-tile
+            tileId="earnings"
+            testIdPrefix="earnings-widget"
+            [title]="'dashboard.earnings' | translate"
+          >
+            <app-empty-tile
+              link="/app/earnings"
+              testId="earnings-widget-empty"
+              [title]="'earnings.empty.title' | translate"
+              [body]="'earnings.widget.emptyBody' | translate"
+              [ctaLabel]="'earnings.widget.emptyCta' | translate"
+            />
+          </app-dashboard-tile>
         }
       } @else if (failed()) {
-        <p class="muted">{{ 'earnings.errors.generic' | translate }}</p>
+        <app-dashboard-tile
+          tileId="earnings"
+          testIdPrefix="earnings-widget"
+          [title]="'dashboard.earnings' | translate"
+        >
+          <p class="muted">{{ 'earnings.errors.generic' | translate }}</p>
+        </app-dashboard-tile>
+      } @else {
+        <app-dashboard-tile
+          tileId="earnings"
+          testIdPrefix="earnings-widget"
+          [title]="'dashboard.earnings' | translate"
+        />
       }
     </div>
   `,
   styles: `
     .widget {
       display: flex;
+      flex: 1;
+      min-width: 0;
       flex-direction: column;
       gap: 0.75rem;
     }
-
-    .head {
+    :host {
       display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      gap: 0.5rem;
+      flex: 1;
+      min-width: 0;
     }
-    .head a {
-      display: inline-flex;
-      align-items: center;
-      color: var(--p-primary-color);
-      text-decoration: none;
-      font-size: 0.875rem;
-    }
+
     .muted {
       margin: 0;
       color: var(--p-text-muted-color);
       font-size: 0.8125rem;
     }
-    .kpis {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 0.75rem;
-      margin: 0;
-    }
-    .kpi dt {
+    .sub {
       font-size: 0.8125rem;
       color: var(--p-text-muted-color);
-    }
-    .kpi dd {
-      margin: 0;
-    }
-    .kpi dd:first-of-type {
-      font-size: 1.125rem;
-      font-weight: 600;
       font-variant-numeric: tabular-nums;
     }
     .chart {
       display: flex;
+      flex: 1;
       flex-direction: column;
-      gap: 0.25rem;
+      gap: 0.15rem;
+      min-width: 0;
+      height: 100%;
     }
     .readout {
       margin: 0;
-      min-height: 1.1rem;
+      overflow: hidden;
+      line-height: 1.1rem;
+      text-overflow: ellipsis;
+      white-space: nowrap;
       font-size: 0.8125rem;
       color: var(--p-text-muted-color);
       font-variant-numeric: tabular-nums;
     }
     svg {
       display: block;
+      flex: 1;
       width: 100%;
-      height: auto;
+      min-height: 0;
     }
     .bar {
       fill: var(--p-primary-color);
@@ -190,43 +222,35 @@ import { MAX_BARS, widgetFigures } from './widget-figures';
     .bar:focus-visible {
       opacity: 0.75;
     }
-    .axis {
+    .details {
       display: flex;
-      justify-content: space-between;
-      font-size: 0.75rem;
-      color: var(--p-text-muted-color);
-    }
-    .foot {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.25rem 1rem;
-      padding-top: 0.5rem;
-      border-top: 1px solid var(--p-content-border-color);
+      flex-direction: column;
+      gap: 0.35rem;
       font-size: 0.8125rem;
       color: var(--p-text-muted-color);
     }
-    .foot strong {
+    .details strong {
       color: var(--p-text-color);
       font-weight: 600;
       font-variant-numeric: tabular-nums;
     }
-    .foot strong.delta--good {
+    .details strong.delta--good {
       color: var(--p-green-700);
     }
-    .foot strong.delta--bad {
+    .details strong.delta--bad {
       color: var(--p-red-700);
     }
-    :host-context(.app-dark) .foot strong.delta--good {
+    :host-context(.app-dark) .details strong.delta--good {
       color: var(--p-green-400);
     }
-    :host-context(.app-dark) .foot strong.delta--bad {
+    :host-context(.app-dark) .details strong.delta--bad {
       color: var(--p-red-400);
     }
-    .foot a {
+    .details a {
       color: var(--p-primary-color);
       text-decoration: none;
     }
-    .foot a.issues {
+    .details a.issues {
       display: inline-flex;
       align-items: center;
       gap: 0.25rem;
@@ -234,13 +258,13 @@ import { MAX_BARS, widgetFigures } from './widget-figures';
       font-weight: 500;
     }
     /* The glyph lives in app-icon's own encapsulated template, so shrinking it needs ng-deep. */
-    .foot a.issues ::ng-deep .material-symbols-outlined {
+    .details a.issues ::ng-deep .material-symbols-outlined {
       font-size: 1rem;
     }
-    :host-context(.app-dark) .foot a.issues {
+    :host-context(.app-dark) .details a.issues {
       color: var(--p-amber-400);
     }
-    .foot a:hover {
+    .details a:hover {
       text-decoration: underline;
     }
     .delta {
@@ -356,6 +380,10 @@ export class EarningsDashboardWidgetComponent implements OnInit {
       count: this.overview()?.dataCheckIssues ?? 0,
     }),
   );
+
+  protected readonly grossTile = computed(() => this.tiles().find((t) => t.key === 'gross'));
+  protected readonly netTile = computed(() => this.tiles().find((t) => t.key === 'net'));
+  protected readonly netRatioTile = computed(() => this.tiles().find((t) => t.key === 'netRatio'));
 
   protected readonly tiles = computed(() => {
     const year = this.overview()?.latestYear;

@@ -134,6 +134,11 @@ Zusammenfassungs-Widgets der von dir genutzten Bereiche anzuzeigen – zum Beisp
 dem Gesamtportfoliowert. Einige Widgets erscheinen erst, nachdem du Daten eingegeben hast. Das
 Dashboard wird mit jeder neuen Domäne weiter ausgebaut.
 
+**Details der Kacheln.** Jede Kachel zeigt zuerst ihre wichtigste Kennzahl. Hat eine Kachel mehr zu
+zeigen, klappst du die Details mit **Details anzeigen** unter der Kennzahl auf und mit
+**Details ausblenden** wieder zu. Kacheln in derselben Reihe werden gleich hoch, aber nur die von dir
+aufgeklappte Kachel zeigt ihre Details. Deine Auswahl wird in diesem Browser pro Konto gespeichert.
+
 **Dashboard anordnen.** Ziehe eine Kachel am Griff oben rechts an eine andere Stelle (oder
 fokussiere den Griff und nutze die Pfeiltasten). Über **Dashboard bearbeiten** oberhalb der Kacheln
 schaltest du einzelne Kacheln ein oder aus. Das Dashboard zeigt nur Kacheln von Features, die für

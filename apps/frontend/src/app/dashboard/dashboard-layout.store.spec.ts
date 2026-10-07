@@ -42,6 +42,7 @@ describe('DashboardLayoutStore', () => {
     expect(JSON.parse(localStorage.getItem('vaultfolio.dashboard-layout.u1') ?? '')).toEqual({
       order: ['holdings-distribution', 'holdings-total-value'],
       hidden: ['holdings-distribution'],
+      expanded: [],
     });
 
     currentUser.setAuthenticated(user('u2', ['holdings']));
@@ -59,5 +60,52 @@ describe('DashboardLayoutStore', () => {
     fresh.reset();
     expect(fresh.visibleTiles().map((t) => t.id)).toContain('holdings-total-value');
     expect(fresh.isCustomized()).toBe(false);
+  });
+
+  describe('expanded tiles', () => {
+    it('collapses every tile by default', () => {
+      expect(store.isExpanded('holdings-distribution')).toBe(false);
+    });
+
+    it('expands and collapses a tile and persists it per user', () => {
+      store.setExpanded('holdings-distribution', true);
+      expect(store.isExpanded('holdings-distribution')).toBe(true);
+      expect(store.isExpanded('holdings-total-value')).toBe(false);
+      expect(
+        JSON.parse(localStorage.getItem('vaultfolio.dashboard-layout.u1') ?? '').expanded,
+      ).toEqual(['holdings-distribution']);
+
+      store.setExpanded('holdings-distribution', false);
+      expect(store.isExpanded('holdings-distribution')).toBe(false);
+    });
+
+    it('restores the expanded state in a fresh store', () => {
+      store.setExpanded('holdings-distribution', true);
+      TestBed.resetTestingModule();
+      TestBed.inject(CurrentUserStore).setAuthenticated(user('u1', ['holdings']));
+      expect(TestBed.inject(DashboardLayoutStore).isExpanded('holdings-distribution')).toBe(true);
+    });
+
+    it('keeps the expanded state when tiles are reordered or hidden and shown', () => {
+      store.setExpanded('holdings-distribution', true);
+      store.moveVisible(0, 1);
+      store.setTileVisible('holdings-distribution', false);
+      store.setTileVisible('holdings-distribution', true);
+      expect(store.isExpanded('holdings-distribution')).toBe(true);
+    });
+
+    it('does not count as a customization and is cleared by reset', () => {
+      store.setExpanded('holdings-distribution', true);
+      expect(store.isCustomized()).toBe(false);
+      store.reset();
+      expect(store.isExpanded('holdings-distribution')).toBe(false);
+    });
+
+    it('does not share the state between users', () => {
+      store.setExpanded('holdings-distribution', true);
+      currentUser.setAuthenticated(user('u2', ['holdings']));
+      TestBed.tick();
+      expect(store.isExpanded('holdings-distribution')).toBe(false);
+    });
   });
 });

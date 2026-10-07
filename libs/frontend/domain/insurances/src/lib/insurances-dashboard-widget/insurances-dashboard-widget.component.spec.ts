@@ -31,7 +31,7 @@ describe('InsurancesDashboardWidgetComponent', () => {
     http = TestBed.inject(HttpTestingController);
   });
 
-  async function render(body: InsurancesData | 503) {
+  async function render(body: InsurancesData | 503, expand = false) {
     const fixture = TestBed.createComponent(InsurancesDashboardWidgetComponent);
     fixture.detectChanges();
     const req = http.expectOne('/api/insurances');
@@ -40,7 +40,12 @@ describe('InsurancesDashboardWidgetComponent', () => {
     else req.flush(body);
     await fixture.whenStable();
     fixture.detectChanges();
-    return fixture.nativeElement as HTMLElement;
+    const el = fixture.nativeElement as HTMLElement;
+    if (expand) {
+      el.querySelector<HTMLElement>('[data-testid="insurances-widget-toggle"]')?.click();
+      fixture.detectChanges();
+    }
+    return el;
   }
 
   const q = (el: HTMLElement, id: string) => el.querySelector(`[data-testid="${id}"]`);
@@ -58,6 +63,7 @@ describe('InsurancesDashboardWidgetComponent', () => {
           }),
         ] as InsurancesData['contracts'],
       }),
+      true,
     );
     expect(txt(el, 'insurances-widget-monthly')).toContain('8.00');
     expect(txt(el, 'insurances-widget-yearly')).toContain('96.00');
@@ -68,6 +74,7 @@ describe('InsurancesDashboardWidgetComponent', () => {
   it('shows the group chart, the active count and a warning link to the gap check', async () => {
     const el = await render(
       data({ contracts: [buildInsuranceContract({ id: 'c1' })] as InsurancesData['contracts'] }),
+      true,
     );
     expect(q(el, 'insurances-widget-chart')).not.toBeNull();
     expect(txt(el, 'insurances-widget-active')).toContain('1');
@@ -80,8 +87,16 @@ describe('InsurancesDashboardWidgetComponent', () => {
       contracts: [buildInsuranceContract({ id: 'c1' })] as InsurancesData['contracts'],
     });
     d.settings.dismissedRequirements = ['HEALTH', 'HOUSEHOLD', 'DISABILITY', 'LEGAL'];
-    const el = await render(d);
+    const el = await render(d, true);
     expect(q(el, 'insurances-widget-gaps')).toBeNull();
+  });
+
+  it('keeps the details collapsed by default', async () => {
+    const el = await render(
+      data({ contracts: [buildInsuranceContract({ id: 'c1' })] as InsurancesData['contracts'] }),
+    );
+    expect(q(el, 'insurances-widget-active')).toBeNull();
+    expect(q(el, 'insurances-widget-toggle')?.getAttribute('aria-expanded')).toBe('false');
   });
 
   it('invites to add the first contract without data', async () => {

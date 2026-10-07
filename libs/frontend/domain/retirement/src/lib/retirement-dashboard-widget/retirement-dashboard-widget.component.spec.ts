@@ -21,12 +21,20 @@ describe('RetirementDashboardWidgetComponent', () => {
   const byTestId = (el: HTMLElement, id: string): HTMLElement | null =>
     el.querySelector(`[data-testid="${id}"]`);
 
-  function render(respond: (req: ReturnType<HttpTestingController['expectOne']>) => void) {
+  function render(
+    respond: (req: ReturnType<HttpTestingController['expectOne']>) => void,
+    expand = false,
+  ) {
     const fixture = TestBed.createComponent(RetirementDashboardWidgetComponent);
     fixture.detectChanges();
     respond(http.expectOne('/api/retirement/summary'));
     fixture.detectChanges();
-    return fixture.nativeElement as HTMLElement;
+    const el = fixture.nativeElement as HTMLElement;
+    if (expand) {
+      byTestId(el, 'retirement-widget-toggle')?.click();
+      fixture.detectChanges();
+    }
+    return el;
   }
 
   it('shows the same figures as the service summary', () => {
@@ -47,7 +55,8 @@ describe('RetirementDashboardWidgetComponent', () => {
       }),
     ];
     const summary = summarize(records, NOW);
-    const el = render((req) => req.flush(summary));
+    const el = render((req) => req.flush(summary), true);
+    expect(byTestId(el, 'retirement-widget-toggle')).not.toBeNull();
     expect(byTestId(el, 'retirement-widget-expected')?.textContent).toMatch(/2[.,]?350/);
     expect(byTestId(el, 'retirement-widget-guaranteed')?.textContent).toMatch(/100/);
     expect(byTestId(el, 'retirement-widget-savings')?.textContent).toMatch(/60/);
@@ -56,8 +65,9 @@ describe('RetirementDashboardWidgetComponent', () => {
   });
 
   it('shows an "n outdated" badge', () => {
-    const el = render((req) =>
-      req.flush(summarize([buildRecord({ statementDate: '2024-01-01' })], NOW)),
+    const el = render(
+      (req) => req.flush(summarize([buildRecord({ statementDate: '2024-01-01' })], NOW)),
+      true,
     );
     expect(byTestId(el, 'retirement-widget-outdated')?.textContent).toContain('1');
   });

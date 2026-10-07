@@ -24,7 +24,7 @@ describe('AccountOverviewDashboardWidgetComponent', () => {
     http = TestBed.inject(HttpTestingController);
   });
 
-  async function render(body: AccountOverviewEntry[] | 500) {
+  async function render(body: AccountOverviewEntry[] | 500, expand = false) {
     const fixture = TestBed.createComponent(AccountOverviewDashboardWidgetComponent);
     fixture.detectChanges();
     const req = http.expectOne('/api/account-overview/accounts');
@@ -32,18 +32,26 @@ describe('AccountOverviewDashboardWidgetComponent', () => {
     else req.flush(body);
     await fixture.whenStable();
     fixture.detectChanges();
-    return fixture.nativeElement as HTMLElement;
+    const el = fixture.nativeElement as HTMLElement;
+    if (expand) {
+      el.querySelector<HTMLElement>('[data-testid="account-overview-widget-toggle"]')?.click();
+      fixture.detectChanges();
+    }
+    return el;
   }
 
   const q = (el: HTMLElement, id: string) => el.querySelector(`[data-testid="${id}"]`);
   const txt = (el: HTMLElement, id: string) => q(el, id)?.textContent?.replace(/\s+/g, ' ').trim();
 
   it('shows the total and the count per category with a link to the overview', async () => {
-    const el = await render([
-      account({ id: 'a1', category: 'GENERAL' }),
-      account({ id: 'a2', category: 'CREDIT_CARD' }),
-      account({ id: 'a3', category: 'CREDIT_CARD', status: 'DECOMMISSIONED' }),
-    ]);
+    const el = await render(
+      [
+        account({ id: 'a1', category: 'GENERAL' }),
+        account({ id: 'a2', category: 'CREDIT_CARD' }),
+        account({ id: 'a3', category: 'CREDIT_CARD', status: 'DECOMMISSIONED' }),
+      ],
+      true,
+    );
     expect(txt(el, 'account-overview-widget-total')).toBe('3');
     expect(txt(el, 'account-overview-widget-category-CREDIT_CARD')).toContain('2');
     expect(q(el, 'account-overview-widget-category-SAVINGS')).toBeNull();
@@ -51,6 +59,12 @@ describe('AccountOverviewDashboardWidgetComponent', () => {
     expect(q(el, 'account-overview-widget-link')?.getAttribute('href')).toBe(
       '/app/account-overview',
     );
+  });
+
+  it('keeps the category details collapsed by default', async () => {
+    const el = await render([account({ id: 'a1', category: 'GENERAL' })]);
+    expect(q(el, 'account-overview-widget-categories')).toBeNull();
+    expect(q(el, 'account-overview-widget-toggle')?.getAttribute('aria-expanded')).toBe('false');
   });
 
   it('invites to add the first account when there are none', async () => {

@@ -3,6 +3,8 @@ import { CdkDrag, CdkDragHandle, CdkDropList, type CdkDragDrop } from '@angular/
 import { CardModule } from 'primeng/card';
 import { TagModule } from 'primeng/tag';
 import {
+  DASHBOARD_TILE_EXPANSION,
+  DashboardTileComponent,
   IconComponent,
   TranslatePipe,
   DynamicOutletComponent,
@@ -16,7 +18,8 @@ import { DashboardLayoutStore } from './dashboard-layout.store';
 /**
  * Dashboard area (FR-005): a `p-card` per `DASHBOARD_WIDGET_CONTRIBUTIONS` entry of a domain the
  * current user has access to (FR-001, FR-004, 021-frontend-extension-points), via the generic
- * `DynamicOutletComponent`, headed by the contribution's own `titleKey`. Without any domain there
+ * `DynamicOutletComponent`; the widget renders its own tile frame (header, main content,
+ * collapsible details). Without any domain there
  * are no tiles. A domain in maintenance replaces its tiles' content (041).
  *
  * The user can drag the cards into their own order and switch individual
@@ -42,8 +45,10 @@ import { DashboardLayoutStore } from './dashboard-layout.store';
     IconComponent,
     DynamicOutletComponent,
     MaintenanceTileComponent,
+    DashboardTileComponent,
     DashboardEditDialogComponent,
   ],
+  providers: [{ provide: DASHBOARD_TILE_EXPANSION, useExisting: DashboardLayoutStore }],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
 })

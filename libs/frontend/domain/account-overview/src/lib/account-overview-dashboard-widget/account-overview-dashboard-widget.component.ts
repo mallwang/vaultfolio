@@ -1,9 +1,11 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import type { AccountOverviewEntry } from '@vaultfolio/api-contract';
 import {
+  DashboardTileComponent,
   EmptyTileComponent,
+  TileDetailsDirective,
+  TileValueComponent,
   TranslatePipe,
-  WidgetHeaderComponent,
 } from '@vaultfolio/frontend-shared-ui';
 import { countByCategory } from '../account-categories';
 import { AccountOverviewService, isAccountOverviewUnavailable } from '../account-overview.service';
@@ -16,62 +18,100 @@ const AREA = '/app/account-overview';
  */
 @Component({
   selector: 'app-account-overview-dashboard-widget',
-  imports: [TranslatePipe, EmptyTileComponent, WidgetHeaderComponent],
+  imports: [
+    TranslatePipe,
+    EmptyTileComponent,
+    DashboardTileComponent,
+    TileDetailsDirective,
+    TileValueComponent,
+  ],
   template: `
     <div class="widget" data-testid="account-overview-widget">
       @if (failed()) {
-        <p class="muted" data-testid="account-overview-widget-error">
-          {{
-            (unavailable() ? 'accountOverview.unavailable' : 'accountOverview.loadError')
-              | translate
-          }}
-        </p>
+        <app-dashboard-tile
+          tileId="account-overview"
+          testIdPrefix="account-overview-widget"
+          [title]="'dashboard.accounts' | translate"
+        >
+          <p class="muted" data-testid="account-overview-widget-error">
+            {{
+              (unavailable() ? 'accountOverview.unavailable' : 'accountOverview.loadError')
+                | translate
+            }}
+          </p>
+        </app-dashboard-tile>
       } @else if (accounts(); as list) {
         @if (list.length === 0) {
-          <app-empty-tile
-            [link]="area"
-            testId="account-overview-widget-empty"
-            [title]="'accountOverview.emptyStateTitle' | translate"
-            [body]="'accountOverview.widget.emptyBody' | translate"
-            [ctaLabel]="'accountOverview.addFirstAccount' | translate"
-          />
+          <app-dashboard-tile
+            tileId="account-overview"
+            testIdPrefix="account-overview-widget"
+            [title]="'dashboard.accounts' | translate"
+          >
+            <app-empty-tile
+              [link]="area"
+              testId="account-overview-widget-empty"
+              [title]="'accountOverview.emptyStateTitle' | translate"
+              [body]="'accountOverview.widget.emptyBody' | translate"
+              [ctaLabel]="'accountOverview.addFirstAccount' | translate"
+            />
+          </app-dashboard-tile>
         } @else {
-          <app-widget-header
+          <app-dashboard-tile
+            tileId="account-overview"
+            testIdPrefix="account-overview-widget"
             [link]="area"
             linkTestId="account-overview-widget-link"
             [title]="'accountOverview.widget.total' | translate"
             [linkLabel]="'accountOverview.widget.open' | translate"
-          />
-          <span class="hero" data-testid="account-overview-widget-total">{{ list.length }}</span>
-          <ul class="legend" data-testid="account-overview-widget-categories">
-            @for (entry of categories(); track entry.category) {
-              <li [attr.data-testid]="'account-overview-widget-category-' + entry.category">
-                <span class="legend__name">{{
-                  'accountCategory.' + entry.category | translate
-                }}</span>
-                <span class="legend__count">{{ entry.count }}</span>
-              </li>
-            }
-          </ul>
-          @if (decommissioned() > 0) {
-            <span class="muted" data-testid="account-overview-widget-decommissioned">
-              {{ decommissioned() }} {{ 'accountStatus.DECOMMISSIONED' | translate }}
-            </span>
-          }
+          >
+            <app-tile-value data-testid="account-overview-widget-total">{{
+              list.length
+            }}</app-tile-value>
+            <div tileDetails class="details">
+              <ul class="legend" data-testid="account-overview-widget-categories">
+                @for (entry of categories(); track entry.category) {
+                  <li [attr.data-testid]="'account-overview-widget-category-' + entry.category">
+                    <span class="legend__name">{{
+                      'accountCategory.' + entry.category | translate
+                    }}</span>
+                    <span class="legend__count">{{ entry.count }}</span>
+                  </li>
+                }
+              </ul>
+              @if (decommissioned() > 0) {
+                <span class="muted" data-testid="account-overview-widget-decommissioned">
+                  {{ decommissioned() }} {{ 'accountStatus.DECOMMISSIONED' | translate }}
+                </span>
+              }
+            </div>
+          </app-dashboard-tile>
         }
+      } @else {
+        <app-dashboard-tile
+          tileId="account-overview"
+          testIdPrefix="account-overview-widget"
+          [title]="'dashboard.accounts' | translate"
+        />
       }
     </div>
   `,
   styles: `
+    :host {
+      display: flex;
+      flex: 1;
+      min-width: 0;
+    }
     .widget {
       display: flex;
+      flex: 1;
+      min-width: 0;
       flex-direction: column;
       gap: 0.5rem;
     }
-    .hero {
-      font-size: 1.8rem;
-      font-weight: 600;
-      font-variant-numeric: tabular-nums;
+    .details {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
     }
     .muted {
       margin: 0;

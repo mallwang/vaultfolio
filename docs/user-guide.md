@@ -131,6 +131,11 @@ widgets from the domains you use — for example, a total portfolio value card. 
 widgets only appear once you have added data. The dashboard is still being expanded
 with each new domain.
 
+**Tile details.** Every tile shows its key figure first. Where a tile has more to show, use
+**Show details** below the figure to expand it and **Hide details** to collapse it again. Tiles in
+the same row grow to the same height, but only the tile you expanded shows its details. Your choice
+is remembered in this browser, per account.
+
 **Arranging your dashboard.** Drag a tile by the handle in its top-right corner to move it
 (or focus the handle and use the arrow keys). Choose **Edit dashboard** above the tiles to switch
 individual tiles on or off. The dashboard only shows tiles of features that are enabled for your

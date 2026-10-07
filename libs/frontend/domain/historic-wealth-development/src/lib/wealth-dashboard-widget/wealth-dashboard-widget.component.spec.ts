@@ -32,7 +32,7 @@ describe('WealthDashboardWidgetComponent', () => {
     http = TestBed.inject(HttpTestingController);
   });
 
-  async function render(snapshots: WealthSnapshot[] | 503) {
+  async function render(snapshots: WealthSnapshot[] | 503, expand = false) {
     const fixture = TestBed.createComponent(WealthDashboardWidgetComponent);
     fixture.detectChanges();
     const list = http.expectOne('/api/wealth/snapshots');
@@ -46,17 +46,22 @@ describe('WealthDashboardWidgetComponent', () => {
     }
     await fixture.whenStable();
     fixture.detectChanges();
-    return fixture.nativeElement as HTMLElement;
+    const el = fixture.nativeElement as HTMLElement;
+    if (expand) {
+      el.querySelector<HTMLElement>('[data-testid="wealth-widget-toggle"]')?.click();
+      fixture.detectChanges();
+    }
+    return el;
   }
 
   const q = (el: HTMLElement, id: string) => el.querySelector(`[data-testid="${id}"]`);
   const txt = (el: HTMLElement, id: string) => q(el, id)?.textContent?.replace(/\s+/g, ' ').trim();
 
   it('shows the latest net worth, change with percent, reference date, composition bar and rows', async () => {
-    const el = await render([
-      snap('a', '2025-01-15', '1000.00'),
-      snap('b', '2025-06-15', '1200.00', '100.00'),
-    ]);
+    const el = await render(
+      [snap('a', '2025-01-15', '1000.00'), snap('b', '2025-06-15', '1200.00', '100.00')],
+      true,
+    );
     expect(txt(el, 'wealth-widget-net')).toContain('1,100.00');
     expect(txt(el, 'wealth-widget-change')).toContain('+€100.00');
     expect(txt(el, 'wealth-widget-change')).toContain('+10.0%');
@@ -68,6 +73,15 @@ describe('WealthDashboardWidgetComponent', () => {
     expect(q(el, 'wealth-widget-link')?.getAttribute('href')).toBe(
       '/app/historic-wealth-development',
     );
+  });
+
+  it('keeps the details collapsed by default', async () => {
+    const el = await render([
+      snap('a', '2025-01-15', '1000.00'),
+      snap('b', '2025-06-15', '1200.00', '100.00'),
+    ]);
+    expect(q(el, 'wealth-widget-assets')).toBeNull();
+    expect(q(el, 'wealth-widget-toggle')?.getAttribute('aria-expanded')).toBe('false');
   });
 
   it('shows a hint for one snapshot', async () => {

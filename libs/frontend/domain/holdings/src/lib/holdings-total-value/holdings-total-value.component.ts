@@ -1,19 +1,34 @@
 import { Component } from '@angular/core';
-import { IconComponent, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
+import {
+  DashboardTileComponent,
+  IconComponent,
+  TranslatePipe,
+} from '@vaultfolio/frontend-shared-ui';
 
 /** Dashboard tile for the combined value of all holdings; still a "coming soon" shell. */
 @Component({
   selector: 'app-holdings-total-value',
-  imports: [IconComponent, TranslatePipe],
+  imports: [IconComponent, TranslatePipe, DashboardTileComponent],
   // Inline template/styles: consumed cross-package, see HoldingsDistributionComponent.
   template: `
-    <div class="total-value" data-testid="holdings-total-value">
-      <app-icon name="wallet" class="total-value__icon" />
-      <span>{{ 'dashboard.comingSoon' | translate }}</span>
-      <p>{{ 'dashboard.totalValueBody' | translate }}</p>
-    </div>
+    <app-dashboard-tile
+      tileId="holdings-total-value"
+      testIdPrefix="holdings-total-value"
+      [title]="'dashboard.totalValue' | translate"
+    >
+      <div class="total-value" data-testid="holdings-total-value">
+        <app-icon name="wallet" class="total-value__icon" />
+        <span>{{ 'dashboard.comingSoon' | translate }}</span>
+        <p>{{ 'dashboard.totalValueBody' | translate }}</p>
+      </div>
+    </app-dashboard-tile>
   `,
   styles: `
+    :host {
+      display: flex;
+      flex: 1;
+      min-width: 0;
+    }
     .total-value {
       display: flex;
       flex-direction: column;
