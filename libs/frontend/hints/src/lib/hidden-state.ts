@@ -33,7 +33,7 @@ export function serializeHiddenState(state: HiddenHintState): string {
 
 export function isHidden(state: HiddenHintState, hint: Hint): boolean {
   const entry = state.entries[hint.id];
-  return entry != null && entry.signature === hintSignature(hint);
+  return entry?.signature === hintSignature(hint);
 }
 
 export function hide(state: HiddenHintState, hint: Hint, source: string): HiddenHintState {

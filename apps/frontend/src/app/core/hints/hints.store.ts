@@ -73,30 +73,32 @@ export class HintsStore {
 
     this.hiddenState.set(this.storage.load());
 
-    const loaded: LoadedProvider[] = [];
-    for (const contrib of this.contributions) {
-      // T027: skip domains the user is not entitled to or that are in maintenance
-      if (contrib.domainId) {
-        if (!isDomainEntitled(user, contrib.domainId)) continue;
-        if (this.maintenance.isInMaintenance(contrib.domainId)) continue;
-      }
-      try {
-        const ProviderClass = await contrib.loadProvider();
-        const instance = runInInjectionContext(this.injector, () =>
-          inject(ProviderClass),
-        ) as HintProvider;
-        instance.load();
-        loaded.push({
-          sourceId: contrib.sourceId,
-          domainId: contrib.domainId,
-          groupLabelKey: contrib.groupLabelKey,
-          instance,
-        });
-      } catch {
-        // ponytail: one failing provider import must not block others
-      }
-    }
-    this.providers.set(loaded);
+    const results = await Promise.all(
+      this.contributions.map(async (contrib): Promise<LoadedProvider | null> => {
+        // T027: skip domains the user is not entitled to or that are in maintenance
+        if (contrib.domainId) {
+          if (!isDomainEntitled(user, contrib.domainId)) return null;
+          if (this.maintenance.isInMaintenance(contrib.domainId)) return null;
+        }
+        try {
+          const ProviderClass = await contrib.loadProvider();
+          const instance = runInInjectionContext(this.injector, () =>
+            inject(ProviderClass),
+          ) as HintProvider;
+          instance.load();
+          return {
+            sourceId: contrib.sourceId,
+            domainId: contrib.domainId,
+            groupLabelKey: contrib.groupLabelKey,
+            instance,
+          };
+        } catch {
+          // ponytail: one failing provider import must not block others
+          return null;
+        }
+      }),
+    );
+    this.providers.set(results.filter((p): p is LoadedProvider => p !== null));
     this.watchNavigation();
   }
 

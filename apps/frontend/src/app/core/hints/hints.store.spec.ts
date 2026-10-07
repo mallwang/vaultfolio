@@ -110,6 +110,45 @@ describe('HintsStore', () => {
     expect(store.view().hidden).toHaveLength(0);
   });
 
+  it('refresh() is throttled to once per minute, forceRefresh() is not', async () => {
+    const provider = TestBed.inject(FakeProvider);
+    const refresh = vi.fn();
+    (provider as unknown as { refresh: () => void }).refresh = refresh;
+    await store.load();
+
+    store.refresh();
+    store.refresh();
+    expect(refresh).toHaveBeenCalledOnce();
+
+    store.forceRefresh();
+    expect(refresh).toHaveBeenCalledTimes(2);
+  });
+
+  it('reset() drops all providers and hidden state', async () => {
+    TestBed.inject(FakeProvider).setHints([SAMPLE_HINT]);
+    await store.load();
+
+    store.reset();
+
+    expect(store.view().active).toHaveLength(0);
+  });
+
+  it('hide() ignores an unknown hint id', async () => {
+    await store.load();
+
+    store.hide('missing');
+
+    expect(fakeStorage.save).not.toHaveBeenCalled();
+  });
+
+  it('does nothing without a signed-in user', async () => {
+    fakeCurrentUser.setUnauthenticated();
+
+    await store.load();
+
+    expect(fakeStorage.load).not.toHaveBeenCalled();
+  });
+
   it('different user sees different hidden state on load', async () => {
     const provider = TestBed.inject(FakeProvider);
     provider.setHints([SAMPLE_HINT]);
