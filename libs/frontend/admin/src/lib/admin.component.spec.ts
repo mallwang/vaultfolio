@@ -104,6 +104,20 @@ describe('AdminComponent', () => {
     expect(navigate).not.toHaveBeenCalled();
   });
 
+  it('lists the Encryption tab and treats "encryption" as a tab', () => {
+    const { fixture } = buildFixture('encryption');
+    fixture.detectChanges();
+    TestBed.inject(HttpTestingController)
+      .expectOne((r) => r.url === '/api/requests')
+      .flush([]);
+    fixture.detectChanges();
+
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="admin-tab-encryption"]'),
+    ).not.toBeNull();
+    expect(fixture.componentInstance['activeTab']()).toBe('encryption');
+  });
+
   it('shows the Requests tab with the open-request count, loaded on init', () => {
     const { fixture } = buildFixture('accounts');
     fixture.detectChanges();

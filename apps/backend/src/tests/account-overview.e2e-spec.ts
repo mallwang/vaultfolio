@@ -35,7 +35,7 @@ describe('/account-overview/accounts', () => {
     process.env.DATABASE_PATH = path.join(tempDir, 'test.db');
     process.env.BOOTSTRAP_ADMIN_EMAIL = ADMIN_EMAIL;
     process.env.BOOTSTRAP_ADMIN_PASSWORD = ADMIN_PASSWORD;
-    process.env.ACCOUNT_OVERVIEW_ENCRYPTION_KEY = randomBytes(32).toString('base64');
+    process.env.ENCRYPTION_KEY = randomBytes(32).toString('base64');
 
     const moduleRef: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
@@ -56,7 +56,7 @@ describe('/account-overview/accounts', () => {
     delete process.env.DATABASE_PATH;
     delete process.env.BOOTSTRAP_ADMIN_EMAIL;
     delete process.env.BOOTSTRAP_ADMIN_PASSWORD;
-    delete process.env.ACCOUNT_OVERVIEW_ENCRYPTION_KEY;
+    delete process.env.ENCRYPTION_KEY;
     fs.rmSync(tempDir, { recursive: true, force: true });
   });
 
@@ -250,7 +250,7 @@ describe('/account-overview/accounts', () => {
   });
 });
 
-describe('/account-overview/accounts without ACCOUNT_OVERVIEW_ENCRYPTION_KEY', () => {
+describe('/account-overview/accounts without ENCRYPTION_KEY', () => {
   let app: INestApplication;
   let tempDir: string;
   let cookie: string;
@@ -263,7 +263,7 @@ describe('/account-overview/accounts without ACCOUNT_OVERVIEW_ENCRYPTION_KEY', (
     process.env.DATABASE_PATH = path.join(tempDir, 'test.db');
     process.env.BOOTSTRAP_ADMIN_EMAIL = ADMIN_EMAIL;
     process.env.BOOTSTRAP_ADMIN_PASSWORD = ADMIN_PASSWORD;
-    delete process.env.ACCOUNT_OVERVIEW_ENCRYPTION_KEY;
+    delete process.env.ENCRYPTION_KEY;
 
     const moduleRef: TestingModule = await Test.createTestingModule({
       imports: [AppModule],

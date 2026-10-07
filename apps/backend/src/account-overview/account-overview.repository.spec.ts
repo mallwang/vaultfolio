@@ -4,6 +4,7 @@ import * as path from 'node:path';
 import type { ValidatedAccount } from '@vaultfolio/domain-accounts';
 import { randomBytes } from 'node:crypto';
 import { DatabaseService } from '../database/database.service';
+import { createTestKeyring } from '../encryption/encryption.testing';
 import { AccountOverviewCryptoService } from './account-overview-crypto.service';
 import { AccountOverviewRepository } from './account-overview.repository';
 
@@ -23,7 +24,7 @@ describe('AccountOverviewRepository', () => {
     process.env.DATABASE_PATH = path.join(tempDir, 'test.db');
     process.env.BOOTSTRAP_ADMIN_EMAIL = 'admin@example.com';
     process.env.BOOTSTRAP_ADMIN_PASSWORD = 'a-valid-8-char-password';
-    process.env.ACCOUNT_OVERVIEW_ENCRYPTION_KEY = randomBytes(32).toString('base64');
+    process.env.ENCRYPTION_KEY = randomBytes(32).toString('base64');
 
     database = new DatabaseService();
     await database.onModuleInit();
@@ -35,8 +36,7 @@ describe('AccountOverviewRepository', () => {
       `INSERT INTO users (id, email, display_name, password_hash, role) VALUES ($1, 'owner2@example.com', 'Owner Two', 'x', 'MEMBER')`,
       [otherOwnerId],
     );
-    const crypto = new AccountOverviewCryptoService(database);
-    crypto.onModuleInit();
+    const crypto = new AccountOverviewCryptoService(createTestKeyring(database));
     repository = new AccountOverviewRepository(database, crypto);
   });
 
@@ -46,7 +46,7 @@ describe('AccountOverviewRepository', () => {
     delete process.env.DATABASE_PATH;
     delete process.env.BOOTSTRAP_ADMIN_EMAIL;
     delete process.env.BOOTSTRAP_ADMIN_PASSWORD;
-    delete process.env.ACCOUNT_OVERVIEW_ENCRYPTION_KEY;
+    delete process.env.ENCRYPTION_KEY;
   });
 
   const validAccount: ValidatedAccount = {
@@ -75,17 +75,16 @@ describe('AccountOverviewRepository', () => {
     const raw = JSON.stringify(row);
     expect(raw).not.toContain('Secret name');
     expect(raw).not.toContain('4111');
-    expect(String(row.payload_enc)).toMatch(/^v1:/);
+    expect(String(row.payload_enc)).toMatch(/^v2:/);
   });
 
   it('fails closed when a stored ciphertext no longer authenticates', async () => {
     const inserted = await repository.insert(validAccount, ownerId);
     await database.query(
-      `UPDATE account_overview_entries SET payload_enc = 'v1:AAAA:AAAA:AAAA' WHERE id = $1`,
+      `UPDATE account_overview_entries SET payload_enc = 'v2:AAAA:AAAA:AAAA' WHERE id = $1`,
       [inserted.id],
     );
-    const isolated = new AccountOverviewCryptoService(database);
-    isolated.onModuleInit();
+    const isolated = new AccountOverviewCryptoService(createTestKeyring(database));
     const isolatedRepository = new AccountOverviewRepository(database, isolated);
     await expect(isolatedRepository.findByIdForOwner(inserted.id, ownerId)).rejects.toThrow();
     expect(isolated.available).toBe(false);

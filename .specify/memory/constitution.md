@@ -1,6 +1,16 @@
 <!--
 Sync Impact Report
-- Version change: 3.10.0 → 3.11.0 (MINOR: Insurances domain gets concrete scope,
+- Version change: 3.11.0 → 3.12.0 (MINOR: 040-encryption-key-rotation; the "Encryption at rest"
+  rule names the master key / data key hierarchy and the open encryption-key-rotation TODO is
+  closed; no principle removed or redefined)
+- Modified sections:
+  - Product Scope → Sensitive Personal Data → Encryption at rest: the operator-configured key is a
+    master key that only wraps versioned data keys; rotation and re-encryption are operator actions
+    in the admin screen; unavailable-domain behaviour unchanged (fail closed).
+  - Deferred TODOs: encryption-key rotation removed (resolved by 040).
+- Added/removed principles and sections: none
+- Templates requiring updates: none
+- Previous: 3.10.0 → 3.11.0 (MINOR: Insurances domain gets concrete scope,
   039-insurances-management; it joins the Sensitive Personal Data rules; the contract-number
   relaxation also covers it; the data-origin rule names the read-only Earnings-derived lines; no
   principle removed or redefined)
@@ -112,8 +122,6 @@ Sync Impact Report
   - Consider whether Account Overview's "planned cash flow" (per the intake) implies any
     forecasting/projection logic that would need its own Core Principle or Stack Decision entry —
     unresolved until that domain is actually specified via /speckit-specify.
-  - Encryption-key rotation for sensitive-data domains is not yet defined; resolve when a
-    rotation need arises (not part of 032-earnings-domain).
 -->
 
 # Vaultfolio Constitution
@@ -347,6 +355,11 @@ constitution:
   another user's data — role-based access (including Administrator) never overrides ownership.
 - **Encryption at rest**: monetary amounts MUST be stored encrypted with a server-held key
   configured by the instance operator, so the database file or a backup alone reveals no amount.
+  The operator key is a master key that only wraps randomly generated, versioned data keys; the
+  data keys encrypt the data, so the master key can be rotated without touching the data and the
+  data can be re-encrypted under a new data key after a compromise (admin screen, ADMIN only; key
+  values are only ever supplied through the server environment and never appear in the UI, the API
+  or logs).
   Non-monetary lookup fields (e.g., period, employer, kind) MAY remain in plain form. If the key is
   missing or invalid, the domain MUST fail closed (report unavailability; never show wrong/partial
   figures or accept new data).
@@ -461,4 +474,4 @@ alignment with the Core Principles; unresolved violations MUST be justified in t
 Complexity Tracking section or the plan MUST be revised to comply. Reviewers MUST treat this
 constitution as authoritative over informal team conventions.
 
-**Version**: 3.11.0 | **Ratified**: 2026-08-13 | **Last Amended**: 2026-10-05
+**Version**: 3.12.0 | **Ratified**: 2026-08-13 | **Last Amended**: 2026-10-06

@@ -33,12 +33,11 @@ export interface InsurancesTestApp {
 }
 
 /**
- * Boots the real app against a temp SQLite file with an `INSURANCES_ENCRYPTION_KEY`. `key: null`
- * leaves it unset to exercise the fail-closed 503; the Earnings key is set unless
- * `earningsKey: null`.
+ * Boots the real app against a temp SQLite file with an `ENCRYPTION_KEY`. `key: null`
+ * leaves it unset to exercise the fail-closed 503.
  */
 export async function bootInsurancesApp(
-  options: { key?: string | null; earningsKey?: string | null; tempDir?: string } = {},
+  options: { key?: string | null; tempDir?: string } = {},
 ): Promise<InsurancesTestApp> {
   const tempDir =
     options.tempDir ?? fs.mkdtempSync(path.join(os.tmpdir(), 'vaultfolio-insurances-e2e-'));
@@ -46,11 +45,8 @@ export async function bootInsurancesApp(
   process.env.BOOTSTRAP_ADMIN_EMAIL = ADMIN_EMAIL;
   process.env.BOOTSTRAP_ADMIN_PASSWORD = PASSWORD;
   process.env.APP_BASE_URL = 'https://vaultfolio.example.com';
-  if (options.earningsKey === null) delete process.env.EARNINGS_ENCRYPTION_KEY;
-  else
-    process.env.EARNINGS_ENCRYPTION_KEY = options.earningsKey ?? randomBytes(32).toString('base64');
-  if (options.key === null) delete process.env.INSURANCES_ENCRYPTION_KEY;
-  else process.env.INSURANCES_ENCRYPTION_KEY = options.key ?? randomBytes(32).toString('base64');
+  if (options.key === null) delete process.env.ENCRYPTION_KEY;
+  else process.env.ENCRYPTION_KEY = options.key ?? randomBytes(32).toString('base64');
 
   const mail: MailCatcher = { sent: [], failNext: false };
   const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
@@ -82,8 +78,7 @@ export async function bootInsurancesApp(
         'DATABASE_PATH',
         'BOOTSTRAP_ADMIN_EMAIL',
         'BOOTSTRAP_ADMIN_PASSWORD',
-        'EARNINGS_ENCRYPTION_KEY',
-        'INSURANCES_ENCRYPTION_KEY',
+        'ENCRYPTION_KEY',
         'APP_BASE_URL',
       ])
         delete process.env[name];

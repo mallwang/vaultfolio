@@ -1,24 +1,17 @@
 import { randomBytes } from 'node:crypto';
-import type { DatabaseService } from '../database/database.service';
+import { createMemoryKeyring } from '../encryption/encryption.testing';
 import { RetirementCryptoService } from './retirement-crypto.service';
 import { RetirementUnavailableException } from './retirement.exceptions';
 
 const KEY = randomBytes(32).toString('base64');
 
-function service(
-  key: string | undefined,
-  rows: Record<string, unknown>[] = [],
-): RetirementCryptoService {
-  const database = {
-    querySync: jest.fn(() => rows),
-  } as unknown as DatabaseService;
-  const previous = process.env.RETIREMENT_ENCRYPTION_KEY;
-  if (key === undefined) delete process.env.RETIREMENT_ENCRYPTION_KEY;
-  else process.env.RETIREMENT_ENCRYPTION_KEY = key;
-  const s = new RetirementCryptoService(database);
-  s.onModuleInit();
-  if (previous === undefined) delete process.env.RETIREMENT_ENCRYPTION_KEY;
-  else process.env.RETIREMENT_ENCRYPTION_KEY = previous;
+function service(key: string | undefined): RetirementCryptoService {
+  const previous = process.env.ENCRYPTION_KEY;
+  if (key === undefined) delete process.env.ENCRYPTION_KEY;
+  else process.env.ENCRYPTION_KEY = key;
+  const s = new RetirementCryptoService(createMemoryKeyring());
+  if (previous === undefined) delete process.env.ENCRYPTION_KEY;
+  else process.env.ENCRYPTION_KEY = previous;
   return s;
 }
 
@@ -35,11 +28,11 @@ describe('RetirementCryptoService', () => {
     expect(s.decrypt('r1', 'u1', s.encrypt('r1', 'u1', payload))).toEqual(payload);
   });
 
-  it('uses the v1:<iv>:<tag>:<ct> format without any plain figure or identifier', () => {
+  it('uses the v<N>:<iv>:<tag>:<ct> format without any plain figure or identifier', () => {
     const enc = service(KEY).encrypt('r1', 'u1', payload);
     const parts = enc.split(':');
     expect(parts).toHaveLength(4);
-    expect(parts[0]).toBe('v1');
+    expect(parts[0]).toBe('v2');
     expect(Buffer.from(parts[1], 'base64')).toHaveLength(12);
     expect(Buffer.from(parts[2], 'base64')).toHaveLength(16);
     expect(enc).not.toContain('123.45');
@@ -98,36 +91,13 @@ describe('RetirementCryptoService', () => {
   });
 
   it('does not use the earnings key', () => {
-    const previous = process.env.EARNINGS_ENCRYPTION_KEY;
-    process.env.EARNINGS_ENCRYPTION_KEY = KEY;
+    const previous = process.env.ENCRYPTION_KEY;
+    process.env.ENCRYPTION_KEY = KEY;
     try {
       expect(service(undefined).available).toBe(false);
     } finally {
-      if (previous === undefined) delete process.env.EARNINGS_ENCRYPTION_KEY;
-      else process.env.EARNINGS_ENCRYPTION_KEY = previous;
-    }
-  });
-
-  it('becomes unavailable at boot when the key does not match stored data', () => {
-    const enc = service(KEY).encrypt('r1', 'u1', payload);
-    const row = { id: 'r1', owner_id: 'u1', payload_enc: enc };
-    expect(service(KEY, [row]).available).toBe(true);
-    expect(service(randomBytes(32).toString('base64'), [row]).available).toBe(false);
-  });
-
-  it('stays available when the table is not readable yet', () => {
-    const database = {
-      querySync: jest.fn(() => {
-        throw new Error('no such table');
-      }),
-    } as unknown as DatabaseService;
-    process.env.RETIREMENT_ENCRYPTION_KEY = KEY;
-    try {
-      const s = new RetirementCryptoService(database);
-      s.onModuleInit();
-      expect(s.available).toBe(true);
-    } finally {
-      delete process.env.RETIREMENT_ENCRYPTION_KEY;
+      if (previous === undefined) delete process.env.ENCRYPTION_KEY;
+      else process.env.ENCRYPTION_KEY = previous;
     }
   });
 });

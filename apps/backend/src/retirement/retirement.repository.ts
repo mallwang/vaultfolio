@@ -114,7 +114,7 @@ export class RetirementRepository {
         `INSERT INTO ${RETIREMENT_TABLE} (id, owner_id, pillar, contract_type, origin, status,
            provider_label, statement_date, payout_start, parser_id, parser_version, ocr_read,
            payload_enc, key_version, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, 1, $14, $14)`,
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, ${this.crypto.keyVersion}, $14, $14)`,
         [
           id,
           ownerId,
@@ -144,7 +144,7 @@ export class RetirementRepository {
     const [existing] = this.database.querySync<{ id: string }>(
       `UPDATE ${RETIREMENT_TABLE}
          SET status = $3, provider_label = $4, statement_date = $5, payout_start = $6,
-             payload_enc = $7, updated_at = $8
+             payload_enc = $7, key_version = ${this.crypto.keyVersion}, updated_at = $8
        WHERE id = $1 AND owner_id = $2 RETURNING id`,
       [
         id,
@@ -172,7 +172,7 @@ export class RetirementRepository {
     const payload: RetirementPayload = { figures: current.figures, supplement };
     if (current.identifier !== null) payload.identifier = current.identifier;
     this.database.querySync(
-      `UPDATE ${RETIREMENT_TABLE} SET status = $3, payload_enc = $4, updated_at = $5
+      `UPDATE ${RETIREMENT_TABLE} SET status = $3, payload_enc = $4, key_version = ${this.crypto.keyVersion}, updated_at = $5
        WHERE id = $1 AND owner_id = $2`,
       [
         id,

@@ -323,7 +323,7 @@ export class EarningsRepository {
         };
         this.database.querySync(
           `INSERT INTO earnings_records (id, owner_id, import_id, employer_id, period, issued, kind, seq, amounts_enc, key_version, created_at)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 1, $10)`,
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, ${this.crypto.keyVersion}, $10)`,
           [
             id,
             ownerId,
@@ -347,7 +347,7 @@ export class EarningsRepository {
         const id = randomUUID();
         this.database.querySync(
           `INSERT INTO earnings_certificates (id, owner_id, import_id, employer_id, year, amounts_enc, key_version, created_at)
-           VALUES ($1, $2, $3, $4, $5, $6, 1, $7)`,
+           VALUES ($1, $2, $3, $4, $5, $6, ${this.crypto.keyVersion}, $7)`,
           [
             id,
             ownerId,

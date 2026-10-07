@@ -1,4 +1,5 @@
 import { requestsDe } from './requests.de';
+import { encryptionDe } from './encryption.de';
 import { earningsDe } from './earnings.de';
 import { retirementDe } from './retirement.de';
 import { wealthDe } from './wealth.de';
@@ -45,6 +46,7 @@ export const de: TranslationDictionary = {
     accounts: 'Konten',
     invitations: 'Einladungen',
     requests: 'Anfragen',
+    encryption: 'Verschlüsselung',
     signups: 'Anmeldungen',
     healthStatus: 'Systemstatus',
     collapseSidebar: 'Navigation einklappen',
@@ -571,6 +573,7 @@ export const de: TranslationDictionary = {
     adminInvitations: 'Verwaltung · Einladungen',
     adminRequests: 'Verwaltung · Anfragen',
     adminGeneral: 'Verwaltung · Allgemein',
+    adminEncryption: 'Verwaltung · Verschlüsselung',
     notFound: 'Nicht gefunden',
   },
   accountOverviewForm: {
@@ -731,4 +734,5 @@ export const de: TranslationDictionary = {
   insurances: insurancesDe,
   ocr: ocrDe,
   requests: requestsDe,
+  encryption: encryptionDe,
 };

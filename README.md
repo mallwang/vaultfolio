@@ -76,7 +76,7 @@ by you" in the preview, the import history and the month detail.
   SHA-256 fingerprint and parser id/version. No tax ID, social-security number, IBAN, name or
   address is read or sent.
 - Every amount is stored **encrypted at rest** (AES-256-GCM) with a key the instance operator
-  configures (`EARNINGS_ENCRYPTION_KEY`). A copy of the database file or a backup alone reveals no
+  configures (`ENCRYPTION_KEY`). A copy of the database file or a backup alone reveals no
   amount; period, employer, kind and year stay in plain form for lookups.
 - Data is visible **only to its owner** — administrators included cannot see another user's
   earnings. The operator runs the server and holds the key, so the operator is trusted; the
@@ -90,7 +90,7 @@ by you" in the preview, the import history and the month detail.
 per member in the Admin area (_Accounts_ tab, domain toggles). Administrators can use the domain
 for their own data.
 
-**Key management and loss** — see [Earnings encryption key](#earnings-encryption-key). If the key
+**Key management and loss** — see [Encryption key](#encryption-key). If the key
 is missing or invalid, the domain shows "Earnings data is temporarily unavailable", the API
 answers `503 EARNINGS_UNAVAILABLE`, and no imports are accepted; all other domains keep working.
 **Losing or changing the key makes every stored earnings amount permanently unrecoverable** —
@@ -220,91 +220,45 @@ across browser tabs. Two rules keep that true as the app grows:
 An app-wide store that caches user data should additionally reset itself when the user id changes
 (see `WealthStore`) as a second line of defence.
 
-### Earnings encryption key
+### Encryption key
 
-The Earnings domain encrypts every stored amount with `EARNINGS_ENCRYPTION_KEY` (Base64 of exactly
-32 random bytes). Generate one once and put it into `.env` (or the stack's environment in
-Portainer):
+All encrypted domains (Earnings, Retirement, Wealth, Insurances, Account overview) share one
+`ENCRYPTION_KEY` (Base64 of exactly 32 random bytes). Generate one once and put it into `.env` (or
+the stack's environment in Portainer):
 
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 ```
 
-Back the key up **separately** from `./data`: a database backup without its key cannot be
-decrypted, and a lost or changed key makes all stored earnings amounts permanently unrecoverable.
-Without a valid key the backend still starts; only the Earnings domain reports "temporarily
-unavailable".
+Each domain still encrypts with its own data key (stored wrapped in the database), so the domains
+stay cryptographically separate. A lost or changed key makes all encrypted data permanently
+unreadable. **Without a valid key the backend still starts**, but every route of an encrypted domain
+answers `503` (`EARNINGS_UNAVAILABLE`, `RETIREMENT_UNAVAILABLE`, `WEALTH_UNAVAILABLE`,
+`INSURANCES_UNAVAILABLE`, `ACCOUNT_OVERVIEW_UNAVAILABLE`; fail closed), the area shows an
+"unavailable" state, the Insurances domain sends no reminder e-mails, and stored data is not lost.
 
-### Hot-reload dev mode
+### Key rotation, backup and recovery
 
-The command above builds production images (no live-reload). For day-to-day development, run the
-app natively — Nx's `serve` targets already rebuild and reload on save, and SQLite needs no
-separate service to pre-start:
+Encryption uses a **two-level key scheme**: the `ENCRYPTION_KEY` you configure is a
+_master key_ that only protects randomly generated _data keys_ stored (wrapped) in the database; the
+data keys encrypt your data. On the first start after an upgrade existing data is moved once onto a data key using the
+configured key (the affected domain briefly answers `503` while this runs, seconds for typical data).
 
-```bash
-npm run dev
-```
-
-This runs `backend`/`frontend` via `nx run-many -t serve -p backend frontend`:
-
-- Frontend: <http://localhost:4200>, rebuilds + reloads on save
-- Backend: <http://localhost:3000>, rebuilds + restarts on save, reading config from the root
-  `.env` (see [Authentication](#authentication) above — create it from `.env.example` before
-  first run)
-
-Equivalent to running each piece by hand:
-
-```bash
-npm exec nx serve frontend
-npm exec nx serve backend
-```
-
-### Local development tooling
-
-Linting, formatting, dependency hygiene (knip), secret scanning, and the git hooks that run them
-automatically are documented separately in
-[docs/development.md](docs/development.md) ([Deutsche Version](docs/development.de.md)).
-
-### Retirement encryption key
-
-The Retirement domain encrypts every stored amount, contract number and supplement with its own
-`RETIREMENT_ENCRYPTION_KEY` (Base64 of exactly 32 random bytes), separate from the Earnings key.
-Generate and back it up the same way as the Earnings key (see above) — a lost or changed key makes
-all stored retirement data permanently unreadable. **Without a valid key the backend still starts**,
-but every `/retirement` route answers `503 RETIREMENT_UNAVAILABLE` (fail closed) and the Retirement
-area shows an "unavailable" state; the other domains are unaffected and stored data is not lost.
-
-### Wealth encryption key
-
-The Historic Wealth Development domain ("Wealth") encrypts every stored snapshot — entry names,
-classes, amounts and notes — with its own `WEALTH_ENCRYPTION_KEY` (Base64 of exactly 32 random
-bytes), separate from the Earnings and Retirement keys. Generate and back it up the same way as the
-Earnings key (see above) — a lost or changed key makes all stored wealth data permanently
-unreadable. **Without a valid key the backend still starts**, but every `/wealth` route answers
-`503 WEALTH_UNAVAILABLE` (fail closed) and the Wealth area shows an "unavailable" state; the other
-domains are unaffected and stored data is not lost.
-
-### Insurances encryption key
-
-The Insurances domain encrypts every stored contract (names, insurers, contract numbers, premiums,
-dates, notes), the gap-check profile and the reminder settings with its own
-`INSURANCES_ENCRYPTION_KEY` (Base64 of exactly 32 random bytes), separate from the other keys.
-Generate and back it up the same way as the Earnings key (see above) — a lost or changed key makes
-all stored insurance data permanently unreadable. **Without a valid key the backend still starts**,
-but every `/insurances` route answers `503 INSURANCES_UNAVAILABLE` (fail closed), no reminder
-e-mails are sent and the Insurances area shows an "unavailable" state; the other domains are
-unaffected and stored data is not lost. Reminder e-mails use the SMTP settings of the other
-notifications and the `APP_BASE_URL` link.
-
-### Account overview encryption key
-
-The account overview encrypts every stored account entry (names, providers, websites, purposes,
-card numbers, notes) with its own `ACCOUNT_OVERVIEW_ENCRYPTION_KEY` (Base64 of exactly 32 random
-bytes), separate from the other keys. Generate and back it up the same way as the Earnings key
-(see above) — a lost or changed key makes all stored account data permanently unreadable.
-**Without a valid key the backend still starts**, but every `/account-overview` route answers
-`503 ACCOUNT_OVERVIEW_UNAVAILABLE` (fail closed) and the account overview shows an "unavailable"
-state; the other domains are unaffected and stored data is not lost.
+- **Back up the keys separately from `./data`** (a password manager or a secret store, not the same
+  backup as the database). Database and keys together restore everything; either alone does not.
+  After a restore, start the app and open **Admin → Encryption**: every domain should show _Ready_.
+- **Missing or wrong key**: the domain is locked (`503`), nothing is written or changed, and Admin →
+  Encryption shows the cause. Restore the correct key and restart; all data is back.
+- **Scheduled rotation of a master key** (no downtime, data untouched): set the new key as
+  `ENCRYPTION_KEY` and the old key as `ENCRYPTION_KEY_PREVIOUS`, restart, open
+  Admin → Encryption and run **Rotate master key** for each domain. When the screen reports the previous
+  key as removable, delete `ENCRYPTION_KEY_PREVIOUS` and restart. The old key then opens
+  nothing.
+- **Emergency rotation after a key leak**: do the master key rotation above, then run **Re-encrypt data**
+  for the domain (confirm by typing the domain id; the domain is unavailable while it runs) and finally
+  **Destroy key** for the retired data key. Back up the new keys again.
+- Keys are only ever supplied through the server environment; they never appear in the UI, the API or
+  the logs.
 
 ## Deploying with Portainer (or any Docker Hub-based host)
 

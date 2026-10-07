@@ -99,7 +99,7 @@ export class WealthRepository {
       this.database.querySync(
         `INSERT INTO ${WEALTH_SNAPSHOTS_TABLE}
            (id, owner_id, snapshot_date, payload_enc, key_version, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, 1, $5, $5)`,
+         VALUES ($1, $2, $3, $4, ${this.crypto.keyVersion}, $5, $5)`,
         [
           id,
           ownerId,
@@ -120,7 +120,7 @@ export class WealthRepository {
     try {
       updated = this.database.querySync<{ id: string }>(
         `UPDATE ${WEALTH_SNAPSHOTS_TABLE}
-           SET snapshot_date = $3, payload_enc = $4, updated_at = $5
+           SET snapshot_date = $3, payload_enc = $4, key_version = ${this.crypto.keyVersion}, updated_at = $5
          WHERE id = $1 AND owner_id = $2 RETURNING id`,
         [
           id,
@@ -164,8 +164,9 @@ export class WealthRepository {
   saveSettings(ownerId: string, settings: WealthSettings): WealthSettings {
     this.database.querySync(
       `INSERT INTO ${WEALTH_SETTINGS_TABLE} (owner_id, payload_enc, key_version, updated_at)
-       VALUES ($1, $2, 1, $3)
+       VALUES ($1, $2, ${this.crypto.keyVersion}, $3)
        ON CONFLICT (owner_id) DO UPDATE SET payload_enc = excluded.payload_enc,
+         key_version = excluded.key_version,
          updated_at = excluded.updated_at`,
       [
         ownerId,

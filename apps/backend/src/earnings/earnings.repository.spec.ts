@@ -6,6 +6,7 @@ import Sqlite from 'better-sqlite3';
 import type { ImportFileInput } from '@vaultfolio/earnings';
 import { evaluateChecks } from '@vaultfolio/earnings';
 import { DatabaseService } from '../database/database.service';
+import { createTestKeyring } from '../encryption/encryption.testing';
 import { EarningsCryptoService } from './earnings-crypto.service';
 import { EarningsRepository } from './earnings.repository';
 
@@ -71,11 +72,10 @@ describe('EarningsRepository (SQLite)', () => {
   beforeEach(async () => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'vaultfolio-earnings-repo-'));
     process.env.DATABASE_PATH = path.join(tempDir, 'test.db');
-    process.env.EARNINGS_ENCRYPTION_KEY = randomBytes(32).toString('base64');
+    process.env.ENCRYPTION_KEY = randomBytes(32).toString('base64');
     database = new DatabaseService();
     await database.onModuleInit();
-    const crypto = new EarningsCryptoService(database);
-    crypto.onModuleInit();
+    const crypto = new EarningsCryptoService(createTestKeyring(database));
     repository = new EarningsRepository(database, crypto);
   });
 
@@ -83,7 +83,7 @@ describe('EarningsRepository (SQLite)', () => {
     await database.onModuleDestroy();
     fs.rmSync(tempDir, { recursive: true, force: true });
     delete process.env.DATABASE_PATH;
-    delete process.env.EARNINGS_ENCRYPTION_KEY;
+    delete process.env.ENCRYPTION_KEY;
   });
 
   describe('employers', () => {
@@ -118,7 +118,7 @@ describe('EarningsRepository (SQLite)', () => {
         'SELECT amounts_enc FROM earnings_records',
       );
       expect(raw).toHaveLength(1);
-      expect(raw[0].amounts_enc).toMatch(/^v1:/);
+      expect(raw[0].amounts_enc).toMatch(/^v2:/);
       expect(raw[0].amounts_enc).not.toContain('5000');
       expect(raw[0].amounts_enc).not.toContain('3180');
 

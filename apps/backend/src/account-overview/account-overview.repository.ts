@@ -50,7 +50,7 @@ export class AccountOverviewRepository {
     const rows = await this.database.query<AccountRow>(
       `INSERT INTO ${ACCOUNT_OVERVIEW_TABLE}
          (id, owner_id, payload_enc, key_version, created_at, updated_at)
-       VALUES ($1, $2, $3, 1, $4, $4)
+       VALUES ($1, $2, $3, ${this.crypto.keyVersion}, $4, $4)
        RETURNING ${COLUMNS}`,
       [id, ownerId, this.crypto.encrypt(id, ownerId, toPayload(value)), now],
     );
@@ -64,7 +64,7 @@ export class AccountOverviewRepository {
   ): Promise<Account | null> {
     const rows = await this.database.query<AccountRow>(
       `UPDATE ${ACCOUNT_OVERVIEW_TABLE}
-       SET payload_enc = $3, updated_at = $4
+       SET payload_enc = $3, key_version = ${this.crypto.keyVersion}, updated_at = $4
        WHERE id = $1 AND owner_id = $2
        RETURNING ${COLUMNS}`,
       [id, ownerId, this.crypto.encrypt(id, ownerId, toPayload(value)), new Date().toISOString()],

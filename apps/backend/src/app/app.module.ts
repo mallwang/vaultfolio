@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { DatabaseModule } from '../database/database.module';
+import { EncryptionModule } from '../encryption/encryption.module';
 import { HealthModule } from '../health/health.module';
 import { HoldingsModule } from '../holdings/holdings.module';
 import { AuthModule } from '../auth/auth.module';
@@ -21,6 +22,7 @@ import { OpenApiModule } from '../openapi/openapi.module';
   imports: [
     ObservabilityModule,
     DatabaseModule,
+    EncryptionModule,
     AuthModule,
     HealthModule,
     HoldingsModule,

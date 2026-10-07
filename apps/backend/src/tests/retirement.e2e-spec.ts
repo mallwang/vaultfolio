@@ -364,12 +364,12 @@ describe('/retirement', () => {
         expect(stored).not.toContain(secret);
         expect(decoded).not.toContain(secret);
       }
-      expect(rows[0]['payload_enc']).toMatch(/^v1:/);
+      expect(rows[0]['payload_enc']).toMatch(/^v2:/);
     });
   });
 });
 
-describe('/retirement without RETIREMENT_ENCRYPTION_KEY', () => {
+describe('/retirement without ENCRYPTION_KEY', () => {
   let t: RetirementTestApp;
   let s: RetirementSessions;
 

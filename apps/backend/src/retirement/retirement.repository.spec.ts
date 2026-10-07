@@ -4,6 +4,7 @@ import * as path from 'node:path';
 import { randomBytes } from 'node:crypto';
 import Sqlite from 'better-sqlite3';
 import { DatabaseService } from '../database/database.service';
+import { createTestKeyring } from '../encryption/encryption.testing';
 import { RetirementCryptoService } from './retirement-crypto.service';
 import { RetirementStatutoryExistsException } from './retirement.exceptions';
 import { type RetirementRecordData, RetirementRepository } from './retirement.repository';
@@ -51,11 +52,10 @@ describe('RetirementRepository (SQLite)', () => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'vaultfolio-retirement-repo-'));
     dbPath = path.join(tempDir, 'test.db');
     process.env.DATABASE_PATH = dbPath;
-    process.env.RETIREMENT_ENCRYPTION_KEY = randomBytes(32).toString('base64');
+    process.env.ENCRYPTION_KEY = randomBytes(32).toString('base64');
     database = new DatabaseService();
     await database.onModuleInit();
-    const crypto = new RetirementCryptoService(database);
-    crypto.onModuleInit();
+    const crypto = new RetirementCryptoService(createTestKeyring(database));
     repository = new RetirementRepository(database, crypto);
   });
 
@@ -63,7 +63,7 @@ describe('RetirementRepository (SQLite)', () => {
     await database.onModuleDestroy();
     fs.rmSync(tempDir, { recursive: true, force: true });
     delete process.env.DATABASE_PATH;
-    delete process.env.RETIREMENT_ENCRYPTION_KEY;
+    delete process.env.ENCRYPTION_KEY;
   });
 
   it('stores figures and identifier only as ciphertext', () => {

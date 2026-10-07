@@ -12,3 +12,4 @@ export { InvitationsService } from './lib/invitations/invitations.service.js';
 export { HealthStatusComponent } from './lib/health-status/health-status.component.js';
 export { RequestsComponent } from './lib/requests/requests.component.js';
 export { RequestsService } from './lib/requests/requests.service.js';
+export { EncryptionComponent } from './lib/encryption/encryption.component.js';

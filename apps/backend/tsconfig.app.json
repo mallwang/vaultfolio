@@ -28,6 +28,9 @@
       "path": "../../libs/earnings/tsconfig.lib.json"
     },
     {
+      "path": "../../libs/encryption/tsconfig.lib.json"
+    },
+    {
       "path": "../../libs/observability/tsconfig.lib.json"
     },
     {

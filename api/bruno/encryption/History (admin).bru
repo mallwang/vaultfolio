@@ -1,0 +1,17 @@
+meta {
+  name: Encryption History (admin)
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/admin/encryption/history?domain=wealth&limit=50
+  body: none
+  auth: none
+}
+
+docs {
+  Rotations, re-encryptions, destroys and upgrade migrations, newest first.
+  Admin-only request — requires the `vaultfolio_session` cookie of an ADMIN
+  account, captured by `auth/Login`.
+}

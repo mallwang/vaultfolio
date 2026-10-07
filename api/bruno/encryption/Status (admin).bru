@@ -1,0 +1,17 @@
+meta {
+  name: Encryption Status (admin)
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/admin/encryption/status
+  body: none
+  auth: none
+}
+
+docs {
+  Key status of every encrypted domain; counts and versions only, never key material.
+  Admin-only request — requires the `vaultfolio_session` cookie of an ADMIN
+  account, captured by `auth/Login`.
+}
