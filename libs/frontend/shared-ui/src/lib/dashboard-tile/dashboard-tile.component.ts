@@ -101,13 +101,13 @@ let nextDetailsId = 0;
       gap: 0.2rem;
       min-height: var(--tile-main-min-height, 10.5rem);
     }
+    /* Takes whatever main-content height the lines above leave, so charts can use the spare room. */
     .chart {
       display: flex;
+      flex: 1;
       align-items: flex-end;
-      height: var(--tile-chart-height, 3.25rem);
-      margin-top: auto;
-      padding-top: 0.55rem;
-      box-sizing: content-box;
+      min-height: var(--tile-chart-height, 3.25rem);
+      margin-top: 0.55rem;
     }
     .foot {
       display: flex;

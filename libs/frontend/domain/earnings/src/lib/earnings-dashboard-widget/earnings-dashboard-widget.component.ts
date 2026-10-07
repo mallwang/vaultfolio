@@ -192,8 +192,8 @@ import { MAX_BARS, widgetFigures } from './widget-figures';
       flex: 1;
       flex-direction: column;
       gap: 0.15rem;
+      align-self: stretch;
       min-width: 0;
-      height: 100%;
     }
     .readout {
       margin: 0;

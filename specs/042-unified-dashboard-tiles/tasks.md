@@ -26,7 +26,7 @@
 **Purpose**: Translations and design tokens every later task needs
 
 - [x] T001 [P] Add `dashboard.tile.showDetails` and `dashboard.tile.hideDetails` to `libs/frontend/shared-ui/src/lib/i18n/translations/en.ts` and `libs/frontend/shared-ui/src/lib/i18n/translations/de.ts`
-- [x] T002 [P] Add the shared tile sizing values (`--tile-min-height: 14rem`, `--tile-value-size: 1.875rem`, `--tile-chart-height: 3.25rem`) as defaults on the frame host in the component created in T005
+- [x] T002 [P] Add the shared tile sizing values (`--tile-min-height: 14rem`, `--tile-value-size: 1.5rem`, `--tile-chart-height: 3.25rem`) as defaults on the frame host in the component created in T005
 
 ---
 

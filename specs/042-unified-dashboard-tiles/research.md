@@ -36,7 +36,7 @@
 
 ## R5 — Common amount size and minimum height
 
-- **Decision**: `app-tile-value` sets `font-size: 1.875rem; font-weight: 700; tabular numerals; line-height: 1.15`. The frame sets `min-height: 14rem` and a `3.25rem` chart zone (always present, empty if no chart). Values are CSS custom properties on the frame so they can be tuned in one place.
+- **Decision**: `app-tile-value` sets `font-size: 1.5rem; font-weight: 700; tabular numerals; line-height: 1.15`. The frame sets `min-height: 14rem` and a `3.25rem` chart zone (always present, empty if no chart). Values are CSS custom properties on the frame so they can be tuned in one place.
 - **Rationale**: Taken from the reviewed mockup. Long amounts: allow the value to shrink-wrap and break rather than overflow (`overflow-wrap: anywhere`).
 
 ## R6 — Accessibility and test ids

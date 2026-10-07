@@ -20,7 +20,7 @@ Every tile uses the same frame, top to bottom:
 +--------------------------------------+
 ```
 
-- **Common amount size**: one value (`1.875rem`, bold, tabular numerals) for the headline amount in every tile.
+- **Common amount size**: one value (`1.5rem`, bold, tabular numerals) for the headline amount in every tile.
 - **Minimum height**: `14rem` for every tile.
 - **Main zones**: amount, as-of line and a fixed-height chart zone (`3.25rem`) have fixed positions; tiles without a chart (total value, accounts) keep the empty chart zone so amounts line up across a row.
 - **Toggle**: sits directly below the main content, centered, labelled "Details anzeigen" / "Details ausblenden" with a chevron. Absent when a tile has no details.
