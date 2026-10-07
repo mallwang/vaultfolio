@@ -17,8 +17,8 @@
 
 **Purpose**: Bootstrap the new shared library and cross-cutting additions.
 
-- [ ] T001 Create `libs/frontend/hints` library scaffold: `package.json` (`@vaultfolio/frontend-hints`, scope:shared), `tsconfig.json`, `tsconfig.spec.json`, `jest.config.cts`, `.spec.swcrc` — mirror `@vaultfolio/frontend-domain-access` config
-- [ ] T002 [P] Add `notifications: 'notifications'` entry to `ICON_NAME_MAP` in `libs/frontend/shared-ui/src/lib/icon/icon-name.map.ts`
+- [x] T001 Create `libs/frontend/hints` library scaffold: `package.json` (`@vaultfolio/frontend-hints`, scope:shared), `tsconfig.json`, `tsconfig.spec.json`, `jest.config.cts`, `.spec.swcrc` — mirror `@vaultfolio/frontend-domain-access` config
+- [x] T002 [P] Add `notifications: 'notifications'` entry to `ICON_NAME_MAP` in `libs/frontend/shared-ui/src/lib/icon/icon-name.map.ts`
 
 ---
 
@@ -28,16 +28,16 @@
 
 **⚠️ CRITICAL**: US1, US2 and US3 all import from this library; nothing else can start until T009 is done.
 
-- [ ] T003 Create core hint types in `libs/frontend/hints/src/lib/hint.ts` (`Hint`, `HintSeverity`, `HintTarget`)
-- [ ] T004 [P] Create registry types in `libs/frontend/hints/src/lib/hint-provider.ts` (`HintProvider`, `HintProviderContribution`)
-- [ ] T005 Implement `hintSignature(hint)` using cyrb53 hash over sorted canonical JSON of `{ titleKey, descriptionKey, severity, params }` in `libs/frontend/hints/src/lib/hint-signature.ts`
-- [ ] T006 Implement hidden-state transitions (`isHidden`, `hide`, `restore`, `purgeStale`, `parseHiddenState`, `serializeHiddenState`) in `libs/frontend/hints/src/lib/hidden-state.ts`
-- [ ] T007 Implement `viewOf(hints, state)` returning `{ active, hidden, badge }` and grouping helpers in `libs/frontend/hints/src/lib/hint-view.ts`
-- [ ] T008 [P] Implement `hintTestId(id)` (lowercase, replace non-`[a-z0-9]` runs with `-`) in `libs/frontend/hints/src/lib/hint-test-id.ts`
-- [ ] T009 Export all public API from `libs/frontend/hints/src/index.ts`
-- [ ] T010 [P] Jest tests for `hintSignature` (stable across evaluations, language-independent, changes with params change) in `libs/frontend/hints/src/lib/hint-signature.spec.ts`
-- [ ] T011 [P] Jest tests for hidden-state: `isHidden`, `hide`, `restore`, `purgeStale`, parse/serialize round-trip, version-mismatch empty, storage-failure in `libs/frontend/hints/src/lib/hidden-state.spec.ts`
-- [ ] T012 [P] Jest tests for `viewOf`: active/hidden partition, badge count, `9+` cap, dot when count=0 and hidden>0, group order (warnings before info) in `libs/frontend/hints/src/lib/hint-view.spec.ts`
+- [x] T003 Create core hint types in `libs/frontend/hints/src/lib/hint.ts` (`Hint`, `HintSeverity`, `HintTarget`)
+- [x] T004 [P] Create registry types in `libs/frontend/hints/src/lib/hint-provider.ts` (`HintProvider`, `HintProviderContribution`)
+- [x] T005 Implement `hintSignature(hint)` using cyrb53 hash over sorted canonical JSON of `{ titleKey, descriptionKey, severity, params }` in `libs/frontend/hints/src/lib/hint-signature.ts`
+- [x] T006 Implement hidden-state transitions (`isHidden`, `hide`, `restore`, `purgeStale`, `parseHiddenState`, `serializeHiddenState`) in `libs/frontend/hints/src/lib/hidden-state.ts`
+- [x] T007 Implement `viewOf(hints, state)` returning `{ active, hidden, badge }` and grouping helpers in `libs/frontend/hints/src/lib/hint-view.ts`
+- [x] T008 [P] Implement `hintTestId(id)` (lowercase, replace non-`[a-z0-9]` runs with `-`) in `libs/frontend/hints/src/lib/hint-test-id.ts`
+- [x] T009 Export all public API from `libs/frontend/hints/src/index.ts`
+- [x] T010 [P] Jest tests for `hintSignature` (stable across evaluations, language-independent, changes with params change) in `libs/frontend/hints/src/lib/hint-signature.spec.ts`
+- [x] T011 [P] Jest tests for hidden-state: `isHidden`, `hide`, `restore`, `purgeStale`, parse/serialize round-trip, version-mismatch empty, storage-failure in `libs/frontend/hints/src/lib/hidden-state.spec.ts`
+- [x] T012 [P] Jest tests for `viewOf`: active/hidden partition, badge count, `9+` cap, dot when count=0 and hidden>0, group order (warnings before info) in `libs/frontend/hints/src/lib/hint-view.spec.ts`
 
 **Checkpoint**: `npx nx test @vaultfolio/frontend-hints` passes — library is ready.
 
@@ -51,13 +51,13 @@
 
 ### Implementation for User Story 1
 
-- [ ] T013 [US1] Create empty `HINT_PROVIDER_CONTRIBUTIONS: HintProviderContribution[]` registry in `apps/frontend/src/app/core/hints/hint-providers.registry.ts`
-- [ ] T014 [P] [US1] Create `HintsStorage` (best-effort `localStorage` read/write, try/catch, per-user key `vaultfolio.hints-hidden.<userId>`) in `apps/frontend/src/app/core/hints/hints-storage.ts`
-- [ ] T015 [US1] Create `HintsStore` with provider lifecycle (`load()` on sign-in, `refresh()` on `NavigationEnd` throttled to 60 s and on panel open) in `apps/frontend/src/app/core/hints/hints.store.ts`
-- [ ] T016 [US1] Create `HintsBellComponent` (bell icon, count badge, opens panel on click, `data-testid="hints-bell"` and `data-testid="hints-badge"`) in `apps/frontend/src/app/core/hints/hints-bell/`
-- [ ] T017 [US1] Create `HintsPanelComponent` (active hint list, groups from `viewOf`, hint rows with title/description/severity icon/link, empty state) in `apps/frontend/src/app/core/hints/hints-panel/`
-- [ ] T018 [US1] Wire `HintsBellComponent` into `apps/frontend/src/app/core/layout/app-header/` before the language selector (visible only when signed in)
-- [ ] T019 [P] [US1] Add `hints.*` base i18n keys (panel title, empty state, link defaults, aria labels) in both `en` and `de` translation files under `libs/frontend/shared-ui/src/lib/i18n/translations/`
+- [x] T013 [US1] Create empty `HINT_PROVIDER_CONTRIBUTIONS: HintProviderContribution[]` registry in `apps/frontend/src/app/core/hints/hint-providers.registry.ts`
+- [x] T014 [P] [US1] Create `HintsStorage` (best-effort `localStorage` read/write, try/catch, per-user key `vaultfolio.hints-hidden.<userId>`) in `apps/frontend/src/app/core/hints/hints-storage.ts`
+- [x] T015 [US1] Create `HintsStore` with provider lifecycle (`load()` on sign-in, `refresh()` on `NavigationEnd` throttled to 60 s and on panel open) in `apps/frontend/src/app/core/hints/hints.store.ts`
+- [x] T016 [US1] Create `HintsBellComponent` (bell icon, count badge, opens panel on click, `data-testid="hints-bell"` and `data-testid="hints-badge"`) in `apps/frontend/src/app/core/hints/hints-bell/`
+- [x] T017 [US1] Create `HintsPanelComponent` (active hint list, groups from `viewOf`, hint rows with title/description/severity icon/link, empty state) in `apps/frontend/src/app/core/hints/hints-panel/`
+- [x] T018 [US1] Wire `HintsBellComponent` into `apps/frontend/src/app/core/layout/app-header/` before the language selector (visible only when signed in)
+- [x] T019 [P] [US1] Add `hints.*` base i18n keys (panel title, empty state, link defaults, aria labels) in both `en` and `de` translation files under `libs/frontend/shared-ui/src/lib/i18n/translations/`
 
 **Checkpoint**: Badge visible in header with mock provider; panel opens, lists hints, link navigates and closes panel.
 
@@ -71,10 +71,10 @@
 
 ### Implementation for User Story 2
 
-- [ ] T020 [US2] Add `hide(hintId)` / `restore(hintId)` actions and per-user `localStorage` persistence (read on init, write on change) to `HintsStore` in `apps/frontend/src/app/core/hints/hints.store.ts`
-- [ ] T021 [US2] Add hidden section (`hints-hidden-toggle`, hidden count header, restore buttons per row with `data-testid="hints-restore-<safe-id>"`) to `HintsPanelComponent` in `apps/frontend/src/app/core/hints/hints-panel/`
-- [ ] T022 [US2] Implement dot state (`badge.dot`) in `HintsBellComponent`: show gray dot (no number) when all hints hidden in `apps/frontend/src/app/core/hints/hints-bell/`
-- [ ] T023 [P] [US2] Vitest tests for `HintsStore`: hide persists to storage, restore removes from hidden, reactivation on signature change, different user sees different state in `apps/frontend/src/app/core/hints/hints.store.spec.ts`
+- [x] T020 [US2] Add `hide(hintId)` / `restore(hintId)` actions and per-user `localStorage` persistence (read on init, write on change) to `HintsStore` in `apps/frontend/src/app/core/hints/hints.store.ts`
+- [x] T021 [US2] Add hidden section (`hints-hidden-toggle`, hidden count header, restore buttons per row with `data-testid="hints-restore-<safe-id>"`) to `HintsPanelComponent` in `apps/frontend/src/app/core/hints/hints-panel/`
+- [x] T022 [US2] Implement dot state (`badge.dot`) in `HintsBellComponent`: show gray dot (no number) when all hints hidden in `apps/frontend/src/app/core/hints/hints-bell/`
+- [x] T023 [P] [US2] Vitest tests for `HintsStore`: hide persists to storage, restore removes from hidden, reactivation on signature change, different user sees different state in `apps/frontend/src/app/core/hints/hints.store.spec.ts`
 
 **Checkpoint**: Full hide/restore cycle works including reload persistence and reactivation.
 
@@ -88,11 +88,11 @@
 
 ### Implementation for User Story 3
 
-- [ ] T024 [P] [US3] Implement `InsurancesHintProvider` wrapping `InsurancesStore` (`ensureLoaded()`, `gaps().redundant`, one hint per `RedundantItem`, id `insurances.redundant.<contractId>.<otherId>`) in `libs/frontend/domain/insurances/src/lib/hints/insurances-hint-provider.ts`; export from `libs/frontend/domain/insurances/src/index.ts`
-- [ ] T025 [P] [US3] Implement `EarningsHintProvider` calling `EarningsService.dataCheck()`, one hint per row with difference or `completeness.status === 'MISSING'`, id `earnings.data-check.<employerId>.<year>` in `libs/frontend/domain/earnings/src/lib/hints/earnings-hint-provider.ts`; export from `libs/frontend/domain/earnings/src/index.ts`
-- [ ] T026 [US3] Register both providers in `apps/frontend/src/app/core/hints/hint-providers.registry.ts` (lazy `loadProvider` imports, `domainId` set for both)
-- [ ] T027 [US3] Add entitlement + maintenance filtering (skip load when not entitled or in maintenance) and per-provider failure isolation guard (`try/catch` around `hints()`) in `HintsStore` in `apps/frontend/src/app/core/hints/hints.store.ts`
-- [ ] T028 [P] [US3] Add provider i18n keys (`hints.groups.insurances`, `hints.groups.earnings`, title/description/linkLabel keys per hint type) in `en` and `de` translation files under `libs/frontend/shared-ui/src/lib/i18n/translations/`
+- [x] T024 [P] [US3] Implement `InsurancesHintProvider` wrapping `InsurancesStore` (`ensureLoaded()`, `gaps().redundant`, one hint per `RedundantItem`, id `insurances.redundant.<contractId>.<otherId>`) in `libs/frontend/domain/insurances/src/lib/hints/insurances-hint-provider.ts`; export from `libs/frontend/domain/insurances/src/index.ts`
+- [x] T025 [P] [US3] Implement `EarningsHintProvider` calling `EarningsService.dataCheck()`, one hint per row with difference or `completeness.status === 'MISSING'`, id `earnings.data-check.<employerId>.<year>` in `libs/frontend/domain/earnings/src/lib/hints/earnings-hint-provider.ts`; export from `libs/frontend/domain/earnings/src/index.ts`
+- [x] T026 [US3] Register both providers in `apps/frontend/src/app/core/hints/hint-providers.registry.ts` (lazy `loadProvider` imports, `domainId` set for both)
+- [x] T027 [US3] Add entitlement + maintenance filtering (skip load when not entitled or in maintenance) and per-provider failure isolation guard (`try/catch` around `hints()`) in `HintsStore` in `apps/frontend/src/app/core/hints/hints.store.ts`
+- [x] T028 [P] [US3] Add provider i18n keys (`hints.groups.insurances`, `hints.groups.earnings`, title/description/linkLabel keys per hint type) in `en` and `de` translation files under `libs/frontend/shared-ui/src/lib/i18n/translations/`
 
 **Checkpoint**: Both real providers contribute hints; maintenance flag hides one provider's hints without affecting the other; failing provider leaves shell intact.
 
@@ -102,11 +102,11 @@
 
 **Purpose**: Accessibility, mobile layout, test-id completeness, final validation.
 
-- [ ] T029 [P] Add `data-testid` attributes per `docs/frontend/testid-conventions.md` to all interactive and translated elements: `hints-bell`, `hints-badge`, `hints-panel`, `hints-hidden-toggle`, and per-row `hints-row-<safe-id>`, `hints-hide-<safe-id>`, `hints-restore-<safe-id>`, `hints-link-<safe-id>` (use `hintTestId(id)`)
-- [ ] T030 [P] Add mobile layout: `HintsPanelComponent` hosted in `p-dialog` (with `dismissableMask`, close button) at ≤768 px via `matchMedia` signal; desktop keeps `p-popover` in `apps/frontend/src/app/core/hints/hints-panel/`
-- [ ] T031 [P] Add keyboard accessibility and ARIA live region for badge count in `HintsBellComponent` (button role, `aria-label` with count, `aria-live="polite"` on badge update)
-- [ ] T032 Run `npx nx lint frontend @vaultfolio/frontend-hints @vaultfolio/frontend-domain-insurances @vaultfolio/frontend-domain-earnings` and `npx nx build frontend` — resolve all errors
-- [ ] T033 Playwright verification via `verify-ui` skill: all four quickstart.md scenarios (badge + list, hide + restore, gating + isolation, mobile)
+- [x] T029 [P] Add `data-testid` attributes per `docs/frontend/testid-conventions.md` to all interactive and translated elements: `hints-bell`, `hints-badge`, `hints-panel`, `hints-hidden-toggle`, and per-row `hints-row-<safe-id>`, `hints-hide-<safe-id>`, `hints-restore-<safe-id>`, `hints-link-<safe-id>` (use `hintTestId(id)`)
+- [x] T030 [P] Add mobile layout: `HintsPanelComponent` hosted in `p-dialog` (with `dismissableMask`, close button) at ≤768 px via `matchMedia` signal; desktop keeps `p-popover` in `apps/frontend/src/app/core/hints/hints-panel/`
+- [x] T031 [P] Add keyboard accessibility and ARIA live region for badge count in `HintsBellComponent` (button role, `aria-label` with count, `aria-live="polite"` on badge update)
+- [x] T032 Run `npx nx lint frontend @vaultfolio/frontend-hints @vaultfolio/frontend-domain-insurances @vaultfolio/frontend-domain-earnings` and `npx nx build frontend` — resolve all errors
+- [x] T033 Playwright verification via `verify-ui` skill: all four quickstart.md scenarios (badge + list, hide + restore, gating + isolation, mobile)
 
 ---
 

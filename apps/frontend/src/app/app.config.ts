@@ -26,6 +26,7 @@ import { VaultfolioTitleStrategy } from './core/title.strategy';
 import { httpErrorInterceptor } from './core/http-error.interceptor';
 import { GlobalErrorHandler } from './core/global-error-handler';
 import { registerFeatureExports } from './export/feature-export.registry';
+import { HintsStore } from './core/hints/hints.store';
 
 /**
  * Swaps Aura's default emerald primary palette for teal, and pins the
@@ -76,8 +77,12 @@ export const appConfig: ApplicationConfig = {
     provideAppInitializer(() => {
       const authService = inject(AuthService);
       const currentUser = inject(CurrentUserStore);
+      const hintsStore = inject(HintsStore);
       return authService.getSession().pipe(
-        tap((user) => currentUser.setAuthenticated(user)),
+        tap((user) => {
+          currentUser.setAuthenticated(user);
+          void hintsStore.load();
+        }),
         catchError(() => {
           currentUser.setUnauthenticated();
           return of(null);

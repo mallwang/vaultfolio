@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import type { SessionUser } from '@vaultfolio/api-contract';
 import { AuthService } from './auth.service';
 import { CurrentUserStore } from './current-user.store';
+import { HintsStore } from '../core/hints/hints.store';
 
 /** Full page loads, behind a token so specs can observe them instead of navigating jsdom. */
 export interface PageLoader {
@@ -37,6 +38,7 @@ export class SessionBoundary {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly pageLoader = inject(PAGE_LOADER);
+  private readonly hintsStore = inject(HintsStore);
   private readonly document = inject(DOCUMENT);
   private checking = false;
   private readonly leavingState = signal(false);
@@ -51,6 +53,7 @@ export class SessionBoundary {
       return;
     }
     this.currentUser.setAuthenticated(user);
+    void this.hintsStore.load();
     void this.router.navigateByUrl(url);
   }
 
