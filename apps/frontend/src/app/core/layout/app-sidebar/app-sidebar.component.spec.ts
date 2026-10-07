@@ -4,6 +4,7 @@ import type { SessionUser } from '@vaultfolio/api-contract';
 import { AppSidebarComponent } from './app-sidebar.component';
 import { CurrentUserStore } from '../../../auth/current-user.store';
 import { FakeCurrentUserStore } from '../../../auth/testing/current-user-store.testing';
+import { DomainMaintenanceStore } from '../../maintenance/domain-maintenance.store';
 
 const adminUser: SessionUser = {
   id: 'user-1',
@@ -130,5 +131,39 @@ describe('AppSidebarComponent', () => {
     // Still selectable — the routerLink wrapper is unaffected by which child renders.
     expect(entryAfterError?.tagName).toBe('A');
     expect(entryAfterError?.getAttribute('href')).toBe('/app/klaro');
+  });
+
+  // 041-domain-maintenance-mode: the item stays visible and gets a wrench marker.
+  it('keeps a domain in maintenance visible and marks it with the wrench', async () => {
+    TestBed.overrideProvider(DomainMaintenanceStore, {
+      useValue: { isInMaintenance: (id: string) => id === 'earnings' },
+    });
+    fakeCurrentUser.setAuthenticated({ ...memberUser, domainScopes: ['earnings', 'klaro'] });
+    const fixture = TestBed.createComponent(AppSidebarComponent);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('[data-testid="sidebar-nav-item-earnings"]')).not.toBeNull();
+    expect(
+      compiled.querySelector('[data-testid="sidebar-nav-maintenance-earnings"]'),
+    ).not.toBeNull();
+    expect(compiled.querySelector('[data-testid="sidebar-nav-maintenance-klaro"]')).toBeNull();
+  });
+
+  it('never shows a domain in maintenance that the member is not entitled to', async () => {
+    TestBed.overrideProvider(DomainMaintenanceStore, {
+      useValue: { isInMaintenance: () => true },
+    });
+    fakeCurrentUser.setAuthenticated(memberUser);
+    const fixture = TestBed.createComponent(AppSidebarComponent);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector(
+        '[data-testid="sidebar-nav-item-earnings"]',
+      ),
+    ).toBeNull();
   });
 });

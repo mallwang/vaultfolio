@@ -1,0 +1,23 @@
+meta {
+  name: Set Domain Maintenance (admin)
+  type: http
+  seq: 3
+}
+
+put {
+  url: {{baseUrl}}/admin/domains/insurances
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "inMaintenance": true
+  }
+}
+
+docs {
+  Puts a domain into (true) or out of (false) maintenance. Idempotent; a real
+  change is written to the audit table. Admin-only request — requires the
+  `vaultfolio_session` cookie of an ADMIN account, captured by `auth/Login`.
+}

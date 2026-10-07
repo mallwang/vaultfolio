@@ -1,6 +1,8 @@
 import { HttpErrorResponse, type HttpInterceptorFn } from '@angular/common/http';
+import { Injector, inject } from '@angular/core';
 import { catchError, throwError } from 'rxjs';
-import type { ErrorResponse } from '@vaultfolio/api-contract';
+import { DOMAIN_MAINTENANCE_ERROR, type ErrorResponse } from '@vaultfolio/api-contract';
+import { DomainMaintenanceStore } from './maintenance/domain-maintenance.store';
 
 /**
  * Registered after `authInterceptor` (app.config.ts). Passes every response through unchanged —
@@ -23,8 +25,10 @@ import type { ErrorResponse } from '@vaultfolio/api-contract';
  * `GlobalErrorHandler` so both surfaces present the correlation ID identically (FR-013), and logs
  * every backend failure for local debugging regardless of whether anything else handles it.
  */
-export const httpErrorInterceptor: HttpInterceptorFn = (req, next) =>
-  next(req).pipe(
+export const httpErrorInterceptor: HttpInterceptorFn = (req, next) => {
+  // Resolved lazily: the store itself uses `HttpClient`, so injecting it here eagerly would be circular.
+  const injector = inject(Injector);
+  return next(req).pipe(
     catchError((error: unknown) => {
       if (error instanceof HttpErrorResponse) {
         console.debug('Backend request failed', {
@@ -32,10 +36,18 @@ export const httpErrorInterceptor: HttpInterceptorFn = (req, next) =>
           status: error.status,
           error,
         });
+        // 041: a domain went into maintenance while the page was open — switch it to the notice.
+        if (
+          error.status === 503 &&
+          (error.error as Partial<ErrorResponse> | null)?.error === DOMAIN_MAINTENANCE_ERROR
+        ) {
+          injector.get(DomainMaintenanceStore).refresh();
+        }
       }
       return throwError(() => error);
     }),
   );
+};
 
 /** Shared fallback toast copy — "Something went wrong (ref: ...)" when a correlationId is available. */
 export function buildFallbackDetail(error: HttpErrorResponse): string {

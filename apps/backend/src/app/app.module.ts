@@ -17,12 +17,14 @@ import { RequestsModule } from '../requests/requests.module';
 import { TurnstileModule } from '../turnstile/turnstile.module';
 import { ObservabilityModule } from '@vaultfolio/observability';
 import { OpenApiModule } from '../openapi/openapi.module';
+import { MaintenanceModule } from '../maintenance/maintenance.module';
 
 @Module({
   imports: [
     ObservabilityModule,
     DatabaseModule,
     EncryptionModule,
+    MaintenanceModule,
     AuthModule,
     HealthModule,
     HoldingsModule,

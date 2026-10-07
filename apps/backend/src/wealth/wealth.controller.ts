@@ -16,6 +16,7 @@ import { CurrentUser } from '../auth/current-user.decorator';
 import type { RequestUser } from '../auth/current-user.decorator';
 import { RequiresDomain } from '../auth/domain.decorator';
 import { ApiVaultfolioSessionAuth } from '../openapi/api-vaultfolio-auth.decorator';
+import { ApiDomainMaintenanceResponse } from '../openapi/api-domain-maintenance.decorator';
 import {
   ErrorResponseDto,
   WealthClassGroupAssignmentDto,
@@ -34,6 +35,7 @@ import { WealthService } from './wealth.service';
  */
 @ApiTags('wealth')
 @ApiVaultfolioSessionAuth()
+@ApiDomainMaintenanceResponse()
 @Controller('wealth')
 @RequiresDomain('historic-wealth-development')
 @UseGuards(WealthAvailableGuard)

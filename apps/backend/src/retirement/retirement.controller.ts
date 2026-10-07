@@ -18,6 +18,7 @@ import { CurrentUser } from '../auth/current-user.decorator';
 import type { RequestUser } from '../auth/current-user.decorator';
 import { RequiresDomain } from '../auth/domain.decorator';
 import { ApiVaultfolioSessionAuth } from '../openapi/api-vaultfolio-auth.decorator';
+import { ApiDomainMaintenanceResponse } from '../openapi/api-domain-maintenance.decorator';
 import {
   ErrorResponseDto,
   RetirementManualRecordInputDto,
@@ -37,6 +38,7 @@ import { RetirementService, pillarParam } from './retirement.service';
  */
 @ApiTags('retirement')
 @ApiVaultfolioSessionAuth()
+@ApiDomainMaintenanceResponse()
 @Controller('retirement')
 @RequiresDomain('retirement')
 @UseGuards(RetirementAvailableGuard)

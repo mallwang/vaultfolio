@@ -26,6 +26,7 @@ import { CurrentUser } from '../auth/current-user.decorator';
 import type { RequestUser } from '../auth/current-user.decorator';
 import { RequiresDomain } from '../auth/domain.decorator';
 import { ApiVaultfolioSessionAuth } from '../openapi/api-vaultfolio-auth.decorator';
+import { ApiDomainMaintenanceResponse } from '../openapi/api-domain-maintenance.decorator';
 import {
   AccountOverviewEntryDto,
   AccountOverviewNotFoundErrorResponseDto,
@@ -56,6 +57,7 @@ const NOT_FOUND_BODY: AccountOverviewNotFoundErrorResponse = {
  */
 @ApiTags('account-overview')
 @ApiVaultfolioSessionAuth()
+@ApiDomainMaintenanceResponse()
 @Controller('account-overview/accounts')
 @RequiresDomain('account-overview')
 @UseGuards(AccountOverviewAvailableGuard)

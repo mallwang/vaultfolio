@@ -66,7 +66,6 @@ For every route under a `@RequiresDomain(<id>)` controller, when `<id>` is in ma
 {
   "error": "DOMAIN_MAINTENANCE",
   "message": "This area is temporarily unavailable due to maintenance.",
-  "domainId": "insurances",
   "correlationId": "..."
 }
 ```

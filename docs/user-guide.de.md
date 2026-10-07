@@ -55,6 +55,7 @@ eigenen Infrastruktur.
    - 9.3 [Registrierungsanfragen](#93-registrierungsanfragen)
    - 9.4 [Parser- und andere Anfragen](#94-parser--und-andere-anfragen)
    - 9.5 [Systemstatus](#95-systemstatus)
+   - 9.6 [Domänen-Wartung](#96-domänen-wartung)
 
 ---
 
@@ -724,3 +725,24 @@ sie gesendet hat.
 und Datenbankverbindung (verbunden / nicht erreichbar), jeweils mit einem Zeitstempel der
 letzten Prüfung. Nutze diese Seite, wenn sich die Anwendung unerwartet verhält, um zu prüfen,
 ob das Backend erreichbar ist.
+
+### 9.6 Domänen-Wartung
+
+**Admin → Domänen** listet jede Domäne mit ihrem Status (Aktiv / In Wartung) und wer sie
+zuletzt geändert hat. Mit dem Schalter lässt sich eine einzelne Domäne in Wartung setzen,
+zum Beispiel während fehlerhafte Berechnungen, ein Export oder Daten repariert werden; das
+Einschalten fragt nach einer Bestätigung, das Ausschalten nicht.
+
+Während eine Domäne in Wartung ist:
+
+- Mitglieder sehen ihren Navigationseintrag weiterhin (mit Schraubenschlüssel markiert), beim
+  Öffnen erscheint aber ein orangefarbener Hinweis „Vorübergehend nicht verfügbar“, und die
+  Dashboard-Kachel zeigt einen Wartungstext.
+- Alle Anfragen von Mitgliedern an diese Domäne werden mit einer Wartungsantwort abgelehnt,
+  es wird also nichts gelesen, geändert oder exportiert.
+- Admins behalten vollen Zugriff und sehen ein Banner (Seite) bzw. eine Marke (Dashboard-Kachel).
+- Erinnerungs-E-Mails zu Versicherungen pausieren und werden nach der Wartung nachgeholt,
+  sofern die Frist noch nicht abgelaufen ist.
+
+Es werden keine Daten verändert oder gelöscht, und jede Änderung wird in einem Audit-Protokoll
+festgehalten. Mitglieder sehen eine Änderung beim nächsten Laden der Seite.

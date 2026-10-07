@@ -84,6 +84,8 @@ export const ICON_NAME_MAP: Record<string, string> = {
   'file-csv': 'csv',
   'file-excel': 'table_view',
   'file-pdf': 'picture_as_pdf',
+  // Domain maintenance (041-domain-maintenance-mode): wrench marker on nav items, notices and tiles.
+  build: 'build',
   // On-device text recognition of scans (034-ocr-fallback-pdf).
   scan: 'document_scanner',
 };

@@ -19,6 +19,14 @@
         @if (!collapsed()) {
           <span>{{ area.labelKey | translate }}</span>
         }
+        @if (area.domainId && maintenance.isInMaintenance(area.domainId)) {
+          <app-icon
+            name="build"
+            class="app-nav__marker"
+            [attr.data-testid]="'sidebar-nav-maintenance-' + area.id"
+            [attr.title]="'maintenance.navMarker' | translate"
+          />
+        }
       </a>
     }
   </div>

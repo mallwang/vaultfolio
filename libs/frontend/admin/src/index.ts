@@ -13,3 +13,4 @@ export { HealthStatusComponent } from './lib/health-status/health-status.compone
 export { RequestsComponent } from './lib/requests/requests.component.js';
 export { RequestsService } from './lib/requests/requests.service.js';
 export { EncryptionComponent } from './lib/encryption/encryption.component.js';
+export { DomainsComponent } from './lib/domains/domains.component.js';

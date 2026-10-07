@@ -6,6 +6,7 @@ import type { SessionUser } from '@vaultfolio/api-contract';
 import { DashboardComponent } from './dashboard.component';
 import { CurrentUserStore } from '../auth/current-user.store';
 import { FakeCurrentUserStore } from '../auth/testing/current-user-store.testing';
+import { DomainMaintenanceStore } from '../core/maintenance/domain-maintenance.store';
 
 // The entitled-user path renders the holdings distribution widget, which
 // renders <app-echart> and calls into real ECharts — jsdom has no canvas 2D
@@ -281,6 +282,44 @@ describe('DashboardComponent', () => {
       fixture.detectChanges();
 
       expect(tileIds(el)).not.toContain('dashboard-tile-todaysChange');
+    });
+  });
+
+  // 041-domain-maintenance-mode: members get the maintenance text instead of the widget.
+  describe('domain in maintenance', () => {
+    it('swaps the widget for the maintenance tile for a member and loads no data', async () => {
+      fakeCurrentUser.setAuthenticated(entitledUser);
+      TestBed.inject(DomainMaintenanceStore).refresh();
+      httpMock.expectOne('/api/domains/maintenance').flush({ domains: ['holdings'] });
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      const el = fixture.nativeElement as HTMLElement;
+      expect(
+        el.querySelector('[data-testid="dashboard-tile-maintenance-holdings"]'),
+      ).not.toBeNull();
+      expect(
+        el.querySelector('[data-testid="dashboard-tile-holdings"] app-dynamic-outlet'),
+      ).toBeNull();
+      httpMock.expectNone('/api/holdings');
+    });
+
+    it('keeps the widget and adds the badge for an admin', async () => {
+      fakeCurrentUser.setAuthenticated({ ...entitledUser, id: 'admin-1', role: 'ADMIN' });
+      TestBed.inject(DomainMaintenanceStore).refresh();
+      httpMock.expectOne('/api/domains/maintenance').flush({ domains: ['holdings'] });
+      fixture.detectChanges();
+
+      const el = fixture.nativeElement as HTMLElement;
+      expect(
+        el.querySelector('[data-testid="dashboard-tile-maintenance-badge-holdings"]'),
+      ).not.toBeNull();
+      expect(
+        el.querySelector('[data-testid="dashboard-tile-holdings"] app-dynamic-outlet'),
+      ).not.toBeNull();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      httpMock.match(() => true).forEach((request) => request.flush([]));
     });
   });
 });

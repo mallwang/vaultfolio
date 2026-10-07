@@ -4,6 +4,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { CurrentUserStore } from '../../../auth/current-user.store';
 import { IconComponent, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
 import { isDomainEntitled } from '@vaultfolio/frontend-domain-access';
+import { DomainMaintenanceStore } from '../../maintenance/domain-maintenance.store';
 import { APPLICATION_AREAS } from '../application-areas';
 
 /**
@@ -23,6 +24,7 @@ import { APPLICATION_AREAS } from '../application-areas';
 })
 export class AppSidebarComponent {
   private readonly currentUserStore = inject(CurrentUserStore);
+  protected readonly maintenance = inject(DomainMaintenanceStore);
 
   protected readonly areas = computed(() => {
     const user = this.currentUserStore.current();
