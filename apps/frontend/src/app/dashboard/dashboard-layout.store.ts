@@ -1,5 +1,6 @@
 import { Injectable, computed, inject, linkedSignal } from '@angular/core';
 import { isDomainEntitled } from '@vaultfolio/frontend-domain-access';
+import type { DashboardTileExpansion } from '@vaultfolio/frontend-shared-ui';
 import { CurrentUserStore } from '../auth/current-user.store';
 import {
   parseDashboardLayout,
@@ -14,12 +15,12 @@ import { DASHBOARD_WIDGET_CONTRIBUTIONS } from './dashboard-widgets.registry';
 const STORAGE_KEY_PREFIX = 'vaultfolio.dashboard-layout.';
 
 /**
- * The user's Dashboard arrangement (tile order + switched-off tiles), kept in this browser's
+ * The user's Dashboard arrangement (tile order, switched-off tiles, tiles with expanded details), kept in this browser's
  * `localStorage` — per signed-in user, so several accounts on one device do not share a layout.
  * Nothing is sent to the server.
  */
 @Injectable({ providedIn: 'root' })
-export class DashboardLayoutStore {
+export class DashboardLayoutStore implements DashboardTileExpansion {
   private readonly currentUser = inject(CurrentUserStore);
 
   private readonly storageKey = computed(() => {
@@ -50,15 +51,24 @@ export class DashboardLayoutStore {
 
   moveVisible(fromIndex: number, toIndex: number): void {
     this.save({
+      ...this.layout(),
       order: reorderVisible(this.tiles(), fromIndex, toIndex),
-      hidden: this.layout().hidden,
     });
   }
 
   setTileVisible(id: string, visible: boolean): void {
     const hidden = this.layout().hidden.filter((hiddenId) => hiddenId !== id);
     if (!visible) hidden.push(id);
-    this.save({ order: this.tiles().map((tile) => tile.id), hidden });
+    this.save({ ...this.layout(), order: this.tiles().map((tile) => tile.id), hidden });
+  }
+
+  isExpanded(tileId: string): boolean {
+    return this.layout().expanded.includes(tileId);
+  }
+
+  setExpanded(tileId: string, expanded: boolean): void {
+    const rest = this.layout().expanded.filter((id) => id !== tileId);
+    this.save({ ...this.layout(), expanded: expanded ? [...rest, tileId] : rest });
   }
 
   /** `true` once the user has reordered or switched off anything. */
@@ -68,7 +78,7 @@ export class DashboardLayoutStore {
   });
 
   reset(): void {
-    this.save({ order: [], hidden: [] });
+    this.save({ order: [], hidden: [], expanded: [] });
   }
 
   private save(layout: DashboardLayout): void {

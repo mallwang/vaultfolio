@@ -66,6 +66,15 @@
   transition: background-color 0.15s;
 }
 
+/* The tile frame fills the card so every tile in a row shares the row's height. */
+.tile ::ng-deep .p-card-body,
+.tile ::ng-deep .p-card-content,
+.tile ::ng-deep app-dynamic-outlet {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
 /* Card whose empty-state widget is hovered: tint the whole card. */
 .tile ::ng-deep .p-card:has(.empty:hover) {
   background-color: color-mix(in srgb, var(--p-primary-color) 8%, var(--p-card-background));
@@ -97,6 +106,21 @@
 
 .tile__handle:focus-visible {
   outline: 2px solid var(--p-primary-color);
+}
+
+/* Sits in the card's bottom padding, so it never changes the tile height or overlaps content. */
+.tile__domain {
+  position: absolute;
+  right: 0.6rem;
+  bottom: 0.35rem;
+  display: inline-flex;
+  color: var(--p-text-muted-color);
+  opacity: 0.55;
+  cursor: help;
+}
+
+.tile__domain:hover {
+  opacity: 1;
 }
 
 .tile.cdk-drag-placeholder {

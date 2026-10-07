@@ -75,5 +75,5 @@
 
 ## Current Feature Plan
 
-Active implementation plan: [specs/041-domain-maintenance-mode/plan.md](specs/041-domain-maintenance-mode/plan.md)
+Active implementation plan: [specs/042-unified-dashboard-tiles/plan.md](specs/042-unified-dashboard-tiles/plan.md)
 <!-- SPECKIT END -->

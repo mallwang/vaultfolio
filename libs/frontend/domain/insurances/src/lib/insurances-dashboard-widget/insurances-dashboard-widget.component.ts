@@ -3,10 +3,12 @@ import { RouterLink } from '@angular/router';
 import {
   EmptyTileComponent,
   I18nService,
+  DashboardTileComponent,
   IconComponent,
   ThemeService,
+  TileDetailsDirective,
+  TileValueComponent,
   TranslatePipe,
-  WidgetHeaderComponent,
 } from '@vaultfolio/frontend-shared-ui';
 import { isActiveOn, isSocialType, type UpcomingDeadline } from '@vaultfolio/insurances';
 import { insurancesChartColors } from '../charts/insurances-charts';
@@ -23,93 +25,142 @@ const AREA = '/app/insurances';
  */
 @Component({
   selector: 'app-insurances-dashboard-widget',
-  imports: [RouterLink, IconComponent, TranslatePipe, EmptyTileComponent, WidgetHeaderComponent],
+  imports: [
+    RouterLink,
+    IconComponent,
+    TranslatePipe,
+    EmptyTileComponent,
+    DashboardTileComponent,
+    TileDetailsDirective,
+    TileValueComponent,
+  ],
   template: `
     <div class="widget" data-testid="insurances-widget">
       @if (service.unavailable()) {
-        <p class="muted" data-testid="insurances-widget-unavailable">
-          {{ 'insurances.widget.unavailable' | translate }}
-        </p>
+        <app-dashboard-tile
+          tileId="insurances"
+          testIdPrefix="insurances-widget"
+          [title]="'dashboard.insurances' | translate"
+        >
+          <p class="muted" data-testid="insurances-widget-unavailable">
+            {{ 'insurances.widget.unavailable' | translate }}
+          </p>
+        </app-dashboard-tile>
       } @else if (store.loaded()) {
         @if (empty()) {
-          <app-empty-tile
-            [link]="area"
-            testId="insurances-widget-empty"
-            [title]="'insurances.widget.title' | translate"
-            [body]="'insurances.widget.emptyBody' | translate"
-            [ctaLabel]="'insurances.widget.emptyCta' | translate"
-          />
-        } @else {
-          <div class="tile">
-            <app-widget-header
+          <app-dashboard-tile
+            tileId="insurances"
+            testIdPrefix="insurances-widget"
+            [title]="'dashboard.insurances' | translate"
+          >
+            <app-empty-tile
               [link]="area"
-              linkTestId="insurances-widget-link"
-              [title]="'insurances.widget.monthly' | translate"
-              [linkLabel]="'insurances.widget.open' | translate"
+              testId="insurances-widget-empty"
+              [title]="'insurances.widget.title' | translate"
+              [body]="'insurances.widget.emptyBody' | translate"
+              [ctaLabel]="'insurances.widget.emptyCta' | translate"
             />
-            <span class="hero" data-testid="insurances-widget-monthly">{{ monthly() }}</span>
+          </app-dashboard-tile>
+        } @else {
+          <app-dashboard-tile
+            tileId="insurances"
+            testIdPrefix="insurances-widget"
+            [link]="area"
+            linkTestId="insurances-widget-link"
+            [title]="'insurances.widget.monthly' | translate"
+            [linkLabel]="'insurances.widget.open' | translate"
+          >
+            <app-tile-value data-testid="insurances-widget-monthly">{{ monthly() }}</app-tile-value>
             <span class="muted" data-testid="insurances-widget-yearly">{{ yearly() }}</span>
             <span class="muted" [class.warn]="warn()" data-testid="insurances-widget-next">{{
               next()
             }}</span>
             @if (parts().length > 0) {
-              <div
-                class="bar"
-                role="img"
-                [attr.aria-label]="'insurances.chart.groupTitle' | translate"
-                data-testid="insurances-widget-chart"
-              >
-                @for (part of parts(); track part.group) {
-                  <span
-                    class="bar__part"
-                    [class.dim]="hovered() !== null && hovered() !== part.group"
-                    [style.flex-grow]="part.weight"
-                    [style.background]="part.color"
-                    [title]="part.label + ': ' + part.value"
-                    (mouseenter)="hovered.set(part.group)"
-                    (mouseleave)="hovered.set(null)"
-                  ></span>
+              <div tileChart class="chart">
+                <div
+                  class="bar"
+                  role="img"
+                  [attr.aria-label]="'insurances.chart.groupTitle' | translate"
+                  data-testid="insurances-widget-chart"
+                >
+                  @for (part of parts(); track part.group) {
+                    <span
+                      class="bar__part"
+                      [class.dim]="hovered() !== null && hovered() !== part.group"
+                      [style.flex-grow]="part.weight"
+                      [style.background]="part.color"
+                      [title]="part.label + ': ' + part.value"
+                      (mouseenter)="hovered.set(part.group)"
+                      (mouseleave)="hovered.set(null)"
+                    ></span>
+                  }
+                </div>
+                <ul class="legend" data-testid="insurances-widget-top">
+                  @for (part of topParts(); track part.group) {
+                    <li
+                      [class.active]="hovered() === part.group"
+                      (mouseenter)="hovered.set(part.group)"
+                      (mouseleave)="hovered.set(null)"
+                    >
+                      <span class="swatch" [style.background]="part.color"></span>
+                      <span class="legend__name">{{ part.label }}</span>
+                      <span class="legend__share">{{ part.value }}</span>
+                    </li>
+                  }
+                </ul>
+              </div>
+            }
+            <div tileDetails class="details">
+              @if (restParts().length > 0) {
+                <ul class="legend" data-testid="insurances-widget-legend">
+                  @for (part of restParts(); track part.group) {
+                    <li
+                      [class.active]="hovered() === part.group"
+                      (mouseenter)="hovered.set(part.group)"
+                      (mouseleave)="hovered.set(null)"
+                    >
+                      <span class="swatch" [style.background]="part.color"></span>
+                      <span class="legend__name">{{ part.label }}</span>
+                      <span class="legend__share">{{ part.value }}</span>
+                    </li>
+                  }
+                </ul>
+              }
+              <div class="foot" [class.foot--divided]="restParts().length > 0">
+                <span data-testid="insurances-widget-active">{{ activeText() }}</span>
+                @if (gapCount() > 0) {
+                  <a class="gaps" [routerLink]="gapCheckPath" data-testid="insurances-widget-gaps">
+                    <app-icon name="warning" /> {{ gapText() }}
+                  </a>
                 }
               </div>
-              <ul class="legend" data-testid="insurances-widget-legend">
-                @for (part of parts(); track part.group) {
-                  <li
-                    [class.active]="hovered() === part.group"
-                    (mouseenter)="hovered.set(part.group)"
-                    (mouseleave)="hovered.set(null)"
-                  >
-                    <span class="swatch" [style.background]="part.color"></span>
-                    <span class="legend__name">{{ part.label }}</span>
-                    <span class="legend__share">{{ part.value }}</span>
-                  </li>
-                }
-              </ul>
-            }
-            <div class="foot">
-              <span data-testid="insurances-widget-active">{{ activeText() }}</span>
-              @if (gapCount() > 0) {
-                <a class="gaps" [routerLink]="gapCheckPath" data-testid="insurances-widget-gaps">
-                  <app-icon name="warning" /> {{ gapText() }}
-                </a>
-              }
             </div>
-          </div>
+          </app-dashboard-tile>
         }
+      } @else {
+        <app-dashboard-tile
+          tileId="insurances"
+          testIdPrefix="insurances-widget"
+          [title]="'dashboard.insurances' | translate"
+        />
       }
     </div>
   `,
   styles: `
-    .tile {
+    :host {
+      display: flex;
+      flex: 1;
+      min-width: 0;
+    }
+    .widget {
+      display: flex;
+      flex: 1;
+      min-width: 0;
+    }
+    .details {
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
-      color: inherit;
-      text-decoration: none;
-    }
-    .hero {
-      font-size: 1.8rem;
-      font-weight: 600;
-      font-variant-numeric: tabular-nums;
     }
     .muted {
       color: var(--p-text-muted-color);
@@ -119,9 +170,16 @@ const AREA = '/app/insurances';
       color: var(--p-orange-600);
       font-weight: 600;
     }
+    .chart {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      width: 100%;
+    }
     .bar {
       display: flex;
-      height: 0.75rem;
+      width: 100%;
+      height: 1rem;
       border-radius: 0.375rem;
       overflow: hidden;
     }
@@ -169,10 +227,11 @@ const AREA = '/app/insurances';
       justify-content: space-between;
       gap: 0.5rem;
       flex-wrap: wrap;
-      margin-top: 0.25rem;
+      font-size: 0.9rem;
+    }
+    .foot--divided {
       padding-top: 0.5rem;
       border-top: 1px solid var(--p-content-border-color);
-      font-size: 0.9rem;
     }
     .gaps {
       display: inline-flex;
@@ -239,6 +298,9 @@ export class InsurancesDashboardWidgetComponent {
       }).format(g.share / 100)})`,
     }));
   });
+  private readonly bySize = computed(() => [...this.parts()].sort((a, b) => b.weight - a.weight));
+  protected readonly topParts = computed(() => this.bySize().slice(0, 3));
+  protected readonly restParts = computed(() => this.bySize().slice(3));
   protected readonly activeText = computed(() => {
     const active = fill(this.i18n.translate('insurances.widget.active'), {
       count: this.store.summary().activeCount,

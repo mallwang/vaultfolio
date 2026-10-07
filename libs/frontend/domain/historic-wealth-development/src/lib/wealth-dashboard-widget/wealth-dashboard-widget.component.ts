@@ -1,10 +1,12 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import {
   EmptyTileComponent,
+  DashboardTileComponent,
   I18nService,
   ThemeService,
+  TileDetailsDirective,
+  TileValueComponent,
   TranslatePipe,
-  WidgetHeaderComponent,
 } from '@vaultfolio/frontend-shared-ui';
 import { fill, formatDate, formatMoney, formatPct, formatShare } from '../wealth-format';
 import { WealthStore } from '../wealth-store';
@@ -24,33 +26,52 @@ const AREA = '/app/historic-wealth-development';
  */
 @Component({
   selector: 'app-wealth-dashboard-widget',
-  imports: [TranslatePipe, EmptyTileComponent, WidgetHeaderComponent],
+  imports: [
+    TranslatePipe,
+    EmptyTileComponent,
+    DashboardTileComponent,
+    TileDetailsDirective,
+    TileValueComponent,
+  ],
   template: `
     <div class="widget" data-testid="wealth-widget">
       @if (service.unavailable()) {
-        <p class="muted" data-testid="wealth-widget-unavailable">
-          {{ 'wealth.widget.unavailable' | translate }}
-        </p>
+        <app-dashboard-tile
+          tileId="historic-wealth-development"
+          testIdPrefix="wealth-widget"
+          [title]="'dashboard.wealth' | translate"
+        >
+          <p class="muted" data-testid="wealth-widget-unavailable">
+            {{ 'wealth.widget.unavailable' | translate }}
+          </p>
+        </app-dashboard-tile>
       } @else if (store.loaded()) {
         @switch (figures().kind) {
           @case ('empty') {
-            <app-empty-tile
-              [link]="area"
-              testId="wealth-widget-empty"
-              [title]="'wealth.widget.title' | translate"
-              [body]="'wealth.widget.emptyBody' | translate"
-              [ctaLabel]="'wealth.widget.emptyCta' | translate"
-            />
+            <app-dashboard-tile
+              tileId="historic-wealth-development"
+              testIdPrefix="wealth-widget"
+              [title]="'dashboard.wealth' | translate"
+            >
+              <app-empty-tile
+                [link]="area"
+                testId="wealth-widget-empty"
+                [title]="'wealth.widget.title' | translate"
+                [body]="'wealth.widget.emptyBody' | translate"
+                [ctaLabel]="'wealth.widget.emptyCta' | translate"
+              />
+            </app-dashboard-tile>
           }
           @default {
-            <div class="tile">
-              <app-widget-header
-                [link]="area"
-                linkTestId="wealth-widget-link"
-                [title]="'wealth.widget.net' | translate"
-                [linkLabel]="'wealth.widget.open' | translate"
-              />
-              <span class="hero" data-testid="wealth-widget-net">{{ text().net }}</span>
+            <app-dashboard-tile
+              tileId="historic-wealth-development"
+              testIdPrefix="wealth-widget"
+              [link]="area"
+              linkTestId="wealth-widget-link"
+              [title]="'wealth.widget.net' | translate"
+              [linkLabel]="'wealth.widget.open' | translate"
+            >
+              <app-tile-value data-testid="wealth-widget-net">{{ text().net }}</app-tile-value>
               <span class="muted" data-testid="wealth-widget-date">{{ text().asOf }}</span>
               @if (figures().kind === 'trend') {
                 <span
@@ -66,56 +87,78 @@ const AREA = '/app/historic-wealth-development';
                 </span>
               }
               @if (parts().length > 0) {
-                <div
-                  class="bar"
-                  role="img"
-                  [attr.aria-label]="'wealth.single.composition' | translate"
-                  data-testid="wealth-widget-composition"
-                >
-                  @for (part of parts(); track part.key) {
-                    <span
-                      class="bar__part"
-                      [class.dim]="hovered() !== null && hovered() !== part.key"
-                      [style.flex-grow]="part.weight"
-                      [style.background]="part.color"
-                      [title]="part.label + ': ' + part.amount + ' (' + part.share + ')'"
-                      (mouseenter)="hovered.set(part.key)"
-                      (mouseleave)="hovered.set(null)"
-                    ></span>
-                  }
+                <div tileChart class="chart">
+                  <div
+                    class="bar"
+                    role="img"
+                    [attr.aria-label]="'wealth.single.composition' | translate"
+                    data-testid="wealth-widget-composition"
+                  >
+                    @for (part of parts(); track part.key) {
+                      <span
+                        class="bar__part"
+                        [class.dim]="hovered() !== null && hovered() !== part.key"
+                        [style.flex-grow]="part.weight"
+                        [style.background]="part.color"
+                        [title]="part.label + ': ' + part.amount + ' (' + part.share + ')'"
+                        (mouseenter)="hovered.set(part.key)"
+                        (mouseleave)="hovered.set(null)"
+                      ></span>
+                    }
+                  </div>
+                  <ul class="legend" data-testid="wealth-widget-top">
+                    @for (part of topParts(); track part.key) {
+                      <li
+                        [class.active]="hovered() === part.key"
+                        (mouseenter)="hovered.set(part.key)"
+                        (mouseleave)="hovered.set(null)"
+                      >
+                        <span class="swatch" [style.background]="part.color"></span>
+                        <span class="legend__name">{{ part.label }}</span>
+                        <span class="legend__share">{{ part.amount }} ({{ part.share }})</span>
+                      </li>
+                    }
+                  </ul>
                 </div>
-                <ul class="legend" data-testid="wealth-widget-legend">
-                  @for (part of parts(); track part.key) {
-                    <li
-                      [class.active]="hovered() === part.key"
-                      (mouseenter)="hovered.set(part.key)"
-                      (mouseleave)="hovered.set(null)"
-                    >
-                      <span class="swatch" [style.background]="part.color"></span>
-                      <span class="legend__name">{{ part.label }}</span>
-                      <span class="legend__share">{{ part.amount }} ({{ part.share }})</span>
-                    </li>
-                  }
-                </ul>
-                <span class="muted" data-testid="wealth-widget-legend-hint">
-                  {{ 'wealth.widget.legendHint' | translate }}
-                </span>
               }
-              <dl class="foot">
-                <div>
-                  <dt>{{ 'wealth.widget.assets' | translate }}</dt>
-                  <dd data-testid="wealth-widget-assets">{{ text().assets }}</dd>
-                </div>
-                <div>
-                  <dt>{{ 'wealth.widget.liabilities' | translate }}</dt>
-                  <dd class="liability" data-testid="wealth-widget-liabilities">
-                    {{ text().liabilities }}
-                  </dd>
-                </div>
-              </dl>
-            </div>
+              <div tileDetails class="details">
+                @if (restParts().length > 0) {
+                  <ul class="legend" data-testid="wealth-widget-legend">
+                    @for (part of restParts(); track part.key) {
+                      <li
+                        [class.active]="hovered() === part.key"
+                        (mouseenter)="hovered.set(part.key)"
+                        (mouseleave)="hovered.set(null)"
+                      >
+                        <span class="swatch" [style.background]="part.color"></span>
+                        <span class="legend__name">{{ part.label }}</span>
+                        <span class="legend__share">{{ part.amount }} ({{ part.share }})</span>
+                      </li>
+                    }
+                  </ul>
+                }
+                <dl class="foot">
+                  <div>
+                    <dt>{{ 'wealth.widget.assets' | translate }}</dt>
+                    <dd data-testid="wealth-widget-assets">{{ text().assets }}</dd>
+                  </div>
+                  <div>
+                    <dt>{{ 'wealth.widget.liabilities' | translate }}</dt>
+                    <dd class="liability" data-testid="wealth-widget-liabilities">
+                      {{ text().liabilities }}
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+            </app-dashboard-tile>
           }
         }
+      } @else {
+        <app-dashboard-tile
+          tileId="historic-wealth-development"
+          testIdPrefix="wealth-widget"
+          [title]="'dashboard.wealth' | translate"
+        />
       }
     </div>
   `,
@@ -148,17 +191,20 @@ const AREA = '/app/historic-wealth-development';
       font-variant-numeric: tabular-nums;
       color: var(--p-text-muted-color);
     }
-    .tile {
+    :host {
+      display: flex;
+      flex: 1;
+      min-width: 0;
+    }
+    .widget {
+      display: flex;
+      flex: 1;
+      min-width: 0;
+    }
+    .details {
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
-      color: inherit;
-      text-decoration: none;
-    }
-    .hero {
-      font-size: 1.8rem;
-      font-weight: 600;
-      font-variant-numeric: tabular-nums;
     }
     .change {
       font-size: 0.875rem;
@@ -168,9 +214,16 @@ const AREA = '/app/historic-wealth-development';
     .liability {
       color: var(--p-red-600);
     }
+    .chart {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      width: 100%;
+    }
     .bar {
       display: flex;
-      height: 0.75rem;
+      width: 100%;
+      height: 1rem;
       border-radius: 0.375rem;
       overflow: hidden;
     }
@@ -189,8 +242,6 @@ const AREA = '/app/historic-wealth-development';
       display: flex;
       flex-direction: column;
       gap: 0.25rem;
-      padding-top: 0.5rem;
-      border-top: 1px solid var(--p-content-border-color);
     }
     .foot > div {
       display: flex;
@@ -237,6 +288,9 @@ export class WealthDashboardWidgetComponent implements OnInit {
       }))
       .filter((part) => part.weight > 0);
   });
+  private readonly bySize = computed(() => [...this.parts()].sort((a, b) => b.weight - a.weight));
+  protected readonly topParts = computed(() => this.bySize().slice(0, 3));
+  protected readonly restParts = computed(() => this.bySize().slice(3));
   protected readonly negative = computed(() => Number(this.figures().delta ?? 0) < 0);
 
   protected readonly text = computed(() => {

@@ -10,13 +10,14 @@ export interface DashboardTileDefinition {
   widget: DashboardWidgetContribution;
 }
 
-/** The user's persisted preference: tile order plus the tiles they switched off. */
+/** The user's persisted preference: tile order, the tiles they switched off and the ones with expanded details. */
 export interface DashboardLayout {
   order: string[];
   hidden: string[];
+  expanded: string[];
 }
 
-const EMPTY_DASHBOARD_LAYOUT: DashboardLayout = { order: [], hidden: [] };
+const EMPTY_DASHBOARD_LAYOUT: DashboardLayout = { order: [], hidden: [], expanded: [] };
 
 /** A catalog tile placed in the user's order, with the user's own visibility choice. */
 export interface DashboardTile extends DashboardTileDefinition {
@@ -29,7 +30,7 @@ export interface DashboardTile extends DashboardTileDefinition {
  */
 export function resolveTiles(
   catalog: DashboardTileDefinition[],
-  layout: DashboardLayout,
+  layout: Pick<DashboardLayout, 'order' | 'hidden'>,
 ): DashboardTile[] {
   const byId = new Map(catalog.map((tile) => [tile.id, tile]));
   const ordered: DashboardTileDefinition[] = [];
@@ -73,8 +74,12 @@ export function parseDashboardLayout(raw: string | null): DashboardLayout {
   try {
     const data: unknown = JSON.parse(raw);
     if (typeof data !== 'object' || data === null) return EMPTY_DASHBOARD_LAYOUT;
-    const { order, hidden } = data as Record<string, unknown>;
-    return { order: stringList(order), hidden: stringList(hidden) };
+    const { order, hidden, expanded } = data as Record<string, unknown>;
+    return {
+      order: stringList(order),
+      hidden: stringList(hidden),
+      expanded: [...new Set(stringList(expanded))],
+    };
   } catch {
     return EMPTY_DASHBOARD_LAYOUT;
   }

@@ -72,6 +72,11 @@ export const en: TranslationDictionary = {
   },
   dashboard: {
     moveTile: 'Move tile',
+    tile: {
+      domain: 'Tile belongs to the domain',
+      showDetails: 'Show details',
+      hideDetails: 'Hide details',
+    },
     edit: {
       link: 'Edit dashboard',
       title: 'Edit dashboard',

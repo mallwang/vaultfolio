@@ -55,7 +55,7 @@ describe('reorderVisible', () => {
 describe('parseDashboardLayout', () => {
   it('falls back to an empty layout for missing or broken input', () => {
     for (const raw of [null, '', 'not json', '42', 'null']) {
-      expect(parseDashboardLayout(raw)).toEqual({ order: [], hidden: [] });
+      expect(parseDashboardLayout(raw)).toEqual({ order: [], hidden: [], expanded: [] });
     }
   });
 
@@ -63,6 +63,19 @@ describe('parseDashboardLayout', () => {
     expect(parseDashboardLayout('{"order":["a",1],"hidden":"x"}')).toEqual({
       order: ['a'],
       hidden: [],
+      expanded: [],
+    });
+  });
+
+  it('reads the expanded tiles, dropping duplicates and non-strings', () => {
+    expect(parseDashboardLayout('{"expanded":["a",2,"a","b"]}').expanded).toEqual(['a', 'b']);
+  });
+
+  it('accepts layouts stored before details could be expanded', () => {
+    expect(parseDashboardLayout('{"order":["a"],"hidden":["b"]}')).toEqual({
+      order: ['a'],
+      hidden: ['b'],
+      expanded: [],
     });
   });
 });

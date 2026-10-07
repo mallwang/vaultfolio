@@ -66,6 +66,11 @@ export const de: TranslationDictionary = {
   },
   dashboard: {
     moveTile: 'Kachel verschieben',
+    tile: {
+      domain: 'Kachel gehört zur Domäne',
+      showDetails: 'Details anzeigen',
+      hideDetails: 'Details ausblenden',
+    },
     edit: {
       link: 'Dashboard bearbeiten',
       title: 'Dashboard bearbeiten',

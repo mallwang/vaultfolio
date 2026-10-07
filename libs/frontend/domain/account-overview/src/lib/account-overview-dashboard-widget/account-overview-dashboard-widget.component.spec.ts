@@ -53,6 +53,12 @@ describe('AccountOverviewDashboardWidgetComponent', () => {
     );
   });
 
+  it('shows the categories directly without a details toggle', async () => {
+    const el = await render([account({ id: 'a1', category: 'GENERAL' })]);
+    expect(q(el, 'account-overview-widget-categories')).not.toBeNull();
+    expect(q(el, 'account-overview-widget-toggle')).toBeNull();
+  });
+
   it('invites to add the first account when there are none', async () => {
     const el = await render([]);
     const empty = q(el, 'account-overview-widget-empty');

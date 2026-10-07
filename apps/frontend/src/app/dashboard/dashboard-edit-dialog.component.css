@@ -5,12 +5,18 @@
 }
 
 .tiles {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.5rem;
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+@media (max-width: 640px) {
+  .tiles {
+    grid-template-columns: 1fr;
+  }
 }
 
 .tile {
@@ -24,5 +30,15 @@
 }
 
 .tile__title {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  gap: 0.5rem;
   font-weight: 600;
+}
+
+.tile__domain {
+  display: inline-flex;
+  color: var(--p-text-muted-color);
+  cursor: help;
 }

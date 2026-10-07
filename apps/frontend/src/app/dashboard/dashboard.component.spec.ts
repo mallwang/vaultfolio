@@ -8,6 +8,7 @@ import { CURRENT_USER_SOURCE } from '@vaultfolio/frontend-domain-access';
 import { CurrentUserStore } from '../auth/current-user.store';
 import { FakeCurrentUserStore } from '../auth/testing/current-user-store.testing';
 import { DomainMaintenanceStore } from '../core/maintenance/domain-maintenance.store';
+import { DashboardLayoutStore } from './dashboard-layout.store';
 
 // The entitled-user path renders the holdings distribution widget, which
 // renders <app-echart> and calls into real ECharts — jsdom has no canvas 2D
@@ -214,6 +215,87 @@ describe('DashboardComponent', () => {
 
     const el = fixture.nativeElement as HTMLElement;
     expect(el.querySelector('[data-testid^="dashboard-tile-"]')).toBeNull();
+  });
+
+  describe('tile details', () => {
+    const byTestId = (el: HTMLElement, id: string) =>
+      el.querySelector<HTMLElement>(`[data-testid="${id}"]`);
+
+    async function renderWithHoldings(): Promise<HTMLElement> {
+      fakeCurrentUser.setAuthenticated(entitledUser);
+      fixture.detectChanges();
+      let requests: ReturnType<typeof httpMock.match> = [];
+      await vi.waitFor(
+        () => {
+          fixture.detectChanges();
+          requests = httpMock.match('/api/holdings');
+          expect(requests).toHaveLength(1);
+        },
+        { timeout: 15000 },
+      );
+      requests[0].flush([
+        {
+          id: 'h1',
+          assetType: 'DEPOSIT_MONEY',
+          management: 'Bank',
+          quantity: null,
+          purchasePrice: null,
+          purchaseDate: null,
+          isin: null,
+          name: null,
+          weightGrams: null,
+          currentValue: '1000.00',
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z',
+        },
+      ]);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      fixture.detectChanges();
+      return fixture.nativeElement as HTMLElement;
+    }
+
+    it('starts collapsed and offers a toggle only for tiles that have details', async () => {
+      const el = await renderWithHoldings();
+
+      expect(
+        byTestId(el, 'holdings-distribution-widget-toggle')?.getAttribute('aria-expanded'),
+      ).toBe('false');
+      expect(byTestId(el, 'holdings-distribution-widget-details')?.hidden).toBe(true);
+      expect(byTestId(el, 'holdings-total-value-toggle')).toBeNull();
+    });
+
+    it('expands only the clicked tile and remembers it across a reload', async () => {
+      const el = await renderWithHoldings();
+
+      byTestId(el, 'holdings-distribution-widget-toggle')?.click();
+      fixture.detectChanges();
+
+      expect(
+        byTestId(el, 'holdings-distribution-widget-toggle')?.getAttribute('aria-expanded'),
+      ).toBe('true');
+      expect(byTestId(el, 'holdings-distribution-widget-details')?.hidden).toBe(false);
+      expect(
+        JSON.parse(localStorage.getItem('vaultfolio.dashboard-layout.user-1') ?? '{}'),
+      ).toEqual(expect.objectContaining({ expanded: ['holdings-distribution'] }));
+
+      fixture.destroy();
+      fixture = TestBed.createComponent(DashboardComponent);
+      fixture.detectChanges();
+      let requests: ReturnType<typeof httpMock.match> = [];
+      await vi.waitFor(
+        () => {
+          fixture.detectChanges();
+          requests = httpMock.match('/api/holdings');
+          expect(requests).toHaveLength(1);
+        },
+        { timeout: 15000 },
+      );
+      requests[0].flush([]);
+      fixture.detectChanges();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      fixture.detectChanges();
+      expect(TestBed.inject(DashboardLayoutStore).isExpanded('holdings-distribution')).toBe(true);
+    });
   });
 
   describe('arranging tiles', () => {

@@ -4,7 +4,15 @@ import type { HoldingResponse } from '@vaultfolio/api-contract';
 import { ASSET_TYPE_LABEL_KEYS } from '../asset-type-fields';
 import { HoldingsService } from '../holdings.service';
 import { groupHoldingsByKey } from '../holdings-valuation';
-import { EchartComponent, I18nService, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
+import {
+  ASSET_TYPE_COLORS,
+  DashboardTileComponent,
+  EchartComponent,
+  I18nService,
+  TileDetailsDirective,
+  TileValueComponent,
+  TranslatePipe,
+} from '@vaultfolio/frontend-shared-ui';
 import {
   buildDistributionChartOption,
   type HoldingsDistributionEntry,
@@ -37,7 +45,13 @@ export type { HoldingsDistributionEntry } from './distribution-chart-option';
  */
 @Component({
   selector: 'app-holdings-distribution',
-  imports: [EchartComponent, TranslatePipe],
+  imports: [
+    EchartComponent,
+    TranslatePipe,
+    DashboardTileComponent,
+    TileDetailsDirective,
+    TileValueComponent,
+  ],
   providers: [TranslatePipe],
   // Inline template/styles, not templateUrl/styleUrl (020): this component
   // is consumed cross-package (`apps/frontend/src/app/dashboard`, behind an
@@ -49,7 +63,46 @@ export type { HoldingsDistributionEntry } from './distribution-chart-option';
   // outside this library renders them in a unit test (only via the lazily
   // routed `/app/holdings` page).
   template: `
-    @if (hasData()) {
+    @if (framed()) {
+      <app-dashboard-tile
+        tileId="holdings-distribution"
+        testIdPrefix="holdings-distribution-widget"
+        [title]="'dashboard.allocation' | translate"
+      >
+        @if (hasData()) {
+          <app-tile-value data-testid="holdings-distribution-total">{{
+            centerLabel()
+          }}</app-tile-value>
+          <span class="distribution__note">{{ 'holdingsDistribution.title' | translate }}</span>
+        } @else {
+          <p class="distribution__empty">{{ 'holdingsDistribution.emptyState' | translate }}</p>
+        }
+        @if (hasData()) {
+          <div tileChart class="distribution__bar" data-testid="holdings-distribution-bar">
+            @for (slice of slices(); track slice.assetType) {
+              <span
+                class="distribution__bar-part"
+                [style.flex-grow]="slice.value"
+                [style.background]="slice.color"
+              ></span>
+            }
+          </div>
+        }
+        @if (hasData()) {
+          <div tileDetails class="distribution">
+            <div class="distribution__chart">
+              <app-echart [option]="chartOption()" [loading]="false" />
+            </div>
+            @if (excludedCount() > 0) {
+              <p class="distribution__note">
+                {{ excludedCount() }} holding{{ excludedCount() === 1 ? '' : 's' }} excluded — no
+                value entered.
+              </p>
+            }
+          </div>
+        }
+      </app-dashboard-tile>
+    } @else if (hasData()) {
       <div class="distribution">
         <div class="distribution__chart">
           <app-echart [option]="chartOption()" [loading]="false" />
@@ -67,6 +120,25 @@ export type { HoldingsDistributionEntry } from './distribution-chart-option';
     }
   `,
   styles: `
+    :host {
+      display: flex;
+      flex: 1;
+      min-width: 0;
+      flex-direction: column;
+    }
+
+    .distribution__bar {
+      display: flex;
+      width: 100%;
+      height: 0.75rem;
+      border-radius: 0.375rem;
+      overflow: hidden;
+    }
+
+    .distribution__bar-part {
+      flex-basis: 0;
+    }
+
     .distribution {
       display: flex;
       flex-direction: column;
@@ -132,6 +204,15 @@ export class HoldingsDistributionComponent implements OnChanges, OnInit {
   private inputBound = false;
 
   private readonly entries = signal<HoldingsDistributionEntry[] | null>(null);
+
+  /** The dashboard tile (no `[holdings]` bound) renders inside the shared tile frame. */
+  protected readonly framed = signal(false);
+  protected readonly slices = computed(() =>
+    (this.entries() ?? []).map((entry) => ({
+      ...entry,
+      color: ASSET_TYPE_COLORS[entry.assetType],
+    })),
+  );
   protected readonly excludedCount = signal(0);
   protected readonly hasData = computed(() => this.entries() != null);
 
@@ -182,6 +263,7 @@ export class HoldingsDistributionComponent implements OnChanges, OnInit {
     if (this.inputBound) {
       return;
     }
+    this.framed.set(true);
     this.holdingsService.list().subscribe({
       next: (holdings) => {
         this.holdings = holdings;
