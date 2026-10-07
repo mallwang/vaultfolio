@@ -192,7 +192,7 @@ The five encrypted domains (earnings, retirement, wealth, insurances, account ov
 `EncryptionModule` (`apps/backend/src/encryption`: key store tables `encryption_data_keys` and
 `encryption_rotation_runs`, per-domain `DomainKeyringService`, `RotationService`, admin routes under
 `/admin/encryption`). The per-domain `*-crypto.service.ts` classes are thin adapters; a new encrypted
-domain registers its env variables and tables in `domain-encryption.registry.ts`. Ciphertext is
+domain registers its tables in `domain-encryption.registry.ts`; all domains share the `ENCRYPTION_KEY` master key (`ENCRYPTION_KEY_PREVIOUS` while rotating). Ciphertext is
 `v<N>:<iv>:<tag>:<ct>`: `v1` is the legacy format (master key directly, migrated once at startup),
 `N >= 2` is a data key version. Repositories write `key_version = crypto.keyVersion` with every
 insert and update. The operator workflow is in the README ("Key rotation, backup and recovery").

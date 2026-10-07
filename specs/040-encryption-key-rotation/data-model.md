@@ -4,13 +4,13 @@
 
 Domain ids: `earnings`, `retirement`, `wealth`, `insurances`, `account-overview`.
 
-| Domain           | Master key variable               | Previous key variable                      | Encrypted tables (ciphertext column)                        |
-| ---------------- | --------------------------------- | ------------------------------------------ | ----------------------------------------------------------- |
-| earnings         | `EARNINGS_ENCRYPTION_KEY`         | `EARNINGS_ENCRYPTION_KEY_PREVIOUS`         | `earnings_records`, `earnings_certificates` (`amounts_enc`) |
-| retirement       | `RETIREMENT_ENCRYPTION_KEY`       | `RETIREMENT_ENCRYPTION_KEY_PREVIOUS`       | `retirement_records` (`payload_enc`)                        |
-| wealth           | `WEALTH_ENCRYPTION_KEY`           | `WEALTH_ENCRYPTION_KEY_PREVIOUS`           | `wealth_snapshots`, `wealth_settings` (`payload_enc`)       |
-| insurances       | `INSURANCES_ENCRYPTION_KEY`       | `INSURANCES_ENCRYPTION_KEY_PREVIOUS`       | `insurance_contracts`, `insurance_settings` (`payload_enc`) |
-| account-overview | `ACCOUNT_OVERVIEW_ENCRYPTION_KEY` | `ACCOUNT_OVERVIEW_ENCRYPTION_KEY_PREVIOUS` | `account_overview_entries` (`payload_enc`)                  |
+| Domain           | Encrypted tables (ciphertext column)                        |
+| ---------------- | ----------------------------------------------------------- |
+| earnings         | `earnings_records`, `earnings_certificates` (`amounts_enc`) |
+| retirement       | `retirement_records` (`payload_enc`)                        |
+| wealth           | `wealth_snapshots`, `wealth_settings` (`payload_enc`)       |
+| insurances       | `insurance_contracts`, `insurance_settings` (`payload_enc`) |
+| account-overview | `account_overview_entries` (`payload_enc`)                  |
 
 Each encrypted table already has `key_version INTEGER NOT NULL DEFAULT 1`; no change to those
 tables. AAD stays `<table>|<id>|<owner_id>` (settings tables use `owner_id` as id, as today).
@@ -76,8 +76,9 @@ index `ON encryption_rotation_runs (domain) WHERE status = 'RUNNING'`).
 
 ### Master key (entity: Master key)
 
-Read from the environment at start. Held as `Buffer` in the domain keyring; never serialized,
-logged or returned by an API. `current` and optional `previous`.
+`ENCRYPTION_KEY` (current) and optional `ENCRYPTION_KEY_PREVIOUS`, read from the environment at
+start and shared by all domains. Held as `Buffer`; never
+serialized, logged or returned by an API.
 
 ### Domain keyring state
 

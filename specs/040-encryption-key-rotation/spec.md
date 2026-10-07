@@ -16,6 +16,7 @@
 - Q: How does the operator start a rotation or re-encryption? → A: Through an admin-only screen in the app (the instance runs in Portainer containers without convenient shell access); no command-line tool is required.
 - Q: Should rotations be traceable afterwards? → A: Yes, a persistent history of all rotations (time, domain, kind, outcome, triggering admin; no key material).
 - Q: On a key mismatch at startup, should the app still start? → A: Yes; the app starts, only the affected domain is locked, and the admin screen shows the cause.
+- Q: One master key per domain or one for all? → A: One shared `ENCRYPTION_KEY` (+ `ENCRYPTION_KEY_PREVIOUS`) for all domains. Domains stay cryptographically separate through their own data keys.
 - Q: Data key per domain or per user? → A: Per domain. Per-user keys (e.g. for deleting a user's data from old backups) are out of scope, but the design must not preclude adding them later.
 
 ## User Scenarios & Testing _(mandatory)_
@@ -62,7 +63,7 @@ When a master key is accidentally deleted from the production configuration, mis
 
 **Acceptance Scenarios**:
 
-1. **Given** existing encrypted data and a missing key, **When** the app starts, **Then** the affected domain reports "temporarily unavailable", all other domains work, and the log states which key is missing.
+1. **Given** existing encrypted data and a missing key, **When** the app starts, **Then** the encrypted domains report "temporarily unavailable", the rest of the app (including the admin screen) works, and the log states which key is missing.
 2. **Given** existing encrypted data and a wrong key, **When** the app starts, **Then** the domain stays unavailable, no new data is written under the wrong key, and the log states that the key does not match the stored data.
 3. **Given** a domain was unavailable because of a missing key, **When** the operator restores the correct key and restarts, **Then** all prior data is readable again.
 
@@ -112,14 +113,14 @@ The operator has clear, verified guidance on how to back up keys separately from
 
 ### Functional Requirements
 
-- **FR-001**: The system MUST allow an operator to rotate the master key of any encrypted domain without losing or having to re-enter any user data.
+- **FR-001**: The system MUST allow an operator to rotate the single master key shared by all encrypted domains without losing or having to re-enter any user data.
 - **FR-002**: The system MUST support configuring a current and a previous master key at the same time during rotation.
 - **FR-003**: The system MUST provide an admin-only action in the app that re-protects stored key material under the current master key and reports success or failure per domain.
 - **FR-004**: The system MUST provide an admin-only action in the app that re-encrypts all of a domain's data under newly generated key material, and MUST make the affected domain temporarily unavailable (not other domains) while it runs, so no write can race with the rewrite.
 - **FR-005**: Every stored encrypted value MUST carry its key version so the system always picks the correct key to read it and always the current one to write it.
 - **FR-006**: The system MUST remain able to read data written by the current (pre-feature) version using the existing keys, without a manual migration step.
 - **FR-007**: At startup the system MUST verify, per domain, that the configured key actually opens the stored data. On mismatch or absence it MUST make that domain unavailable and MUST NOT write any data.
-- **FR-008**: A failing or missing key in one domain MUST NOT affect other domains, MUST NOT prevent the application (including the admin screen) from starting, and MUST NOT require any per-domain admin screen: affected domains reuse their existing "temporarily unavailable" behavior.
+- **FR-008**: A missing or wrong master key locks all encrypted domains (it is shared), while a failure confined to one domain (e.g. damaged key material of that domain) MUST NOT affect other domains. Either way the system MUST NOT prevent the application (including the admin screen) from starting, and MUST NOT require any per-domain admin screen: affected domains reuse their existing "temporarily unavailable" behavior.
 - **FR-009**: Startup and rotation messages MUST state which domain and which condition (missing key, wrong key, previous key still configured) applies, and MUST NOT include key material or decrypted data.
 - **FR-016**: The admin screen MUST be reachable only by administrators and MUST show, per domain, the key status (healthy, key missing, key mismatch, previous key still configured), the data key version in use, and the outcome of the last rotation.
 - **FR-019**: The system MUST keep a persistent history of every rotation and re-encryption (time, domain, kind, outcome, triggering admin) visible to administrators in the admin screen; entries MUST NOT contain key material or user data.
@@ -134,7 +135,7 @@ The operator has clear, verified guidance on how to back up keys separately from
 
 ### Key Entities _(include if feature involves data)_
 
-- **Master key**: Secret held by the operator outside the database, one per encrypted domain, protecting that domain's data keys. Can have a current and a previous value during rotation.
+- **Master key**: Secret held by the operator outside the database, one shared by all encrypted domains, protecting every domain's data keys. Can have a current and a previous value during rotation.
 - **Data key**: Randomly generated secret per domain and version, stored only in protected form, used to protect user data. Has a version and a status (current, retired, destroyed).
 - **Encrypted record**: A stored value tagged with the data key version used to protect it.
 - **Key check value**: A small stored value per domain that lets the system prove at startup that the configured key is the right one without reading user data.
@@ -158,7 +159,7 @@ The operator has clear, verified guidance on how to back up keys separately from
 - The operator is the instance administrator with an admin account in the app and access to the deployment configuration (environment variables of the backend container). Ordinary users see no new UI. Changing a key value itself always happens in the deployment configuration, never in the app.
 - Master keys continue to be supplied through the existing configuration mechanism; integrating an external key management service is out of scope for this feature.
 - All five existing encrypted domains (Earnings, Retirement, Wealth, Insurances, Account Overview) are in scope and share one common approach.
-- The current stored format already carries a version marker, which the new design builds on; the existing keys remain valid as the initial master keys.
+- The current stored format already carries a version marker, which the new design builds on; the configured `ENCRYPTION_KEY` opens pre-feature `v1` data and becomes the initial master key. No release has shipped per-domain keys, so none are supported.
 - Full re-encryption may make the affected domain briefly unavailable; master key rotation does not. Data loss or silent errors are never acceptable.
 - Backup and key storage tooling (password manager, secrets files) is chosen by the operator; the feature documents recommendations only.
 - Data keys are scoped per domain, not per user. Making a deleted user's data unreadable in old backups is out of scope, and the key design must leave room to add per-user keys later without changing stored data.

@@ -5,7 +5,6 @@ import { randomBytes } from 'node:crypto';
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import cookieParser from 'cookie-parser';
-import type { EncryptionDomainId } from '@vaultfolio/api-contract';
 import { AppModule } from '../app/app.module';
 import { configureBodyParsers } from '../app/body-parsers';
 import { DatabaseService } from '../database/database.service';
@@ -16,38 +15,24 @@ import { ADMIN_EMAIL, PASSWORD, client, signIn } from './earnings-e2e.helpers';
 
 export { ADMIN_EMAIL, client, signIn };
 
-export type DomainKeys = Partial<Record<EncryptionDomainId, string | null>>;
-
 export const newKey = (): string => randomBytes(32).toString('base64');
-
-export function allNewKeys(): Record<EncryptionDomainId, string> {
-  return Object.fromEntries(DOMAIN_ENCRYPTION.map((d) => [d.id, newKey()])) as Record<
-    EncryptionDomainId,
-    string
-  >;
-}
 
 export function makeTempDir(): string {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'vaultfolio-encryption-e2e-'));
 }
 
-function applyKeys(keys: DomainKeys, previous: DomainKeys): void {
-  for (const d of DOMAIN_ENCRYPTION) {
-    for (const [env, value] of [
-      [d.currentKeyEnv, keys[d.id]],
-      [d.previousKeyEnv, previous[d.id]],
-    ] as const) {
-      if (value) process.env[env] = value;
-      else delete process.env[env];
-    }
-  }
+function setEnv(name: string, value: string | null | undefined): void {
+  if (value) process.env[name] = value;
+  else delete process.env[name];
+}
+
+function applyKeys(options: { key?: string | null; previous?: string }): void {
+  setEnv('ENCRYPTION_KEY', options.key);
+  setEnv('ENCRYPTION_KEY_PREVIOUS', options.previous);
 }
 
 function clearKeys(): void {
-  for (const d of DOMAIN_ENCRYPTION) {
-    delete process.env[d.currentKeyEnv];
-    delete process.env[d.previousKeyEnv];
-  }
+  applyKeys({});
 }
 
 export interface EncryptionTestApp {
@@ -56,16 +41,16 @@ export interface EncryptionTestApp {
   close(): Promise<void>;
 }
 
-/** Boots the real app on `tempDir`'s SQLite file with the given master (and previous) keys per domain. */
+/** Boots the real app on `tempDir`'s SQLite file with the given master (and previous) key. */
 export async function bootEncryptionApp(options: {
   tempDir: string;
-  keys: DomainKeys;
-  previous?: DomainKeys;
+  key?: string | null;
+  previous?: string;
 }): Promise<EncryptionTestApp> {
   process.env.DATABASE_PATH = path.join(options.tempDir, 'test.db');
   process.env.BOOTSTRAP_ADMIN_EMAIL = ADMIN_EMAIL;
   process.env.BOOTSTRAP_ADMIN_PASSWORD = PASSWORD;
-  applyKeys(options.keys, options.previous ?? {});
+  applyKeys(options);
   const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
     .overrideProvider(MailerService)
     .useValue({ send: () => Promise.resolve() })
@@ -120,10 +105,7 @@ const FIXTURE_SQL: Record<string, string> = {
  * Pre-feature database: creates the schema, then writes one legacy `v1` row (encrypted directly with
  * the domain's master key) into each of the eight encrypted tables. Returns what was written.
  */
-export async function seedLegacyDatabase(
-  tempDir: string,
-  keys: Record<EncryptionDomainId, string>,
-): Promise<SeededRow[]> {
+export async function seedLegacyDatabase(tempDir: string, masterKey: string): Promise<SeededRow[]> {
   process.env.DATABASE_PATH = path.join(tempDir, 'test.db');
   process.env.BOOTSTRAP_ADMIN_EMAIL = ADMIN_EMAIL;
   process.env.BOOTSTRAP_ADMIN_PASSWORD = PASSWORD;
@@ -131,7 +113,7 @@ export async function seedLegacyDatabase(
   await database.onModuleInit();
   const rows: SeededRow[] = [];
   for (const domain of DOMAIN_ENCRYPTION) {
-    const key = Buffer.from(keys[domain.id], 'base64');
+    const key = Buffer.from(masterKey, 'base64');
     for (const t of domain.tables) {
       const ownerId = `owner-${t.table}`;
       const id = t.idColumn === 'owner_id' ? ownerId : `row-${t.table}`;

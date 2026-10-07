@@ -6,10 +6,10 @@ and the explanation in `tmp/envelope-encryption.html` were the inputs.
 
 ## R1: Key hierarchy
 
-- **Decision**: Two levels per domain. The operator key `<DOMAIN>_ENCRYPTION_KEY` (32 bytes,
-  base64, unchanged format) is the **master key**; it only wraps **data keys** (random 32 bytes,
+- **Decision**: Two levels. One operator key `ENCRYPTION_KEY` shared by all domains (32 bytes,
+  base64) is the **master key**; it only wraps **data keys** (random 32 bytes,
   AES-256-GCM, AAD `dek|<domain>|<version>`). Data keys encrypt user rows.
-- **Rationale**: Rotating the master key then touches a few small rows instead of all data;
+- **Rationale**: A single key spares the operator five variables and a five-fold rotation in `.env`; domain separation does not need separate operator keys because each domain has its own data keys and the domain is part of the wrap AAD. Rotating the master key then touches a few small rows instead of all data;
   a lost or wrong master key is detected by failing to unwrap, before any data is touched.
 - **Alternatives**: (a) Keep one key and re-encrypt everything on every rotation: slow, needs a
   lock, and does not fix the accidental-loss problem. (b) External KMS: out of scope (spec
@@ -67,8 +67,8 @@ and the explanation in `tmp/envelope-encryption.html` were the inputs.
 
 ## R5: Master key rotation (Story 1)
 
-- **Decision**: Operator sets `<DOMAIN>_ENCRYPTION_KEY=<new>` and
-  `<DOMAIN>_ENCRYPTION_KEY_PREVIOUS=<old>`, restarts, the status shows `rotationPending`; the
+- **Decision**: Operator sets `ENCRYPTION_KEY=<new>` and
+  `ENCRYPTION_KEY_PREVIOUS=<old>`, restarts, the status shows `rotationPending`; the
   admin triggers "Rotate master key", which in one SQLite transaction unwraps every non-destroyed
   data key with whichever key matches its fingerprint and re-wraps it under the current key.
   Then the operator removes the previous variable. Re-running is idempotent. No domain lock
@@ -144,7 +144,7 @@ and the explanation in `tmp/envelope-encryption.html` were the inputs.
 
 ## R12: Configuration, documentation, constitution
 
-- **Decision**: Add the five optional `<DOMAIN>_ENCRYPTION_KEY_PREVIOUS` variables to
+- **Decision**: Replace the five `<DOMAIN>_ENCRYPTION_KEY` variables by `ENCRYPTION_KEY` and `ENCRYPTION_KEY_PREVIOUS` in
   `.env.example`, `docker-compose.yml` and `docker-compose.portainer.yml` (empty default). Operator
   documentation (EN and DE README plus development docs) covers backing up keys apart from the
   database, restore verification, scheduled rotation and emergency rotation after a leak.

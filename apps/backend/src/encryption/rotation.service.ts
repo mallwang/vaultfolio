@@ -61,7 +61,7 @@ export class RotationService {
     const flags = deriveRotationFlags(
       keys.map((k) => k.kekFingerprint ?? ''),
       runtime.current ? keyFingerprint(runtime.current) : null,
-      runtime.previous ? keyFingerprint(runtime.previous) : null,
+      runtime.previous.map((k) => keyFingerprint(k)),
     );
     return {
       domain,
@@ -82,7 +82,7 @@ export class RotationService {
     try {
       const currentFp = keyFingerprint(runtime.current as Buffer);
       const byFingerprint = new Map<string, Buffer>([[currentFp, runtime.current as Buffer]]);
-      if (runtime.previous) byFingerprint.set(keyFingerprint(runtime.previous), runtime.previous);
+      for (const k of runtime.previous) byFingerprint.set(keyFingerprint(k), k);
 
       // Unwrap everything first so an unknown or damaged key changes nothing.
       const rewraps = this.store

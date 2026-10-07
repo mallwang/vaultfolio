@@ -381,7 +381,7 @@ describe('/wealth', () => {
   });
 });
 
-describe('/wealth without WEALTH_ENCRYPTION_KEY', () => {
+describe('/wealth without ENCRYPTION_KEY', () => {
   let t: WealthTestApp;
   let s: WealthSessions;
 

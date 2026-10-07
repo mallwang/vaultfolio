@@ -31,8 +31,7 @@ export interface RetirementTestApp {
 
 /**
  * Boots the real app (explicit body parsers as in main.ts) against a temp SQLite file with a
- * `RETIREMENT_ENCRYPTION_KEY`. `key: null` leaves it unset to exercise the fail-closed 503; the
- * Earnings key is always set so the other domains keep working.
+ * `ENCRYPTION_KEY`. `key: null` leaves it unset to exercise the fail-closed 503.
  */
 export async function bootRetirementApp(
   options: { key?: string | null; tempDir?: string } = {},
@@ -42,9 +41,8 @@ export async function bootRetirementApp(
   process.env.DATABASE_PATH = path.join(tempDir, 'test.db');
   process.env.BOOTSTRAP_ADMIN_EMAIL = ADMIN_EMAIL;
   process.env.BOOTSTRAP_ADMIN_PASSWORD = PASSWORD;
-  process.env.EARNINGS_ENCRYPTION_KEY = randomBytes(32).toString('base64');
-  if (options.key === null) delete process.env.RETIREMENT_ENCRYPTION_KEY;
-  else process.env.RETIREMENT_ENCRYPTION_KEY = options.key ?? randomBytes(32).toString('base64');
+  if (options.key === null) delete process.env.ENCRYPTION_KEY;
+  else process.env.ENCRYPTION_KEY = options.key ?? randomBytes(32).toString('base64');
 
   const mail: MailCatcher = { sent: [], failNext: false };
   const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
@@ -70,8 +68,7 @@ export async function bootRetirementApp(
       delete process.env.DATABASE_PATH;
       delete process.env.BOOTSTRAP_ADMIN_EMAIL;
       delete process.env.BOOTSTRAP_ADMIN_PASSWORD;
-      delete process.env.EARNINGS_ENCRYPTION_KEY;
-      delete process.env.RETIREMENT_ENCRYPTION_KEY;
+      delete process.env.ENCRYPTION_KEY;
     },
   };
 }

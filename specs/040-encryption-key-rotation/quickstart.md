@@ -8,8 +8,7 @@ Validation guide only; behaviour is defined in [spec.md](spec.md), the schema in
 
 - `npm ci` at the repo root; backend runnable (`npx nx serve backend`) with an empty or seeded
   `data/` directory (use a scratch `DATABASE_PATH`, never the real database).
-- Keys generated with `openssl rand -base64 32`, one per domain, exported as
-  `<DOMAIN>_ENCRYPTION_KEY`. Admin account from the bootstrap variables (see `verify-ui` skill for
+- A key generated with `openssl rand -base64 32`, exported as `ENCRYPTION_KEY`. Admin account from the bootstrap variables (see `verify-ui` skill for
   the test login; never read `.env`).
 - A database from the current release for Scenario 1 (any scratch DB created before this feature
   with some rows in the Earnings and Insurances domains).
@@ -25,14 +24,14 @@ npx nx run-many -t lint,typecheck -p encryption backend frontend-admin
 
 ## Scenario 1: Upgrade without manual migration (Story 4, SC-005)
 
-1. Start the new backend on the old database with the existing keys.
+1. Start the new backend on the old database with `ENCRYPTION_KEY` set.
 2. Expected: log shows one `LEGACY_MIGRATION` run per domain that had data; all data is readable in
    the app; `GET /admin/encryption/status` shows `READY`, `currentVersion: 2`, and
    `rowsPerVersion` has only `"2"`.
 
 ## Scenario 2: Master key rotation (Story 1, SC-006)
 
-1. Set `EARNINGS_ENCRYPTION_KEY=<new>` and `EARNINGS_ENCRYPTION_KEY_PREVIOUS=<old>`, restart.
+1. Set `ENCRYPTION_KEY=<new>` and `ENCRYPTION_KEY_PREVIOUS=<old>`, restart.
 2. Status shows `rotationPending: true`; Earnings still works.
 3. In the admin screen run "Rotate master key" for Earnings; status shows `rotationPending: false`,
    `previousKeyRemovable: true`; history has a `MASTER_KEY` entry with the admin's e-mail.

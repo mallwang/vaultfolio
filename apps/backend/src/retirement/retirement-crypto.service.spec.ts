@@ -6,12 +6,12 @@ import { RetirementUnavailableException } from './retirement.exceptions';
 const KEY = randomBytes(32).toString('base64');
 
 function service(key: string | undefined): RetirementCryptoService {
-  const previous = process.env.RETIREMENT_ENCRYPTION_KEY;
-  if (key === undefined) delete process.env.RETIREMENT_ENCRYPTION_KEY;
-  else process.env.RETIREMENT_ENCRYPTION_KEY = key;
+  const previous = process.env.ENCRYPTION_KEY;
+  if (key === undefined) delete process.env.ENCRYPTION_KEY;
+  else process.env.ENCRYPTION_KEY = key;
   const s = new RetirementCryptoService(createMemoryKeyring());
-  if (previous === undefined) delete process.env.RETIREMENT_ENCRYPTION_KEY;
-  else process.env.RETIREMENT_ENCRYPTION_KEY = previous;
+  if (previous === undefined) delete process.env.ENCRYPTION_KEY;
+  else process.env.ENCRYPTION_KEY = previous;
   return s;
 }
 
@@ -91,13 +91,13 @@ describe('RetirementCryptoService', () => {
   });
 
   it('does not use the earnings key', () => {
-    const previous = process.env.EARNINGS_ENCRYPTION_KEY;
-    process.env.EARNINGS_ENCRYPTION_KEY = KEY;
+    const previous = process.env.ENCRYPTION_KEY;
+    process.env.ENCRYPTION_KEY = KEY;
     try {
       expect(service(undefined).available).toBe(false);
     } finally {
-      if (previous === undefined) delete process.env.EARNINGS_ENCRYPTION_KEY;
-      else process.env.EARNINGS_ENCRYPTION_KEY = previous;
+      if (previous === undefined) delete process.env.ENCRYPTION_KEY;
+      else process.env.ENCRYPTION_KEY = previous;
     }
   });
 });

@@ -209,8 +209,8 @@ Kontoübersicht) teilen sich `libs/encryption` (Envelope-Primitive, Schlüssel-F
 Speicher) und das Backend-`EncryptionModule` (`apps/backend/src/encryption`: Schlüsseltabellen
 `encryption_data_keys` und `encryption_rotation_runs`, `DomainKeyringService` je Bereich,
 `RotationService`, Admin-Routen unter `/admin/encryption`). Die `*-crypto.service.ts` der Bereiche sind
-dünne Adapter; ein neuer verschlüsselter Bereich trägt seine Umgebungsvariablen und Tabellen in
-`domain-encryption.registry.ts` ein. Der Chiffretext ist `v<N>:<iv>:<tag>:<ct>`: `v1` ist das alte
+dünne Adapter; ein neuer verschlüsselter Bereich trägt seine Tabellen in
+`domain-encryption.registry.ts` ein; alle Bereiche teilen sich den Hauptschlüssel `ENCRYPTION_KEY` (`ENCRYPTION_KEY_PREVIOUS` während der Rotation). Der Chiffretext ist `v<N>:<iv>:<tag>:<ct>`: `v1` ist das alte
 Format (Hauptschlüssel direkt, beim Start einmalig migriert), `N >= 2` ist eine Datenschlüssel-Version.
 Repositories schreiben bei jedem Insert und Update `key_version = crypto.keyVersion`. Der Ablauf für
 Betreiber steht in der README („Schlüsselrotation, Sicherung und Wiederherstellung“).

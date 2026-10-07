@@ -369,7 +369,7 @@ describe('/retirement', () => {
   });
 });
 
-describe('/retirement without RETIREMENT_ENCRYPTION_KEY', () => {
+describe('/retirement without ENCRYPTION_KEY', () => {
   let t: RetirementTestApp;
   let s: RetirementSessions;
 

@@ -57,28 +57,28 @@ describe('deriveDomainState', () => {
 
 describe('deriveRotationFlags', () => {
   it('is pending while a data key is wrapped under the previous key', () => {
-    expect(deriveRotationFlags(['old', 'new'], 'new', 'old')).toEqual({
+    expect(deriveRotationFlags(['old', 'new'], 'new', ['old'])).toEqual({
       rotationPending: true,
       previousKeyRemovable: false,
     });
   });
 
   it('marks a configured but unused previous key removable', () => {
-    expect(deriveRotationFlags(['new'], 'new', 'old')).toEqual({
+    expect(deriveRotationFlags(['new'], 'new', ['old'])).toEqual({
       rotationPending: false,
       previousKeyRemovable: true,
     });
   });
 
   it('has nothing to report without a previous key', () => {
-    expect(deriveRotationFlags(['new'], 'new', null)).toEqual({
+    expect(deriveRotationFlags(['new'], 'new', [])).toEqual({
       rotationPending: false,
       previousKeyRemovable: false,
     });
   });
 
   it('ignores a previous key equal to the current key', () => {
-    expect(deriveRotationFlags(['same'], 'same', 'same')).toEqual({
+    expect(deriveRotationFlags(['same'], 'same', ['same'])).toEqual({
       rotationPending: false,
       previousKeyRemovable: true,
     });

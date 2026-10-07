@@ -6,7 +6,7 @@ import { DomainKeyringService } from './domain-keyring.service';
 import { KeyStoreRepository, type StoredDataKey } from './key-store.repository';
 import { LegacyMigrationService } from './legacy-migration.service';
 
-/** Builds and initialises a real keyring over `database`; set the `*_ENCRYPTION_KEY` variables first. */
+/** Builds and initialises a real keyring over `database`; set `ENCRYPTION_KEY` first. */
 export function createTestKeyring(database: DatabaseService): DomainKeyringService {
   const store = new KeyStoreRepository(database);
   const keyring = new DomainKeyringService(store, new LegacyMigrationService(database, store));

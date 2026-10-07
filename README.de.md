@@ -71,7 +71,7 @@ als „von Ihnen korrigiert“ markiert.
   Dateiname, SHA-256-Fingerabdruck und Parser-ID/-Version. Steuer-ID, Sozialversicherungsnummer,
   IBAN, Name oder Adresse werden weder gelesen noch gesendet.
 - Jeder Betrag wird **verschlüsselt gespeichert** (AES-256-GCM) – mit einem Schlüssel, den der
-  Betreiber der Instanz konfiguriert (`EARNINGS_ENCRYPTION_KEY`). Eine Kopie der Datenbankdatei
+  Betreiber der Instanz konfiguriert (`ENCRYPTION_KEY`). Eine Kopie der Datenbankdatei
   oder ein Backup allein verrät keinen Betrag; Zeitraum, Arbeitgeber, Art und Jahr bleiben für
   Abfragen im Klartext.
 - Die Daten sieht **nur ihr Eigentümer** – auch Administratoren sehen die Einkommensdaten anderer
@@ -179,21 +179,6 @@ Datenbanken werden diese Variablen ignoriert.
 `.env` ist in `.gitignore` eingetragen (nur `.env.example` ist eingecheckt). Docker Compose lädt
 sie automatisch; Nx lädt sie automatisch in `process.env` für jeden Target, den es ausführt.
 
-### Schlüssel für die Einkommensentwicklung
-
-Die Einkommensentwicklung verschlüsselt jeden gespeicherten Betrag mit `EARNINGS_ENCRYPTION_KEY`
-(Base64 von genau 32 Zufallsbytes). Erzeugen Sie ihn einmalig und tragen Sie ihn in `.env` ein
-(bzw. in die Umgebung des Stacks in Portainer):
-
-```bash
-node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
-```
-
-Sichern Sie den Schlüssel **getrennt** von `./data`: Ein Datenbank-Backup ohne seinen Schlüssel
-lässt sich nicht entschlüsseln, und ein verlorener oder geänderter Schlüssel macht alle
-gespeicherten Einkommensbeträge unwiederbringlich. Ohne gültigen Schlüssel startet das Backend
-trotzdem; nur die Einkommensentwicklung meldet „vorübergehend nicht verfügbar“.
-
 ### Hot-Reload-Entwicklungsmodus
 
 Der obige Befehl baut Produktions-Images (kein Live-Reload). Für die tägliche Entwicklung:
@@ -218,58 +203,29 @@ Linting, Formatierung, Dependency-Hygiene (knip), Secret-Scanning und die Git-Ho
 automatisch ausführen, sind separat dokumentiert in
 [docs/development.de.md](docs/development.de.md) ([English](docs/development.md)).
 
-### Schlüssel für die Altersvorsorge
+### Verschlüsselungsschlüssel
 
-Die Altersvorsorge verschlüsselt jeden gespeicherten Betrag, jede Vertragsnummer und jede Ergänzung
-mit einem eigenen `RETIREMENT_ENCRYPTION_KEY` (Base64 von genau 32 Zufallsbytes), getrennt vom
-Schlüssel der Einkommensentwicklung. Erzeugen und sichern Sie ihn wie diesen (siehe oben) – ein
-verlorener oder geänderter Schlüssel macht alle gespeicherten Altersvorsorge-Daten unwiederbringlich
-unlesbar. **Ohne gültigen Schlüssel startet das Backend trotzdem**, aber jede `/retirement`-Route
-antwortet mit `503 RETIREMENT_UNAVAILABLE` (fail closed) und der Bereich zeigt „nicht verfügbar“;
-die übrigen Bereiche bleiben unberührt, gespeicherte Daten gehen nicht verloren.
+Alle verschlüsselten Bereiche (Einkommensentwicklung, Altersvorsorge, Vermögen, Versicherungen,
+Kontoübersicht) teilen sich einen `ENCRYPTION_KEY` (Base64 von genau 32 Zufallsbytes). Erzeugen Sie
+ihn einmalig und tragen Sie ihn in `.env` ein (bzw. in die Umgebung des Stacks in Portainer):
 
-### Schlüssel für das Vermögen
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+```
 
-Der Bereich „Vermögen“ (Vermögensentwicklung) verschlüsselt jeden gespeicherten Stichtag –
-Positionsnamen, Klassen, Beträge und Notizen – mit einem eigenen `WEALTH_ENCRYPTION_KEY` (Base64 von
-genau 32 Zufallsbytes), getrennt von den Schlüsseln für Einkommensentwicklung und Altersvorsorge.
-Erzeugen und sichern Sie ihn wie den Schlüssel der Einkommensentwicklung (siehe oben) – ein
-verlorener oder geänderter Schlüssel macht alle gespeicherten Vermögensdaten unwiederbringlich
-unlesbar. **Ohne gültigen Schlüssel startet das Backend trotzdem**, aber jede `/wealth`-Route
-antwortet mit `503 WEALTH_UNAVAILABLE` (fail closed) und der Bereich zeigt „nicht verfügbar“; die
-übrigen Bereiche bleiben unberührt, gespeicherte Daten gehen nicht verloren.
-
-### Schlüssel für die Versicherungen
-
-Der Bereich „Versicherungen“ verschlüsselt jeden gespeicherten Vertrag (Bezeichnungen, Versicherer,
-Vertragsnummern, Beiträge, Daten, Notizen), das Profil des Lückenchecks und die
-Erinnerungseinstellungen mit einem eigenen `INSURANCES_ENCRYPTION_KEY` (Base64 von genau 32
-Zufallsbytes), getrennt von den übrigen Schlüsseln. Erzeugen und sichern Sie ihn wie den Schlüssel
-der Einkommensentwicklung (siehe oben) – ein verlorener oder geänderter Schlüssel macht alle
-gespeicherten Versicherungsdaten unwiederbringlich unlesbar. **Ohne gültigen Schlüssel startet das
-Backend trotzdem**, aber jede `/insurances`-Route antwortet mit `503 INSURANCES_UNAVAILABLE` (fail
-closed), es werden keine Erinnerungs-E-Mails versendet und der Bereich zeigt „nicht verfügbar“; die
-übrigen Bereiche bleiben unberührt, gespeicherte Daten gehen nicht verloren. Erinnerungs-E-Mails
-nutzen die SMTP-Einstellungen der übrigen Benachrichtigungen und den Link aus `APP_BASE_URL`.
-
-### Schlüssel für die Kontoübersicht
-
-Die Kontoübersicht verschlüsselt jeden gespeicherten Konto-Eintrag (Namen, Anbieter, Websites,
-Zwecke, Kartennummern, Notizen) mit einem eigenen `ACCOUNT_OVERVIEW_ENCRYPTION_KEY` (Base64 von
-genau 32 Zufallsbytes), getrennt von den übrigen Schlüsseln. Erzeugen und sichern Sie ihn wie den
-Schlüssel der Einkommensentwicklung (siehe oben) – ein verlorener oder geänderter Schlüssel macht
-alle gespeicherten Kontodaten unwiederbringlich unlesbar. **Ohne gültigen Schlüssel startet das
-Backend trotzdem**, aber jede `/account-overview`-Route antwortet mit
-`503 ACCOUNT_OVERVIEW_UNAVAILABLE` (fail closed) und die Kontoübersicht zeigt „nicht verfügbar“;
-die übrigen Bereiche bleiben unberührt, gespeicherte Daten gehen nicht verloren.
+Jeder Bereich verschlüsselt weiterhin mit einem eigenen Datenschlüssel (verpackt in der Datenbank),
+die Bereiche bleiben also kryptografisch getrennt. Ein verlorener oder geänderter Schlüssel macht
+alle verschlüsselten Daten unwiederbringlich unlesbar. **Ohne gültigen Schlüssel startet das Backend
+trotzdem**, aber jede Route eines verschlüsselten Bereichs antwortet mit `503` (fail closed), der
+Bereich zeigt „nicht verfügbar“, die Versicherungen versenden keine Erinnerungs-E-Mails, gespeicherte
+Daten gehen nicht verloren.
 
 ### Schlüsselrotation, Sicherung und Wiederherstellung
 
 Jeder verschlüsselte Bereich nutzt ein **zweistufiges Schlüsselverfahren**: Der konfigurierte
-`<BEREICH>_ENCRYPTION_KEY` ist ein _Hauptschlüssel_, der nur zufällig erzeugte _Datenschlüssel_ schützt,
-die verpackt in der Datenbank liegen; die Datenschlüssel verschlüsseln die Daten. Eine Neuinstallation
-oder ein Upgrade einer bestehenden Installation braucht keinen manuellen Schritt: Beim ersten Start
-nach dem Upgrade werden vorhandene Daten einmalig mit den bisherigen Schlüsseln auf einen
+`ENCRYPTION_KEY` ist ein _Hauptschlüssel_, der nur zufällig erzeugte _Datenschlüssel_ schützt,
+die verpackt in der Datenbank liegen; die Datenschlüssel verschlüsseln die Daten. Beim ersten Start
+nach einem Upgrade werden vorhandene Daten einmalig mit dem konfigurierten Schlüssel auf einen
 Datenschlüssel umgestellt (der betroffene Bereich antwortet dabei kurz mit `503`, bei üblichen
 Datenmengen Sekunden).
 
@@ -281,9 +237,9 @@ Datenmengen Sekunden).
   verändert, und Verwaltung → Verschlüsselung zeigt die Ursache. Den richtigen Schlüssel wiederherstellen
   und neu starten; alle Daten sind wieder da.
 - **Planmäßige Rotation eines Hauptschlüssels** (ohne Ausfall, Daten bleiben unberührt): den neuen
-  Schlüssel als `<BEREICH>_ENCRYPTION_KEY` und den alten als `<BEREICH>_ENCRYPTION_KEY_PREVIOUS` setzen,
+  Schlüssel als `ENCRYPTION_KEY` und den alten als `ENCRYPTION_KEY_PREVIOUS` setzen,
   neu starten, Verwaltung → Verschlüsselung öffnen und je Bereich **Hauptschlüssel rotieren** ausführen.
-  Meldet die Seite den vorherigen Schlüssel als entfernbar, `<BEREICH>_ENCRYPTION_KEY_PREVIOUS` löschen
+  Meldet die Seite den vorherigen Schlüssel als entfernbar, `ENCRYPTION_KEY_PREVIOUS` löschen
   und neu starten. Der alte Schlüssel öffnet danach nichts mehr.
 - **Notfall-Rotation nach einem Schlüsselleck**: die Hauptschlüssel-Rotation wie oben ausführen, dann
   **Daten neu verschlüsseln** für den Bereich (Bestätigung durch Eingabe der Bereichs-ID; der Bereich ist

@@ -33,6 +33,8 @@ export const encryptionEn: TranslationDictionary = {
   },
   dataKeyVersion: 'Data key version',
   retiredKeys: 'Retired data keys',
+  columnStatus: 'Status',
+  columnActions: 'Actions',
   none: 'None',
   rowsPerVersion: 'Records per key version',
   rotationPending:
@@ -53,6 +55,7 @@ export const encryptionEn: TranslationDictionary = {
     message:
       'A new data key is generated and all data of this domain is re-encrypted. The domain is unavailable until this finishes. Type the domain id to confirm.',
     confirmLabel: 'Domain id',
+    hint: 'The domain id is shown in the table below the domain name (e.g. "earnings").',
     submit: 'Start re-encryption',
   },
   destroyConfirm: {

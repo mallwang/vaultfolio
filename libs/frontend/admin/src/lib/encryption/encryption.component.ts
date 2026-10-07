@@ -10,7 +10,6 @@ import type {
 } from '@vaultfolio/api-contract';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
-import { CardModule } from 'primeng/card';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
@@ -52,7 +51,6 @@ const POLL_MS = 2000;
   imports: [
     FormsModule,
     ButtonModule,
-    CardModule,
     ConfirmDialogModule,
     DialogModule,
     InputTextModule,
@@ -87,141 +85,165 @@ const POLL_MS = 2000;
         }}</p-message>
       }
 
-      <div class="encryption__cards">
-        @for (domain of domains(); track domain.domain) {
-          <p-card [attr.data-testid]="'encryption-domain-' + domain.domain">
-            <ng-template #header>
-              <div class="encryption__card-header">
-                <strong>{{ domainLabel(domain.domain) }}</strong>
-                <p-tag
-                  [severity]="stateSeverity(domain.state)"
-                  [value]="'encryption.state.' + domain.state | translate"
-                  [rounded]="true"
-                  [attr.data-testid]="'encryption-' + domain.domain + '-state'"
-                />
-              </div>
-            </ng-template>
-
-            @if (stateHint(domain.state); as hint) {
-              <p-message severity="warn" size="small">{{ hint }}</p-message>
-            }
-
-            <dl class="encryption__facts">
-              <dt>{{ 'encryption.dataKeyVersion' | translate }}</dt>
-              <dd>{{ domain.currentVersion === null ? '–' : 'v' + domain.currentVersion }}</dd>
-              <dt>{{ 'encryption.retiredKeys' | translate }}</dt>
-              <dd>{{ retired(domain) }}</dd>
-              <dt>{{ 'encryption.rowsPerVersion' | translate }}</dt>
-              <dd>{{ rows(domain) }}</dd>
-              <dt>{{ 'encryption.lastRun' | translate }}</dt>
-              <dd>
-                @if (domain.lastRun; as run) {
-                  {{ 'encryption.history.kind.' + run.kind | translate }} ·
-                  {{ 'encryption.history.status.' + run.status | translate }} ·
-                  {{ run.startedAt | localeDateTime }}
-                } @else {
-                  {{ 'encryption.noRuns' | translate }}
-                }
-              </dd>
-            </dl>
-
-            @if (domain.rotationPending) {
-              <p-message severity="info" size="small">{{
-                'encryption.rotationPending' | translate
-              }}</p-message>
-            }
-            @if (domain.previousKeyRemovable) {
-              <p-message severity="success" size="small">{{
-                'encryption.previousKeyRemovable' | translate
-              }}</p-message>
-            }
-
-            @if (domain.runningRun; as run) {
-              <div class="encryption__progress">
-                <p-progressbar
-                  [value]="percent(run)"
-                  [showValue]="false"
-                  [attr.data-testid]="'encryption-' + domain.domain + '-progress'"
-                />
-                <small>{{ progressText(run) }}</small>
-              </div>
-            }
-
-            <div class="encryption__actions">
-              <button
-                pButton
-                type="button"
-                severity="secondary"
-                [attr.data-testid]="'encryption-' + domain.domain + '-rotate-master-key'"
-                [disabled]="!canOperate(domain)"
-                (click)="rotateMasterKey(domain)"
-              >
-                <app-icon name="key" /> {{ 'encryption.rotateMasterKey' | translate }}
-              </button>
-              <button
-                pButton
-                type="button"
-                severity="secondary"
-                [attr.data-testid]="'encryption-' + domain.domain + '-reencrypt'"
-                [disabled]="!canOperate(domain)"
-                (click)="openReencrypt(domain)"
-              >
-                <app-icon name="replay" /> {{ 'encryption.reencrypt' | translate }}
-              </button>
-              @for (version of domain.retiredVersions; track version) {
+      <p-table [value]="domains()" [tableStyle]="{ 'min-width': '60rem' }">
+        <ng-template #header>
+          <tr>
+            <th scope="col">{{ 'encryption.history.columnDomain' | translate }}</th>
+            <th scope="col">{{ 'encryption.columnStatus' | translate }}</th>
+            <th scope="col">{{ 'encryption.dataKeyVersion' | translate }}</th>
+            <th scope="col">{{ 'encryption.retiredKeys' | translate }}</th>
+            <th scope="col">{{ 'encryption.rowsPerVersion' | translate }}</th>
+            <th scope="col">{{ 'encryption.lastRun' | translate }}</th>
+            <th scope="col">{{ 'encryption.columnActions' | translate }}</th>
+          </tr>
+        </ng-template>
+        <ng-template #body let-domain>
+          <tr [attr.data-testid]="'encryption-domain-' + domain.domain">
+            <td>
+              <strong>{{ domainLabel(domain.domain) }}</strong>
+              <div class="encryption__id">{{ domain.domain }}</div>
+            </td>
+            <td>
+              <p-tag
+                [severity]="stateSeverity(domain.state)"
+                [value]="'encryption.state.' + domain.state | translate"
+                [rounded]="true"
+                [attr.data-testid]="'encryption-' + domain.domain + '-state'"
+              />
+              @if (stateHint(domain.state); as hint) {
+                <p-message severity="warn" size="small">{{ hint }}</p-message>
+              }
+              @if (domain.rotationPending) {
+                <p-message severity="info" size="small">{{
+                  'encryption.rotationPending' | translate
+                }}</p-message>
+              }
+              @if (domain.previousKeyRemovable) {
+                <p-message severity="success" size="small">{{
+                  'encryption.previousKeyRemovable' | translate
+                }}</p-message>
+              }
+              @if (domain.runningRun; as run) {
+                <div class="encryption__progress">
+                  <p-progressbar
+                    [value]="percent(run)"
+                    [showValue]="false"
+                    [attr.data-testid]="'encryption-' + domain.domain + '-progress'"
+                  />
+                  <small>{{ progressText(run) }}</small>
+                </div>
+              }
+            </td>
+            <td>{{ domain.currentVersion === null ? '–' : 'v' + domain.currentVersion }}</td>
+            <td>{{ retired(domain) }}</td>
+            <td>{{ rows(domain) }}</td>
+            <td>
+              @if (domain.lastRun; as run) {
+                {{ 'encryption.history.kind.' + run.kind | translate }} ·
+                {{ 'encryption.history.status.' + run.status | translate }} ·
+                {{ run.startedAt | localeDateTime }}
+              } @else {
+                {{ 'encryption.noRuns' | translate }}
+              }
+            </td>
+            <td>
+              <div class="encryption__actions">
                 <button
                   pButton
                   type="button"
-                  severity="danger"
-                  [text]="true"
-                  [attr.data-testid]="'encryption-' + domain.domain + '-destroy-' + version"
-                  [disabled]="busy()"
-                  (click)="confirmDestroy(domain, version, $event)"
+                  severity="secondary"
+                  size="small"
+                  [attr.data-testid]="'encryption-' + domain.domain + '-rotate-master-key'"
+                  [disabled]="!canOperate(domain)"
+                  (click)="rotateMasterKey(domain)"
                 >
-                  <app-icon name="trash" /> {{ destroyLabel(version) }}
+                  <app-icon name="key" /> {{ 'encryption.rotateMasterKey' | translate }}
                 </button>
-              }
-            </div>
-          </p-card>
-        }
-      </div>
-
-      <h3>{{ 'encryption.history.title' | translate }}</h3>
-      <p-table [value]="history()" [tableStyle]="{ 'min-width': '50rem' }">
-        <ng-template #header>
-          <tr>
-            <th scope="col">{{ 'encryption.history.columnTime' | translate }}</th>
-            <th scope="col">{{ 'encryption.history.columnDomain' | translate }}</th>
-            <th scope="col">{{ 'encryption.history.columnKind' | translate }}</th>
-            <th scope="col">{{ 'encryption.history.columnStatus' | translate }}</th>
-            <th scope="col">{{ 'encryption.history.columnBy' | translate }}</th>
-            <th scope="col">{{ 'encryption.history.columnRecords' | translate }}</th>
-          </tr>
-        </ng-template>
-        <ng-template #body let-run>
-          <tr [attr.data-testid]="'encryption-history-row-' + run.id">
-            <td>{{ run.startedAt | localeDateTime }}</td>
-            <td>{{ domainLabel(run.domain) }}</td>
-            <td>{{ 'encryption.history.kind.' + run.kind | translate }}</td>
-            <td>
-              <p-tag
-                [severity]="runSeverity(run.status)"
-                [value]="'encryption.history.status.' + run.status | translate"
-                [rounded]="true"
-              />
-            </td>
-            <td>{{ run.triggeredByEmail ?? ('encryption.history.system' | translate) }}</td>
-            <td>{{ run.recordsDone }} / {{ run.recordsTotal }}</td>
-          </tr>
-        </ng-template>
-        <ng-template #emptymessage>
-          <tr>
-            <td colspan="6">
-              <div class="encryption__empty">{{ 'encryption.history.empty' | translate }}</div>
+                <button
+                  pButton
+                  type="button"
+                  severity="secondary"
+                  size="small"
+                  [attr.data-testid]="'encryption-' + domain.domain + '-reencrypt'"
+                  [disabled]="!canOperate(domain)"
+                  (click)="openReencrypt(domain)"
+                >
+                  <app-icon name="replay" /> {{ 'encryption.reencrypt' | translate }}
+                </button>
+                @for (version of domain.retiredVersions; track version) {
+                  <button
+                    pButton
+                    type="button"
+                    severity="danger"
+                    size="small"
+                    [text]="true"
+                    [attr.data-testid]="'encryption-' + domain.domain + '-destroy-' + version"
+                    [disabled]="busy()"
+                    (click)="confirmDestroy(domain, version, $event)"
+                  >
+                    <app-icon name="trash" /> {{ destroyLabel(version) }}
+                  </button>
+                }
+              </div>
             </td>
           </tr>
         </ng-template>
       </p-table>
+
+      <h3 class="encryption__history-title">
+        <button
+          pButton
+          type="button"
+          severity="secondary"
+          [text]="true"
+          data-testid="encryption-history-toggle"
+          [attr.aria-expanded]="historyOpen()"
+          aria-controls="encryption-history"
+          (click)="historyOpen.set(!historyOpen())"
+        >
+          <app-icon [name]="historyOpen() ? 'chevron-down' : 'chevron-right'" />
+          {{ 'encryption.history.title' | translate }}
+        </button>
+      </h3>
+      @if (historyOpen()) {
+        <div id="encryption-history">
+          <p-table [value]="history()" [tableStyle]="{ 'min-width': '50rem' }">
+            <ng-template #header>
+              <tr>
+                <th scope="col">{{ 'encryption.history.columnTime' | translate }}</th>
+                <th scope="col">{{ 'encryption.history.columnDomain' | translate }}</th>
+                <th scope="col">{{ 'encryption.history.columnKind' | translate }}</th>
+                <th scope="col">{{ 'encryption.history.columnStatus' | translate }}</th>
+                <th scope="col">{{ 'encryption.history.columnBy' | translate }}</th>
+                <th scope="col">{{ 'encryption.history.columnRecords' | translate }}</th>
+              </tr>
+            </ng-template>
+            <ng-template #body let-run>
+              <tr [attr.data-testid]="'encryption-history-row-' + run.id">
+                <td>{{ run.startedAt | localeDateTime }}</td>
+                <td>{{ domainLabel(run.domain) }}</td>
+                <td>{{ 'encryption.history.kind.' + run.kind | translate }}</td>
+                <td>
+                  <p-tag
+                    [severity]="runSeverity(run.status)"
+                    [value]="'encryption.history.status.' + run.status | translate"
+                    [rounded]="true"
+                  />
+                </td>
+                <td>{{ run.triggeredByEmail ?? ('encryption.history.system' | translate) }}</td>
+                <td>{{ run.recordsDone }} / {{ run.recordsTotal }}</td>
+              </tr>
+            </ng-template>
+            <ng-template #emptymessage>
+              <tr>
+                <td colspan="6">
+                  <div class="encryption__empty">{{ 'encryption.history.empty' | translate }}</div>
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </div>
+      }
     </section>
 
     <p-dialog
@@ -234,17 +256,21 @@ const POLL_MS = 2000;
     >
       <ng-template #closeicon><app-icon name="close" /></ng-template>
       <p>{{ 'encryption.reencryptDialog.message' | translate }}</p>
-      <label for="encryption-reencrypt-confirm">{{
-        'encryption.reencryptDialog.confirmLabel' | translate
-      }}</label>
-      <input
-        pInputText
-        id="encryption-reencrypt-confirm"
-        data-testid="encryption-reencrypt-confirm-input"
-        autocomplete="off"
-        [ngModel]="confirmText()"
-        (ngModelChange)="confirmText.set($event)"
-      />
+      <div class="encryption__field">
+        <label for="encryption-reencrypt-confirm">{{
+          'encryption.reencryptDialog.confirmLabel' | translate
+        }}</label>
+        <input
+          pInputText
+          fluid
+          id="encryption-reencrypt-confirm"
+          data-testid="encryption-reencrypt-confirm-input"
+          autocomplete="off"
+          [ngModel]="confirmText()"
+          (ngModelChange)="confirmText.set($event)"
+        />
+        <small>{{ 'encryption.reencryptDialog.hint' | translate }}</small>
+      </div>
       <ng-template #footer>
         <button
           pButton
@@ -273,37 +299,29 @@ const POLL_MS = 2000;
   styles: `
     :host {
       display: block;
-      max-width: 1100px;
+      max-width: 1300px;
       margin: 0 auto;
     }
 
-    .encryption__cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr));
-      gap: 1rem;
-      margin-bottom: 1.5rem;
+    td p-message {
+      display: block;
+      margin-top: 0.75rem;
     }
 
-    .encryption__card-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 1rem 1.25rem 0;
-    }
-
-    .encryption__facts {
-      display: grid;
-      grid-template-columns: auto 1fr;
-      gap: 0.25rem 1rem;
-      margin: 0.75rem 0;
-    }
-
-    .encryption__facts dt {
+    .encryption__id {
+      font-family: monospace;
+      font-size: 0.85rem;
       color: var(--p-text-muted-color);
     }
 
-    .encryption__facts dd {
-      margin: 0;
+    .encryption__field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .encryption__history-title {
+      margin: 1.5rem 0 0.5rem;
     }
 
     .encryption__progress {
@@ -335,6 +353,7 @@ export class EncryptionComponent implements OnInit {
   protected readonly history = signal<RotationRun[]>([]);
   protected readonly loadError = signal<string | null>(null);
   protected readonly busy = signal(false);
+  protected readonly historyOpen = signal(true);
   protected readonly reencryptTarget = signal<EncryptionDomainId | null>(null);
   protected readonly confirmText = signal('');
   protected readonly reencryptHeader = computed(() => {

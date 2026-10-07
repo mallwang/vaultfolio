@@ -97,14 +97,12 @@ export interface RotationFlags {
 export function deriveRotationFlags(
   wrappingFingerprints: readonly string[],
   currentFingerprint: string | null,
-  previousFingerprint: string | null,
+  previousFingerprints: readonly string[],
 ): RotationFlags {
-  const usesPrevious =
-    previousFingerprint !== null &&
-    previousFingerprint !== currentFingerprint &&
-    wrappingFingerprints.includes(previousFingerprint);
+  const previous = previousFingerprints.filter((fp) => fp !== currentFingerprint);
+  const usesPrevious = previous.some((fp) => wrappingFingerprints.includes(fp));
   return {
     rotationPending: usesPrevious,
-    previousKeyRemovable: previousFingerprint !== null && !usesPrevious,
+    previousKeyRemovable: previousFingerprints.length > 0 && !usesPrevious,
   };
 }

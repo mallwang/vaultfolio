@@ -52,7 +52,7 @@ describe('RetirementRepository (SQLite)', () => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'vaultfolio-retirement-repo-'));
     dbPath = path.join(tempDir, 'test.db');
     process.env.DATABASE_PATH = dbPath;
-    process.env.RETIREMENT_ENCRYPTION_KEY = randomBytes(32).toString('base64');
+    process.env.ENCRYPTION_KEY = randomBytes(32).toString('base64');
     database = new DatabaseService();
     await database.onModuleInit();
     const crypto = new RetirementCryptoService(createTestKeyring(database));
@@ -63,7 +63,7 @@ describe('RetirementRepository (SQLite)', () => {
     await database.onModuleDestroy();
     fs.rmSync(tempDir, { recursive: true, force: true });
     delete process.env.DATABASE_PATH;
-    delete process.env.RETIREMENT_ENCRYPTION_KEY;
+    delete process.env.ENCRYPTION_KEY;
   });
 
   it('stores figures and identifier only as ciphertext', () => {

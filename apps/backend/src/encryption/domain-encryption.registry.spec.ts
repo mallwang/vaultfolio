@@ -7,31 +7,13 @@ describe('DOMAIN_ENCRYPTION', () => {
   });
 
   it.each([
-    [
-      'earnings',
-      'EARNINGS_ENCRYPTION_KEY',
-      ['earnings_records:amounts_enc', 'earnings_certificates:amounts_enc'],
-    ],
-    ['retirement', 'RETIREMENT_ENCRYPTION_KEY', ['retirement_records:payload_enc']],
-    [
-      'wealth',
-      'WEALTH_ENCRYPTION_KEY',
-      ['wealth_snapshots:payload_enc', 'wealth_settings:payload_enc'],
-    ],
-    [
-      'insurances',
-      'INSURANCES_ENCRYPTION_KEY',
-      ['insurance_contracts:payload_enc', 'insurance_settings:payload_enc'],
-    ],
-    [
-      'account-overview',
-      'ACCOUNT_OVERVIEW_ENCRYPTION_KEY',
-      ['account_overview_entries:payload_enc'],
-    ],
-  ])('%s: env variables and tables', (id, env, tables) => {
+    ['earnings', ['earnings_records:amounts_enc', 'earnings_certificates:amounts_enc']],
+    ['retirement', ['retirement_records:payload_enc']],
+    ['wealth', ['wealth_snapshots:payload_enc', 'wealth_settings:payload_enc']],
+    ['insurances', ['insurance_contracts:payload_enc', 'insurance_settings:payload_enc']],
+    ['account-overview', ['account_overview_entries:payload_enc']],
+  ])('%s: tables', (id, tables) => {
     const domain = findDomain(id);
-    expect(domain?.currentKeyEnv).toBe(env);
-    expect(domain?.previousKeyEnv).toBe(`${env}_PREVIOUS`);
     expect(domain?.tables.map((t) => `${t.table}:${t.ciphertextColumn}`)).toEqual(tables);
   });
 

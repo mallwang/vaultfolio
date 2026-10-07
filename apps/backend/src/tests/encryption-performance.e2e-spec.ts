@@ -20,14 +20,14 @@ slow('encryption performance (SC-007)', () => {
   });
 
   afterAll(async () => {
-    delete process.env.WEALTH_ENCRYPTION_KEY;
-    delete process.env.WEALTH_ENCRYPTION_KEY_PREVIOUS;
+    delete process.env.ENCRYPTION_KEY;
+    delete process.env.ENCRYPTION_KEY_PREVIOUS;
     await db.dispose();
   }, 60_000);
 
   it('rotates the master key in under a minute and re-encrypts 10,000 rows in under ten', async () => {
     const oldKey = randomBytes(32).toString('base64');
-    process.env.WEALTH_ENCRYPTION_KEY = oldKey;
+    process.env.ENCRYPTION_KEY = oldKey;
     const first = createTestKeyring(db.database);
     db.database.transaction(() => {
       for (let i = 0; i < ROWS; i++) {
@@ -44,8 +44,8 @@ slow('encryption performance (SC-007)', () => {
       }
     });
 
-    process.env.WEALTH_ENCRYPTION_KEY = randomBytes(32).toString('base64');
-    process.env.WEALTH_ENCRYPTION_KEY_PREVIOUS = oldKey;
+    process.env.ENCRYPTION_KEY = randomBytes(32).toString('base64');
+    process.env.ENCRYPTION_KEY_PREVIOUS = oldKey;
     const keyring = createTestKeyring(db.database);
     db.database.querySync(
       "INSERT INTO users (id, email, display_name, password_hash, role) VALUES ('perf-admin', 'perf@example.com', 'Perf', 'x', 'ADMIN')",

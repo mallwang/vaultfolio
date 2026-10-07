@@ -11,7 +11,12 @@ import {
   wrapDataKey,
   type DomainState,
 } from '@vaultfolio/encryption';
-import { DOMAIN_ENCRYPTION, type DomainEncryption } from './domain-encryption.registry';
+import {
+  DOMAIN_ENCRYPTION,
+  MASTER_KEY_ENV,
+  MASTER_KEY_PREVIOUS_ENV,
+  type DomainEncryption,
+} from './domain-encryption.registry';
 import { KeyStoreRepository, type StoredDataKey } from './key-store.repository';
 import { LegacyMigrationService } from './legacy-migration.service';
 
@@ -27,7 +32,8 @@ export interface DomainRuntime {
   readonly definition: DomainEncryption;
   readonly ring: Keyring;
   current: Buffer | null;
-  previous: Buffer | null;
+  /** The previous master key while a rotation is pending. */
+  previous: Buffer[];
   mismatch: boolean;
   migrating: boolean;
   reencrypting: boolean;
@@ -52,7 +58,7 @@ export class DomainKeyringService implements OnModuleInit {
         definition,
         ring: new Keyring(),
         current: null,
-        previous: null,
+        previous: [],
         mismatch: false,
         migrating: false,
         reencrypting: false,
@@ -67,7 +73,7 @@ export class DomainKeyringService implements OnModuleInit {
       this.logger.error('Encryption key store is not readable — encrypted domains stay locked');
       this.logger.debug((error as Error).message);
       for (const r of this.runtimes.values()) {
-        r.current = decodeMasterKey(process.env[r.definition.currentKeyEnv]);
+        r.current = decodeMasterKey(process.env[MASTER_KEY_ENV]);
         r.mismatch = true;
       }
       return;
@@ -132,20 +138,19 @@ export class DomainKeyringService implements OnModuleInit {
   }
 
   private initDomain(r: DomainRuntime): void {
-    const { id, currentKeyEnv, previousKeyEnv } = r.definition;
+    const { id } = r.definition;
     try {
-      r.current = decodeMasterKey(process.env[currentKeyEnv]);
-      r.previous = decodeMasterKey(process.env[previousKeyEnv]);
+      r.current = decodeMasterKey(process.env[MASTER_KEY_ENV]);
       if (!r.current) {
         this.logger.warn(
-          `${currentKeyEnv} is missing or not base64 of 32 bytes — domain ${id} is unavailable`,
+          `${MASTER_KEY_ENV} is missing or not base64 of 32 bytes — domain ${id} is unavailable`,
         );
         return;
       }
-      if (r.previous && keyFingerprint(r.previous) === keyFingerprint(r.current)) {
-        this.logger.warn(`${previousKeyEnv} equals ${currentKeyEnv} — ignoring it`);
-        r.previous = null;
-      }
+      const currentFp = keyFingerprint(r.current);
+      const seen = new Set<string>([currentFp]);
+      const previous = decodeMasterKey(process.env[MASTER_KEY_PREVIOUS_ENV]);
+      if (previous && !seen.has(keyFingerprint(previous))) r.previous.push(previous);
       this.loadKeys(r);
     } catch (error) {
       r.mismatch = true;
@@ -155,25 +160,25 @@ export class DomainKeyringService implements OnModuleInit {
   }
 
   private loadKeys(r: DomainRuntime): void {
-    const { id, currentKeyEnv, previousKeyEnv } = r.definition;
+    const { id } = r.definition;
     const stored = this.store.listDataKeys(id);
     if (!this.unwrapStored(r, stored)) {
       r.mismatch = true;
       this.logger.error(
-        `${currentKeyEnv} does not open the stored data keys of domain ${id}` +
-          ` (if the key was rotated, set the old key as ${previousKeyEnv}) — domain locked`,
+        `${MASTER_KEY_ENV} does not open the stored data keys of domain ${id}` +
+          ` (if the key was rotated, set the old key as ${MASTER_KEY_PREVIOUS_ENV}) — domain locked`,
       );
       return;
     }
 
     const hasLegacy = this.legacy.hasLegacyRows(id);
     if (hasLegacy) {
-      const candidates = [r.current as Buffer, ...(r.previous ? [r.previous] : [])];
+      const candidates = [r.current as Buffer, ...r.previous];
       const legacyKey = this.legacy.proveLegacyKey(id, candidates);
       if (!legacyKey) {
         r.mismatch = true;
         this.logger.error(
-          `${currentKeyEnv} does not match the stored ${id} data — domain locked, nothing written`,
+          `No configured key matches the stored ${id} data (if the key was rotated, set the old key as ${MASTER_KEY_PREVIOUS_ENV}) — domain locked, nothing written`,
         );
         return;
       }
@@ -187,7 +192,7 @@ export class DomainKeyringService implements OnModuleInit {
     if (hasLegacy) {
       this.migrateLegacy(r);
     }
-    this.warnAboutPreviousKey(r, previousKeyEnv);
+    this.warnAboutPreviousKeys(r);
   }
 
   private migrateLegacy(r: DomainRuntime): void {
@@ -207,7 +212,7 @@ export class DomainKeyringService implements OnModuleInit {
   private unwrapStored(r: DomainRuntime, stored: readonly StoredDataKey[]): boolean {
     const byFingerprint = new Map<string, Buffer>();
     byFingerprint.set(keyFingerprint(r.current as Buffer), r.current as Buffer);
-    if (r.previous) byFingerprint.set(keyFingerprint(r.previous), r.previous);
+    for (const k of r.previous) byFingerprint.set(keyFingerprint(k), k);
     for (const key of stored) {
       if (key.status === 'destroyed' || !key.wrappedDek) continue;
       const master = byFingerprint.get(key.kekFingerprint ?? '');
@@ -242,15 +247,16 @@ export class DomainKeyringService implements OnModuleInit {
     return version;
   }
 
-  private warnAboutPreviousKey(r: DomainRuntime, previousKeyEnv: string): void {
-    if (!r.previous) return;
+  private warnAboutPreviousKeys(r: DomainRuntime): void {
+    if (r.previous.length === 0) return;
+    const previousFps = new Set(r.previous.map((k) => keyFingerprint(k)));
     const pending = this.store
       .listDataKeys(r.definition.id)
-      .some((k) => k.kekFingerprint === keyFingerprint(r.previous as Buffer));
+      .some((k) => k.status !== 'destroyed' && previousFps.has(k.kekFingerprint ?? ''));
     this.logger.warn(
       pending
-        ? `${previousKeyEnv} is still needed for domain ${r.definition.id}: run the master key rotation`
-        : `${previousKeyEnv} is no longer needed for domain ${r.definition.id} and can be removed`,
+        ? `${MASTER_KEY_PREVIOUS_ENV} is still needed for domain ${r.definition.id}: run the master key rotation`
+        : `${MASTER_KEY_PREVIOUS_ENV} is no longer needed for domain ${r.definition.id} and can be removed`,
     );
   }
 }

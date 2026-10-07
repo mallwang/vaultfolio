@@ -13,7 +13,7 @@ import { KeyStoreRepository } from './key-store.repository';
 import { RotationService } from './rotation.service';
 
 const key = () => randomBytes(32).toString('base64');
-const ENV = ['WEALTH_ENCRYPTION_KEY', 'WEALTH_ENCRYPTION_KEY_PREVIOUS', 'EARNINGS_ENCRYPTION_KEY'];
+const ENV = ['ENCRYPTION_KEY', 'ENCRYPTION_KEY_PREVIOUS'];
 
 describe('RotationService', () => {
   let db: TestDatabase;
@@ -39,8 +39,8 @@ describe('RotationService', () => {
     previous?: string,
   ): { keyring: DomainKeyringService; rotation: RotationService } {
     ENV.forEach((name) => delete process.env[name]);
-    if (current) process.env.WEALTH_ENCRYPTION_KEY = current;
-    if (previous) process.env.WEALTH_ENCRYPTION_KEY_PREVIOUS = previous;
+    if (current) process.env.ENCRYPTION_KEY = current;
+    if (previous) process.env.ENCRYPTION_KEY_PREVIOUS = previous;
     const keyring = createTestKeyring(db.database);
     return { keyring, rotation: new RotationService(keyring, store, db.database) };
   }
@@ -93,7 +93,7 @@ describe('RotationService', () => {
         runningRun: null,
       });
       expect(rotation.status()).toHaveLength(5);
-      expect(rotation.status().find((s) => s.domain === 'earnings')?.state).toBe('KEY_MISSING');
+      expect(rotation.status().find((s) => s.domain === 'earnings')?.state).toBe('READY');
       expect(JSON.stringify(rotation.status())).not.toMatch(/k1:/);
     });
 

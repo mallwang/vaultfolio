@@ -209,3 +209,13 @@ Nx monorepo: `apps/backend/src/`, `apps/frontend/src/`, `libs/<lib>/src/`. Front
 - **Increment 2**: US1 (master key rotation API + admin screen status and rotate action).
 - **Increment 3**: US2 (data re-encryption, destroy), then docs (US5) and polish.
 - Do not release before US1 and US5 docs if production operators are expected to rotate keys.
+
+## Phase 10: Amendment - one shared master key
+
+**Purpose**: Replace the five `<DOMAIN>_ENCRYPTION_KEY(_PREVIOUS)` variables by a single `ENCRYPTION_KEY` / `ENCRYPTION_KEY_PREVIOUS`. No release shipped per-domain keys, so there is no per-domain fallback.
+
+- [x] T059 Update spec, research (R1, R5, R12), plan, data-model and quickstart for the single master key
+- [x] T060 Registry: drop the per-domain env names; export `MASTER_KEY_ENV` / `MASTER_KEY_PREVIOUS_ENV`
+- [x] T061 `DomainKeyringService`/`RotationService`: all domains read `ENCRYPTION_KEY` / `ENCRYPTION_KEY_PREVIOUS`; `deriveRotationFlags` takes previous fingerprints as a list
+- [x] T062 Update `.env.example`, `docker-compose.yml`, `docker-compose.portainer.yml`, README (EN/DE), development docs and the Bruno request
+- [x] T063 Adapt unit and e2e specs; add a spec for the missing shared key

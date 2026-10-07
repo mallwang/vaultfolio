@@ -49,8 +49,8 @@ export async function bootEarningsApp(
   process.env.DATABASE_PATH = path.join(tempDir, 'test.db');
   process.env.BOOTSTRAP_ADMIN_EMAIL = ADMIN_EMAIL;
   process.env.BOOTSTRAP_ADMIN_PASSWORD = PASSWORD;
-  if (options.key === null) delete process.env.EARNINGS_ENCRYPTION_KEY;
-  else process.env.EARNINGS_ENCRYPTION_KEY = options.key ?? randomBytes(32).toString('base64');
+  if (options.key === null) delete process.env.ENCRYPTION_KEY;
+  else process.env.ENCRYPTION_KEY = options.key ?? randomBytes(32).toString('base64');
 
   const mail: MailCatcher = { sent: [], failNext: false };
   const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
@@ -81,7 +81,7 @@ export async function bootEarningsApp(
       delete process.env.DATABASE_PATH;
       delete process.env.BOOTSTRAP_ADMIN_EMAIL;
       delete process.env.BOOTSTRAP_ADMIN_PASSWORD;
-      delete process.env.EARNINGS_ENCRYPTION_KEY;
+      delete process.env.ENCRYPTION_KEY;
     },
   };
 }

@@ -8,10 +8,12 @@ export interface EncryptedTable {
   ciphertextColumn: string;
 }
 
+/** Operator master key shared by all domains; it only wraps the per-domain data keys. */
+export const MASTER_KEY_ENV = 'ENCRYPTION_KEY';
+export const MASTER_KEY_PREVIOUS_ENV = 'ENCRYPTION_KEY_PREVIOUS';
+
 export interface DomainEncryption {
   id: EncryptionDomainId;
-  currentKeyEnv: string;
-  previousKeyEnv: string;
   tables: readonly EncryptedTable[];
 }
 
@@ -26,8 +28,6 @@ const payloadTable = (table: string, idColumn = 'id'): EncryptedTable => ({
 export const DOMAIN_ENCRYPTION: readonly DomainEncryption[] = [
   {
     id: 'earnings',
-    currentKeyEnv: 'EARNINGS_ENCRYPTION_KEY',
-    previousKeyEnv: 'EARNINGS_ENCRYPTION_KEY_PREVIOUS',
     tables: [
       {
         table: 'earnings_records',
@@ -45,26 +45,18 @@ export const DOMAIN_ENCRYPTION: readonly DomainEncryption[] = [
   },
   {
     id: 'retirement',
-    currentKeyEnv: 'RETIREMENT_ENCRYPTION_KEY',
-    previousKeyEnv: 'RETIREMENT_ENCRYPTION_KEY_PREVIOUS',
     tables: [payloadTable('retirement_records')],
   },
   {
     id: 'wealth',
-    currentKeyEnv: 'WEALTH_ENCRYPTION_KEY',
-    previousKeyEnv: 'WEALTH_ENCRYPTION_KEY_PREVIOUS',
     tables: [payloadTable('wealth_snapshots'), payloadTable('wealth_settings', 'owner_id')],
   },
   {
     id: 'insurances',
-    currentKeyEnv: 'INSURANCES_ENCRYPTION_KEY',
-    previousKeyEnv: 'INSURANCES_ENCRYPTION_KEY_PREVIOUS',
     tables: [payloadTable('insurance_contracts'), payloadTable('insurance_settings', 'owner_id')],
   },
   {
     id: 'account-overview',
-    currentKeyEnv: 'ACCOUNT_OVERVIEW_ENCRYPTION_KEY',
-    previousKeyEnv: 'ACCOUNT_OVERVIEW_ENCRYPTION_KEY_PREVIOUS',
     tables: [payloadTable('account_overview_entries')],
   },
 ];

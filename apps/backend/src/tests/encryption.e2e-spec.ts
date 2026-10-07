@@ -10,7 +10,6 @@ import { DOMAIN_ENCRYPTION, rowAad } from '../encryption/domain-encryption.regis
 import { DomainKeyringService } from '../encryption/domain-keyring.service';
 import {
   ADMIN_EMAIL,
-  allNewKeys,
   bootEncryptionApp,
   client,
   makeTempDir,
@@ -54,12 +53,12 @@ function dumpEncryptedRows(t: EncryptionTestApp): string {
 
 describe('encryption: upgrade of a pre-feature database (US4)', () => {
   const dir = makeTempDir();
-  const keys = allNewKeys();
+  const key = newKey();
   let t: EncryptionTestApp;
 
   beforeAll(async () => {
-    await seedLegacyDatabase(dir, keys);
-    t = await bootEncryptionApp({ tempDir: dir, keys });
+    await seedLegacyDatabase(dir, key);
+    t = await bootEncryptionApp({ tempDir: dir, key });
   });
 
   afterAll(async () => {
@@ -123,12 +122,12 @@ describe('encryption: upgrade of a pre-feature database (US4)', () => {
 
 describe('encryption: missing or wrong key never damages data (US3)', () => {
   const dir = makeTempDir();
-  const keys = allNewKeys();
+  const key = newKey();
 
   afterAll(() => fs.rmSync(dir, { recursive: true, force: true }));
 
-  it('locks only the affected domain, writes nothing and recovers with the right key', async () => {
-    let t = await bootEncryptionApp({ tempDir: dir, keys });
+  it('locks the encrypted domains, writes nothing and recovers with the right key', async () => {
+    let t = await bootEncryptionApp({ tempDir: dir, key });
     let api = await adminApi(t);
     const created = await api.post('/wealth/snapshots').send(snapshotPayload());
     expect(created.status).toBe(201);
@@ -136,11 +135,11 @@ describe('encryption: missing or wrong key never damages data (US3)', () => {
     const keysBefore = JSON.stringify(t.database.querySync('SELECT * FROM encryption_data_keys'));
     await t.close();
 
-    for (const [label, wealthKey, expected] of [
+    for (const [label, wrongKey, expected] of [
       ['missing', null, 'KEY_MISSING'],
       ['wrong', newKey(), 'KEY_MISMATCH'],
     ] as const) {
-      t = await bootEncryptionApp({ tempDir: dir, keys: { ...keys, wealth: wealthKey } });
+      t = await bootEncryptionApp({ tempDir: dir, key: wrongKey });
       api = await adminApi(t);
       const response = await api.get('/wealth/snapshots');
       expect([label, response.status, response.body.error]).toEqual([
@@ -150,10 +149,9 @@ describe('encryption: missing or wrong key never damages data (US3)', () => {
       ]);
       expect((await api.post('/wealth/snapshots').send(snapshotPayload())).status).toBe(503);
       expect((await api.get('/holdings')).status).toBe(200);
-      expect((await api.get('/account-overview/accounts')).status).toBe(200);
       const all = await status(api);
       expect(all.wealth.state).toBe(expected);
-      expect(all.insurances.state).toBe('READY');
+      expect(all.insurances.state).toBe(expected);
       expect(dumpEncryptedRows(t)).toBe(before);
       expect(JSON.stringify(t.database.querySync('SELECT * FROM encryption_data_keys'))).toBe(
         keysBefore,
@@ -161,7 +159,7 @@ describe('encryption: missing or wrong key never damages data (US3)', () => {
       await t.close();
     }
 
-    t = await bootEncryptionApp({ tempDir: dir, keys });
+    t = await bootEncryptionApp({ tempDir: dir, key });
     api = await adminApi(t);
     const restored = await api.get(`/wealth/snapshots/${created.body.id}`);
     expect(restored.status).toBe(200);
@@ -175,7 +173,7 @@ describe('encryption: admin API access', () => {
   let t: EncryptionTestApp;
 
   beforeAll(async () => {
-    t = await bootEncryptionApp({ tempDir: dir, keys: allNewKeys() });
+    t = await bootEncryptionApp({ tempDir: dir, key: newKey() });
   });
 
   afterAll(async () => {
@@ -214,19 +212,19 @@ describe('encryption: admin API access', () => {
 
 describe('encryption: master key rotation (US1)', () => {
   const dir = makeTempDir();
-  const oldKeys = allNewKeys();
-  const newKeys = allNewKeys();
+  const oldKey = newKey();
+  const newMaster = newKey();
 
   afterAll(() => fs.rmSync(dir, { recursive: true, force: true }));
 
   it('rotates every domain, drops the previous key and the old key opens nothing', async () => {
-    let t = await bootEncryptionApp({ tempDir: dir, keys: oldKeys });
+    let t = await bootEncryptionApp({ tempDir: dir, key: oldKey });
     let api = await adminApi(t);
     const created = await api.post('/wealth/snapshots').send(snapshotPayload());
     expect(created.status).toBe(201);
     await t.close();
 
-    t = await bootEncryptionApp({ tempDir: dir, keys: newKeys, previous: oldKeys });
+    t = await bootEncryptionApp({ tempDir: dir, key: newMaster, previous: oldKey });
     api = await adminApi(t);
     const pending = await status(api);
     for (const d of DOMAIN_ENCRYPTION) {
@@ -248,14 +246,14 @@ describe('encryption: master key rotation (US1)', () => {
     expect(done.wealth).toMatchObject({ rotationPending: false, previousKeyRemovable: true });
     await t.close();
 
-    t = await bootEncryptionApp({ tempDir: dir, keys: newKeys });
+    t = await bootEncryptionApp({ tempDir: dir, key: newMaster });
     api = await adminApi(t);
     const read = await api.get(`/wealth/snapshots/${created.body.id}`);
     expect(read.status).toBe(200);
     expect(read.body.entries).toEqual(snapshotPayload().entries);
     await t.close();
 
-    t = await bootEncryptionApp({ tempDir: dir, keys: oldKeys });
+    t = await bootEncryptionApp({ tempDir: dir, key: oldKey });
     api = await adminApi(t);
     expect((await status(api)).wealth.state).toBe('KEY_MISMATCH');
     expect((await api.get('/wealth/snapshots')).status).toBe(503);
@@ -268,7 +266,7 @@ describe('encryption: data key re-encryption and destroy (US2)', () => {
   let t: EncryptionTestApp;
 
   beforeAll(async () => {
-    t = await bootEncryptionApp({ tempDir: dir, keys: allNewKeys() });
+    t = await bootEncryptionApp({ tempDir: dir, key: newKey() });
   });
 
   afterAll(async () => {

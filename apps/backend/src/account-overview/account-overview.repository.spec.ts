@@ -24,7 +24,7 @@ describe('AccountOverviewRepository', () => {
     process.env.DATABASE_PATH = path.join(tempDir, 'test.db');
     process.env.BOOTSTRAP_ADMIN_EMAIL = 'admin@example.com';
     process.env.BOOTSTRAP_ADMIN_PASSWORD = 'a-valid-8-char-password';
-    process.env.ACCOUNT_OVERVIEW_ENCRYPTION_KEY = randomBytes(32).toString('base64');
+    process.env.ENCRYPTION_KEY = randomBytes(32).toString('base64');
 
     database = new DatabaseService();
     await database.onModuleInit();
@@ -46,7 +46,7 @@ describe('AccountOverviewRepository', () => {
     delete process.env.DATABASE_PATH;
     delete process.env.BOOTSTRAP_ADMIN_EMAIL;
     delete process.env.BOOTSTRAP_ADMIN_PASSWORD;
-    delete process.env.ACCOUNT_OVERVIEW_ENCRYPTION_KEY;
+    delete process.env.ENCRYPTION_KEY;
   });
 
   const validAccount: ValidatedAccount = {

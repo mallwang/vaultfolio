@@ -34,6 +34,8 @@ export const encryptionDe: TranslationDictionary = {
   },
   dataKeyVersion: 'Version des Datenschlüssels',
   retiredKeys: 'Ausgemusterte Datenschlüssel',
+  columnStatus: 'Status',
+  columnActions: 'Aktionen',
   none: 'Keine',
   rowsPerVersion: 'Datensätze je Schlüsselversion',
   rotationPending:
@@ -54,6 +56,7 @@ export const encryptionDe: TranslationDictionary = {
     message:
       'Es wird ein neuer Datenschlüssel erzeugt und alle Daten dieses Bereichs werden neu verschlüsselt. Der Bereich ist bis zum Abschluss nicht verfügbar. Zur Bestätigung die Bereichs-ID eingeben.',
     confirmLabel: 'Bereichs-ID',
+    hint: 'Die Bereichs-ID steht in der Tabelle unter dem Namen des Bereichs (z. B. „earnings“).',
     submit: 'Neuverschlüsselung starten',
   },
   destroyConfirm: {

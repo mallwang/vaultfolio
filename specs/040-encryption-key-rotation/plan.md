@@ -8,7 +8,7 @@
 
 Replace the single "operator key encrypts all data directly" scheme of the five encrypted domains
 (Earnings, Retirement, Wealth, Insurances, Account Overview) with **envelope encryption and key
-versioning**. The operator-supplied key (`<DOMAIN>_ENCRYPTION_KEY`) becomes a **master key** that
+versioning**. The operator-supplied key (one `ENCRYPTION_KEY` shared by all domains) becomes a **master key** that
 only wraps randomly generated, versioned **data keys**; the data keys live wrapped in the database
 and encrypt the user data. Consequences:
 
@@ -17,8 +17,8 @@ and encrypt the user data. Consequences:
 - Startup verifies, per domain, that the configured master key opens the stored key material
   (or, before the upgrade, one legacy row); on mismatch/absence the domain is unavailable and
   nothing is written.
-- Existing installations upgrade automatically: legacy `v1` rows are re-encrypted once under the
-  first data key during the first start, using the existing key.
+- Existing installations upgrade on the first start: legacy `v1` rows are re-encrypted once under
+  the first data key, using the configured `ENCRYPTION_KEY`.
 - Admins operate everything from a new admin screen (status, rotate master key, re-encrypt,
   destroy retired key, history); key values are only ever supplied via environment variables.
 
@@ -102,7 +102,7 @@ libs/
 apps/backend/src/
 ├── encryption/                         # NEW global module
 │   ├── encryption.module.ts
-│   ├── domain-encryption.registry.ts   # per-domain env names + encrypted tables + AAD rule
+│   ├── domain-encryption.registry.ts   # encrypted tables + AAD rule
 │   ├── key-store.repository.ts         # encryption_data_keys, encryption_rotation_runs
 │   ├── domain-keyring.service.ts       # per-domain state, lock, encrypt/decrypt
 │   ├── legacy-migration.service.ts     # one-time v1 -> data key re-encryption on upgrade
@@ -121,7 +121,7 @@ apps/frontend/src/app/app.routes.ts     # + admin/encryption route (adminGuard)
 apps/frontend/src/assets/i18n/{de,en}   # new strings (de + en)
 
 api/openapi.yml, api/bruno/             # contract + requests
-.env.example, docker-compose*.yml       # + <DOMAIN>_ENCRYPTION_KEY_PREVIOUS
+.env.example, docker-compose*.yml       # + ENCRYPTION_KEY(_PREVIOUS)
 README.md, README.de.md, docs/development*.md   # operator guidance
 .specify/memory/constitution.md         # MINOR amendment 3.12.0
 ```

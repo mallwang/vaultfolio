@@ -6,12 +6,12 @@ import { EarningsUnavailableException } from './earnings.exceptions';
 const KEY = randomBytes(32).toString('base64');
 
 function service(key: string | undefined): EarningsCryptoService {
-  const previous = process.env.EARNINGS_ENCRYPTION_KEY;
-  if (key === undefined) delete process.env.EARNINGS_ENCRYPTION_KEY;
-  else process.env.EARNINGS_ENCRYPTION_KEY = key;
+  const previous = process.env.ENCRYPTION_KEY;
+  if (key === undefined) delete process.env.ENCRYPTION_KEY;
+  else process.env.ENCRYPTION_KEY = key;
   const s = new EarningsCryptoService(createMemoryKeyring());
-  if (previous === undefined) delete process.env.EARNINGS_ENCRYPTION_KEY;
-  else process.env.EARNINGS_ENCRYPTION_KEY = previous;
+  if (previous === undefined) delete process.env.ENCRYPTION_KEY;
+  else process.env.ENCRYPTION_KEY = previous;
   return s;
 }
 
