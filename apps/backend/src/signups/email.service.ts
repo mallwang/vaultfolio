@@ -23,6 +23,7 @@ export class EmailService {
     const rendered = renderNotification({
       type: 'signup-verification',
       preferredLanguage: null,
+      recipient: to,
       viewModel: { verifyUrl },
     });
     await this.mailerService.send({ to, ...rendered });
@@ -43,6 +44,7 @@ export class EmailService {
         const rendered = renderNotification({
           type: 'signup-admin-alert',
           preferredLanguage: admin.emailLanguage,
+          recipient: admin.email,
           viewModel: { requestEmail, reviewUrl },
         });
         return this.mailerService.send({ to: admin.email, ...rendered });
@@ -59,6 +61,7 @@ export class EmailService {
     const rendered = renderNotification({
       type: 'signup-welcome',
       preferredLanguage: null,
+      recipient: to,
       viewModel: { appUrl: process.env.APP_BASE_URL ?? '' },
     });
     await this.mailerService.send({ to, ...rendered });
@@ -69,6 +72,7 @@ export class EmailService {
     const rendered = renderNotification({
       type: 'signup-rejection',
       preferredLanguage: null,
+      recipient: to,
       viewModel: {},
     });
     await this.mailerService.send({ to, ...rendered });

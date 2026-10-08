@@ -22,7 +22,10 @@ import type {
 const TEMPLATES_DIR = join(__dirname, 'templates');
 const PARTIALS_DIR = join(__dirname, 'partials');
 
-const PARTIAL_NAMES = ['header', 'footer', 'salutation', 'signature'] as const;
+const PARTIAL_NAMES = ['layout', 'header', 'footer', 'salutation', 'signature'] as const;
+
+// Language-neutral: only takes `url`/`label` hash args.
+Handlebars.registerPartial('button', fs.readFileSync(join(PARTIALS_DIR, 'button.hbs'), 'utf-8'));
 
 const compiledTemplateCache = new Map<string, HandlebarsTemplateDelegate>();
 const registeredPartialKeys = new Set<string>();
@@ -90,7 +93,7 @@ function typeFilesExist(type: NotificationType, lang: string): boolean {
  * fallback.
  */
 export function renderNotification(request: RenderNotificationRequest): RenderedNotificationEmail {
-  const { type, preferredLanguage, viewModel } = request;
+  const { type, preferredLanguage, viewModel, recipient } = request;
   const preferred = resolveLanguage(preferredLanguage);
   const renderLanguage: LanguageCode = typeFilesExist(type, preferred)
     ? preferred
@@ -101,7 +104,12 @@ export function renderNotification(request: RenderNotificationRequest): Rendered
 
   try {
     const subject = compiledTemplate(paths.subject)(viewModel).trim();
-    const html = compiledTemplate(paths.html)(viewModel);
+    const html = compiledTemplate(paths.html)({
+      ...viewModel,
+      recipientEmail: recipient,
+      appHomeUrl: process.env['APP_BASE_URL'],
+      copyrightYear: new Date().getFullYear(),
+    });
     const text = compiledTemplate(paths.text)(viewModel);
     return { type, language: renderLanguage, subject, html, text };
   } catch (error) {

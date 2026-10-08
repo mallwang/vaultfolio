@@ -31,6 +31,7 @@ describe('EmailService (invitations)', () => {
     expect(renderNotification).toHaveBeenCalledWith({
       type: 'invitation',
       preferredLanguage: null,
+      recipient: expect.any(String),
       viewModel: { acceptUrl: 'https://vaultfolio.example.com/invite/tok123' },
     });
     expect(mailerService.send).toHaveBeenCalledWith({ to: 'invitee@example.com', ...rendered });

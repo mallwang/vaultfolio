@@ -64,7 +64,7 @@
         </div>
 
         @if (errorMessage()) {
-          <p-message severity="error">{{ errorMessage() }}</p-message>
+          <p-message severity="error">{{ errorMessage() | translate }}</p-message>
         }
 
         <app-turnstile

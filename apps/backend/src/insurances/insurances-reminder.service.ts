@@ -83,6 +83,7 @@ export class InsurancesReminderService implements OnModuleInit {
         ...renderNotification({
           type: 'insurance-deadline-reminder',
           preferredLanguage: user.emailLanguage,
+          recipient: user.email,
           viewModel: {
             typeLabel: insuranceTypeLabel(contract.type, language),
             contractName: contract.name,

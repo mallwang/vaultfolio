@@ -24,7 +24,7 @@ describe('PrivacyNoteComponent (retirement)', () => {
     const fixture = TestBed.createComponent(PrivacyNoteComponent);
     fixture.detectChanges();
     const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('Nur Sie sehen sie');
+    expect(text).toContain('Nur du siehst sie');
     expect(text).not.toContain('Only you can see it');
   });
 });

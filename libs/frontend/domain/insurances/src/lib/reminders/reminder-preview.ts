@@ -20,7 +20,7 @@ const WORDING: Record<LanguageCode, (name: string, type: string, date: string) =
       link: 'Zu den Versicherungen',
       signature: 'Dein Vaultfolio-Team',
       footer:
-        'Dies ist eine automatisch generierte Nachricht von Vaultfolio — bitte antworten Sie nicht auf diese E-Mail.',
+        'Dies ist eine automatisch generierte Nachricht von Vaultfolio — bitte antworte nicht auf diese E-Mail.',
     }),
     en: (name, type, date) => ({
       subject: `Cancellation deadline for "${name}" on ${date}`,

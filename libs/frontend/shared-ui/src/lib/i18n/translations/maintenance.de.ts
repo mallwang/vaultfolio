@@ -17,8 +17,8 @@ export const maintenanceDe: TranslationDictionary = {
     title: 'Domänen',
     subtitle:
       'Setze eine Domäne in den Wartungsmodus, um Mitgliedern einen Hinweis zu zeigen und ihre Anfragen abzulehnen. Admins behalten vollen Zugriff, es werden keine Daten verändert.',
-    loadError: 'Die Domänen konnten nicht geladen werden. Bitte erneut versuchen.',
-    saveError: 'Der Wartungsstatus konnte nicht geändert werden. Bitte erneut versuchen.',
+    loadError: 'Die Domänen konnten nicht geladen werden. Bitte versuche es erneut.',
+    saveError: 'Der Wartungsstatus konnte nicht geändert werden. Bitte versuche es erneut.',
     columnDomain: 'Domäne',
     columnStatus: 'Status',
     columnChanged: 'Zuletzt geändert',

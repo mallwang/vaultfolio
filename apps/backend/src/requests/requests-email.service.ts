@@ -36,6 +36,7 @@ export class RequestsEmailService {
             ...renderNotification({
               type: 'request-admin-alert',
               preferredLanguage: admin.emailLanguage,
+              recipient: admin.email,
               viewModel: { ...this.names(request, admin.emailLanguage), requestUrl },
             }),
           }),
@@ -61,6 +62,7 @@ export class RequestsEmailService {
         ...renderNotification({
           type: 'request-done',
           preferredLanguage: requester.emailLanguage,
+          recipient: requester.email,
           viewModel: { ...this.names(request, requester.emailLanguage), importUrl },
         }),
       });

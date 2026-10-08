@@ -53,6 +53,7 @@ export class FeedbackEmailService {
           ...renderNotification({
             type: 'feedback-admin-notice',
             preferredLanguage: admin.emailLanguage,
+            recipient: admin.email,
             viewModel: {
               categoryLabel: CATEGORY_LABELS[lang][mail.category],
               subject: mail.subject,

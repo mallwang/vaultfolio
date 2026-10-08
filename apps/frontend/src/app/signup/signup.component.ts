@@ -50,6 +50,7 @@ export class SignupComponent {
   protected readonly password = signal('');
   protected readonly confirmPassword = signal('');
   protected readonly submitting = signal(false);
+  /** A `signup.error*` i18n key, or a server-provided message (the pipe passes unknown keys through). */
   protected readonly errorMessage = signal<string | null>(null);
   protected readonly submitted = signal(false);
   protected readonly turnstileToken = signal<string | null>(null);
@@ -68,16 +69,16 @@ export class SignupComponent {
 
     const email = this.email().trim();
     if (!email) {
-      this.errorMessage.set('Please enter your email.');
+      this.errorMessage.set('signup.errorEmailRequired');
       return;
     }
     if (this.password() !== this.confirmPassword()) {
-      this.errorMessage.set('Passwords do not match.');
+      this.errorMessage.set('signup.errorPasswordMismatch');
       return;
     }
     const passwordLength = this.password().length;
     if (passwordLength < MIN_PASSWORD_LENGTH || passwordLength > MAX_PASSWORD_LENGTH) {
-      this.errorMessage.set('Password must be 8–200 characters.');
+      this.errorMessage.set('signup.errorPasswordLength');
       return;
     }
 
@@ -97,16 +98,14 @@ export class SignupComponent {
         this.submitting.set(false);
         const httpError = error as { status?: number; error?: SignupsErrorResponse };
         if (httpError.status === 403 && httpError.error?.error === 'signup_disabled') {
-          this.errorMessage.set('Sign-up is not available right now.');
+          this.errorMessage.set('signup.errorDisabled');
           return;
         }
         if (httpError.status === 409) {
-          this.errorMessage.set("This email can't be used to sign up right now.");
+          this.errorMessage.set('signup.errorEmailUnavailable');
           return;
         }
-        this.errorMessage.set(
-          httpError.error?.message ?? 'Unable to submit your sign-up. Please try again.',
-        );
+        this.errorMessage.set(httpError.error?.message ?? 'signup.errorGeneric');
       },
     });
   }

@@ -37,7 +37,7 @@ export const hintsDe: TranslationDictionary = {
     redundant: {
       title: 'Überlappende Versicherungsverträge',
       description:
-        'Die Verträge „{{contractName}}“ und „{{otherContractName}}“ decken dasselbe Risiko ab. Erwägen Sie, einen zu entfernen.',
+        'Die Verträge „{{contractName}}“ und „{{otherContractName}}“ decken dasselbe Risiko ab. Erwäge, einen zu entfernen.',
       linkLabel: 'Lückenprüfung anzeigen',
     },
   },
@@ -46,7 +46,7 @@ export const hintsDe: TranslationDictionary = {
     outdated: {
       title: 'Auskunft veraltet',
       description:
-        'Die Auskunft zu „{{contractName}}“ ist älter als 12 Monate. Prüfen Sie, ob eine neuere vorliegt.',
+        'Die Auskunft zu „{{contractName}}“ ist älter als 12 Monate. Prüfe, ob eine neuere vorliegt.',
     },
     ocr: {
       title: 'Werte bitte prüfen',
@@ -58,7 +58,7 @@ export const hintsDe: TranslationDictionary = {
     dataCheck: {
       title: 'Einkommensdiskrepanz erkannt',
       description:
-        'Diskrepanz für {{employerLabel}} ({{year}}) gefunden. Bitte überprüfen Sie Ihre Einkommensdaten.',
+        'Diskrepanz für {{employerLabel}} ({{year}}) gefunden. Bitte überprüfe deine Einkommensdaten.',
       descriptionMissing: 'Einkommensdaten für {{employerLabel}} ({{year}}) fehlen.',
       linkLabel: 'Datenprüfung anzeigen',
     },

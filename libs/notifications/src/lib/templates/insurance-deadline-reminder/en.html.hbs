@@ -1,7 +1,6 @@
-<p>{{> header-en}}</p>
+{{#> layout-en}}
 <p>{{> salutation-en}}</p>
 <p>The cancellation deadline of your insurance "{{contractName}}" ({{typeLabel}}) is on {{deadlineDate}}. If you want to cancel it, do so by this date.</p>
-<p><a href="{{areaUrl}}">Open Insurances</a></p>
+{{> button url=areaUrl label="Open Insurances"}}
 <p>{{> signature-en}}</p>
-<hr>
-<p style="font-size:12px;color:#888">{{> footer-en}}</p>
+{{/layout-en}}

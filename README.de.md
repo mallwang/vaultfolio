@@ -62,7 +62,7 @@ Abrechnung eine Prüfung nicht, bleiben ihre Werte in der Importvorschau sichtba
 fehlgeschlagenen Prüfung beteiligten Werte lassen sich dort korrigieren (falsch gelesene Ziffer),
 die Prüfungen laufen bei jeder Änderung neu, und der Server prüft beim Import erneut. Gespeichert
 werden nur die Namen korrigierter Werte; sie bleiben in Vorschau, Importverlauf und Monatsdetail
-als „von Ihnen korrigiert“ markiert.
+als „von dir korrigiert“ markiert.
 
 **Datenschutz und Bedrohungsmodell**
 
@@ -91,7 +91,7 @@ Domänen-Schalter). Administratoren können die Domäne für ihre eigenen Daten 
 Schlüssel oder ist er ungültig, zeigt die Domäne „Einkommensdaten sind vorübergehend nicht
 verfügbar“, die API antwortet mit `503 EARNINGS_UNAVAILABLE` und es werden keine Importe
 angenommen; alle anderen Domänen funktionieren weiter. **Geht der Schlüssel verloren oder wird er
-geändert, sind alle gespeicherten Einkommensbeträge unwiederbringlich verloren** – sichern Sie ihn
+geändert, sind alle gespeicherten Einkommensbeträge unwiederbringlich verloren** – sichere ihn
 getrennt von der Datenbank. Eine Schlüsselrotation wird noch nicht unterstützt.
 
 Die Übereinstimmung der Parser mit dem Referenz-Extraktor (earnings-evolution) lässt sich lokal prüfen (nie in der CI, echte
@@ -206,8 +206,8 @@ automatisch ausführen, sind separat dokumentiert in
 ### Verschlüsselungsschlüssel
 
 Alle verschlüsselten Bereiche (Einkommensentwicklung, Altersvorsorge, Vermögen, Versicherungen,
-Kontoübersicht) teilen sich einen `ENCRYPTION_KEY` (Base64 von genau 32 Zufallsbytes). Erzeugen Sie
-ihn einmalig und tragen Sie ihn in `.env` ein (bzw. in die Umgebung des Stacks in Portainer):
+Kontoübersicht) teilen sich einen `ENCRYPTION_KEY` (Base64 von genau 32 Zufallsbytes). Erzeuge
+ihn einmalig und trage ihn in `.env` ein (bzw. in die Umgebung des Stacks in Portainer):
 
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
