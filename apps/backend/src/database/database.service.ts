@@ -146,6 +146,23 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       'CREATE INDEX IF NOT EXISTS account_overview_entries_owner_idx ON account_overview_entries (owner_id)',
     );
 
+    // User feedback (044-user-feedback): only delivered feedback is stored. Subject and message
+    // live only inside the AES-256-GCM `payload_enc`; `id` is the client attempt id.
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS feedback_submissions (
+        id          TEXT PRIMARY KEY,
+        owner_id    TEXT NOT NULL,
+        category    TEXT NOT NULL CHECK (category IN ('feature', 'problem', 'other')),
+        language    TEXT NOT NULL,
+        payload_enc TEXT NOT NULL,
+        key_version INTEGER NOT NULL DEFAULT 1,
+        created_at  TEXT NOT NULL
+      )
+    `);
+    db.exec(
+      'CREATE INDEX IF NOT EXISTS idx_feedback_owner_created ON feedback_submissions (owner_id, created_at)',
+    );
+
     // Auth/isolation — users, sessions, and per-account profile fields
     // (data-model.md across 005-auth-sessions-isolation, 006-admin-accounts-
     // invitations, 008-profile-password-account, 013-multilanguage-support).

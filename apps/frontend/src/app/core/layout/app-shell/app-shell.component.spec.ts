@@ -1,7 +1,9 @@
 import { Location } from '@angular/common';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { ApplicationRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { MessageService } from 'primeng/api';
 import { provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import type { SessionUser } from '@vaultfolio/api-contract';
@@ -9,6 +11,7 @@ import { isDomainEntitled } from '@vaultfolio/frontend-domain-access';
 import { routes } from '../../../app.routes';
 import { CurrentUserStore } from '../../../auth/current-user.store';
 import { FakeCurrentUserStore } from '../../../auth/testing/current-user-store.testing';
+import { FeedbackStore } from '../../feedback/feedback.store';
 import { APPLICATION_AREAS } from '../application-areas';
 
 const user: SessionUser = {
@@ -34,6 +37,7 @@ describe('AppShellComponent (integration)', () => {
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
+        MessageService,
         provideRouter(routes),
         { provide: CurrentUserStore, useValue: fakeCurrentUser },
       ],
@@ -71,5 +75,13 @@ describe('AppShellComponent (integration)', () => {
     fakeCurrentUser.setUnknown();
     await RouterTestingHarness.create('/app/dashboard');
     expect(location.path()).toBe(`/sign-in?redirect=${encodeURIComponent('/app/dashboard')}`);
+  });
+
+  it('opens the feedback dialog for ?feedback=draft and strips the param', async () => {
+    fakeCurrentUser.setAuthenticated(user);
+    await RouterTestingHarness.create('/app/dashboard?feedback=draft');
+    await TestBed.inject(ApplicationRef).whenStable();
+    expect(TestBed.inject(FeedbackStore).open()).toBe(true);
+    expect(location.path()).not.toContain('feedback=');
   });
 });

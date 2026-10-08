@@ -5,6 +5,7 @@ export const ENCRYPTION_DOMAIN_IDS = [
   'wealth',
   'insurances',
   'account-overview',
+  'feedback',
 ] as const;
 export type EncryptionDomainId = (typeof ENCRYPTION_DOMAIN_IDS)[number];
 

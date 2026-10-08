@@ -44,7 +44,7 @@
 
 ## 8. Table and retention
 
-- **Decision**: `feedback_submissions(id TEXT PK, owner_id, category CHECK IN (...), language, payload_enc, key_version, created_at)` plus index on `(owner_id, created_at)`. `owner_id` references users; on account deletion rows follow the same cleanup as other owner data (to be confirmed in tasks against `accounts.service`). No retention job (no admin UI yet; storage is for traceability).
+- **Decision**: `feedback_submissions(id TEXT PK, owner_id, category CHECK IN (...), language, payload_enc, key_version, created_at)` plus index on `(owner_id, created_at)`. `owner_id` references users; on account deletion rows follow the same cleanup as other owner data (confirmed in T012: `UsersRepository.deleteById` now deletes the user's `feedback_submissions` rows). No retention job (no admin UI yet; storage is for traceability).
 - **Alternatives**: Store mail status (rejected: only delivered rows exist).
 
 ## 9. Frontend structure and draft

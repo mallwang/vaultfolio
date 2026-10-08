@@ -17,7 +17,8 @@ export type NotificationType =
   | 'signup-rejection'
   | 'request-admin-alert'
   | 'request-done'
-  | 'insurance-deadline-reminder';
+  | 'insurance-deadline-reminder'
+  | 'feedback-admin-notice';
 
 /** The in-process render result consumed by `apps/backend/src/mail/mailer.service.ts`. */
 export interface RenderedNotificationEmail {

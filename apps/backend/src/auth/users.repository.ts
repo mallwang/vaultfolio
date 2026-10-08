@@ -360,6 +360,8 @@ export class UsersRepository {
         this.database.query(`DELETE FROM ${table} WHERE owner_id = $1`, [id]),
       ),
     );
+    // 044-user-feedback: stored (encrypted) feedback goes with the account like other owner data.
+    await this.database.query('DELETE FROM feedback_submissions WHERE owner_id = $1', [id]);
     // 033-parser-requests: the user's own requests go with the account (FR-042), including the
     // samples and download audit rows; where the user was an administrator only the reference
     // is cleared so other users' requests keep their history.

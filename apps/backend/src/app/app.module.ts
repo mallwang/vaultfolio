@@ -9,6 +9,7 @@ import { InvitationsModule } from '../invitations/invitations.module';
 import { SignupsModule } from '../signups/signups.module';
 import { ProfileModule } from '../profile/profile.module';
 import { AccountOverviewModule } from '../account-overview/account-overview.module';
+import { FeedbackModule } from '../feedback/feedback.module';
 import { EarningsModule } from '../earnings/earnings.module';
 import { RetirementModule } from '../retirement/retirement.module';
 import { WealthModule } from '../wealth/wealth.module';
@@ -33,6 +34,7 @@ import { MaintenanceModule } from '../maintenance/maintenance.module';
     SignupsModule,
     ProfileModule,
     AccountOverviewModule,
+    FeedbackModule,
     EarningsModule,
     RetirementModule,
     WealthModule,

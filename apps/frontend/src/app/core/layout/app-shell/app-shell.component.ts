@@ -1,4 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { FeedbackDialogComponent } from '../../feedback/feedback-dialog/feedback-dialog.component';
+import { FeedbackStore } from '../../feedback/feedback.store';
 import { DomainMaintenanceGateComponent } from '../../maintenance/domain-maintenance-gate.component';
 import { AppSidebarComponent } from '../app-sidebar/app-sidebar.component';
 
@@ -11,8 +14,24 @@ import { AppSidebarComponent } from '../app-sidebar/app-sidebar.component';
  */
 @Component({
   selector: 'app-shell',
-  imports: [AppSidebarComponent, DomainMaintenanceGateComponent],
+  imports: [AppSidebarComponent, DomainMaintenanceGateComponent, FeedbackDialogComponent],
   templateUrl: './app-shell.component.html',
   styleUrl: './app-shell.component.css',
 })
-export class AppShellComponent {}
+export class AppShellComponent {
+  private readonly feedback = inject(FeedbackStore);
+  private readonly router = inject(Router);
+
+  constructor() {
+    // The draft hint links to `?feedback=draft`: open the dialog and strip the param.
+    inject(ActivatedRoute).queryParamMap.subscribe((params) => {
+      if (params.get('feedback') !== 'draft') return;
+      this.feedback.openDialog();
+      void this.router.navigate([], {
+        queryParams: { feedback: null },
+        queryParamsHandling: 'merge',
+        replaceUrl: true,
+      });
+    });
+  }
+}

@@ -1,6 +1,7 @@
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
+import { MessageService } from 'primeng/api';
 import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 import type { SessionUser } from '@vaultfolio/api-contract';
@@ -36,6 +37,7 @@ describe('AppHeaderComponent (integration)', () => {
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
+        MessageService,
         provideRouter([]),
         { provide: CurrentUserStore, useValue: fakeCurrentUser },
         { provide: PAGE_LOADER, useValue: pageLoader },
@@ -48,6 +50,19 @@ describe('AppHeaderComponent (integration)', () => {
   afterEach(() => {
     document.documentElement.classList.remove('app-dark');
     httpMock.verify();
+  });
+
+  it('renders the feedback button immediately left of the hints bell', async () => {
+    fakeCurrentUser.setAuthenticated(user);
+    const fixture = TestBed.createComponent(AppHeaderComponent);
+    await fixture.whenStable();
+    const el = fixture.nativeElement as HTMLElement;
+    const feedback = el.querySelector('[data-testid="feedback-button"]');
+    const bell = el.querySelector('[data-testid="hints-bell"]');
+    expect(feedback).not.toBeNull();
+    expect(
+      feedback!.compareDocumentPosition(bell!) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
   });
 
   it('shows the display name and role badge while signed in', async () => {

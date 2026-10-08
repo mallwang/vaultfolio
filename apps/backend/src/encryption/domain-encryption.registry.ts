@@ -59,6 +59,10 @@ export const DOMAIN_ENCRYPTION: readonly DomainEncryption[] = [
     id: 'account-overview',
     tables: [payloadTable('account_overview_entries')],
   },
+  {
+    id: 'feedback',
+    tables: [payloadTable('feedback_submissions')],
+  },
 ];
 
 export function findDomain(id: string): DomainEncryption | undefined {

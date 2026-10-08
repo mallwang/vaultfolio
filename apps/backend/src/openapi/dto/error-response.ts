@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { FeedbackQuotaDto } from './feedback';
 
 /**
  * Mirrors `libs/api-contract/src/lib/error-response.ts`'s `ErrorResponseDetail` —
@@ -42,4 +43,10 @@ export class ErrorResponseDto {
     format: 'uuid',
   })
   existingId?: string;
+
+  @ApiPropertyOptional({
+    description: "Only for feedback_limit_reached: the caller's current feedback quota.",
+    type: FeedbackQuotaDto,
+  })
+  quota?: FeedbackQuotaDto;
 }

@@ -15,6 +15,7 @@ export const encryptionEn: TranslationDictionary = {
     wealth: 'Wealth',
     insurances: 'Insurances',
     'account-overview': 'Account overview',
+    feedback: 'Feedback',
   },
   state: {
     READY: 'Ready',

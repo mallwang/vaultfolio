@@ -45,6 +45,7 @@ export class TurnstileComponent implements AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     if (window.turnstile && this.widgetId !== undefined) {
       window.turnstile.remove(this.widgetId);
+      this.widgetId = undefined;
     }
   }
 }

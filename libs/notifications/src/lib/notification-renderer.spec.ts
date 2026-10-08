@@ -234,4 +234,31 @@ describe('renderNotification', () => {
       expect(de.html).toContain('Zum Einkommen-Import');
     });
   });
+
+  describe('feedback-admin-notice', () => {
+    const viewModel = {
+      categoryLabel: 'Problem',
+      subject: 'A <b>&</b> B',
+      message: 'Line <script>x</script>',
+      senderName: 'Ann',
+      senderEmail: 'ann@example.com',
+      senderLanguage: 'de',
+    };
+
+    it('renders en and de with plain subject and escaped HTML', () => {
+      for (const lang of ['en', 'de'] as const) {
+        const r = renderNotification({
+          type: 'feedback-admin-notice',
+          preferredLanguage: lang,
+          viewModel,
+        });
+        expect(r.language).toBe(lang);
+        expect(r.subject).toBe('[Feedback: Problem] A <b>&</b> B');
+        expect(r.html).toContain('A &lt;b&gt;&amp;&lt;/b&gt; B');
+        expect(r.html).not.toContain('<script>');
+        expect(r.text).toContain('Line <script>x</script>');
+        expect(r.text).toContain('ann@example.com');
+      }
+    });
+  });
 });

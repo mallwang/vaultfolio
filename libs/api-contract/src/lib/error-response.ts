@@ -8,6 +8,8 @@
  * or reshaped (FR-008).
  */
 
+import type { FeedbackQuota } from './feedback';
+
 /** One field-level validation failure, only present for validation errors. */
 export interface ErrorResponseDetail {
   field: string;
@@ -25,4 +27,6 @@ export interface ErrorResponse {
   details?: ErrorResponseDetail[];
   /** Only for `WEALTH_SNAPSHOT_DATE_EXISTS`: id of the snapshot already holding that date. */
   existingId?: string;
+  /** Only for `feedback_limit_reached`: the caller's current feedback quota. */
+  quota?: FeedbackQuota;
 }

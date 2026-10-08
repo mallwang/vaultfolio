@@ -1,6 +1,7 @@
 import { requestsEn } from './requests.en';
 import { encryptionEn } from './encryption.en';
 import { hintsEn } from './hints.en';
+import { feedbackEn } from './feedback.en';
 import { maintenanceEn } from './maintenance.en';
 import { earningsEn } from './earnings.en';
 import { retirementEn } from './retirement.en';
@@ -739,4 +740,5 @@ export const en: TranslationDictionary = {
   encryption: encryptionEn,
   maintenance: maintenanceEn,
   hints: hintsEn,
+  feedback: feedbackEn,
 };

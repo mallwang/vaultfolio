@@ -28,7 +28,7 @@ Request:
 | 201    | -                          | Delivered and stored. Body `{ id, quota }`                  | yes                  |
 | 200    | -                          | Same `attemptId` already delivered; body as above, no mail  | no (already counted) |
 | 400    | `validation_error`         | Field problems; `details[{field,message}]`                  | no                   |
-| 403    | `bot_protection_failed`    | Turnstile rejected                                          | no                   |
+| 400    | `bot_protection_failed`    | Turnstile rejected                                          | no                   |
 | 429    | `feedback_limit_reached`   | 5 in the last 24 h; body includes `quota`                   | no                   |
 | 502    | `feedback_delivery_failed` | No admin mail accepted (or no admin exists); nothing stored | no                   |
 | 503    | `feedback_unavailable`     | `feedback` data key unavailable                             | no                   |

@@ -22,6 +22,9 @@
       "path": "../../../document-text/tsconfig.lib.json"
     },
     {
+      "path": "../../hints/tsconfig.lib.json"
+    },
+    {
       "path": "../../shared-ui/tsconfig.lib.json"
     },
     {

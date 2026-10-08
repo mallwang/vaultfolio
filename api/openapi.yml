@@ -36,6 +36,7 @@ paths:
               - wealth
               - insurances
               - account-overview
+              - feedback
             type: string
         - name: limit
           required: false
@@ -81,6 +82,7 @@ paths:
               - wealth
               - insurances
               - account-overview
+              - feedback
             type: string
       responses:
         '200':
@@ -124,6 +126,7 @@ paths:
               - wealth
               - insurances
               - account-overview
+              - feedback
             type: string
       requestBody:
         required: true
@@ -181,6 +184,7 @@ paths:
               - wealth
               - insurances
               - account-overview
+              - feedback
             type: string
         - name: version
           required: true
@@ -1655,6 +1659,88 @@ paths:
       security: *ref_15
       summary: Delete an account-overview entry.
       tags: *ref_16
+  /feedback/quota:
+    get:
+      operationId: FeedbackController_quota
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeedbackQuotaDto'
+        '503':
+          description: feedback_unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+      security: &ref_17
+        - sessionCookie: []
+      summary: Remaining feedback submissions in the rolling 24 h window.
+      tags: &ref_18
+        - feedback
+  /feedback:
+    post:
+      description: >-
+        Requires a valid Cloudflare Turnstile token (see `turnstileToken`). A
+        repeat of the same `attemptId` returns 200 with the original result and
+        sends nothing.
+      operationId: FeedbackController_send
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendFeedbackRequestDto'
+      responses:
+        '200':
+          description: Idempotent repeat.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SendFeedbackResponseDto'
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SendFeedbackResponseDto'
+        '400':
+          description: validation_error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '403':
+          description: bot_protection_failed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '429':
+          description: feedback_limit_reached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '502':
+          description: feedback_delivery_failed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+        '503':
+          description: feedback_unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseDto'
+      security: *ref_17
+      summary: Send feedback to the administrators.
+      tags: *ref_18
   /earnings/imports/preview:
     post:
       operationId: EarningsController_preview
@@ -1678,13 +1764,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-        '403': &ref_17
+        '403': &ref_19
           description: Domain not entitled.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-        '503': &ref_18
+        '503': &ref_20
           description: >-
             EARNINGS_UNAVAILABLE — key missing/invalid (FR-044).
 
@@ -1695,10 +1781,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-      security: &ref_19
+      security: &ref_21
         - sessionCookie: []
       summary: Validate and classify an import batch without saving (dry run).
-      tags: &ref_20
+      tags: &ref_22
         - earnings
   /earnings/imports:
     post:
@@ -1723,13 +1809,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-        '403': *ref_17
-        '503': *ref_18
-      security: *ref_19
+        '403': *ref_19
+        '503': *ref_20
+      security: *ref_21
       summary: >-
         Re-validate and save each NEW/REPLACES file of the batch (one
         transaction per file).
-      tags: *ref_20
+      tags: *ref_22
     get:
       operationId: EarningsController_listImports
       parameters: []
@@ -1742,11 +1828,11 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/EarningsImportSummaryDto'
-        '403': *ref_17
-        '503': *ref_18
-      security: *ref_19
+        '403': *ref_19
+        '503': *ref_20
+      security: *ref_21
       summary: The caller's import history, newest first.
-      tags: *ref_20
+      tags: *ref_22
   /earnings/imports/{id}:
     delete:
       operationId: EarningsController_deleteImport
@@ -1759,17 +1845,17 @@ paths:
       responses:
         '204':
           description: Deleted.
-        '403': *ref_17
+        '403': *ref_19
         '404':
           description: EARNINGS_IMPORT_NOT_FOUND.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-        '503': *ref_18
-      security: *ref_19
+        '503': *ref_20
+      security: *ref_21
       summary: Delete an import and exactly its remaining records/certificates.
-      tags: *ref_20
+      tags: *ref_22
   /earnings:
     delete:
       operationId: EarningsController_deleteAll
@@ -1777,11 +1863,11 @@ paths:
       responses:
         '204':
           description: Deleted.
-        '403': *ref_17
-        '503': *ref_18
-      security: *ref_19
+        '403': *ref_19
+        '503': *ref_20
+      security: *ref_21
       summary: Delete all of the caller's earnings data.
-      tags: *ref_20
+      tags: *ref_22
   /earnings/employers:
     get:
       operationId: EarningsController_listEmployers
@@ -1795,11 +1881,11 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/EarningsEmployerDto'
-        '403': *ref_17
-        '503': *ref_18
-      security: *ref_19
+        '403': *ref_19
+        '503': *ref_20
+      security: *ref_21
       summary: The caller's detected employers.
-      tags: *ref_20
+      tags: *ref_22
   /earnings/employers/{id}:
     put:
       operationId: EarningsController_renameEmployer
@@ -1828,17 +1914,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-        '403': *ref_17
+        '403': *ref_19
         '404':
           description: EARNINGS_EMPLOYER_NOT_FOUND.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-        '503': *ref_18
-      security: *ref_19
+        '503': *ref_20
+      security: *ref_21
       summary: Set an employer's display name (no figure is editable).
-      tags: *ref_20
+      tags: *ref_22
   /earnings/overview:
     get:
       operationId: EarningsController_overview
@@ -1862,11 +1948,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-        '403': *ref_17
-        '503': *ref_18
-      security: *ref_19
+        '403': *ref_19
+        '503': *ref_20
+      security: *ref_21
       summary: Career, latest-year KPIs, yearly and monthly series.
-      tags: *ref_20
+      tags: *ref_22
   /earnings/records:
     get:
       operationId: EarningsController_records
@@ -1892,11 +1978,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-        '403': *ref_17
-        '503': *ref_18
-      security: *ref_19
+        '403': *ref_19
+        '503': *ref_20
+      security: *ref_21
       summary: Records of one month (month detail) or, without period, all records.
-      tags: *ref_20
+      tags: *ref_22
   /earnings/tables:
     get:
       operationId: EarningsController_tables
@@ -1920,11 +2006,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-        '403': *ref_17
-        '503': *ref_18
-      security: *ref_19
+        '403': *ref_19
+        '503': *ref_20
+      security: *ref_21
       summary: Year × month grid, taxes per year and wage-tax certificates.
-      tags: *ref_20
+      tags: *ref_22
   /earnings/data-check:
     get:
       operationId: EarningsController_dataCheck
@@ -1950,13 +2036,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-        '403': *ref_17
-        '503': *ref_18
-      security: *ref_19
+        '403': *ref_19
+        '503': *ref_20
+      security: *ref_21
       summary: >-
         Per employer and year: year-to-date, certificate and completeness
         checks.
-      tags: *ref_20
+      tags: *ref_22
   /retirement/summary:
     get:
       operationId: RetirementController_summary
@@ -1968,13 +2054,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RetirementSummaryDto'
-        '403': &ref_21
+        '403': &ref_23
           description: Domain not entitled.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-        '503': &ref_22
+        '503': &ref_24
           description: >-
             RETIREMENT_UNAVAILABLE — key missing/invalid.
 
@@ -1985,10 +2071,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-      security: &ref_23
+      security: &ref_25
         - sessionCookie: []
       summary: 'Derived overview: totals, pillars, pension start, flags.'
-      tags: &ref_24
+      tags: &ref_26
         - retirement
   /retirement/records:
     get:
@@ -2018,11 +2104,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-        '403': *ref_21
-        '503': *ref_22
-      security: *ref_23
+        '403': *ref_23
+        '503': *ref_24
+      security: *ref_25
       summary: The caller's retirement records, newest statement first.
-      tags: *ref_24
+      tags: *ref_26
     post:
       operationId: RetirementController_create
       parameters: []
@@ -2047,7 +2133,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-        '403': *ref_21
+        '403': *ref_23
         '404':
           description: RETIREMENT_RECORD_NOT_FOUND.
           content:
@@ -2060,12 +2146,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-        '503': *ref_22
-      security: *ref_23
+        '503': *ref_24
+      security: *ref_25
       summary: >-
         Create a record (manual entry or confirmed import); `replaces` swaps one
         atomically.
-      tags: *ref_24
+      tags: *ref_26
   /retirement/records/{id}:
     get:
       operationId: RetirementController_get
@@ -2082,17 +2168,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RetirementRecordDto'
-        '403': *ref_21
+        '403': *ref_23
         '404':
           description: RETIREMENT_RECORD_NOT_FOUND.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-        '503': *ref_22
-      security: *ref_23
+        '503': *ref_24
+      security: *ref_25
       summary: One of the caller’s retirement records.
-      tags: *ref_24
+      tags: *ref_26
     put:
       operationId: RetirementController_update
       parameters:
@@ -2120,7 +2206,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-        '403': *ref_21
+        '403': *ref_23
         '404':
           description: RETIREMENT_RECORD_NOT_FOUND.
           content:
@@ -2133,10 +2219,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-        '503': *ref_22
-      security: *ref_23
+        '503': *ref_24
+      security: *ref_25
       summary: Replace a manual record; imported records are read-only.
-      tags: *ref_24
+      tags: *ref_26
     delete:
       operationId: RetirementController_delete
       parameters:
@@ -2148,17 +2234,17 @@ paths:
       responses:
         '204':
           description: Deleted.
-        '403': *ref_21
+        '403': *ref_23
         '404':
           description: RETIREMENT_RECORD_NOT_FOUND.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-        '503': *ref_22
-      security: *ref_23
+        '503': *ref_24
+      security: *ref_25
       summary: Delete one of the caller’s records.
-      tags: *ref_24
+      tags: *ref_26
   /retirement/records/{id}/supplement:
     patch:
       operationId: RetirementController_updateSupplement
@@ -2187,7 +2273,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-        '403': *ref_21
+        '403': *ref_23
         '404':
           description: RETIREMENT_RECORD_NOT_FOUND.
           content:
@@ -2200,10 +2286,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-        '503': *ref_22
-      security: *ref_23
+        '503': *ref_24
+      security: *ref_25
       summary: Edit the supplement (and status) of an imported record.
-      tags: *ref_24
+      tags: *ref_26
   /retirement:
     delete:
       operationId: RetirementController_deleteAll
@@ -2211,11 +2297,11 @@ paths:
       responses:
         '204':
           description: Deleted.
-        '403': *ref_21
-        '503': *ref_22
-      security: *ref_23
+        '403': *ref_23
+        '503': *ref_24
+      security: *ref_25
       summary: Delete all of the caller's retirement data (the account stays).
-      tags: *ref_24
+      tags: *ref_26
   /wealth/snapshots:
     get:
       operationId: WealthController_list
@@ -2229,13 +2315,13 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/WealthSnapshotDto'
-        '403': &ref_25
+        '403': &ref_27
           description: Domain not entitled.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-        '503': &ref_26
+        '503': &ref_28
           description: >-
             WEALTH_UNAVAILABLE — key missing/invalid.
 
@@ -2246,10 +2332,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-      security: &ref_27
+      security: &ref_29
         - sessionCookie: []
       summary: All of the caller's snapshots with entries, ascending by date.
-      tags: &ref_28
+      tags: &ref_30
         - wealth
     post:
       operationId: WealthController_create
@@ -2273,17 +2359,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-        '403': *ref_25
+        '403': *ref_27
         '409':
           description: WEALTH_SNAPSHOT_DATE_EXISTS — the body carries `existingId`.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-        '503': *ref_26
-      security: *ref_27
+        '503': *ref_28
+      security: *ref_29
       summary: Create a snapshot (one per date).
-      tags: *ref_28
+      tags: *ref_30
   /wealth/snapshots/{id}:
     get:
       operationId: WealthController_get
@@ -2300,17 +2386,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/WealthSnapshotDto'
-        '403': *ref_25
+        '403': *ref_27
         '404':
           description: WEALTH_SNAPSHOT_NOT_FOUND.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-        '503': *ref_26
-      security: *ref_27
+        '503': *ref_28
+      security: *ref_29
       summary: One of the caller’s snapshots.
-      tags: *ref_28
+      tags: *ref_30
     put:
       operationId: WealthController_update
       parameters:
@@ -2338,7 +2424,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-        '403': *ref_25
+        '403': *ref_27
         '404':
           description: WEALTH_SNAPSHOT_NOT_FOUND.
           content:
@@ -2353,10 +2439,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-        '503': *ref_26
-      security: *ref_27
+        '503': *ref_28
+      security: *ref_29
       summary: Replace date, note and entries of a snapshot as a whole.
-      tags: *ref_28
+      tags: *ref_30
     delete:
       operationId: WealthController_delete
       parameters:
@@ -2368,17 +2454,17 @@ paths:
       responses:
         '204':
           description: Deleted.
-        '403': *ref_25
+        '403': *ref_27
         '404':
           description: WEALTH_SNAPSHOT_NOT_FOUND.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-        '503': *ref_26
-      security: *ref_27
+        '503': *ref_28
+      security: *ref_29
       summary: Delete one of the caller’s snapshots.
-      tags: *ref_28
+      tags: *ref_30
   /wealth/settings:
     get:
       operationId: WealthController_settings
@@ -2390,11 +2476,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/WealthSettingsDto'
-        '403': *ref_25
-        '503': *ref_26
-      security: *ref_27
+        '403': *ref_27
+        '503': *ref_28
+      security: *ref_29
       summary: Explicit class-to-balance-group assignments (defaults are not stored).
-      tags: *ref_28
+      tags: *ref_30
   /wealth/settings/class-groups:
     put:
       operationId: WealthController_upsertClassGroup
@@ -2418,11 +2504,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-        '403': *ref_25
-        '503': *ref_26
-      security: *ref_27
+        '403': *ref_27
+        '503': *ref_28
+      security: *ref_29
       summary: Upsert the balance group of one class (per side).
-      tags: *ref_28
+      tags: *ref_30
   /wealth:
     delete:
       operationId: WealthController_deleteAll
@@ -2430,11 +2516,11 @@ paths:
       responses:
         '204':
           description: Deleted.
-        '403': *ref_25
-        '503': *ref_26
-      security: *ref_27
+        '403': *ref_27
+        '503': *ref_28
+      security: *ref_29
       summary: Delete all of the caller's wealth data (the account stays).
-      tags: *ref_28
+      tags: *ref_30
   /insurances:
     get:
       operationId: InsurancesController_data
@@ -2446,13 +2532,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/InsurancesDataDto'
-        '403': &ref_29
+        '403': &ref_31
           description: Domain not entitled.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-        '503': &ref_30
+        '503': &ref_32
           description: >-
             INSURANCES_UNAVAILABLE — key missing/invalid.
 
@@ -2463,12 +2549,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-      security: &ref_31
+      security: &ref_33
         - sessionCookie: []
       summary: >-
         Everything the page needs: contracts, linked social lines, settings,
         server date.
-      tags: &ref_32
+      tags: &ref_34
         - insurances
     delete:
       operationId: InsurancesController_deleteAll
@@ -2476,11 +2562,11 @@ paths:
       responses:
         '204':
           description: Deleted.
-        '403': *ref_29
-        '503': *ref_30
-      security: *ref_31
+        '403': *ref_31
+        '503': *ref_32
+      security: *ref_33
       summary: Delete all of the caller's insurance data (the account stays).
-      tags: *ref_32
+      tags: *ref_34
   /insurances/contracts:
     post:
       operationId: InsurancesController_create
@@ -2506,11 +2592,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-        '403': *ref_29
-        '503': *ref_30
-      security: *ref_31
+        '403': *ref_31
+        '503': *ref_32
+      security: *ref_33
       summary: Create a contract (at most 200 per user).
-      tags: *ref_32
+      tags: *ref_34
   /insurances/contracts/{id}:
     put:
       operationId: InsurancesController_update
@@ -2539,17 +2625,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-        '403': *ref_29
+        '403': *ref_31
         '404':
           description: INSURANCES_CONTRACT_NOT_FOUND.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-        '503': *ref_30
-      security: *ref_31
+        '503': *ref_32
+      security: *ref_33
       summary: Replace a contract as a whole.
-      tags: *ref_32
+      tags: *ref_34
     delete:
       operationId: InsurancesController_delete
       parameters:
@@ -2561,17 +2647,17 @@ paths:
       responses:
         '204':
           description: Deleted.
-        '403': *ref_29
+        '403': *ref_31
         '404':
           description: INSURANCES_CONTRACT_NOT_FOUND.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-        '503': *ref_30
-      security: *ref_31
+        '503': *ref_32
+      security: *ref_33
       summary: Delete one of the caller’s contracts.
-      tags: *ref_32
+      tags: *ref_34
   /insurances/settings:
     put:
       operationId: InsurancesController_saveSettings
@@ -2595,11 +2681,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-        '403': *ref_29
-        '503': *ref_30
-      security: *ref_31
+        '403': *ref_31
+        '503': *ref_32
+      security: *ref_33
       summary: Replace profile, reminder preferences, dismissals and toolbar flag.
-      tags: *ref_32
+      tags: *ref_34
   /requests:
     post:
       operationId: RequestsController_submit
@@ -2649,12 +2735,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-      security: &ref_33
+      security: &ref_35
         - sessionCookie: []
       summary: >-
         Submit a request (e.g. earnings/new-parser: an anonymized layout; the
         server generates the sample PDF).
-      tags: &ref_34
+      tags: &ref_36
         - requests
     get:
       operationId: RequestsController_list
@@ -2679,9 +2765,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-      security: *ref_33
+      security: *ref_35
       summary: List requests, newest first (admin only).
-      tags: *ref_34
+      tags: *ref_36
   /requests/{id}:
     get:
       operationId: RequestsController_detail
@@ -2710,9 +2796,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-      security: *ref_33
+      security: *ref_35
       summary: Request detail (admin only).
-      tags: *ref_34
+      tags: *ref_36
     patch:
       operationId: RequestsController_update
       parameters:
@@ -2752,9 +2838,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-      security: *ref_33
+      security: *ref_35
       summary: Set the status and/or the note of a request (admin only).
-      tags: *ref_34
+      tags: *ref_36
   /requests/{id}/attachment:
     get:
       operationId: RequestsController_attachment
@@ -2785,9 +2871,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseDto'
-      security: *ref_33
+      security: *ref_35
       summary: Download the anonymized sample PDF; audited (admin only).
-      tags: *ref_34
+      tags: *ref_36
 info:
   title: Vaultfolio API
   description: >-
@@ -2834,12 +2920,13 @@ components:
           format: uuid
         domain:
           type: string
-          enum: &ref_35
+          enum: &ref_37
             - earnings
             - retirement
             - wealth
             - insurances
             - account-overview
+            - feedback
         kind:
           type: string
           enum:
@@ -2892,7 +2979,7 @@ components:
       properties:
         domain:
           type: string
-          enum: *ref_35
+          enum: *ref_37
         state:
           type: string
           enum:
@@ -2963,6 +3050,26 @@ components:
       required:
         - field
         - message
+    FeedbackQuotaDto:
+      type: object
+      properties:
+        limit:
+          type: number
+          example: 5
+        remaining:
+          type: number
+          example: 4
+        resetAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: >-
+            When the oldest counted feedback leaves the window; null when none
+            counted.
+      required:
+        - limit
+        - remaining
+        - resetAt
     ErrorResponseDto:
       type: object
       properties:
@@ -2992,6 +3099,12 @@ components:
             Only for WEALTH_SNAPSHOT_DATE_EXISTS: id of the snapshot already
             holding the date.
           format: uuid
+        quota:
+          description: >-
+            Only for feedback_limit_reached: the caller's current feedback
+            quota.
+          allOf:
+            - $ref: '#/components/schemas/FeedbackQuotaDto'
       required:
         - error
         - message
@@ -3187,7 +3300,7 @@ components:
       properties:
         assetType:
           type: string
-          enum: &ref_36
+          enum: &ref_38
             - ETF
         management:
           type: string
@@ -3213,7 +3326,7 @@ components:
       properties:
         assetType:
           type: string
-          enum: &ref_37
+          enum: &ref_39
             - SHARE
         management:
           type: string
@@ -3243,7 +3356,7 @@ components:
       properties:
         assetType:
           type: string
-          enum: &ref_38
+          enum: &ref_40
             - PRECIOUS_METAL
         management:
           type: string
@@ -3266,7 +3379,7 @@ components:
       properties:
         assetType:
           type: string
-          enum: &ref_39
+          enum: &ref_41
             - CRYPTO
         management:
           type: string
@@ -3293,7 +3406,7 @@ components:
       properties:
         assetType:
           type: string
-          enum: &ref_40
+          enum: &ref_42
             - DEPOSIT_MONEY
         management:
           type: string
@@ -3334,7 +3447,7 @@ components:
       properties:
         assetType:
           type: string
-          enum: *ref_36
+          enum: *ref_38
         management:
           type: string
         isin:
@@ -3359,7 +3472,7 @@ components:
       properties:
         assetType:
           type: string
-          enum: *ref_37
+          enum: *ref_39
         management:
           type: string
         isin:
@@ -3388,7 +3501,7 @@ components:
       properties:
         assetType:
           type: string
-          enum: *ref_38
+          enum: *ref_40
         management:
           type: string
         name:
@@ -3410,7 +3523,7 @@ components:
       properties:
         assetType:
           type: string
-          enum: *ref_39
+          enum: *ref_41
         management:
           type: string
         name:
@@ -3436,7 +3549,7 @@ components:
       properties:
         assetType:
           type: string
-          enum: *ref_40
+          enum: *ref_42
         management:
           type: string
         name:
@@ -3739,7 +3852,7 @@ components:
           nullable: true
         emailLanguage:
           type: string
-          enum: &ref_41
+          enum: &ref_43
             - en
             - de
           nullable: true
@@ -3782,7 +3895,7 @@ components:
       properties:
         emailLanguage:
           type: string
-          enum: *ref_41
+          enum: *ref_43
           nullable: true
       required:
         - emailLanguage
@@ -3834,7 +3947,7 @@ components:
           type: string
         category:
           type: string
-          enum: &ref_42
+          enum: &ref_44
             - GENERAL
             - LEISURE
             - SAVINGS
@@ -3843,7 +3956,7 @@ components:
             - OTHER
         status:
           type: string
-          enum: &ref_43
+          enum: &ref_45
             - ACTIVE
             - DECOMMISSIONED
           description: >-
@@ -3896,11 +4009,11 @@ components:
           type: string
         category:
           type: string
-          enum: *ref_42
+          enum: *ref_44
           description: Omit to default to 'OTHER'.
         status:
           type: string
-          enum: *ref_43
+          enum: *ref_45
           description: Omit to default to 'ACTIVE'.
         provider:
           type: string
@@ -3950,11 +4063,11 @@ components:
           type: string
         category:
           type: string
-          enum: *ref_42
+          enum: *ref_44
           description: Omit to default to 'OTHER'.
         status:
           type: string
-          enum: *ref_43
+          enum: *ref_45
           description: Omit to default to 'ACTIVE'.
         provider:
           type: string
@@ -3987,6 +4100,54 @@ components:
       required:
         - error
         - message
+    SendFeedbackRequestDto:
+      type: object
+      properties:
+        attemptId:
+          type: string
+          format: uuid
+          description: Client-generated UUID v4; idempotency key.
+        category:
+          type: string
+          enum:
+            - feature
+            - problem
+            - other
+        subject:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: Single line, trimmed.
+        message:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          description: Trimmed.
+        language:
+          type: string
+          enum:
+            - en
+            - de
+        turnstileToken:
+          type: string
+          description: Cloudflare Turnstile token.
+      required:
+        - attemptId
+        - category
+        - subject
+        - message
+        - language
+    SendFeedbackResponseDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        quota:
+          $ref: '#/components/schemas/FeedbackQuotaDto'
+      required:
+        - id
+        - quota
     EarningsOneOffAmountsDto:
       type: object
       properties:
@@ -4147,7 +4308,7 @@ components:
           pattern: ^\d{4}-(0[1-9]|1[0-2])$
         kind:
           type: string
-          enum: &ref_44
+          enum: &ref_46
             - REGULAR
             - CORRECTION
             - PAYOUT_ONLY
@@ -4164,7 +4325,7 @@ components:
             server re-runs every check on the submitted figures.
           items:
             type: string
-            enum: &ref_46
+            enum: &ref_48
               - gross
               - wageTax
               - soli
@@ -4287,7 +4448,7 @@ components:
           maxLength: 255
         sourceType:
           type: string
-          enum: &ref_45
+          enum: &ref_47
             - PAYSLIP_PDF
             - CERTIFICATE_PDF
             - EXPORT_JSON
@@ -4347,7 +4508,7 @@ components:
           nullable: true
         kind:
           type: string
-          enum: *ref_44
+          enum: *ref_46
           nullable: true
         seq:
           type: object
@@ -4508,7 +4669,7 @@ components:
           type: string
         sourceType:
           type: string
-          enum: *ref_45
+          enum: *ref_47
         parserId:
           type: string
         parserVersion:
@@ -4953,7 +5114,7 @@ components:
             saved before figure correction.
           items:
             type: string
-            enum: *ref_46
+            enum: *ref_48
       required:
         - gross
         - taxGross
@@ -5005,7 +5166,7 @@ components:
           pattern: ^\d{4}-(0[1-9]|1[0-2])$
         kind:
           type: string
-          enum: *ref_44
+          enum: *ref_46
         seq:
           type: number
         amounts:
@@ -5027,40 +5188,40 @@ components:
       properties:
         gross:
           type: object
-          additionalProperties: &ref_47
+          additionalProperties: &ref_49
             type: string
-          example: &ref_48
+          example: &ref_50
             2026-09: '5200.00'
           description: period → amount
         regular:
           type: object
-          additionalProperties: *ref_47
-          example: *ref_48
+          additionalProperties: *ref_49
+          example: *ref_50
           description: period → amount
         bonus:
           type: object
-          additionalProperties: *ref_47
-          example: *ref_48
+          additionalProperties: *ref_49
+          example: *ref_50
           description: period → amount
         net:
           type: object
-          additionalProperties: *ref_47
-          example: *ref_48
+          additionalProperties: *ref_49
+          example: *ref_50
           description: period → amount
         taxes:
           type: object
-          additionalProperties: *ref_47
-          example: *ref_48
+          additionalProperties: *ref_49
+          example: *ref_50
           description: period → amount
         social:
           type: object
-          additionalProperties: *ref_47
-          example: *ref_48
+          additionalProperties: *ref_49
+          example: *ref_50
           description: period → amount
         payout:
           type: object
-          additionalProperties: *ref_47
-          example: *ref_48
+          additionalProperties: *ref_49
+          example: *ref_50
           description: period → amount
       required:
         - gross
@@ -5332,13 +5493,13 @@ components:
           type: string
         pillar:
           type: string
-          enum: &ref_49
+          enum: &ref_51
             - STATUTORY
             - OCCUPATIONAL
             - PRIVATE
         contractType:
           type: string
-          enum: &ref_50
+          enum: &ref_52
             - STATUTORY_PENSION
             - DIRECT_INSURANCE
             - PENSIONSKASSE
@@ -5351,7 +5512,7 @@ components:
             - ALTERSVORSORGEDEPOT
         origin:
           type: string
-          enum: &ref_51
+          enum: &ref_53
             - IMPORTED
             - MANUAL
         providerLabel:
@@ -5523,7 +5684,7 @@ components:
           description: Canonical decimal string (EUR, up to 2 decimal places).
         expectedScenario:
           type: string
-          enum: &ref_54
+          enum: &ref_56
             - '0'
             - '3'
             - '6'
@@ -5551,16 +5712,16 @@ components:
           type: string
         pillar:
           type: string
-          enum: *ref_49
+          enum: *ref_51
         contractType:
           type: string
-          enum: *ref_50
+          enum: *ref_52
         origin:
           type: string
-          enum: *ref_51
+          enum: *ref_53
         status:
           type: string
-          enum: &ref_52
+          enum: &ref_54
             - ACTIVE
             - PAID_UP
             - IN_PAYOUT
@@ -5581,7 +5742,7 @@ components:
           nullable: true
         figures:
           description: Figures of the contract type (strict per-type whitelist).
-          oneOf: &ref_53
+          oneOf: &ref_55
             - $ref: '#/components/schemas/RetirementStatutoryFiguresDto'
             - $ref: '#/components/schemas/RetirementPensionFiguresDto'
             - $ref: '#/components/schemas/RetirementCapitalAccountFiguresDto'
@@ -5808,10 +5969,10 @@ components:
       properties:
         contractType:
           type: string
-          enum: *ref_50
+          enum: *ref_52
         status:
           type: string
-          enum: *ref_52
+          enum: *ref_54
         providerLabel:
           type: string
           maxLength: 80
@@ -5830,10 +5991,10 @@ components:
           description: Insurance or contract number; stored encrypted.
         figures:
           description: Figures of the contract type (strict per-type whitelist).
-          oneOf: *ref_53
+          oneOf: *ref_55
         origin:
           type: string
-          enum: *ref_51
+          enum: *ref_53
         supplement:
           description: IMPORTED only.
           allOf:
@@ -5856,10 +6017,10 @@ components:
       properties:
         contractType:
           type: string
-          enum: *ref_50
+          enum: *ref_52
         status:
           type: string
-          enum: *ref_52
+          enum: *ref_54
         providerLabel:
           type: string
           maxLength: 80
@@ -5878,7 +6039,7 @@ components:
           description: Insurance or contract number; stored encrypted.
         figures:
           description: Figures of the contract type (strict per-type whitelist).
-          oneOf: *ref_53
+          oneOf: *ref_55
       required:
         - contractType
         - status
@@ -5905,10 +6066,10 @@ components:
           description: Canonical decimal string (EUR, up to 2 decimal places).
         expectedScenario:
           type: string
-          enum: *ref_54
+          enum: *ref_56
         status:
           type: string
-          enum: *ref_52
+          enum: *ref_54
     WealthClassRefDto:
       type: object
       properties:
@@ -5940,7 +6101,7 @@ components:
       properties:
         side:
           type: string
-          enum: &ref_55
+          enum: &ref_57
             - ASSET
             - LIABILITY
         class:
@@ -6017,7 +6178,7 @@ components:
       properties:
         side:
           type: string
-          enum: *ref_55
+          enum: *ref_57
         class:
           $ref: '#/components/schemas/WealthClassRefDto'
         group:
@@ -6118,7 +6279,7 @@ components:
       properties:
         type:
           type: string
-          enum: &ref_56
+          enum: &ref_58
             - STATUTORY_HEALTH
             - STATUTORY_CARE
             - STATUTORY_PENSION
@@ -6146,9 +6307,9 @@ components:
           type: array
           maxItems: 10
           description: 'Combination products: further catalog types this contract covers.'
-          items: &ref_57
+          items: &ref_59
             type: string
-            enum: *ref_56
+            enum: *ref_58
         name:
           type: string
           minLength: 1
@@ -6161,7 +6322,7 @@ components:
           maxLength: 50
         status:
           type: string
-          enum: &ref_58
+          enum: &ref_60
             - ACTIVE
             - CANCELLED
             - ENDED
@@ -6178,7 +6339,7 @@ components:
           description: Decimal string, at most two digits.
         interval:
           type: string
-          enum: &ref_59
+          enum: &ref_61
             - MONTHLY
             - QUARTERLY
             - HALF_YEARLY
@@ -6341,12 +6502,12 @@ components:
       properties:
         type:
           type: string
-          enum: *ref_56
+          enum: *ref_58
         alsoCovers:
           type: array
           maxItems: 10
           description: 'Combination products: further catalog types this contract covers.'
-          items: *ref_57
+          items: *ref_59
         name:
           type: string
           minLength: 1
@@ -6359,7 +6520,7 @@ components:
           maxLength: 50
         status:
           type: string
-          enum: *ref_58
+          enum: *ref_60
         startDate:
           type: string
           example: '2025-01-01'
@@ -6373,7 +6534,7 @@ components:
           description: Decimal string, at most two digits.
         interval:
           type: string
-          enum: *ref_59
+          enum: *ref_61
         paymentMonth:
           type: number
           minimum: 1
@@ -6462,7 +6623,7 @@ components:
           type: string
         status:
           type: string
-          enum: &ref_60
+          enum: &ref_62
             - OPEN
             - IN_PROGRESS
             - DONE
@@ -6545,7 +6706,7 @@ components:
           type: string
         status:
           type: string
-          enum: *ref_60
+          enum: *ref_62
         note:
           type: string
           nullable: true
@@ -6604,7 +6765,7 @@ components:
       properties:
         status:
           type: string
-          enum: *ref_60
+          enum: *ref_62
         note:
           type: string
           maxLength: 2000

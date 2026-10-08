@@ -2,7 +2,7 @@ import { ENCRYPTION_DOMAIN_IDS } from '@vaultfolio/api-contract';
 import { DOMAIN_ENCRYPTION, findDomain, isDomainId, rowAad } from './domain-encryption.registry';
 
 describe('DOMAIN_ENCRYPTION', () => {
-  it('registers exactly the five domains of the contract', () => {
+  it('registers exactly the six domains of the contract', () => {
     expect(DOMAIN_ENCRYPTION.map((d) => d.id)).toEqual([...ENCRYPTION_DOMAIN_IDS]);
   });
 
@@ -12,6 +12,7 @@ describe('DOMAIN_ENCRYPTION', () => {
     ['wealth', ['wealth_snapshots:payload_enc', 'wealth_settings:payload_enc']],
     ['insurances', ['insurance_contracts:payload_enc', 'insurance_settings:payload_enc']],
     ['account-overview', ['account_overview_entries:payload_enc']],
+    ['feedback', ['feedback_submissions:payload_enc']],
   ])('%s: tables', (id, tables) => {
     const domain = findDomain(id);
     expect(domain?.tables.map((t) => `${t.table}:${t.ciphertextColumn}`)).toEqual(tables);

@@ -99,7 +99,11 @@ export class HintsStore {
       }),
     );
     this.providers.set(results.filter((p): p is LoadedProvider => p !== null));
-    this.watchNavigation();
+    try {
+      this.watchNavigation();
+    } catch {
+      // injector destroyed while providers were loading (sign-out/teardown): nothing to watch
+    }
   }
 
   /** Refresh all loaded providers (throttled to once per 60 s). */
