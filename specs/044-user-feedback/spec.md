@@ -8,6 +8,8 @@
 
 **Input**: User description: "Feedback-Möglichkeit mit Formular, das an die Admins gesendet wird. Kategorie (Feature, Problem, Sonstiges), Betreff und Text. Modal, das nur über Abbrechen schließt (mit Bestätigung, wenn Text eingegeben wurde). Schließt nach Senden erst, wenn die E-Mail wirklich versandt wurde; bei Fehler wird der Entwurf lokal gespeichert und beim nächsten Öffnen geladen, zusätzlich erscheint ein Hinweis im Hinweiscenter (043). Limit 5 Feedbacks pro 24 Stunden, transparent im Modal angezeigt. Feedback wird zusätzlich verschlüsselt in der Datenbank gespeichert. Bot-Schutz per Turnstile."
 
+**Design**: [design.md](./design.md)
+
 ## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Member sends feedback to the admins (Priority: P1)
