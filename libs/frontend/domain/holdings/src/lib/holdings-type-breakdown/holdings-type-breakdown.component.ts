@@ -1,6 +1,7 @@
 import { Component, computed, inject, input } from '@angular/core';
 import type { EChartsOption } from 'echarts';
 import type { AssetType, HoldingResponse } from '@vaultfolio/api-contract';
+import { holdingAssetName } from '../holding-display';
 import { groupHoldingsByKey } from '../holdings-valuation';
 import { EchartComponent, I18nService, TranslatePipe } from '@vaultfolio/frontend-shared-ui';
 
@@ -109,7 +110,7 @@ export class HoldingsTypeBreakdownComponent {
   private readonly result = computed(() =>
     groupHoldingsByKey(
       this.holdings().filter((h) => h.assetType === this.assetType()),
-      (h) => h.name,
+      (h) => holdingAssetName(h, (key) => this.i18n.translate(key)) || null,
     ),
   );
 

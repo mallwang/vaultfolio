@@ -18,7 +18,8 @@ import {
   LocaleNumberPipe,
   LocaleDatePipe,
 } from '@vaultfolio/frontend-shared-ui';
-import { ASSET_TYPE_LABEL_KEYS, ASSET_TYPES } from './asset-type-fields';
+import { ASSET_TYPES } from '@vaultfolio/domain-holdings';
+import { ASSET_TYPE_LABEL_KEYS, holdingAssetName } from './holding-display';
 import { HoldingFormComponent } from './holding-form/holding-form.component';
 import { HoldingsDistributionComponent } from './holdings-distribution/holdings-distribution.component';
 import { HoldingsTypeBreakdownComponent } from './holdings-type-breakdown/holdings-type-breakdown.component';
@@ -174,9 +175,9 @@ import { HoldingsService } from './holdings.service';
           <ng-template #body let-holding>
             <tr>
               <td>{{ labelFor(holding.assetType) }}</td>
-              <td>{{ holding.name }}</td>
+              <td>{{ assetName(holding) }}</td>
               <td>{{ holding.management }}</td>
-              <td>{{ holding.quantity ?? holding.weightGrams | localeNumber }}</td>
+              <td>{{ holding.quantity | localeNumber }}</td>
               <td>
                 {{
                   holding.purchasePrice ?? holding.currentValue
@@ -378,6 +379,10 @@ export class HoldingsComponent implements OnInit {
 
   protected readonly dialogVisible = signal(false);
   protected readonly editingHolding = signal<HoldingResponse | null>(null);
+
+  protected assetName(holding: HoldingResponse): string {
+    return holdingAssetName(holding, (key) => this.translate.transform(key));
+  }
 
   protected labelFor(assetType: AssetType): string {
     return this.translate.transform(ASSET_TYPE_LABEL_KEYS[assetType]);

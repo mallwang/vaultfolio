@@ -35,7 +35,10 @@ const etf: HoldingResponse = {
   quantity: '12.5',
   purchasePrice: '78.42',
   purchaseDate: null,
-  weightGrams: null,
+  note: null,
+  metal: null,
+  coinId: null,
+  unit: null,
   currentValue: null,
   createdAt: '2026-08-01T09:00:00.000Z',
   updatedAt: '2026-08-01T09:00:00.000Z',
@@ -46,11 +49,14 @@ const goldNoValue: HoldingResponse = {
   assetType: 'PRECIOUS_METAL',
   management: 'Private',
   isin: null,
-  name: 'Gold',
-  quantity: null,
+  name: null,
+  note: null,
+  metal: 'XAU',
+  coinId: null,
+  unit: 'G',
+  quantity: '31.1',
   purchasePrice: null,
   purchaseDate: null,
-  weightGrams: '31.1',
   currentValue: null,
   createdAt: '2026-08-10T09:00:00.000Z',
   updatedAt: '2026-08-10T09:00:00.000Z',
@@ -61,11 +67,14 @@ const silverNoValue: HoldingResponse = {
   assetType: 'PRECIOUS_METAL',
   management: 'Private',
   isin: null,
-  name: 'Silver',
-  quantity: null,
+  name: null,
+  note: null,
+  metal: 'XAG',
+  coinId: null,
+  unit: 'G',
+  quantity: '500',
   purchasePrice: null,
   purchaseDate: null,
-  weightGrams: '500',
   currentValue: null,
   createdAt: '2026-08-11T09:00:00.000Z',
   updatedAt: '2026-08-11T09:00:00.000Z',
@@ -146,7 +155,10 @@ describe('HoldingsComponent', () => {
       quantity: '0.1',
       purchasePrice: '40000',
       purchaseDate: null,
-      weightGrams: null,
+      note: null,
+      metal: null,
+      coinId: null,
+      unit: null,
       currentValue: null,
       createdAt: '2026-08-12T09:00:00.000Z',
       updatedAt: '2026-08-12T09:00:00.000Z',
@@ -165,6 +177,34 @@ describe('HoldingsComponent', () => {
     expect(rows).toHaveLength(2);
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
     expect(text).toContain('Bitcoin');
+  });
+
+  it('shows a coin row as "Name (SYM)" and falls back to the raw code for stale metal or coin ids', () => {
+    const coin: HoldingResponse = {
+      ...goldNoValue,
+      id: 'c-1',
+      assetType: 'CRYPTO',
+      metal: null,
+      unit: null,
+      coinId: 'bitcoin',
+      quantity: '0.1',
+      purchasePrice: '40000',
+    };
+    const staleMetal: HoldingResponse = {
+      ...goldNoValue,
+      id: 'm-9',
+      metal: 'XXX' as HoldingResponse['metal'],
+    };
+    const staleCoin: HoldingResponse = { ...coin, id: 'c-9', coinId: 'gone-coin' };
+    flushList([coin, staleMetal, staleCoin]);
+
+    const rows = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('tbody tr'),
+    ).map((r) => r.textContent ?? '');
+    expect(rows).toHaveLength(3);
+    expect(rows[0]).toContain('Bitcoin (BTC)');
+    expect(rows[1]).toContain('XXX');
+    expect(rows[2]).toContain('gone-coin');
   });
 
   it('shows a "—" indicator for a holding missing price/date', () => {
@@ -191,7 +231,10 @@ describe('HoldingsComponent', () => {
       quantity: '1',
       purchasePrice: '100',
       purchaseDate: null,
-      weightGrams: null,
+      note: null,
+      metal: null,
+      coinId: null,
+      unit: null,
       currentValue: null,
       createdAt: '2026-08-14T09:00:00.000Z',
       updatedAt: '2026-08-14T09:00:00.000Z',
@@ -205,7 +248,10 @@ describe('HoldingsComponent', () => {
       quantity: '0.1',
       purchasePrice: '40000',
       purchaseDate: null,
-      weightGrams: null,
+      note: null,
+      metal: null,
+      coinId: null,
+      unit: null,
       currentValue: null,
       createdAt: '2026-08-15T09:00:00.000Z',
       updatedAt: '2026-08-15T09:00:00.000Z',

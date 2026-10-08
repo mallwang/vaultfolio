@@ -28,7 +28,10 @@ function holding(overrides: Partial<HoldingResponse>): HoldingResponse {
     purchaseDate: null,
     isin: null,
     name: null,
-    weightGrams: null,
+    note: null,
+    metal: null,
+    coinId: null,
+    unit: null,
     currentValue: null,
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
@@ -65,8 +68,8 @@ describe('HoldingsTypeBreakdownComponent', () => {
 
   it('produces two segments for two same-type holdings with distinct names (Acceptance Scenario 1)', () => {
     setInputs('PRECIOUS_METAL', [
-      holding({ id: '1', assetType: 'PRECIOUS_METAL', name: 'Gold', currentValue: '25' }),
-      holding({ id: '2', assetType: 'PRECIOUS_METAL', name: 'Silver', currentValue: '10' }),
+      holding({ id: '1', assetType: 'PRECIOUS_METAL', metal: 'XAU', currentValue: '25' }),
+      holding({ id: '2', assetType: 'PRECIOUS_METAL', metal: 'XAG', currentValue: '10' }),
     ]);
 
     const option = fixture.componentInstance['chartOption']();
@@ -80,8 +83,8 @@ describe('HoldingsTypeBreakdownComponent', () => {
 
   it('sums two same-type, same-name holdings into one segment (Acceptance Scenario 2)', () => {
     setInputs('PRECIOUS_METAL', [
-      holding({ id: '1', assetType: 'PRECIOUS_METAL', name: 'Gold', currentValue: '25' }),
-      holding({ id: '2', assetType: 'PRECIOUS_METAL', name: 'Gold', currentValue: '17.5' }),
+      holding({ id: '1', assetType: 'PRECIOUS_METAL', metal: 'XAU', currentValue: '25' }),
+      holding({ id: '2', assetType: 'PRECIOUS_METAL', metal: 'XAU', currentValue: '17.5' }),
     ]);
 
     const option = fixture.componentInstance['chartOption']();
@@ -92,7 +95,7 @@ describe('HoldingsTypeBreakdownComponent', () => {
 
   it('excludes a holding of a different assetType than this instance', () => {
     setInputs('PRECIOUS_METAL', [
-      holding({ id: '1', assetType: 'PRECIOUS_METAL', name: 'Gold', currentValue: '25' }),
+      holding({ id: '1', assetType: 'PRECIOUS_METAL', metal: 'XAU', currentValue: '25' }),
       holding({
         id: '2',
         assetType: 'CRYPTO',
@@ -133,7 +136,7 @@ describe('HoldingsTypeBreakdownComponent', () => {
 
   it('explicitly disables the legend in the chartOption (FR-007)', () => {
     setInputs('PRECIOUS_METAL', [
-      holding({ id: '1', assetType: 'PRECIOUS_METAL', name: 'Gold', currentValue: '25' }),
+      holding({ id: '1', assetType: 'PRECIOUS_METAL', metal: 'XAU', currentValue: '25' }),
     ]);
 
     // Explicit `{ show: false }`, not merely absent — `EchartComponent`'s
@@ -146,8 +149,8 @@ describe('HoldingsTypeBreakdownComponent', () => {
 
   it('renders a center-label element with the segment total, matching the main chart (FR-008)', () => {
     setInputs('PRECIOUS_METAL', [
-      holding({ id: '1', assetType: 'PRECIOUS_METAL', name: 'Gold', currentValue: '25' }),
-      holding({ id: '2', assetType: 'PRECIOUS_METAL', name: 'Silver', currentValue: '10' }),
+      holding({ id: '1', assetType: 'PRECIOUS_METAL', metal: 'XAU', currentValue: '25' }),
+      holding({ id: '2', assetType: 'PRECIOUS_METAL', metal: 'XAG', currentValue: '10' }),
     ]);
 
     const el = fixture.nativeElement as HTMLElement;
@@ -158,8 +161,8 @@ describe('HoldingsTypeBreakdownComponent', () => {
 
   it('formats the tooltip with the segment name, currency-formatted value, and percentage (SC-004)', () => {
     setInputs('PRECIOUS_METAL', [
-      holding({ id: '1', assetType: 'PRECIOUS_METAL', name: 'Gold', currentValue: '25' }),
-      holding({ id: '2', assetType: 'PRECIOUS_METAL', name: 'Silver', currentValue: '75' }),
+      holding({ id: '1', assetType: 'PRECIOUS_METAL', metal: 'XAU', currentValue: '25' }),
+      holding({ id: '2', assetType: 'PRECIOUS_METAL', metal: 'XAG', currentValue: '75' }),
     ]);
 
     const option = fixture.componentInstance['chartOption']();

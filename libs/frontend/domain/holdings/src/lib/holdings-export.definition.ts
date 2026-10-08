@@ -6,17 +6,16 @@ import type { HoldingResponse } from '@vaultfolio/api-contract';
 import { I18nService, ASSET_TYPE_COLORS } from '@vaultfolio/frontend-shared-ui';
 import { HoldingsService } from './holdings.service';
 import { groupHoldingsByKey } from './holdings-valuation';
-import { ASSET_TYPE_LABEL_KEYS } from './asset-type-fields';
+import { ASSET_TYPE_LABEL_KEYS, holdingAssetName } from './holding-display';
 import { buildDistributionChartOption } from './holdings-distribution/distribution-chart-option';
 
-function toRow(holding: HoldingResponse): ExportRow {
+function toRow(holding: HoldingResponse, assetName: string): ExportRow {
   return {
     assetType: holding.assetType,
-    name: holding.name,
+    name: assetName,
     isin: holding.isin,
     management: holding.management,
     quantity: holding.quantity,
-    weightGrams: holding.weightGrams,
     purchasePrice: holding.purchasePrice,
     currentValue: holding.currentValue,
     purchaseDate: holding.purchaseDate,
@@ -49,7 +48,6 @@ export function createHoldingsExportDefinition(): FeatureExportDefinition {
       { key: 'isin', labelKey: 'holdingsExport.columnIsin', format: 'text' },
       { key: 'management', labelKey: 'holdingsExport.columnManagement', format: 'text' },
       { key: 'quantity', labelKey: 'holdingsExport.columnQuantity', format: 'decimal' },
-      { key: 'weightGrams', labelKey: 'holdingsExport.columnWeightGrams', format: 'decimal' },
       { key: 'purchasePrice', labelKey: 'holdingsExport.columnPurchasePrice', format: 'currency' },
       {
         key: 'currentValue',
@@ -66,7 +64,12 @@ export function createHoldingsExportDefinition(): FeatureExportDefinition {
         assetType: e.key,
         value: e.value.toNumber(),
       }));
-      return holdings.map(toRow);
+      return holdings.map((h) =>
+        toRow(
+          h,
+          holdingAssetName(h, (k) => i18n.translate(k)),
+        ),
+      );
     },
     getChartOptions(): EChartsOption[] {
       // No title — section heading is rendered above the chart section in the PDF layout.

@@ -1,7 +1,14 @@
 import { de } from './de';
 import { en, type TranslationDictionary } from './en';
 
-const GROUPS = ['holdings', 'holdingsDistribution', 'holdingsArea', 'holdingsExport'];
+const GROUPS = [
+  'holdings',
+  'holdingsDistribution',
+  'holdingsArea',
+  'holdingsExport',
+  'holdingMetal',
+  'holdingError',
+];
 
 function keys(node: TranslationDictionary, prefix = ''): string[] {
   return Object.entries(node).flatMap(([k, v]) =>

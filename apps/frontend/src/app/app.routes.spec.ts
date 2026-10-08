@@ -130,13 +130,34 @@ describe('app.routes', () => {
 
     // 021 US3: Holdings' "List"/"Imports" tabs are each directly
     // addressable, same convention as Settings/Admin's own tabs.
-    it.each(['/app/holdings/list', '/app/holdings/imports'])(
-      'resolves %s directly to itself',
-      async (path) => {
-        await router.navigateByUrl(path);
-        expect(location.path()).toBe(path);
-      },
-    );
+    it('resolves /app/holdings/list directly to itself', async () => {
+      await router.navigateByUrl('/app/holdings/list');
+      expect(location.path()).toBe('/app/holdings/list');
+    });
+
+    it('opens /app/holdings/imports when holdings are available', async () => {
+      const http = TestBed.inject(HttpTestingController);
+      const navigation = router.navigateByUrl('/app/holdings/imports');
+      await vi.waitFor(() => http.expectOne('/api/holdings').flush([]));
+      await navigation;
+      expect(location.path()).toBe('/app/holdings/imports');
+    });
+
+    it('sends /app/holdings/imports to the list on 503 without looping', async () => {
+      const http = TestBed.inject(HttpTestingController);
+      const navigation = router.navigateByUrl('/app/holdings/imports');
+      await vi.waitFor(() =>
+        http
+          .expectOne('/api/holdings')
+          .flush(
+            { error: 'HOLDINGS_UNAVAILABLE' },
+            { status: 503, statusText: 'Service Unavailable' },
+          ),
+      );
+      await navigation;
+      expect(location.path()).toBe('/app/holdings/list');
+      http.expectNone('/api/holdings');
+    });
 
     it('redirects a MEMBER opening an admin subsection address away, same as /app/admin', async () => {
       await router.navigateByUrl('/app/admin/invitations');

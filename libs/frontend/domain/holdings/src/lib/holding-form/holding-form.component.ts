@@ -5,108 +5,71 @@ import {
   OnChanges,
   Output,
   SimpleChanges,
+  computed,
   inject,
   signal,
 } from '@angular/core';
-import {
-  AbstractControl,
-  FormBuilder,
-  ReactiveFormsModule,
-  ValidationErrors,
-  ValidatorFn,
-  Validators,
-} from '@angular/forms';
+import { AbstractControl, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import type {
-  AssetType,
   CreateHoldingRequest,
   HoldingResponse,
   UpdateHoldingRequest,
 } from '@vaultfolio/api-contract';
+import {
+  ASSET_TYPES,
+  ASSET_TYPE_FIELDS,
+  CRYPTO_CATALOG,
+  HOLDING_UNITS,
+  METAL_CATALOG,
+  NOTE_MAX_LENGTH,
+  fieldsForAssetType,
+  validateHoldingSubmission,
+  type AssetType,
+  type HoldingField,
+  type HoldingSubmission,
+  type HoldingUnit,
+} from '@vaultfolio/domain-holdings';
 import { ButtonModule } from 'primeng/button';
 import { DatePickerModule } from 'primeng/datepicker';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
+import { SelectModule } from 'primeng/select';
+import { TextareaModule } from 'primeng/textarea';
 import { IconComponent, TranslatePipe, I18nService } from '@vaultfolio/frontend-shared-ui';
-import {
-  ASSET_TYPES,
-  ASSET_TYPE_FIELD_SETS,
-  ASSET_TYPE_LABEL_KEYS,
-  ASSET_TYPE_NAME_PLACEHOLDER_KEYS,
-  isValidIsin,
-  type AssetTypeFieldSet,
-} from '../asset-type-fields';
+import { ASSET_TYPE_LABEL_KEYS, ASSET_TYPE_NAME_PLACEHOLDER_KEYS } from '../holding-display';
 import { HoldingsService } from '../holdings.service';
 
-function positiveNumberValidator(): ValidatorFn {
-  return (control: AbstractControl): ValidationErrors | null => {
-    if (control.value == null || control.value === '') {
-      return null;
-    }
-    return Number(control.value) > 0 ? null : { positive: true };
-  };
+/** Decimal string for the API; never exponent notation (`String(1e-7)` is "1e-7"). */
+function toDecimalString(value: number): string {
+  const text = String(value);
+  if (!text.includes('e')) return text;
+  let fixed = value.toFixed(8);
+  while (fixed.endsWith('0')) fixed = fixed.slice(0, -1);
+  return fixed.endsWith('.') ? fixed.slice(0, -1) : fixed;
 }
 
-/** currentValue's floor is 0 (an emptied deposit-money balance is valid), unlike every other decimal field. */
-function nonNegativeNumberValidator(): ValidatorFn {
-  return (control: AbstractControl): ValidationErrors | null => {
-    if (control.value == null || control.value === '') {
-      return null;
-    }
-    return Number(control.value) >= 0 ? null : { nonNegative: true };
-  };
-}
-
-function notFutureDateValidator(): ValidatorFn {
-  return (control: AbstractControl): ValidationErrors | null => {
-    const value = control.value as Date | null;
-    if (!value) {
-      return null;
-    }
-    const today = new Date();
-    today.setHours(23, 59, 59, 999);
-    return value.getTime() <= today.getTime() ? null : { future: true };
-  };
-}
-
-function isinValidator(): ValidatorFn {
-  return (control: AbstractControl): ValidationErrors | null => {
-    const value = control.value as string | null;
-    if (!value) {
-      return null;
-    }
-    return isValidIsin(value) ? null : { isin: true };
-  };
-}
-
-/** Decimal-string round trip that avoids native-float artifacts for typical UI-entered values. */
-function toDecimalString(value: number | null): string | undefined {
-  if (value == null) {
-    return undefined;
-  }
-  return String(value);
-}
-
-function toIsoDateOnly(value: Date | null): string | undefined {
-  if (!value) {
-    return undefined;
-  }
-  const year = value.getFullYear();
+function toIsoDateOnly(value: Date): string {
   const month = String(value.getMonth() + 1).padStart(2, '0');
   const day = String(value.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  return `${value.getFullYear()}-${month}-${day}`;
+}
+
+/** Parses YYYY-MM-DD as a local date (new Date(iso) is UTC and can shift a day). */
+function fromIsoDateOnly(value: string): Date {
+  const [year, month, day] = value.slice(0, 10).split('-').map(Number);
+  return new Date(year, month - 1, day);
 }
 
 /**
- * Add/edit dialog content (FR-001–FR-010, FR-014, FR-015). One Angular
- * Reactive Form whose field set is driven by the selected (add mode) or
- * locked (edit mode) asset type, per research.md #5. Add mode creates via
- * `POST /holdings` (which may upsert an ETF/Gold row in place, FR-011a); edit
- * mode updates via `PUT /holdings/:id`, scoped to the holding's own type.
+ * Add/edit dialog content. The visible fields come from the domain lib's
+ * `ASSET_TYPE_FIELDS`; validation is the domain lib's `validateHoldingSubmission`
+ * and server 400 `errors[]` use the same codes, both mapped to `holdingError.*`
+ * messages under the offending field. Edit mode locks the asset type and PUTs
+ * without it.
  *
- * Inline `template`/`styles`, not `templateUrl`/`styleUrl` — see
- * `holdings.component.ts`'s identical note (020): this dialog's content is
- * reachable transitively from the same lazily-routed `HoldingsComponent`.
+ * Inline `template`/`styles` (see `holdings.component.ts`): this is reachable
+ * from a lazily routed component.
  */
 @Component({
   selector: 'app-holding-form',
@@ -117,13 +80,15 @@ function toIsoDateOnly(value: Date | null): string | undefined {
     DatePickerModule,
     ButtonModule,
     MessageModule,
+    SelectModule,
+    TextareaModule,
     TranslatePipe,
     IconComponent,
   ],
   providers: [TranslatePipe],
   template: `
     <form [formGroup]="form" (ngSubmit)="submit()" class="holding-form">
-      <fieldset class="field field--fieldset">
+      <fieldset class="field field--fieldset" data-testid="holding-form-type">
         <legend>{{ 'holdingForm.assetType' | translate }}</legend>
         @if (isEditMode) {
           <div class="type-select type-select--locked">
@@ -138,7 +103,7 @@ function toIsoDateOnly(value: Date | null): string | undefined {
               <button
                 type="button"
                 class="type-option"
-                [attr.data-testid]="'holding-form-asset-type-' + option.value"
+                [attr.data-testid]="'holding-form-type-' + option.value"
                 [class.type-option--active]="form.controls.assetType.value === option.value"
                 [attr.aria-pressed]="form.controls.assetType.value === option.value"
                 (click)="selectAssetType(option.value)"
@@ -151,188 +116,245 @@ function toIsoDateOnly(value: Date | null): string | undefined {
         }
       </fieldset>
 
-      <div class="field-row">
-        <div class="field">
-          <label for="management" [class.field-label--required]="isRequired('management')">
-            {{ 'holdingForm.management' | translate }}
-          </label>
-          <input
-            id="management"
-            type="text"
-            pInputText
-            formControlName="management"
-            [placeholder]="'holdingForm.managementPlaceholder' | translate"
-          />
-          @if (form.controls.management.invalid && form.controls.management.touched) {
-            <p-message severity="error">{{
-              'holdingForm.managementRequired' | translate
-            }}</p-message>
-          }
-        </div>
-
-        @if (fieldSet().name) {
-          <div class="field">
-            <label for="name" [class.field-label--required]="isRequired('name')">
-              {{ 'holdingForm.name' | translate }}
-            </label>
-            <input
-              id="name"
-              type="text"
-              pInputText
-              formControlName="name"
-              [placeholder]="namePlaceholderKey() | translate"
-            />
-            @if (form.controls.name.invalid && form.controls.name.touched) {
-              <p-message severity="error">{{ 'holdingForm.nameRequired' | translate }}</p-message>
-            }
-          </div>
-        }
-      </div>
-
-      @if (fieldSet().isin) {
+      @if (has('isin')) {
         <div class="field">
           <label for="isin" [class.field-label--required]="isRequired('isin')">
             {{ 'holdingForm.isin' | translate }}
           </label>
           <input
             id="isin"
+            data-testid="holding-form-isin"
             type="text"
             pInputText
             formControlName="isin"
             [placeholder]="'holdingForm.isinPlaceholder' | translate"
           />
-          @if (form.controls.isin.invalid && form.controls.isin.touched) {
-            @if (form.controls.isin.errors?.['isin']) {
-              <p-message severity="error">{{ 'holdingForm.isinInvalid' | translate }}</p-message>
-            } @else {
-              <p-message severity="error">{{ 'holdingForm.isinRequired' | translate }}</p-message>
-            }
+          @if (errorCode('isin'); as code) {
+            <p-message severity="error" data-testid="holding-form-isin-error">{{
+              'holdingError.' + code | translate
+            }}</p-message>
           }
         </div>
       }
-
-      @if (fieldSet().quantity || fieldSet().purchasePrice) {
-        <div class="field-row">
-          @if (fieldSet().quantity) {
-            <div class="field">
-              <label for="quantity" [class.field-label--required]="isRequired('quantity')">
-                {{ 'holdingForm.quantity' | translate }}
-              </label>
-              <p-inputnumber
-                id="quantity"
-                formControlName="quantity"
-                mode="decimal"
-                [locale]="i18n.language()"
-                [maxFractionDigits]="8"
-                [placeholder]="'holdingForm.quantityPlaceholder' | translate"
-              />
-              @if (form.controls.quantity.invalid && form.controls.quantity.touched) {
-                <p-message severity="error">{{
-                  'holdingForm.quantityInvalid' | translate
-                }}</p-message>
-              }
-            </div>
-          }
-
-          @if (fieldSet().purchasePrice) {
-            <div class="field">
-              <label
-                for="purchasePrice"
-                [class.field-label--required]="isRequired('purchasePrice')"
-              >
-                {{
-                  (form.controls.assetType.value === 'ETF'
-                    ? 'holdingForm.averagePurchasePrice'
-                    : 'holdingForm.purchasePrice'
-                  ) | translate
-                }}
-              </label>
-              <p-inputnumber
-                id="purchasePrice"
-                formControlName="purchasePrice"
-                mode="decimal"
-                [locale]="i18n.language()"
-                [maxFractionDigits]="8"
-                [placeholder]="'holdingForm.purchasePricePlaceholder' | translate"
-              />
-              @if (form.controls.purchasePrice.invalid && form.controls.purchasePrice.touched) {
-                <p-message severity="error">{{
-                  'holdingForm.purchasePriceInvalid' | translate
-                }}</p-message>
-              }
-            </div>
-          }
-        </div>
-      }
-
-      @if (fieldSet().weightGrams || fieldSet().currentValue) {
-        <div class="field-row">
-          @if (fieldSet().weightGrams) {
-            <div class="field">
-              <label for="weightGrams" [class.field-label--required]="isRequired('weightGrams')">
-                {{ 'holdingForm.weightGrams' | translate }}
-              </label>
-              <p-inputnumber
-                id="weightGrams"
-                formControlName="weightGrams"
-                mode="decimal"
-                [locale]="i18n.language()"
-                [maxFractionDigits]="8"
-                [placeholder]="'holdingForm.weightGramsPlaceholder' | translate"
-              />
-              @if (form.controls.weightGrams.invalid && form.controls.weightGrams.touched) {
-                <p-message severity="error">{{
-                  'holdingForm.weightGramsInvalid' | translate
-                }}</p-message>
-              }
-            </div>
-          }
-
-          @if (fieldSet().currentValue) {
-            <div class="field">
-              <label for="currentValue" [class.field-label--required]="isRequired('currentValue')">
-                {{ 'holdingForm.currentValue' | translate }}
-              </label>
-              <p-inputnumber
-                id="currentValue"
-                formControlName="currentValue"
-                mode="decimal"
-                [locale]="i18n.language()"
-                [maxFractionDigits]="8"
-                [placeholder]="'holdingForm.currentValuePlaceholder' | translate"
-              />
-              @if (form.controls.currentValue.invalid && form.controls.currentValue.touched) {
-                <p-message severity="error">{{
-                  'holdingForm.currentValueInvalid' | translate
-                }}</p-message>
-              }
-            </div>
-          }
-        </div>
-      }
-
-      @if (fieldSet().purchaseDate === 'optional') {
+      @if (has('name')) {
         <div class="field">
-          <label for="purchaseDate">{{ 'holdingForm.purchaseDate' | translate }}</label>
+          <label for="name" [class.field-label--required]="isRequired('name')">
+            {{ 'holdingForm.name' | translate }}
+          </label>
+          <input
+            id="name"
+            data-testid="holding-form-name"
+            type="text"
+            pInputText
+            formControlName="name"
+            [placeholder]="namePlaceholderKey() | translate"
+          />
+          @if (errorCode('name'); as code) {
+            <p-message severity="error" data-testid="holding-form-name-error">{{
+              'holdingError.' + code | translate
+            }}</p-message>
+          }
+        </div>
+      }
+      @if (has('metal')) {
+        <div class="field">
+          <label for="metal" [class.field-label--required]="isRequired('metal')">
+            {{ 'holdingForm.metal' | translate }}
+          </label>
+          <p-select
+            inputId="metal"
+            data-testid="holding-form-metal"
+            formControlName="metal"
+            [options]="metalOptions()"
+            optionLabel="label"
+            optionValue="code"
+            [placeholder]="'holdingForm.metalPlaceholder' | translate"
+            appendTo="body"
+          />
+          @if (errorCode('metal'); as code) {
+            <p-message severity="error" data-testid="holding-form-metal-error">{{
+              'holdingError.' + code | translate
+            }}</p-message>
+          }
+        </div>
+      }
+      @if (has('coinId')) {
+        <div class="field">
+          <label for="coinId" [class.field-label--required]="isRequired('coinId')">
+            {{ 'holdingForm.coin' | translate }}
+          </label>
+          <p-select
+            inputId="coinId"
+            data-testid="holding-form-coin"
+            formControlName="coinId"
+            [options]="coinOptions"
+            optionLabel="label"
+            optionValue="id"
+            [filter]="true"
+            filterBy="name,symbol"
+            [placeholder]="'holdingForm.coinPlaceholder' | translate"
+            appendTo="body"
+          />
+          @if (errorCode('coinId'); as code) {
+            <p-message severity="error" data-testid="holding-form-coin-error">{{
+              'holdingError.' + code | translate
+            }}</p-message>
+          }
+        </div>
+      }
+      @if (has('quantity')) {
+        <div class="field">
+          <label for="quantity" [class.field-label--required]="isRequired('quantity')">
+            {{ 'holdingForm.quantity' | translate }}
+          </label>
+          <p-inputnumber
+            inputId="quantity"
+            data-testid="holding-form-quantity"
+            formControlName="quantity"
+            mode="decimal"
+            [locale]="i18n.language()"
+            [maxFractionDigits]="8"
+            [placeholder]="'holdingForm.quantityPlaceholder' | translate"
+          />
+          @if (errorCode('quantity'); as code) {
+            <p-message severity="error" data-testid="holding-form-quantity-error">{{
+              'holdingError.' + code | translate
+            }}</p-message>
+          }
+        </div>
+      }
+      @if (has('unit')) {
+        <div class="field">
+          <label for="unit" [class.field-label--required]="isRequired('unit')">
+            {{ 'holdingForm.unit' | translate }}
+          </label>
+          <p-select
+            inputId="unit"
+            data-testid="holding-form-unit"
+            formControlName="unit"
+            [options]="unitOptions()"
+            optionLabel="label"
+            optionValue="value"
+            appendTo="body"
+          /><span class="unit-hint">{{ 'holdingForm.unitHint' | translate }}</span>
+          @if (errorCode('unit'); as code) {
+            <p-message severity="error" data-testid="holding-form-unit-error">{{
+              'holdingError.' + code | translate
+            }}</p-message>
+          }
+        </div>
+      }
+      @if (has('purchasePrice')) {
+        <div class="field">
+          <label for="purchasePrice" [class.field-label--required]="isRequired('purchasePrice')">
+            {{ 'holdingForm.purchasePrice' | translate }}
+          </label>
+          <p-inputnumber
+            inputId="purchasePrice"
+            data-testid="holding-form-purchase-price"
+            formControlName="purchasePrice"
+            mode="decimal"
+            [locale]="i18n.language()"
+            [maxFractionDigits]="8"
+            [placeholder]="'holdingForm.purchasePricePlaceholder' | translate"
+          />
+          @if (errorCode('purchasePrice'); as code) {
+            <p-message severity="error" data-testid="holding-form-purchase-price-error">{{
+              'holdingError.' + code | translate
+            }}</p-message>
+          }
+        </div>
+      }
+      @if (has('purchaseDate')) {
+        <div class="field">
+          <label for="purchaseDate" [class.field-label--required]="isRequired('purchaseDate')">
+            {{ 'holdingForm.purchaseDate' | translate }}
+          </label>
           <p-datepicker
-            id="purchaseDate"
+            inputId="purchaseDate"
+            data-testid="holding-form-purchase-date"
             formControlName="purchaseDate"
             [dateFormat]="dateFormat()"
             [showIcon]="true"
             [placeholder]="'holdingForm.purchaseDatePlaceholder' | translate"
-          >
-            <ng-template #triggericon><app-icon name="calendar" /></ng-template>
-          </p-datepicker>
-          @if (form.controls.purchaseDate.invalid && form.controls.purchaseDate.touched) {
-            <p-message severity="error">{{
-              'holdingForm.purchaseDateInvalid' | translate
+            ><ng-template #triggericon><app-icon name="calendar" /></ng-template
+          ></p-datepicker>
+          @if (errorCode('purchaseDate'); as code) {
+            <p-message severity="error" data-testid="holding-form-purchase-date-error">{{
+              'holdingError.' + code | translate
+            }}</p-message>
+          }
+        </div>
+      }
+      @if (has('currentValue')) {
+        <div class="field">
+          <label for="currentValue" [class.field-label--required]="isRequired('currentValue')">
+            {{ 'holdingForm.currentValue' | translate }}
+          </label>
+          <p-inputnumber
+            inputId="currentValue"
+            data-testid="holding-form-current-value"
+            formControlName="currentValue"
+            mode="decimal"
+            [locale]="i18n.language()"
+            [maxFractionDigits]="8"
+            [placeholder]="'holdingForm.currentValuePlaceholder' | translate"
+          />
+          @if (errorCode('currentValue'); as code) {
+            <p-message severity="error" data-testid="holding-form-current-value-error">{{
+              'holdingError.' + code | translate
+            }}</p-message>
+          }
+        </div>
+      }
+      @if (true) {
+        <div class="field">
+          <label for="management" [class.field-label--required]="isRequired('management')">
+            {{ 'holdingForm.management' | translate }}
+          </label>
+          <input
+            id="management"
+            data-testid="holding-form-management"
+            type="text"
+            pInputText
+            formControlName="management"
+            [placeholder]="'holdingForm.managementPlaceholder' | translate"
+          />
+          @if (errorCode('management'); as code) {
+            <p-message severity="error" data-testid="holding-form-management-error">{{
+              'holdingError.' + code | translate
+            }}</p-message>
+          }
+        </div>
+      }
+      @if (has('note')) {
+        <div class="field">
+          <label for="note" [class.field-label--required]="isRequired('note')">
+            {{ 'holdingForm.note' | translate }}
+          </label>
+          <textarea
+            id="note"
+            data-testid="holding-form-note"
+            pTextarea
+            rows="2"
+            formControlName="note"
+            [placeholder]="'holdingForm.notePlaceholder' | translate"
+          ></textarea>
+          <span class="note-counter">{{
+            'holdingForm.noteCounter' | translate: { count: noteLength(), max: noteMax }
+          }}</span>
+          @if (errorCode('note'); as code) {
+            <p-message severity="error" data-testid="holding-form-note-error">{{
+              'holdingError.' + code | translate
             }}</p-message>
           }
         </div>
       }
 
-      @if (submitError(); as message) {
-        <p-message severity="error">{{ message }}</p-message>
+      @if (submitError()) {
+        <p-message severity="error" data-testid="holding-form-error">{{
+          'holdingForm.saveFailed' | translate
+        }}</p-message>
       }
 
       <div class="form-actions">
@@ -345,13 +367,7 @@ function toIsoDateOnly(value: Date | null): string | undefined {
         >
           {{ 'common.cancel' | translate }}
         </button>
-        <button
-          pButton
-          data-testid="holding-form-save"
-          type="submit"
-          [disabled]="form.invalid"
-          [loading]="submitting()"
-        >
+        <button pButton data-testid="holding-form-submit" type="submit" [loading]="submitting()">
           {{ 'common.save' | translate }}
         </button>
       </div>
@@ -462,6 +478,17 @@ function toIsoDateOnly(value: Date | null): string | undefined {
       cursor: default;
     }
 
+    .note-counter {
+      align-self: flex-end;
+      font-size: 0.75rem;
+      color: var(--p-text-muted-color);
+    }
+
+    .unit-hint {
+      font-size: 0.75rem;
+      color: var(--p-text-muted-color);
+    }
+
     .form-actions {
       display: flex;
       justify-content: flex-end;
@@ -479,13 +506,9 @@ export class HoldingFormComponent implements OnChanges {
   private readonly fb = inject(FormBuilder);
   private readonly holdingsService = inject(HoldingsService);
   private readonly translate = inject(TranslatePipe);
-  /** Drives p-inputnumber's [locale] input — without it, PrimeNG falls back to the
-   *  browser's OS locale for decimal-separator parsing, which can silently
-   *  disagree with the app's own language setting (e.g. an English UI on a
-   *  German-locale OS would still only accept "45,50", not "45.50"). */
+  /** Drives p-inputnumber's [locale] so decimal parsing follows the app language, not the OS. */
   protected readonly i18n = inject(I18nService);
 
-  /** Icon shown on each type-selector button/card (FR-012, design.md's approved mockup). */
   private static readonly ASSET_TYPE_ICONS: Readonly<Record<AssetType, string>> = {
     ETF: 'chart-line',
     SHARE: 'building',
@@ -498,19 +521,45 @@ export class HoldingFormComponent implements OnChanges {
     value,
     icon: HoldingFormComponent.ASSET_TYPE_ICONS[value],
   }));
-  protected readonly fieldSet = signal<AssetTypeFieldSet>(ASSET_TYPE_FIELD_SETS['ETF']);
-  protected readonly submitError = signal<string | null>(null);
+  protected readonly noteMax = NOTE_MAX_LENGTH;
+  protected readonly coinOptions = CRYPTO_CATALOG.map((coin) => ({
+    ...coin,
+    label: `${coin.name} (${coin.symbol})`,
+  }));
+  protected readonly metalOptions = computed(() =>
+    METAL_CATALOG.map((metal) => ({
+      code: metal.code,
+      label: this.i18n.translate(`holdingMetal.${metal.code}`),
+    })),
+  );
+  protected readonly unitOptions = computed(() =>
+    HOLDING_UNITS.map((value) => ({
+      value,
+      label: this.i18n.translate(`holdingForm.unit${value}`),
+    })),
+  );
+
+  private readonly assetType = signal<AssetType>('ETF');
+  private readonly fields = computed(
+    () => new Set<HoldingField>(fieldsForAssetType(this.assetType())),
+  );
+  /** Error code per field, from client validation or the server's 400 `errors[]`. */
+  private readonly fieldErrors = signal<Record<string, string>>({});
+  protected readonly submitError = signal(false);
   protected readonly submitting = signal(false);
 
   protected readonly form = this.fb.nonNullable.group({
-    assetType: this.fb.nonNullable.control<AssetType>('ETF', Validators.required),
+    assetType: this.fb.nonNullable.control<AssetType>('ETF'),
     management: this.fb.nonNullable.control('', Validators.required),
+    note: this.fb.control<string | null>(null),
     isin: this.fb.control<string | null>(null),
     name: this.fb.control<string | null>(null),
+    metal: this.fb.control<string | null>(null),
+    coinId: this.fb.control<string | null>(null),
     quantity: this.fb.control<number | null>(null),
+    unit: this.fb.control<HoldingUnit | null>('G'),
     purchasePrice: this.fb.control<number | null>(null),
     purchaseDate: this.fb.control<Date | null>(null),
-    weightGrams: this.fb.control<number | null>(null),
     currentValue: this.fb.control<number | null>(null),
   });
 
@@ -519,231 +568,162 @@ export class HoldingFormComponent implements OnChanges {
   }
 
   constructor() {
-    this.form.controls.assetType.valueChanges.subscribe((assetType) => {
-      this.applyFieldSet(assetType, { resetInapplicable: true });
+    this.form.controls.assetType.valueChanges.subscribe((type) => {
+      this.assetType.set(type);
+      this.fieldErrors.set({});
     });
-    this.applyFieldSet('ETF', { resetInapplicable: false });
+    for (const [field, control] of Object.entries(this.form.controls) as [
+      string,
+      AbstractControl,
+    ][]) {
+      control.valueChanges.subscribe(() => this.clearError(field));
+    }
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (!('holding' in changes)) return;
-    this.submitError.set(null);
-    if (this.holding) {
-      this.form.reset(this.holdingToFormValue(this.holding));
+    this.submitError.set(false);
+    this.fieldErrors.set({});
+    const holding = this.holding;
+    if (holding) {
+      this.form.reset({
+        assetType: holding.assetType,
+        management: holding.management,
+        note: holding.note,
+        isin: holding.isin,
+        name: holding.name,
+        metal: holding.metal,
+        coinId: holding.coinId,
+        quantity: holding.quantity != null ? Number(holding.quantity) : null,
+        unit: holding.unit ?? 'G',
+        purchasePrice: holding.purchasePrice != null ? Number(holding.purchasePrice) : null,
+        purchaseDate: holding.purchaseDate ? fromIsoDateOnly(holding.purchaseDate) : null,
+        currentValue: holding.currentValue != null ? Number(holding.currentValue) : null,
+      });
       this.form.controls.assetType.disable();
-      this.applyFieldSet(this.holding.assetType, { resetInapplicable: false });
     } else {
-      this.form.reset({ assetType: 'ETF', management: '' });
+      this.form.reset({ assetType: 'ETF', management: '', unit: 'G' });
       this.form.controls.assetType.enable();
-      this.applyFieldSet('ETF', { resetInapplicable: false });
     }
+    this.assetType.set(this.form.controls.assetType.value);
   }
 
-  private holdingToFormValue(holding: HoldingResponse) {
-    return {
-      assetType: holding.assetType,
-      management: holding.management,
-      isin: holding.isin,
-      name: holding.name,
-      quantity: holding.quantity != null ? Number(holding.quantity) : null,
-      purchasePrice: holding.purchasePrice != null ? Number(holding.purchasePrice) : null,
-      purchaseDate: holding.purchaseDate ? new Date(holding.purchaseDate) : null,
-      weightGrams: holding.weightGrams != null ? Number(holding.weightGrams) : null,
-      currentValue: holding.currentValue != null ? Number(holding.currentValue) : null,
-    };
+  protected has(field: string): boolean {
+    return this.fields().has(field as HoldingField);
   }
 
-  private applyFieldSet(assetType: AssetType, options: { resetInapplicable: boolean }): void {
-    const fieldSet = ASSET_TYPE_FIELD_SETS[assetType];
-    if (!fieldSet) return;
-    this.fieldSet.set(fieldSet);
-    const { controls } = this.form;
-
-    this.configureControl(controls.isin, fieldSet.isin, [], options.resetInapplicable);
-    this.configureControl(controls.name, fieldSet.name, [], options.resetInapplicable);
-    this.configureControl(
-      controls.quantity,
-      fieldSet.quantity,
-      [positiveNumberValidator()],
-      options.resetInapplicable,
+  protected isRequired(field: string): boolean {
+    return (
+      field === 'management' ||
+      ASSET_TYPE_FIELDS[this.assetType()].required.includes(field as HoldingField)
     );
-    this.configureControl(
-      controls.purchasePrice,
-      fieldSet.purchasePrice,
-      [positiveNumberValidator()],
-      options.resetInapplicable,
-    );
-    this.configureControl(
-      controls.purchaseDate,
-      fieldSet.purchaseDate !== 'hidden',
-      [notFutureDateValidator()],
-      options.resetInapplicable,
-      { requiredWhenApplicable: false },
-    );
-    this.configureControl(
-      controls.weightGrams,
-      fieldSet.weightGrams,
-      [positiveNumberValidator()],
-      options.resetInapplicable,
-    );
-    this.configureControl(
-      controls.currentValue,
-      fieldSet.currentValue,
-      [nonNegativeNumberValidator()],
-      options.resetInapplicable,
-      // Required for DEPOSIT_MONEY (FR-002); optional for PRECIOUS_METAL
-      // (used only by the distribution view, FR-012a).
-      { requiredWhenApplicable: assetType === 'DEPOSIT_MONEY' },
-    );
-
-    if (fieldSet.isin) {
-      controls.isin.addValidators(isinValidator());
-    }
   }
 
-  private configureControl(
-    control: AbstractControl,
-    applicable: boolean,
-    extraValidators: ValidatorFn[],
-    resetInapplicable: boolean,
-    { requiredWhenApplicable = true }: { requiredWhenApplicable?: boolean } = {},
-  ): void {
-    if (!applicable) {
-      if (resetInapplicable) {
-        control.reset(null);
-      }
-      control.clearValidators();
-      control.updateValueAndValidity({ emitEvent: false });
-      return;
-    }
+  protected errorCode(field: string): string | undefined {
+    return this.fieldErrors()[field];
+  }
 
-    const validators = [...extraValidators];
-    if (requiredWhenApplicable) {
-      validators.push(Validators.required);
+  protected noteLength(): number {
+    return this.form.controls.note.value?.length ?? 0;
+  }
+
+  private clearError(field: string): void {
+    if (this.fieldErrors()[field]) {
+      this.fieldErrors.update((errors) => {
+        const rest = { ...errors };
+        delete rest[field];
+        return rest;
+      });
     }
-    control.setValidators(validators);
-    control.updateValueAndValidity({ emitEvent: false });
   }
 
   protected submit(): void {
-    this.submitError.set(null);
-    this.form.markAllAsTouched();
-    if (this.form.invalid) {
+    this.submitError.set(false);
+    const submission = this.toSubmission();
+    const result = validateHoldingSubmission(submission);
+    if (!result.valid) {
+      this.setErrors(result.fieldErrors);
       return;
     }
-
-    const raw = this.form.getRawValue();
-    const body = this.toRequestBody(raw);
     this.submitting.set(true);
-
-    const request$ = this.isEditMode
-      ? this.holdingsService.update(this.holding!.id, body as unknown as UpdateHoldingRequest)
-      : this.holdingsService.create(body as unknown as CreateHoldingRequest);
-
+    const update: Partial<typeof submission> = { ...submission };
+    delete update.assetType;
+    const request$ = this.holding
+      ? this.holdingsService.update(this.holding.id, update as UpdateHoldingRequest)
+      : this.holdingsService.create(submission as CreateHoldingRequest);
     request$.subscribe({
-      next: (result) => {
+      next: (saved) => {
         this.submitting.set(false);
-        this.saved.emit(result);
+        this.saved.emit(saved);
       },
-      error: (error: unknown) => {
+      error: (error: { error?: { errors?: { field: string; code: string }[] } }) => {
         this.submitting.set(false);
-        this.submitError.set(this.extractServerErrors(error));
+        const errors = error.error?.errors;
+        if (errors?.length) {
+          this.setErrors(errors);
+        } else {
+          this.submitError.set(true);
+        }
       },
     });
+  }
+
+  private setErrors(errors: readonly { field: string; code: string }[]): void {
+    const byField: Record<string, string> = {};
+    for (const { field, code } of errors) {
+      byField[field] ??= code;
+    }
+    this.fieldErrors.set(byField);
+  }
+
+  /** Only the asset type's own fields, decimals as strings, empty optionals omitted. */
+  private toSubmission(): HoldingSubmission {
+    const raw = this.form.getRawValue();
+    const submission: Record<string, string> = {
+      assetType: raw.assetType,
+      management: raw.management.trim(),
+    };
+    const values: Record<string, string | null | undefined> = {
+      note: raw.note?.trim(),
+      isin: raw.isin?.trim().toUpperCase(),
+      name: raw.name?.trim(),
+      metal: raw.metal,
+      coinId: raw.coinId,
+      unit: raw.unit,
+      quantity: raw.quantity == null ? null : toDecimalString(raw.quantity),
+      purchasePrice: raw.purchasePrice == null ? null : toDecimalString(raw.purchasePrice),
+      purchaseDate: raw.purchaseDate ? toIsoDateOnly(raw.purchaseDate) : null,
+      currentValue: raw.currentValue == null ? null : toDecimalString(raw.currentValue),
+    };
+    for (const field of this.fields()) {
+      const value = values[field];
+      if (value) submission[field] = value;
+    }
+    return submission as unknown as HoldingSubmission;
   }
 
   protected cancel(): void {
     this.cancelled.emit();
   }
 
-  /** FR-012: button/card type selector — clicking a card selects that asset type (add mode only). */
   protected selectAssetType(assetType: AssetType): void {
-    if (this.isEditMode) {
-      return;
-    }
-    this.form.controls.assetType.setValue(assetType);
+    if (!this.isEditMode) this.form.controls.assetType.setValue(assetType);
   }
 
   protected labelFor(assetType: AssetType): string {
     return this.translate.transform(ASSET_TYPE_LABEL_KEYS[assetType]);
   }
 
-  /** Example text shown in the "name" field's placeholder differs by asset type (FR-012a-adjacent UX polish). */
   protected namePlaceholderKey(): string {
-    return ASSET_TYPE_NAME_PLACEHOLDER_KEYS[this.form.controls.assetType.value];
+    return ASSET_TYPE_NAME_PLACEHOLDER_KEYS[this.assetType()];
   }
 
   protected iconFor(assetType: AssetType): string {
     return HoldingFormComponent.ASSET_TYPE_ICONS[assetType];
   }
 
-  /** p-datepicker's display/typing format (PrimeNG tokens, not a date-fns/ICU pattern) —
-   *  kept in lockstep with the holdings table's `localeDate` pipe (Intl.DateTimeFormat
-   *  under the active language), so the same date reads the same way whether it's
-   *  being typed here or displayed there: German is day-month-year with dots
-   *  (TT.MM.JJJJ), English is US month/day/year (MM/DD/YYYY). Storage is unaffected:
-   *  toIsoDateOnly() reads the Date object's fields directly, not this display string. */
+  /** PrimeNG date tokens, matching the table's `localeDate` pipe (de dd.mm.yyyy, en mm/dd/yyyy). */
   protected dateFormat(): string {
     return this.i18n.language() === 'de' ? 'dd.mm.yy' : 'mm/dd/yy';
-  }
-
-  /** Drives the label's "*" marker — required-ness varies by asset type (e.g. currentValue). */
-  protected isRequired(controlName: keyof typeof this.form.controls): boolean {
-    return this.form.controls[controlName].hasValidator(Validators.required);
-  }
-
-  private toRequestBody(raw: {
-    assetType: AssetType;
-    management: string;
-    isin: string | null;
-    name: string | null;
-    quantity: number | null;
-    purchasePrice: number | null;
-    purchaseDate: Date | null;
-    weightGrams: number | null;
-    currentValue: number | null;
-  }): Record<string, unknown> {
-    const fieldSet = ASSET_TYPE_FIELD_SETS[raw.assetType];
-    const body: Record<string, unknown> = {
-      assetType: raw.assetType,
-      management: raw.management,
-    };
-    if (fieldSet.isin && raw.isin) {
-      body['isin'] = raw.isin;
-    }
-    if (fieldSet.name && raw.name) {
-      body['name'] = raw.name;
-    }
-    if (fieldSet.quantity) {
-      body['quantity'] = toDecimalString(raw.quantity);
-    }
-    if (fieldSet.purchasePrice) {
-      body['purchasePrice'] = toDecimalString(raw.purchasePrice);
-    }
-    if (fieldSet.purchaseDate !== 'hidden') {
-      const date = toIsoDateOnly(raw.purchaseDate);
-      if (date) {
-        body['purchaseDate'] = date;
-      }
-    }
-    if (fieldSet.weightGrams) {
-      body['weightGrams'] = toDecimalString(raw.weightGrams);
-    }
-    if (fieldSet.currentValue) {
-      const value = toDecimalString(raw.currentValue);
-      if (value) {
-        body['currentValue'] = value;
-      }
-    }
-    return body;
-  }
-
-  private extractServerErrors(error: unknown): string {
-    const httpError = error as { error?: { fieldErrors?: { field: string; message: string }[] } };
-    const fieldErrors = httpError.error?.fieldErrors;
-    if (fieldErrors && fieldErrors.length > 0) {
-      return fieldErrors.map((fieldError) => fieldError.message).join(' ');
-    }
-    return 'Unable to save this holding. Please try again.';
   }
 }

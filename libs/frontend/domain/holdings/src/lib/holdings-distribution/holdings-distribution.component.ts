@@ -1,7 +1,7 @@
 import { Component, Input, OnChanges, OnInit, computed, inject, signal } from '@angular/core';
 import type { EChartsOption } from 'echarts';
 import type { HoldingResponse } from '@vaultfolio/api-contract';
-import { ASSET_TYPE_LABEL_KEYS } from '../asset-type-fields';
+import { ASSET_TYPE_LABEL_KEYS } from '../holding-display';
 import { HoldingsService } from '../holdings.service';
 import { groupHoldingsByKey } from '../holdings-valuation';
 import {
