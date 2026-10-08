@@ -1,0 +1,1271 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Bestände überarbeiten – Review-Mockup</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="https://unpkg.com/primeicons@7.0.0/primeicons.css" />
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f8fafc;
+        --surface: #fff;
+        --text: #1e293b;
+        --muted: #64748b;
+        --line: #e2e8f0;
+        --primary: #10b981;
+        --primary-strong: #059669;
+        --warn: #d97706;
+        --warn-bg: #fff7ed;
+        --info: #2563eb;
+        --info-bg: #eff6ff;
+        --danger: #dc2626;
+        --danger-bg: #fef2f2;
+        --ok-bg: #ecfdf5;
+
+        --review-bg: #f3f2ee;
+        --review-ink: #2c2a25;
+        --review-muted: #7a7669;
+        --review-line: #ddd9d0;
+        --review-accent: #b45f2c;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--review-bg);
+        color: var(--review-ink);
+        font-family:
+          Inter,
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      h1,
+      h2,
+      h3,
+      p {
+        text-wrap: balance;
+      }
+
+      .review-header {
+        padding: 1.5rem 2rem 1rem;
+        border-bottom: 1px solid var(--review-line);
+      }
+      .review-eyebrow {
+        font-size: 0.72rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--review-accent);
+        font-weight: 700;
+        margin: 0 0 0.25rem;
+      }
+      .review-header h1 {
+        margin: 0 0 0.35rem;
+        font-size: 1.35rem;
+        font-weight: 800;
+      }
+      .review-header p {
+        margin: 0;
+        color: var(--review-muted);
+        font-size: 0.9rem;
+        max-width: 68ch;
+        line-height: 1.5;
+      }
+      .review-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.25rem;
+        align-items: center;
+        padding: 0.85rem 2rem;
+        background: #fff;
+        border-bottom: 1px solid var(--review-line);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+      .control-group {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .control-group span.label {
+        font-size: 0.72rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--review-muted);
+        font-weight: 700;
+      }
+      .segmented {
+        display: inline-flex;
+        border: 1px solid var(--review-line);
+        border-radius: 8px;
+        overflow: hidden;
+        flex-wrap: wrap;
+      }
+      .segmented button {
+        appearance: none;
+        border: none;
+        background: #fff;
+        color: var(--review-ink);
+        font: inherit;
+        font-size: 0.83rem;
+        font-weight: 600;
+        padding: 0.4rem 0.75rem;
+        cursor: pointer;
+        border-right: 1px solid var(--review-line);
+      }
+      .segmented button:last-child {
+        border-right: none;
+      }
+      .segmented button:hover {
+        background: #f1efe9;
+      }
+      .segmented button:focus-visible {
+        outline: 2px solid var(--review-accent);
+        outline-offset: -2px;
+      }
+      .segmented button[aria-pressed='true'] {
+        background: var(--review-accent);
+        color: #fff;
+      }
+      .review-stage {
+        padding: 2rem;
+        display: flex;
+        justify-content: center;
+      }
+      .stage-frame {
+        width: 100%;
+        max-width: 1180px;
+        background: #d9d4c8;
+        border-radius: 14px;
+        padding: 1.25rem;
+        transition: max-width 0.2s ease;
+      }
+      .stage-frame[data-viewport='mobile'] {
+        max-width: 400px;
+      }
+      .stage-frame-label {
+        font-size: 0.72rem;
+        color: var(--review-muted);
+        text-align: center;
+        margin: 0 0 0.5rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      .canvas {
+        background: var(--bg);
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+        color: var(--text);
+        min-height: 720px;
+        position: relative;
+      }
+      .review-footer {
+        padding: 0 2rem 2rem;
+        max-width: 1180px;
+        margin: 0 auto;
+        font-size: 0.85rem;
+        color: var(--review-muted);
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+      }
+      .review-footer h3 {
+        margin: 0.5rem 0 0;
+        font-size: 0.8rem;
+        color: var(--review-ink);
+      }
+      .review-footer ul {
+        margin: 0.25rem 0 0.5rem;
+        padding-left: 1.1rem;
+      }
+
+      /* state visibility: a block shows when the canvas screen is one of its data-show tokens */
+      [data-screen] [data-show] {
+        display: none;
+      }
+      [data-screen='list'] [data-show~='list'],
+      [data-screen='form-etf'] [data-show~='form-etf'],
+      [data-screen='form-metal'] [data-show~='form-metal'],
+      [data-screen='form-crypto'] [data-show~='form-crypto'],
+      [data-screen='form-deposit'] [data-show~='form-deposit'],
+      [data-screen='form-error'] [data-show~='form-error'],
+      [data-screen='dash-empty'] [data-show~='dash-empty'],
+      [data-screen='dash-filled'] [data-show~='dash-filled'],
+      [data-screen='dash-error'] [data-show~='dash-error'] {
+        display: block;
+      }
+      [data-screen='list'] [data-show~='list'].flex,
+      [data-screen='form-etf'] [data-show~='form-etf'].flex,
+      [data-screen='form-metal'] [data-show~='form-metal'].flex,
+      [data-screen='form-crypto'] [data-show~='form-crypto'].flex,
+      [data-screen='form-deposit'] [data-show~='form-deposit'].flex,
+      [data-screen='form-error'] [data-show~='form-error'].flex,
+      [data-screen='dash-empty'] [data-show~='dash-empty'].flex,
+      [data-screen='dash-filled'] [data-show~='dash-filled'].flex,
+      [data-screen='dash-error'] [data-show~='dash-error'].flex {
+        display: flex;
+      }
+      [data-screen='list'] [data-show~='list'].grid,
+      [data-screen='form-etf'] [data-show~='form-etf'].grid,
+      [data-screen='form-metal'] [data-show~='form-metal'].grid,
+      [data-screen='form-crypto'] [data-show~='form-crypto'].grid,
+      [data-screen='form-deposit'] [data-show~='form-deposit'].grid,
+      [data-screen='form-error'] [data-show~='form-error'].grid,
+      [data-screen='dash-empty'] [data-show~='dash-empty'].grid,
+      [data-screen='dash-filled'] [data-show~='dash-filled'].grid,
+      [data-screen='dash-error'] [data-show~='dash-error'].grid {
+        display: grid;
+      }
+
+      /* ===== feature styles ===== */
+      .shell {
+        display: grid;
+        grid-template-columns: 232px 1fr;
+        min-height: 720px;
+      }
+      .stage-frame[data-viewport='mobile'] .shell {
+        grid-template-columns: 1fr;
+      }
+      .sidebar {
+        background: var(--surface);
+        border-right: 1px solid var(--line);
+        padding: 1rem 0.75rem;
+      }
+      .stage-frame[data-viewport='mobile'] .sidebar {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+        overflow-x: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+        padding: 0.5rem;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 700;
+        padding: 0.25rem 0.5rem 1rem;
+      }
+      .stage-frame[data-viewport='mobile'] .brand {
+        padding: 0 0.5rem 0 0;
+      }
+      .brand i {
+        width: 22px;
+        height: 22px;
+        border-radius: 6px;
+        background: var(--primary);
+        display: inline-block;
+      }
+      .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.55rem 0.7rem;
+        border-radius: 8px;
+        color: var(--muted);
+        font-size: 0.9rem;
+        font-weight: 500;
+        white-space: nowrap;
+      }
+      .nav-item.active {
+        background: var(--ok-bg);
+        color: var(--primary-strong);
+        font-weight: 600;
+      }
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.85rem 1.25rem;
+        background: var(--surface);
+        border-bottom: 1px solid var(--line);
+      }
+      .crumb {
+        margin: 0;
+        font-size: 0.72rem;
+        color: var(--muted);
+      }
+      .header h1 {
+        margin: 0;
+        font-size: 1.1rem;
+      }
+      .meta {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        font-size: 0.85rem;
+      }
+      .stage-frame[data-viewport='mobile'] .meta .name,
+      .stage-frame[data-viewport='mobile'] .role {
+        display: none;
+      }
+      .role {
+        background: var(--ok-bg);
+        color: var(--primary-strong);
+        font-size: 0.7rem;
+        font-weight: 700;
+        border-radius: 999px;
+        padding: 0.15rem 0.55rem;
+      }
+      .avatar {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: var(--primary-strong);
+        color: #fff;
+        font-size: 0.7rem;
+        font-weight: 700;
+        display: grid;
+        place-items: center;
+      }
+      .icon-btn {
+        border: 0;
+        background: none;
+        color: var(--muted);
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        cursor: pointer;
+      }
+      .content {
+        padding: 1.25rem;
+        position: relative;
+      }
+      .stage-frame[data-viewport='mobile'] .content {
+        padding: 0.75rem;
+      }
+
+      .tiles {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+      }
+      .stage-frame[data-viewport='mobile'] .tiles {
+        grid-template-columns: 1fr;
+      }
+      .tile {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 0.75rem;
+        min-height: 120px;
+      }
+      .tile h3 {
+        margin: 0 0 0.5rem;
+        font-size: 0.75rem;
+        color: var(--muted);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+      }
+      .tiles.two {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .tiles.two .tile {
+        min-height: 190px;
+      }
+      .stage-frame[data-viewport='mobile'] .tiles.two {
+        grid-template-columns: 1fr;
+      }
+      .donut {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        background: conic-gradient(
+          var(--primary) 0 45%,
+          #3b82f6 0 70%,
+          #f59e0b 0 85%,
+          #a855f7 0 95%,
+          #94a3b8 0
+        );
+        position: relative;
+        margin: 0.4rem auto;
+      }
+      .donut::after {
+        content: '';
+        position: absolute;
+        inset: 18px;
+        background: var(--surface);
+        border-radius: 50%;
+      }
+      .mini-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.78rem;
+        padding: 0.15rem 0;
+      }
+      .mini-row span:last-child {
+        color: var(--muted);
+      }
+      .big {
+        font-size: 1.9rem;
+        font-weight: 700;
+        margin: 0.25rem 0;
+      }
+      .empty {
+        display: grid;
+        place-items: center;
+        text-align: center;
+        gap: 0.35rem;
+        color: var(--muted);
+        font-size: 0.82rem;
+        padding: 0.5rem;
+        height: 100%;
+      }
+      .empty i {
+        font-size: 1.6rem;
+        color: #94a3b8;
+      }
+      .empty strong {
+        color: var(--text);
+        font-size: 0.9rem;
+      }
+      .tile-error {
+        display: grid;
+        place-items: center;
+        text-align: center;
+        gap: 0.35rem;
+        color: var(--danger);
+        font-size: 0.82rem;
+        padding: 0.5rem;
+      }
+      .tile-error i {
+        font-size: 1.6rem;
+      }
+      .note-line {
+        font-size: 0.75rem;
+        color: var(--warn);
+        display: flex;
+        gap: 0.35rem;
+        align-items: flex-start;
+        background: var(--warn-bg);
+        border-radius: 6px;
+        padding: 0.35rem 0.5rem;
+      }
+
+      .panel {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+      }
+      .panel-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        padding: 0.85rem 1rem;
+        border-bottom: 1px solid var(--line);
+      }
+      .panel-head h2 {
+        margin: 0;
+        font-size: 1rem;
+      }
+      .actions {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+      }
+      .filter {
+        padding: 0.6rem 1rem;
+        border-bottom: 1px solid var(--line);
+      }
+      .filter span {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 0.4rem 0.6rem;
+        color: var(--muted);
+        font-size: 0.85rem;
+        max-width: 320px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+      }
+      th {
+        text-align: left;
+        color: var(--muted);
+        font-weight: 600;
+        font-size: 0.75rem;
+        padding: 0.6rem 1rem;
+        border-bottom: 1px solid var(--line);
+      }
+      td {
+        padding: 0.6rem 1rem;
+        border-bottom: 1px solid var(--line);
+        vertical-align: top;
+      }
+      td small {
+        display: block;
+        color: var(--muted);
+        font-size: 0.72rem;
+        margin-top: 0.1rem;
+      }
+      td.num,
+      th.num {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+      .tag {
+        font-size: 0.7rem;
+        font-weight: 600;
+        border-radius: 999px;
+        padding: 0.1rem 0.5rem;
+        background: #f1f5f9;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+      .stage-frame[data-viewport='mobile'] .hide-mobile {
+        display: none;
+      }
+      .note-icon {
+        color: var(--muted);
+        font-size: 0.8rem;
+        margin-left: 0.3rem;
+      }
+
+      .btn {
+        border: 1px solid var(--line);
+        background: var(--surface);
+        color: var(--text);
+        font: inherit;
+        font-size: 0.85rem;
+        font-weight: 600;
+        padding: 0.45rem 0.85rem;
+        border-radius: 6px;
+        cursor: pointer;
+        display: inline-flex;
+        gap: 0.4rem;
+        align-items: center;
+      }
+      .btn.primary {
+        background: var(--primary);
+        border-color: var(--primary);
+        color: #fff;
+      }
+      .btn.text {
+        border-color: transparent;
+        background: none;
+        color: var(--primary-strong);
+      }
+
+      .backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.45);
+        justify-content: center;
+        align-items: flex-start;
+        padding: 1.5rem 0.75rem;
+        z-index: 5;
+        overflow: auto;
+      }
+      .modal {
+        background: var(--surface);
+        border-radius: 12px;
+        width: 100%;
+        max-width: 560px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+      }
+      .modal-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.9rem 1.1rem;
+        border-bottom: 1px solid var(--line);
+        font-weight: 700;
+      }
+      .modal-body {
+        padding: 1rem 1.1rem;
+        display: grid;
+        gap: 0.85rem;
+      }
+      .modal-foot {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
+        padding: 0.8rem 1.1rem;
+        border-top: 1px solid var(--line);
+      }
+      .seg {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+      }
+      .seg span {
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 0.3rem 0.75rem;
+        font-size: 0.82rem;
+        font-weight: 500;
+        color: var(--muted);
+      }
+      .seg span.on {
+        background: var(--ok-bg);
+        border-color: var(--primary);
+        color: var(--primary-strong);
+        font-weight: 600;
+      }
+      .field label {
+        display: block;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+      }
+      .field label.req::after {
+        content: ' *';
+        color: var(--danger);
+      }
+      .field .input {
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 0.5rem 0.65rem;
+        font-size: 0.88rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.5rem;
+        min-height: 36px;
+        background: #fff;
+      }
+      .field .input .ph {
+        color: #94a3b8;
+      }
+      .field .input.area {
+        min-height: 70px;
+        align-items: flex-start;
+      }
+      .field .hint {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.72rem;
+        color: var(--muted);
+        margin-top: 0.2rem;
+      }
+      .field.invalid .input {
+        border-color: var(--danger);
+      }
+      .field .err {
+        color: var(--danger);
+        font-size: 0.75rem;
+        margin-top: 0.2rem;
+        display: flex;
+        gap: 0.3rem;
+        align-items: center;
+      }
+      .field .err.over {
+        justify-content: space-between;
+      }
+      .pair {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+      }
+      .stage-frame[data-viewport='mobile'] .pair {
+        grid-template-columns: 1fr;
+      }
+      .qty-unit {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 0.5rem;
+        align-items: start;
+      }
+      .dropdown {
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        margin-top: 0.25rem;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+        font-size: 0.85rem;
+      }
+      .dropdown .search {
+        padding: 0.45rem 0.65rem;
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        gap: 0.4rem;
+        color: var(--text);
+      }
+      .dropdown .opt {
+        padding: 0.4rem 0.65rem;
+        display: flex;
+        justify-content: space-between;
+      }
+      .dropdown .opt small {
+        color: var(--muted);
+      }
+      .dropdown .opt.sel {
+        background: var(--ok-bg);
+      }
+      [data-screen='form-etf'] .type-seg [data-t='etf'],
+      [data-screen='form-error'] .type-seg [data-t='etf'],
+      [data-screen='form-metal'] .type-seg [data-t='metal'],
+      [data-screen='form-crypto'] .type-seg [data-t='crypto'],
+      [data-screen='form-deposit'] .type-seg [data-t='deposit'] {
+        background: var(--ok-bg);
+        border-color: var(--primary);
+        color: var(--primary-strong);
+        font-weight: 600;
+      }
+      .metal-row {
+        display: grid;
+        grid-template-columns: 1.4fr 1fr auto;
+        gap: 0.5rem;
+        align-items: start;
+      }
+      .stage-frame[data-viewport='mobile'] .metal-row {
+        grid-template-columns: 1fr 1fr;
+      }
+      .stage-frame[data-viewport='mobile'] .metal-row .field:first-child {
+        grid-column: 1 / -1;
+      }
+      .unit-seg span {
+        position: relative;
+        cursor: help;
+      }
+      .unit-seg span::after {
+        content: attr(data-tip);
+        position: absolute;
+        bottom: calc(100% + 6px);
+        right: 0;
+        background: #1e293b;
+        color: #fff;
+        font-size: 0.72rem;
+        font-weight: 500;
+        padding: 0.3rem 0.5rem;
+        border-radius: 4px;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.12s;
+        z-index: 3;
+      }
+      .unit-seg span:hover::after {
+        opacity: 1;
+      }
+      .note-link {
+        display: inline-flex;
+        gap: 0.25rem;
+        align-items: center;
+        font-size: 0.72rem;
+        color: var(--primary-strong);
+        margin-top: 0.15rem;
+      }
+      .conv {
+        font-size: 0.75rem;
+        color: var(--muted);
+      }
+      .banner {
+        background: var(--info-bg);
+        color: var(--info);
+        border-radius: 8px;
+        padding: 0.55rem 0.75rem;
+        font-size: 0.8rem;
+        display: flex;
+        gap: 0.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="review-header">
+      <p class="review-eyebrow">Non-functional review mockup</p>
+      <h1>Bestände überarbeiten (Spec 045)</h1>
+      <p>
+        Bestandsliste, Formular je Anlageart (Modal) und die beiden Dashboard-Kacheln in Leer-,
+        gefüllt- und Fehlerzustand. Statisches HTML, keine echte UI; alle Namen und Daten sind
+        erfunden.
+      </p>
+    </header>
+
+    <div class="review-controls">
+      <div class="control-group">
+        <span class="label">Viewport</span>
+        <div class="segmented" id="viewport-toggle">
+          <button type="button" data-viewport="desktop" aria-pressed="true">Desktop</button>
+          <button type="button" data-viewport="mobile" aria-pressed="false">Mobile</button>
+        </div>
+      </div>
+      <div class="control-group">
+        <span class="label">Screen</span>
+        <div class="segmented" id="screen-toggle">
+          <button type="button" data-screen="list" aria-pressed="true">Liste</button>
+          <button type="button" data-screen="form-etf" aria-pressed="false">Form: ETF/Aktie</button>
+          <button type="button" data-screen="form-metal" aria-pressed="false">Form: Metall</button>
+          <button type="button" data-screen="form-crypto" aria-pressed="false">Form: Krypto</button>
+          <button type="button" data-screen="form-deposit" aria-pressed="false">
+            Form: Tagesgeld
+          </button>
+          <button type="button" data-screen="form-error" aria-pressed="false">Form: Fehler</button>
+          <button type="button" data-screen="dash-empty" aria-pressed="false">
+            Dashboard leer
+          </button>
+          <button type="button" data-screen="dash-filled" aria-pressed="false">
+            Dashboard gefüllt
+          </button>
+          <button type="button" data-screen="dash-error" aria-pressed="false">
+            Dashboard Fehler
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="review-stage">
+      <div class="stage-frame" id="stage-frame" data-viewport="desktop">
+        <p class="stage-frame-label" id="stage-frame-label">Desktop (ca. 1180 px)</p>
+        <div class="canvas" data-screen="list" id="canvas">
+          <div class="shell">
+            <nav class="sidebar" aria-label="Primary">
+              <div class="brand"><i></i> Vaultfolio</div>
+              <div class="nav-item" data-nav="dash"><i class="pi pi-th-large"></i> Dashboard</div>
+              <div class="nav-item active"><i class="pi pi-briefcase"></i> Bestände</div>
+            </nav>
+            <div>
+              <div class="header">
+                <div>
+                  <p class="crumb">Vaultfolio</p>
+                  <h1>
+                    <span data-show="list form-etf form-metal form-crypto form-deposit form-error"
+                      >Bestände</span
+                    >
+                    <span data-show="dash-empty dash-filled dash-error">Dashboard</span>
+                  </h1>
+                </div>
+                <div class="meta">
+                  <span class="name">Claude Test</span><span class="role">Mitglied</span>
+                  <span class="avatar">CT</span>
+                  <button class="icon-btn" aria-label="Theme"><i class="pi pi-sun"></i></button>
+                  <button class="btn text"><i class="pi pi-sign-out"></i> Abmelden</button>
+                </div>
+              </div>
+
+              <div class="content">
+                <!-- ============ Holdings page (list + all form states behind the modal) ============ -->
+                <div data-show="list form-etf form-metal form-crypto form-deposit form-error">
+                  <div class="tiles">
+                    <div class="tile">
+                      <h3>Verteilung</h3>
+                      <div class="donut"></div>
+                    </div>
+                    <div class="tile">
+                      <h3>ETF</h3>
+                      <div class="mini-row"><span>MSCI World</span><span>62 %</span></div>
+                      <div class="mini-row"><span>Emerging M.</span><span>38 %</span></div>
+                    </div>
+                    <div class="tile">
+                      <h3>Aktie</h3>
+                      <div class="mini-row"><span>Beispiel AG</span><span>100 %</span></div>
+                    </div>
+                    <div class="tile">
+                      <h3>Edelmetall</h3>
+                      <div class="mini-row"><span>Gold</span><span>70 %</span></div>
+                      <div class="mini-row"><span>Silber</span><span>30 %</span></div>
+                    </div>
+                    <div class="tile">
+                      <h3>Krypto</h3>
+                      <div class="mini-row"><span>Bitcoin</span><span>81 %</span></div>
+                      <div class="mini-row"><span>Ether</span><span>19 %</span></div>
+                    </div>
+                    <div class="tile">
+                      <h3>Tagesgeld</h3>
+                      <div class="mini-row"><span>Sparkasse</span><span>100 %</span></div>
+                    </div>
+                  </div>
+
+                  <section class="panel">
+                    <div class="panel-head">
+                      <h2>6 Bestände</h2>
+                      <div class="actions">
+                        <button class="btn"><i class="pi pi-download"></i> Export</button>
+                        <button class="btn primary">
+                          <i class="pi pi-plus"></i> Bestand hinzufügen
+                        </button>
+                      </div>
+                    </div>
+                    <div class="filter">
+                      <span><i class="pi pi-search"></i> Bestände filtern …</span>
+                    </div>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Art</th>
+                          <th>Bestand</th>
+                          <th class="hide-mobile">Verwaltung</th>
+                          <th class="num">Menge</th>
+                          <th class="num hide-mobile">Kaufpreis</th>
+                          <th></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td><span class="tag">ETF</span></td>
+                          <td>Beispiel MSCI World<small>IE00B4L5Y983</small></td>
+                          <td class="hide-mobile">Broker A</td>
+                          <td class="num">42,5</td>
+                          <td class="num hide-mobile">4.120,00 €</td>
+                          <td><i class="pi pi-pencil"></i> <i class="pi pi-trash"></i></td>
+                        </tr>
+                        <tr>
+                          <td><span class="tag">Aktie</span></td>
+                          <td>Beispiel AG<small>DE0000000000 · 12.03.2023</small></td>
+                          <td class="hide-mobile">Broker A</td>
+                          <td class="num">10</td>
+                          <td class="num hide-mobile">1.250,00 €</td>
+                          <td><i class="pi pi-pencil"></i> <i class="pi pi-trash"></i></td>
+                        </tr>
+                        <tr>
+                          <td><span class="tag">Metall</span></td>
+                          <td>
+                            Gold <small>XAU</small
+                            ><a class="note-link"><i class="pi pi-comment"></i> Notiz anzeigen</a>
+                          </td>
+                          <td class="hide-mobile">Tresor</td>
+                          <td class="num">2 oz<small>(62,207 g)</small></td>
+                          <td class="num hide-mobile">—</td>
+                          <td><i class="pi pi-pencil"></i> <i class="pi pi-trash"></i></td>
+                        </tr>
+                        <tr>
+                          <td><span class="tag">Metall</span></td>
+                          <td>Silber <small>XAG</small></td>
+                          <td class="hide-mobile">Tresor</td>
+                          <td class="num">500 g</td>
+                          <td class="num hide-mobile">—</td>
+                          <td><i class="pi pi-pencil"></i> <i class="pi pi-trash"></i></td>
+                        </tr>
+                        <tr>
+                          <td><span class="tag">Krypto</span></td>
+                          <td>Bitcoin <small>BTC</small></td>
+                          <td class="hide-mobile">Wallet</td>
+                          <td class="num">0,00012345</td>
+                          <td class="num hide-mobile">6.800,00 €</td>
+                          <td><i class="pi pi-pencil"></i> <i class="pi pi-trash"></i></td>
+                        </tr>
+                        <tr>
+                          <td><span class="tag">Tagesgeld</span></td>
+                          <td>Notgroschen</td>
+                          <td class="hide-mobile">Sparkasse</td>
+                          <td class="num">—</td>
+                          <td class="num hide-mobile">—</td>
+                          <td><i class="pi pi-pencil"></i> <i class="pi pi-trash"></i></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </section>
+
+                  <!-- ============ Modal ============ -->
+                  <div
+                    class="backdrop flex"
+                    data-show="form-etf form-metal form-crypto form-deposit form-error"
+                  >
+                    <div class="modal">
+                      <div class="modal-head">
+                        <span>Bestand hinzufügen</span><i class="pi pi-times"></i>
+                      </div>
+                      <div class="modal-body">
+                        <div class="field">
+                          <label>Anlageart</label>
+                          <div class="seg type-seg">
+                            <span data-t="etf">ETF</span>
+                            <span data-t="share">Aktie</span>
+                            <span data-t="metal">Edelmetall</span>
+                            <span data-t="crypto">Krypto</span>
+                            <span data-t="deposit">Tagesgeld/Festgeld</span>
+                          </div>
+                        </div>
+
+                        <!-- ETF / Aktie (valid) -->
+                        <div data-show="form-etf" class="modal-body" style="padding: 0">
+                          <div class="field">
+                            <label class="req">ISIN</label>
+                            <div class="input">IE00B4L5Y983</div>
+                            <div class="hint"><span>12 Zeichen, Prüfsumme wird geprüft</span></div>
+                          </div>
+                          <div class="field">
+                            <label class="req">Name</label>
+                            <div class="input">Beispiel MSCI World</div>
+                          </div>
+                          <div class="pair">
+                            <div class="field">
+                              <label class="req">Menge</label>
+                              <div class="input">42,5</div>
+                            </div>
+                            <div class="field">
+                              <label class="req">Kaufpreis (€)</label>
+                              <div class="input">4.120,00</div>
+                            </div>
+                          </div>
+                          <div class="field">
+                            <label>Kaufdatum (nur Aktie)</label>
+                            <div class="input">
+                              <span class="ph">TT.MM.JJJJ</span><i class="pi pi-calendar"></i>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- ETF with errors -->
+                        <div data-show="form-error" class="modal-body" style="padding: 0">
+                          <div class="field invalid">
+                            <label class="req">ISIN</label>
+                            <div class="input">IE00B4L5Y98</div>
+                            <div class="err">
+                              <i class="pi pi-exclamation-circle"></i> Die ISIN muss aus 12 Zeichen
+                              bestehen und eine gültige Prüfziffer haben.
+                            </div>
+                          </div>
+                          <div class="field">
+                            <label class="req">Name</label>
+                            <div class="input">Beispiel MSCI World</div>
+                          </div>
+                          <div class="pair">
+                            <div class="field invalid">
+                              <label class="req">Menge</label>
+                              <div class="input">0</div>
+                              <div class="err">
+                                <i class="pi pi-exclamation-circle"></i> Die Menge muss größer als 0
+                                sein.
+                              </div>
+                            </div>
+                            <div class="field">
+                              <label class="req">Kaufpreis (€)</label>
+                              <div class="input">4.120,00</div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- Metall -->
+                        <div data-show="form-metal" class="modal-body" style="padding: 0">
+                          <div class="metal-row">
+                            <div class="field">
+                              <label class="req">Metall</label>
+                              <div class="input">Gold (XAU) <i class="pi pi-chevron-down"></i></div>
+                            </div>
+                            <div class="field">
+                              <label class="req">Menge</label>
+                              <div class="input">2</div>
+                            </div>
+                            <div class="field">
+                              <label>Einheit</label>
+                              <div class="seg unit-seg">
+                                <span class="on" data-tip="Unzen (entspricht 31,1035 Gramm)"
+                                  >oz</span
+                                ><span data-tip="Gramm">g</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="conv" style="margin-top: -0.4rem">
+                            ≙ 62,207 g (1 oz = 31,1035 g)
+                          </div>
+                          <div class="field">
+                            <label>Aktueller Wert (€)</label>
+                            <div class="input"><span class="ph">optional</span></div>
+                          </div>
+                        </div>
+
+                        <!-- Krypto -->
+                        <div data-show="form-crypto" class="modal-body" style="padding: 0">
+                          <div class="field">
+                            <label class="req">Coin</label>
+                            <div class="input">Bitcoin (BTC) <i class="pi pi-chevron-up"></i></div>
+                            <div class="dropdown">
+                              <div class="search">
+                                <i class="pi pi-search"></i> bit<span style="color: #94a3b8"
+                                  >|</span
+                                >
+                              </div>
+                              <div class="opt sel">
+                                <span>Bitcoin <small>BTC</small></span>
+                              </div>
+                              <div class="opt">
+                                <span>Bitcoin Cash <small>BCH</small></span>
+                              </div>
+                              <div class="opt">
+                                <span>Bitget Token <small>BGB</small></span>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="pair">
+                            <div class="field">
+                              <label class="req">Menge</label>
+                              <div class="input">0,00012345</div>
+                              <div class="hint"><span>bis zu 8 Nachkommastellen</span></div>
+                            </div>
+                            <div class="field">
+                              <label class="req">Kaufpreis (€)</label>
+                              <div class="input">6.800,00</div>
+                            </div>
+                          </div>
+                          <div class="field">
+                            <label>Kaufdatum</label>
+                            <div class="input">
+                              <span class="ph">TT.MM.JJJJ</span><i class="pi pi-calendar"></i>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- Tagesgeld -->
+                        <div data-show="form-deposit" class="modal-body" style="padding: 0">
+                          <div class="field">
+                            <label class="req">Name</label>
+                            <div class="input">Notgroschen</div>
+                          </div>
+                          <div class="field">
+                            <label class="req">Aktueller Wert (€)</label>
+                            <div class="input">8.000,00</div>
+                          </div>
+                        </div>
+
+                        <!-- alle Arten -->
+                        <div class="field">
+                          <label>Broker / Bank</label>
+                          <div class="input">Broker A</div>
+                        </div>
+                        <div class="field" data-show="form-etf form-metal form-crypto form-deposit">
+                          <label>Notiz</label>
+                          <div class="input area">
+                            <span>Langfristig, Sparplan läuft weiter.</span>
+                          </div>
+                          <div class="hint">
+                            <span></span><span>463 von 500 Zeichen übrig</span>
+                          </div>
+                        </div>
+                        <div class="field invalid" data-show="form-error">
+                          <label>Notiz</label>
+                          <div class="input area">
+                            <span>Sehr lange Notiz … (501 Zeichen)</span>
+                          </div>
+                          <div class="err over">
+                            <span
+                              ><i class="pi pi-exclamation-circle"></i> Die Notiz darf höchstens 500
+                              Zeichen lang sein.</span
+                            ><span>−1</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="modal-foot">
+                        <button class="btn">Abbrechen</button
+                        ><button class="btn primary">Speichern</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ============ Dashboard tiles ============ -->
+                <div data-show="dash-empty dash-filled dash-error">
+                  <div class="tiles two">
+                    <!-- Verteilung -->
+                    <div class="tile">
+                      <h3>Bestandsverteilung</h3>
+                      <div data-show="dash-empty">
+                        <div class="empty">
+                          <i class="pi pi-chart-pie"></i><strong>Noch keine Bestände</strong>Lege
+                          deinen ersten Bestand an, um die Verteilung zu sehen.<button
+                            class="btn primary"
+                          >
+                            <i class="pi pi-plus"></i> Ersten Bestand hinzufügen
+                          </button>
+                        </div>
+                      </div>
+                      <div data-show="dash-filled">
+                        <div class="donut" style="width: 110px; height: 110px"></div>
+                        <div class="mini-row"><span>ETF</span><span>45 %</span></div>
+                        <div class="mini-row"><span>Edelmetall</span><span>25 %</span></div>
+                        <div class="mini-row"><span>Krypto</span><span>15 %</span></div>
+                      </div>
+                      <div data-show="dash-error">
+                        <div class="tile-error">
+                          <i class="pi pi-exclamation-triangle"></i
+                          ><strong>Bestände konnten nicht geladen werden.</strong
+                          ><button class="btn">Erneut versuchen</button>
+                        </div>
+                      </div>
+                    </div>
+                    <!-- Gesamtwert -->
+                    <div class="tile">
+                      <h3>Gesamtwert</h3>
+                      <div data-show="dash-empty">
+                        <div class="empty">
+                          <i class="pi pi-wallet"></i><strong>Noch keine Bestände</strong>Sobald du
+                          Bestände erfasst, siehst du hier den Kaufwert.<button class="btn primary">
+                            <i class="pi pi-plus"></i> Ersten Bestand hinzufügen
+                          </button>
+                        </div>
+                      </div>
+                      <div data-show="dash-filled">
+                        <div class="conv">Kaufwert</div>
+                        <div class="big">12.170,00 €</div>
+                        <div class="note-line">
+                          <i class="pi pi-info-circle"></i> 2 Bestände ohne Kaufpreis sind nicht
+                          enthalten.
+                        </div>
+                      </div>
+                      <div data-show="dash-error">
+                        <div class="tile-error">
+                          <i class="pi pi-exclamation-triangle"></i
+                          ><strong>Gesamtwert konnte nicht geladen werden.</strong
+                          ><button class="btn">Erneut versuchen</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="review-footer">
+      <h3>Hinweise</h3>
+      <ul>
+        <li>
+          Statisches Mockup, nähert PrimeNG Aura an; das echte Formular ist ein
+          <code>p-dialog</code>.
+        </li>
+        <li>Import-Button ist entfernt, Export bleibt.</li>
+        <li>
+          Die Währungsangabe (€) ist hier nur Beispiel; Preise/Marktwerte kommen erst mit Spec 046.
+        </li>
+      </ul>
+    </footer>
+
+    <script>
+      const canvas = document.getElementById('canvas');
+      const stageFrame = document.getElementById('stage-frame');
+      const stageLabel = document.getElementById('stage-frame-label');
+      document.getElementById('viewport-toggle').addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-viewport]');
+        if (!btn) return;
+        const value = btn.getAttribute('data-viewport');
+        stageFrame.setAttribute('data-viewport', value);
+        stageLabel.textContent =
+          value === 'mobile' ? 'Mobile (ca. 360 px)' : 'Desktop (ca. 1180 px)';
+        [...document.getElementById('viewport-toggle').querySelectorAll('button')].forEach((b) =>
+          b.setAttribute('aria-pressed', String(b === btn)),
+        );
+      });
+      document.getElementById('screen-toggle').addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-screen]');
+        if (!btn) return;
+        canvas.setAttribute('data-screen', btn.getAttribute('data-screen'));
+        [...document.getElementById('screen-toggle').querySelectorAll('button')].forEach((b) =>
+          b.setAttribute('aria-pressed', String(b === btn)),
+        );
+      });
+    </script>
+  </body>
+</html>

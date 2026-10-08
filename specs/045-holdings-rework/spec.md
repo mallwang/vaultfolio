@@ -8,6 +8,8 @@
 
 **Input**: User description: "Überarbeitung der Bestände: verschlüsselte Speicherung wie die anderen Datenfeatures, ISIN nur für ETF und Aktie, Edelmetalle und Krypto nur noch per Auswahl (Krypto durchsuchbar), Notizfeld für jede Anlageart, Edelmetall-Menge wahlweise in Gramm oder Unzen, Krypto-Menge bis Satoshi-Genauigkeit, Import wieder ausbauen, Bestandsformular überarbeiten, leere Dashboardkacheln überarbeiten (Gesamtwert-Kachel zeigt vorerst den Kaufwert), Testsets für beide Testaccounts. Die Marktwert-/Preis-API-Anbindung ist nicht Teil dieser Spec (eigene Spec 046)."
 
+**Design**: [design.md](./design.md)
+
 ## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Holdings are protected like all other personal data (Priority: P1)
