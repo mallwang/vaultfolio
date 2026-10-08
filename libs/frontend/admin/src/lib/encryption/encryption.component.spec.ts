@@ -41,6 +41,7 @@ const DOMAINS: EncryptionDomainId[] = [
   'earnings',
   'retirement',
   'wealth',
+  'holdings',
   'insurances',
   'account-overview',
 ];

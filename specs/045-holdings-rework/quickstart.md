@@ -2,7 +2,7 @@
 
 Prerequisites: `npm ci`; `ENCRYPTION_KEY` set in the backend environment; dev stack running (see `verify-ui` skill).
 
-1. **Unit/e2e**: `npx nx run-many -t test,lint,typecheck -p holdings-domain backend frontend-domain-holdings` (confirm project names with `npx nx show projects`), then `npx nx e2e backend` for `holdings*.e2e-spec.ts`.
+1. **Unit/e2e**: `npx nx run-many -t test,lint,typecheck -p @vaultfolio/domain-holdings backend @vaultfolio/frontend-domain-holdings @vaultfolio/api-contract`, then `npx nx e2e backend` for `holdings*.e2e-spec.ts`.
 2. **Encryption (SC-001)**: create a holding via API, open the SQLite file read-only and confirm `payload_enc` is ciphertext and no isin/name columns exist.
 3. **Fail closed**: start the backend without the data key; `GET /holdings` returns 503 and the UI shows the unavailable page.
 4. **Precision (SC-004)**: POST crypto `quantity: "0.00000001"` and a metal in `OZT`; GET returns them unchanged; 9 decimals returns 400 `QUANTITY_DECIMALS`.

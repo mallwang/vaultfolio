@@ -91,7 +91,7 @@ describe('encryption: upgrade of a pre-feature database (US4)', () => {
   it('records one LEGACY_MIGRATION run per domain and reports counts per version', async () => {
     const api = await adminApi(t);
     const history = (await api.get('/admin/encryption/history')).body as EncryptionHistoryResponse;
-    expect(history.runs).toHaveLength(6);
+    expect(history.runs).toHaveLength(7);
     for (const run of history.runs) {
       expect(run).toMatchObject({
         kind: 'LEGACY_MIGRATION',
@@ -148,7 +148,7 @@ describe('encryption: missing or wrong key never damages data (US3)', () => {
         'WEALTH_UNAVAILABLE',
       ]);
       expect((await api.post('/wealth/snapshots').send(snapshotPayload())).status).toBe(503);
-      expect((await api.get('/holdings')).status).toBe(200);
+      expect((await api.get('/holdings')).status).toBe(503);
       const all = await status(api);
       expect(all.wealth.state).toBe(expected);
       expect(all.insurances.state).toBe(expected);

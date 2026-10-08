@@ -13,17 +13,23 @@
 
 export type AssetType = 'ETF' | 'SHARE' | 'PRECIOUS_METAL' | 'CRYPTO' | 'DEPOSIT_MONEY';
 
-/** The full shape returned by GET/POST/PUT — same shape as a list item. */
+export type HoldingMetal = 'XAU' | 'XAG' | 'XPT' | 'XPD';
+export type HoldingQuantityUnit = 'G' | 'OZT';
+
+/** The full shape returned by GET/POST/PUT; inapplicable fields are `null`. */
 export interface HoldingResponse {
   id: string;
   assetType: AssetType;
   management: string;
-  quantity: string | null;
-  purchasePrice: string | null;
-  purchaseDate: string | null;
+  note: string | null;
   isin: string | null;
   name: string | null;
-  weightGrams: string | null;
+  metal: HoldingMetal | null;
+  coinId: string | null;
+  quantity: string | null;
+  unit: HoldingQuantityUnit | null;
+  purchasePrice: string | null;
+  purchaseDate: string | null;
   currentValue: string | null;
   createdAt: string;
   updatedAt: string;
@@ -32,6 +38,8 @@ export interface HoldingResponse {
 interface CreateEtfHoldingRequest {
   assetType: 'ETF';
   management: string;
+  /** Optional, at most 500 characters. */
+  note?: string;
   isin: string;
   name: string;
   quantity: string;
@@ -41,41 +49,47 @@ interface CreateEtfHoldingRequest {
 interface CreateShareHoldingRequest {
   assetType: 'SHARE';
   management: string;
+  note?: string;
   isin: string;
   name: string;
   quantity: string;
   purchasePrice: string;
-  /** Optional — omit entirely, not "". */
+  /** Optional, omit entirely, not "". */
   purchaseDate?: string;
 }
 
 interface CreatePreciousMetalHoldingRequest {
   assetType: 'PRECIOUS_METAL';
   management: string;
-  name: string;
-  weightGrams: string;
-  /** Optional — used only by the distribution view (FR-012a). */
+  note?: string;
+  metal: HoldingMetal;
+  quantity: string;
+  unit: HoldingQuantityUnit;
+  /** Optional, used only by the distribution view. */
   currentValue?: string;
 }
 
 interface CreateCryptoHoldingRequest {
   assetType: 'CRYPTO';
   management: string;
-  name: string;
+  note?: string;
+  /** Catalogue id (CoinGecko). */
+  coinId: string;
+  /** At most 8 decimals. */
   quantity: string;
   purchasePrice: string;
-  /** Optional — omit entirely, not "". */
   purchaseDate?: string;
 }
 
 interface CreateDepositMoneyHoldingRequest {
   assetType: 'DEPOSIT_MONEY';
   management: string;
+  note?: string;
   name: string;
   currentValue: string;
 }
 
-/** POST /holdings request body — shape depends on `assetType` (FR-001–FR-007). */
+/** POST /holdings request body; shape depends on `assetType`. */
 export type CreateHoldingRequest =
   | CreateEtfHoldingRequest
   | CreateShareHoldingRequest
@@ -83,10 +97,7 @@ export type CreateHoldingRequest =
   | CreateCryptoHoldingRequest
   | CreateDepositMoneyHoldingRequest;
 
-/**
- * PUT /holdings/:id request body — same shape as the matching `POST` body,
- * without `assetType` (immutable after creation, FR-008).
- */
+/** PUT /holdings/:id body: same as POST without `assetType` (immutable). */
 export type UpdateHoldingRequest =
   | Omit<CreateEtfHoldingRequest, 'assetType'>
   | Omit<CreateShareHoldingRequest, 'assetType'>
@@ -94,11 +105,10 @@ export type UpdateHoldingRequest =
   | Omit<CreateCryptoHoldingRequest, 'assetType'>
   | Omit<CreateDepositMoneyHoldingRequest, 'assetType'>;
 
-/** Structured 400 body shape shared by POST/PUT validation failures. */
+/** 400 body for POST/PUT validation failures; `code` is a domain `HoldingErrorCode`. */
 export interface HoldingValidationErrorResponse {
-  error: 'VALIDATION_FAILED';
   message: string;
-  fieldErrors: { field: string; message: string }[];
+  errors: { field: string; code: string }[];
 }
 
 /** Structured 404 body shape shared by PUT/DELETE. */

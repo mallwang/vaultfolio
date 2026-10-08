@@ -29,4 +29,6 @@ Fields not listed for a type are rejected (400), e.g. `isin` on metal/crypto/dep
 
 ## Errors (400)
 
-`{ message, errors: [{ field, code }] }` with codes: `REQUIRED`, `ISIN_INVALID`, `ISIN_NOT_ALLOWED`, `METAL_UNKNOWN`, `COIN_UNKNOWN`, `UNIT_INVALID`, `QUANTITY_NOT_POSITIVE`, `QUANTITY_DECIMALS`, `NOTE_TOO_LONG`, `DECIMAL_INVALID`.
+`{ message, errors: [{ field, code }] }` with codes: `REQUIRED`, `ISIN_INVALID`, `ISIN_NOT_ALLOWED`, `METAL_UNKNOWN`, `COIN_UNKNOWN`, `UNIT_INVALID`, `QUANTITY_NOT_POSITIVE`, `QUANTITY_DECIMALS`, `NOTE_TOO_LONG`, `DECIMAL_INVALID`, `FIELD_NOT_ALLOWED`.
+
+Notes: a negative `purchasePrice`/`currentValue` and an unparseable or future `purchaseDate` both report `DECIMAL_INVALID`; any non-applicable field present (except `isin`, which reports `ISIN_NOT_ALLOWED`) reports `FIELD_NOT_ALLOWED`, as does a PUT whose `assetType` differs from the stored one (`[{ field: 'assetType', code: 'FIELD_NOT_ALLOWED' }]`).

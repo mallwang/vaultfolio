@@ -4,6 +4,7 @@ export const ENCRYPTION_DOMAIN_IDS = [
   'retirement',
   'wealth',
   'insurances',
+  'holdings',
   'account-overview',
   'feedback',
 ] as const;

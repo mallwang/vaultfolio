@@ -75,7 +75,9 @@ specs/045-holdings-rework/
 libs/domain/holdings/src/lib/
 ├── metal-catalog.ts, crypto-catalog.ts, units.ts   # NEW: catalogues, oz constant, conversion
 ├── asset-type.ts, holding.ts, holding-validation.ts, holding-merge.ts   # reshaped (+specs)
-libs/api-contract/src/lib/        holdings.ts, encryption.ts (+'holdings' domain id), encryption.testing.ts
+libs/api-contract/src/lib/        holdings.ts, encryption.ts (+'holdings' domain id)
+apps/backend/src/encryption/encryption.testing.ts   # encryption test helper (not under libs/api-contract)
+libs/domain/holdings/package.json   # retagged scope:domain -> scope:shared (T002) so the frontend can import it
 apps/backend/src/
 ├── holdings/        # + holdings-crypto.service, holdings-available.guard, holdings.exceptions; repo/mapper/service reworked
 ├── encryption/      # domain-encryption.registry.ts (+holdings)

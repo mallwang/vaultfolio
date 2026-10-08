@@ -7,6 +7,7 @@ import { earningsDe } from './earnings.de';
 import { retirementDe } from './retirement.de';
 import { wealthDe } from './wealth.de';
 import { insurancesDe } from './insurances.de';
+import { holdingsDe } from './holdings.de';
 import { ocrDe } from './ocr.de';
 import type { TranslationDictionary } from './en';
 
@@ -90,41 +91,10 @@ export const de: TranslationDictionary = {
     totalValueBody:
       'Diese Karte zeigt den Gesamtwert deiner Bestände, sobald Portfoliodaten verfügbar sind.',
   },
-  holdingsDistribution: {
-    title: 'Verteilung nach Wert',
-    emptyState:
-      'Füge einen Bestand mit bekanntem Wert hinzu, um die Verteilung nach Wert zu sehen.',
-  },
   imports: {
     dropzoneTitle: 'Ziehe eine Abrechnung oder CSV-Datei hierher',
     dropzoneBody:
       'Der Import wird bald unterstützt — dieser Bereich wird Broker-Exporte akzeptieren und mit deinen Beständen abgleichen.',
-  },
-  holdings: {
-    addHolding: 'Bestand hinzufügen',
-    filterPlaceholder: 'Bestände durchsuchen',
-    countSingular: 'Bestand',
-    countPlural: 'Bestände',
-    columnType: 'Typ',
-    columnAsset: 'Anlage',
-    columnManagement: 'Verwaltung',
-    columnQuantity: 'Menge / Gewicht',
-    columnPrice: 'Preis / Wert',
-    columnPurchaseDate: 'Kaufdatum',
-    editHolding: 'Bestand bearbeiten',
-    deleteHolding: 'Bestand löschen',
-    emptyStateTitle: 'Noch keine Bestände',
-    emptyStateBody: 'Füge deinen ersten Bestand hinzu, um ihn hier zu sehen.',
-    addFirstHolding: 'Ersten Bestand hinzufügen',
-    loadError: 'Bestände konnten nicht geladen werden. Bitte versuche es erneut.',
-    deleteConfirmHeader: 'Bestand löschen',
-    deleteConfirmMessage:
-      'Diesen {{assetType}}-Bestand ({{management}}) löschen? Dies kann nicht rückgängig gemacht werden.',
-    delete: 'Löschen',
-    deleted: 'Bestand gelöscht',
-    alreadyDeleted: 'Bereits gelöscht',
-    alreadyDeletedDetail: 'Dieser Bestand wurde bereits entfernt.',
-    deleteError: 'Dieser Bestand konnte nicht gelöscht werden.',
   },
   assetType: {
     ETF: 'ETF',
@@ -253,10 +223,6 @@ export const de: TranslationDictionary = {
   },
   admin: {
     general: 'System',
-  },
-  holdingsArea: {
-    list: 'Liste',
-    imports: 'Importe',
   },
   accounts: {
     subtitle: 'Jedes Konto, aktiv und archiviert — Identität, Rolle und Status.',
@@ -679,21 +645,6 @@ export const de: TranslationDictionary = {
     tooltipNotImplemented: 'Noch nicht implementiert',
     tooltipNoData: 'Keine Daten vorhanden',
   },
-  holdingsExport: {
-    title: 'Bestände',
-    infobox:
-      'Über diesen Export — Holdings. Holdings ist der zentrale Tracking-Bereich, in dem du deine Investmentpositionen über verschiedene Anlageklassen hinweg erfassen und verfolgen (ETF, Aktie, Edelmetall, Krypto, Festgeld/Tagesgeld). Diese Datei enthält alle aktuell in deiner Holdings-Liste vorhandenen Positionen.',
-    columnAssetType: 'Typ',
-    columnName: 'Anlage',
-    columnIsin: 'ISIN',
-    columnManagement: 'Verwaltung',
-    columnQuantity: 'Menge',
-    columnWeightGrams: 'Gewicht (Gramm)',
-    columnPurchasePrice: 'Kaufpreis',
-    columnCurrentValue: 'Aktueller Wert',
-    columnPurchaseDate: 'Kaufdatum',
-    chartDistribution: 'Portfolioaufteilung',
-  },
   accountOverviewExport: {
     title: 'Kontoübersicht',
     infobox:
@@ -745,6 +696,7 @@ export const de: TranslationDictionary = {
   earnings: earningsDe,
   retirement: retirementDe,
   wealth: wealthDe,
+  ...holdingsDe,
   insurances: insurancesDe,
   ocr: ocrDe,
   requests: requestsDe,

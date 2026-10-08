@@ -15,46 +15,64 @@ export const ASSET_TYPES: readonly AssetType[] = [
   'DEPOSIT_MONEY',
 ];
 
-/** Every field that can appear on a Holding, across all asset types. */
+/** Every field that can appear on a Holding, across all asset types (`management` is common and not listed). */
 export type HoldingField =
-  'isin' | 'name' | 'quantity' | 'purchasePrice' | 'purchaseDate' | 'weightGrams' | 'currentValue';
+  | 'isin'
+  | 'name'
+  | 'metal'
+  | 'unit'
+  | 'coinId'
+  | 'quantity'
+  | 'purchasePrice'
+  | 'purchaseDate'
+  | 'currentValue'
+  | 'note';
+
+export const ALL_HOLDING_FIELDS: readonly HoldingField[] = [
+  'isin',
+  'name',
+  'metal',
+  'unit',
+  'coinId',
+  'quantity',
+  'purchasePrice',
+  'purchaseDate',
+  'currentValue',
+  'note',
+];
 
 export interface AssetTypeFieldMetadata {
-  /** Fields that MUST be present for a holding of this asset type (FR-003–FR-007). */
+  /** Fields that MUST be present for a holding of this asset type. */
   readonly required: readonly HoldingField[];
   /** Fields that MAY be present for a holding of this asset type. */
   readonly optional: readonly HoldingField[];
 }
 
 /**
- * Per-type required/optional field metadata, per data-model.md's AssetType
- * table. Any `HoldingField` not listed here (in either `required` or
- * `optional`) for a given type MUST be absent/null on a holding of that type
- * (FR-008, Edge Cases: switching type must discard fields that don't apply).
- *
- * Notably: ETF has no `purchaseDate` field at all (not merely optional) —
- * FR-005. Precious metal has no `isin`/`purchasePrice`/`purchaseDate` — FR-006.
+ * Per-type required/optional field table (data-model.md). Any `HoldingField`
+ * not listed for a type must be absent on a holding of that type. The single
+ * source for server validation and the frontend form (FR-018).
  */
 export const ASSET_TYPE_FIELDS: Readonly<Record<AssetType, AssetTypeFieldMetadata>> = {
   ETF: {
     required: ['isin', 'name', 'quantity', 'purchasePrice'],
-    optional: [],
+    optional: ['note'],
   },
   SHARE: {
     required: ['isin', 'name', 'quantity', 'purchasePrice'],
-    optional: ['purchaseDate'],
+    optional: ['purchaseDate', 'note'],
   },
   PRECIOUS_METAL: {
-    required: ['name', 'weightGrams'],
-    optional: ['currentValue'],
+    required: ['metal', 'quantity', 'unit'],
+    optional: ['currentValue', 'note'],
   },
   CRYPTO: {
-    required: ['name', 'quantity', 'purchasePrice'],
-    optional: ['purchaseDate'],
+    required: ['coinId', 'quantity', 'purchasePrice'],
+    optional: ['purchaseDate', 'note'],
   },
   DEPOSIT_MONEY: {
     required: ['name', 'currentValue'],
-    optional: [],
+    optional: ['note'],
   },
 };
 

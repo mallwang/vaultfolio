@@ -1,0 +1,72 @@
+/** `id` is the CoinGecko API id, the stable key for later price lookup. Names are brand names (not translated). */
+export interface CryptoCatalogEntry {
+  readonly id: string;
+  readonly symbol: string;
+  readonly name: string;
+}
+
+export const CRYPTO_CATALOG: readonly CryptoCatalogEntry[] = [
+  { id: 'bitcoin', symbol: 'BTC', name: 'Bitcoin' },
+  { id: 'ethereum', symbol: 'ETH', name: 'Ethereum' },
+  { id: 'tether', symbol: 'USDT', name: 'Tether' },
+  { id: 'ripple', symbol: 'XRP', name: 'XRP' },
+  { id: 'binancecoin', symbol: 'BNB', name: 'BNB' },
+  { id: 'solana', symbol: 'SOL', name: 'Solana' },
+  { id: 'usd-coin', symbol: 'USDC', name: 'USDC' },
+  { id: 'dogecoin', symbol: 'DOGE', name: 'Dogecoin' },
+  { id: 'cardano', symbol: 'ADA', name: 'Cardano' },
+  { id: 'tron', symbol: 'TRX', name: 'TRON' },
+  { id: 'staked-ether', symbol: 'STETH', name: 'Lido Staked Ether' },
+  { id: 'chainlink', symbol: 'LINK', name: 'Chainlink' },
+  { id: 'avalanche-2', symbol: 'AVAX', name: 'Avalanche' },
+  { id: 'stellar', symbol: 'XLM', name: 'Stellar' },
+  { id: 'shiba-inu', symbol: 'SHIB', name: 'Shiba Inu' },
+  { id: 'sui', symbol: 'SUI', name: 'Sui' },
+  { id: 'hedera-hashgraph', symbol: 'HBAR', name: 'Hedera' },
+  { id: 'bitcoin-cash', symbol: 'BCH', name: 'Bitcoin Cash' },
+  { id: 'the-open-network', symbol: 'TON', name: 'Toncoin' },
+  { id: 'litecoin', symbol: 'LTC', name: 'Litecoin' },
+  { id: 'polkadot', symbol: 'DOT', name: 'Polkadot' },
+  { id: 'monero', symbol: 'XMR', name: 'Monero' },
+  { id: 'dai', symbol: 'DAI', name: 'Dai' },
+  { id: 'uniswap', symbol: 'UNI', name: 'Uniswap' },
+  { id: 'pepe', symbol: 'PEPE', name: 'Pepe' },
+  { id: 'aave', symbol: 'AAVE', name: 'Aave' },
+  { id: 'near', symbol: 'NEAR', name: 'NEAR Protocol' },
+  { id: 'ethereum-classic', symbol: 'ETC', name: 'Ethereum Classic' },
+  { id: 'internet-computer', symbol: 'ICP', name: 'Internet Computer' },
+  { id: 'aptos', symbol: 'APT', name: 'Aptos' },
+  { id: 'cosmos', symbol: 'ATOM', name: 'Cosmos' },
+  { id: 'filecoin', symbol: 'FIL', name: 'Filecoin' },
+  { id: 'arbitrum', symbol: 'ARB', name: 'Arbitrum' },
+  { id: 'optimism', symbol: 'OP', name: 'Optimism' },
+  { id: 'vechain', symbol: 'VET', name: 'VeChain' },
+  { id: 'algorand', symbol: 'ALGO', name: 'Algorand' },
+  { id: 'render-token', symbol: 'RENDER', name: 'Render' },
+  { id: 'the-graph', symbol: 'GRT', name: 'The Graph' },
+  { id: 'maker', symbol: 'MKR', name: 'Maker' },
+  { id: 'injective-protocol', symbol: 'INJ', name: 'Injective' },
+  { id: 'fantom', symbol: 'FTM', name: 'Fantom' },
+  { id: 'theta-token', symbol: 'THETA', name: 'Theta Network' },
+  { id: 'the-sandbox', symbol: 'SAND', name: 'The Sandbox' },
+  { id: 'decentraland', symbol: 'MANA', name: 'Decentraland' },
+  { id: 'tezos', symbol: 'XTZ', name: 'Tezos' },
+  { id: 'eos', symbol: 'EOS', name: 'EOS' },
+  { id: 'axie-infinity', symbol: 'AXS', name: 'Axie Infinity' },
+  { id: 'flow', symbol: 'FLOW', name: 'Flow' },
+  { id: 'iota', symbol: 'IOTA', name: 'IOTA' },
+  { id: 'neo', symbol: 'NEO', name: 'NEO' },
+  { id: 'dash', symbol: 'DASH', name: 'Dash' },
+  { id: 'zcash', symbol: 'ZEC', name: 'Zcash' },
+  { id: 'kaspa', symbol: 'KAS', name: 'Kaspa' },
+  { id: 'bonk', symbol: 'BONK', name: 'Bonk' },
+  { id: 'curve-dao-token', symbol: 'CRV', name: 'Curve DAO' },
+  { id: 'pancakeswap-token', symbol: 'CAKE', name: 'PancakeSwap' },
+  { id: 'gala', symbol: 'GALA', name: 'Gala' },
+  { id: 'chiliz', symbol: 'CHZ', name: 'Chiliz' },
+  { id: 'basic-attention-token', symbol: 'BAT', name: 'Basic Attention Token' },
+];
+
+export function findCoin(id: string): CryptoCatalogEntry | undefined {
+  return CRYPTO_CATALOG.find((coin) => coin.id === id);
+}

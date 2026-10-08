@@ -2,6 +2,7 @@ import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import * as argon2 from 'argon2';
+import Database from 'better-sqlite3';
 import { DatabaseService } from './database.service';
 
 /**
@@ -85,35 +86,46 @@ describe('DatabaseService — schema initialization', () => {
     await second.onModuleDestroy();
   });
 
-  it('holdings.asset_type accepts ETF/SHARE/PRECIOUS_METAL/CRYPTO/DEPOSIT_MONEY', async () => {
+  it('holdings has the encrypted-payload shape', async () => {
     const database = new DatabaseService();
     await database.onModuleInit();
 
-    await expect(
-      database.query(
-        `INSERT INTO holdings (id, asset_type, management, name, weight_grams)
-         VALUES ($1, 'PRECIOUS_METAL', 'Home safe', 'Gold', '31.1')`,
-        ['gold-1'],
-      ),
-    ).resolves.not.toThrow();
-
-    await expect(
-      database.query(
-        `INSERT INTO holdings (id, asset_type, management, name, current_value)
-         VALUES ($1, 'DEPOSIT_MONEY', 'N26', 'N26 checking', '0')`,
-        ['deposit-1'],
-      ),
-    ).resolves.not.toThrow();
-
-    await expect(
-      database.query(
-        `INSERT INTO holdings (id, asset_type, management)
-         VALUES ($1, 'BOGUS', 'Home safe')`,
-        ['bad-1'],
-      ),
-    ).rejects.toThrow();
+    const columns = await database.query<{ name: string }>(
+      "SELECT name FROM pragma_table_info('holdings')",
+    );
+    expect(columns.map((c) => c.name)).toEqual([
+      'id',
+      'owner_id',
+      'payload_enc',
+      'key_version',
+      'created_at',
+      'updated_at',
+    ]);
 
     await database.onModuleDestroy();
+  });
+
+  it('drops the pre-045 plaintext holdings table once, then keeps new rows on reboot', async () => {
+    const legacy = new Database(process.env.DATABASE_PATH as string);
+    legacy.exec(
+      `CREATE TABLE holdings (id TEXT PRIMARY KEY, asset_type TEXT, management TEXT, weight_grams TEXT, owner_id TEXT)`,
+    );
+    legacy.exec(`INSERT INTO holdings VALUES ('old', 'PRECIOUS_METAL', 'Safe', '31.1', 'u1')`);
+    legacy.close();
+
+    const first = new DatabaseService();
+    await first.onModuleInit();
+    expect(await first.query('SELECT * FROM holdings')).toEqual([]);
+    await first.query(
+      `INSERT INTO holdings (id, owner_id, payload_enc, key_version, created_at, updated_at)
+       VALUES ('new', 'u1', 'v1:a:b:c', 1, 't', 't')`,
+    );
+    await first.onModuleDestroy();
+
+    const second = new DatabaseService();
+    await second.onModuleInit();
+    expect(await second.query('SELECT id FROM holdings')).toEqual([{ id: 'new' }]);
+    await second.onModuleDestroy();
   });
 
   it('users.email_language enforces a CHECK against SUPPORTED_LANGUAGES codes', async () => {

@@ -2,43 +2,54 @@ import Decimal from 'decimal.js';
 import { Holding } from './holding.js';
 import type { HoldingProps } from './holding.js';
 
-/**
- * Exercises `Holding.computeValue()` per data-model.md — DEPOSIT_MONEY and
- * PRECIOUS_METAL return `currentValue` directly, other types compute
- * `quantity × purchasePrice`.
- */
-
 const baseProps: HoldingProps = {
   id: 'h1',
   assetType: 'DEPOSIT_MONEY',
   management: 'N26',
-  quantity: null,
-  purchasePrice: null,
-  purchaseDate: null,
+  note: null,
   isin: null,
   name: 'N26 checking',
-  weightGrams: null,
+  metal: null,
+  coinId: null,
+  quantity: null,
+  unit: null,
+  purchasePrice: null,
+  purchaseDate: null,
   currentValue: new Decimal('1250.00'),
   createdAt: new Date('2026-01-01'),
   updatedAt: new Date('2026-01-01'),
 };
 
 describe('Holding.computeValue', () => {
-  it('returns currentValue directly for DEPOSIT_MONEY', () => {
-    const holding = new Holding(baseProps);
-    expect(holding.computeValue()?.equals(new Decimal('1250.00'))).toBe(true);
+  it('returns currentValue for DEPOSIT_MONEY', () => {
+    expect(new Holding(baseProps).computeValue()?.toFixed(2)).toBe('1250.00');
   });
 
-  it('returns currentValue directly for PRECIOUS_METAL', () => {
+  it('returns currentValue for PRECIOUS_METAL', () => {
     const holding = new Holding({
       ...baseProps,
       assetType: 'PRECIOUS_METAL',
-      weightGrams: new Decimal('31.1'),
+      name: null,
+      metal: 'XAU',
+      quantity: new Decimal('2'),
+      unit: 'OZT',
     });
-    expect(holding.computeValue()?.equals(new Decimal('1250.00'))).toBe(true);
+    expect(holding.computeValue()?.toFixed(2)).toBe('1250.00');
   });
 
-  it('returns quantity × purchasePrice for SHARE/CRYPTO/ETF', () => {
+  it('returns null for PRECIOUS_METAL without currentValue', () => {
+    const holding = new Holding({
+      ...baseProps,
+      assetType: 'PRECIOUS_METAL',
+      metal: 'XAG',
+      quantity: new Decimal('100'),
+      unit: 'G',
+      currentValue: null,
+    });
+    expect(holding.computeValue()).toBeNull();
+  });
+
+  it('returns quantity x purchasePrice for SHARE', () => {
     const holding = new Holding({
       ...baseProps,
       assetType: 'SHARE',
@@ -46,6 +57,19 @@ describe('Holding.computeValue', () => {
       quantity: new Decimal('10'),
       purchasePrice: new Decimal('150'),
     });
-    expect(holding.computeValue()?.equals(new Decimal('1500'))).toBe(true);
+    expect(holding.computeValue()?.toFixed()).toBe('1500');
+  });
+
+  it('is exact for an 8-decimal crypto quantity', () => {
+    const holding = new Holding({
+      ...baseProps,
+      assetType: 'CRYPTO',
+      name: null,
+      coinId: 'bitcoin',
+      currentValue: null,
+      quantity: new Decimal('0.00000001'),
+      purchasePrice: new Decimal('42000'),
+    });
+    expect(holding.computeValue()?.toFixed()).toBe('0.00042');
   });
 });

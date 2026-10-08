@@ -1,48 +1,75 @@
 import Decimal from 'decimal.js';
-import { ASSET_TYPE_FIELDS, isAssetType, type AssetType, type HoldingField } from './asset-type.js';
+import {
+  ALL_HOLDING_FIELDS,
+  ASSET_TYPE_FIELDS,
+  isAssetType,
+  type AssetType,
+  type HoldingField,
+} from './asset-type.js';
+import { findCoin } from './crypto-catalog.js';
+import { findMetal, type MetalCode } from './metal-catalog.js';
+import { HOLDING_UNITS, type HoldingUnit } from './units.js';
+
+export const NOTE_MAX_LENGTH = 500;
+export const CRYPTO_QUANTITY_MAX_DECIMALS = 8;
+
+/** Machine-readable validation codes; the frontend maps each to a de/en message. */
+export type HoldingErrorCode =
+  | 'REQUIRED'
+  | 'ISIN_INVALID'
+  | 'ISIN_NOT_ALLOWED'
+  | 'METAL_UNKNOWN'
+  | 'COIN_UNKNOWN'
+  | 'UNIT_INVALID'
+  | 'QUANTITY_NOT_POSITIVE'
+  | 'QUANTITY_DECIMALS'
+  | 'NOTE_TOO_LONG'
+  | 'DECIMAL_INVALID'
+  | 'FIELD_NOT_ALLOWED';
 
 /**
- * Raw create/update payload as it arrives at the domain boundary — decimal
- * fields as strings (matching contracts/holdings-api.md's wire format so
- * precision is never lost to JSON's floating-point representation before
- * reaching `Decimal`), dates as ISO `YYYY-MM-DD` strings. Fields not
- * applicable to `assetType` should be omitted by a well-behaved client, but a
- * defensive server rejects them if present (FR-008, Edge Cases).
+ * Raw create/update payload at the domain boundary: decimals as strings
+ * (JSON floats would lose precision), dates as `YYYY-MM-DD`. Fields not
+ * applicable to `assetType` are rejected if present.
  */
 export interface HoldingSubmission {
   assetType: AssetType;
   management: string;
+  note?: string | null;
+  isin?: string | null;
+  name?: string | null;
+  metal?: string | null;
+  unit?: string | null;
+  coinId?: string | null;
   quantity?: string | null;
   purchasePrice?: string | null;
   purchaseDate?: string | null;
-  isin?: string | null;
-  name?: string | null;
-  weightGrams?: string | null;
   currentValue?: string | null;
 }
 
 export interface FieldError {
   field: string;
-  message: string;
+  code: HoldingErrorCode;
 }
 
 /** The same submission, parsed into exact domain types once validation passes. */
 export interface ValidatedHolding {
   assetType: AssetType;
   management: string;
+  note: string | null;
+  isin: string | null;
+  name: string | null;
+  metal: MetalCode | null;
+  unit: HoldingUnit | null;
+  coinId: string | null;
   quantity: Decimal | null;
   purchasePrice: Decimal | null;
   purchaseDate: Date | null;
-  isin: string | null;
-  name: string | null;
-  weightGrams: Decimal | null;
   currentValue: Decimal | null;
 }
 
 export type ValidationResult =
   { valid: true; value: ValidatedHolding } | { valid: false; fieldErrors: FieldError[] };
-
-const DECIMAL_FIELDS = ['quantity', 'purchasePrice', 'weightGrams', 'currentValue'] as const;
 
 /**
  * Standard ISIN checksum: a 2-letter ISO 3166-1 country code, 9 further
@@ -58,7 +85,7 @@ export function isValidIsin(isin: string): boolean {
 
   const expanded = isin
     .split('')
-    .map((char) => (/\d/.test(char) ? char : String(char.codePointAt(0)! - 55)))
+    .map((char) => (/\d/.test(char) ? char : String((char.codePointAt(0) as number) - 55)))
     .join('');
 
   // Luhn algorithm over the expanded digit string, processed right-to-left.
@@ -83,172 +110,150 @@ function isBlank(value: string | null | undefined): boolean {
   return value == null || value.trim() === '';
 }
 
-function parsePositiveDecimal(
-  field: HoldingField,
+function isApplicable(assetType: AssetType, field: HoldingField): boolean {
+  const metadata = ASSET_TYPE_FIELDS[assetType];
+  return metadata.required.includes(field) || metadata.optional.includes(field);
+}
+
+/** Parses an applicable decimal field; `null` when absent or invalid (error recorded). */
+function parseDecimal(
+  field: 'quantity' | 'purchasePrice' | 'currentValue',
   raw: string | null | undefined,
   errors: FieldError[],
 ): Decimal | null {
-  if (raw == null || raw === '') {
-    return null;
-  }
+  if (isBlank(raw)) return null;
   let decimal: Decimal;
   try {
-    decimal = new Decimal(raw);
+    decimal = new Decimal((raw as string).trim());
   } catch {
-    errors.push({ field, message: `${field} must be a valid number.` });
+    errors.push({ field, code: 'DECIMAL_INVALID' });
     return null;
   }
-  // currentValue's floor is 0 (an emptied deposit-money balance is valid);
-  // every other decimal field (quantity, purchasePrice, weightGrams) keeps
-  // the strict > 0 floor.
-  const minimum = field === 'currentValue' ? 0 : undefined;
-  if (!decimal.isFinite() || (minimum === 0 ? decimal.lessThan(0) : decimal.lessThanOrEqualTo(0))) {
-    const message =
-      field === 'currentValue'
-        ? `${field} must be a non-negative number.`
-        : `${field} must be a positive number.`;
-    errors.push({ field, message });
+  if (!decimal.isFinite()) {
+    errors.push({ field, code: 'DECIMAL_INVALID' });
+    return null;
+  }
+  // currentValue may be 0 (an emptied deposit); everything else must be > 0.
+  const bad = field === 'currentValue' ? decimal.isNegative() : decimal.lessThanOrEqualTo(0);
+  if (bad) {
+    errors.push({
+      field,
+      code: field === 'quantity' ? 'QUANTITY_NOT_POSITIVE' : 'DECIMAL_INVALID',
+    });
     return null;
   }
   return decimal;
 }
 
-function isFieldApplicable(assetType: AssetType, field: HoldingField): boolean {
-  const metadata = ASSET_TYPE_FIELDS[assetType];
-  return metadata.required.includes(field) || metadata.optional.includes(field);
-}
-
-type ParsedDecimals = Record<(typeof DECIMAL_FIELDS)[number], Decimal | null>;
-
-function validateRequiredFields(
-  submission: HoldingSubmission,
-  assetType: AssetType,
-  parsed: ParsedDecimals,
-  errors: FieldError[],
-): void {
-  const metadata = ASSET_TYPE_FIELDS[assetType];
-  for (const field of metadata.required) {
-    if (field === 'isin' || field === 'name') {
-      if (isBlank(submission[field])) {
-        errors.push({ field, message: `${field} is required for ${assetType}.` });
-      }
-    } else if (
-      field === 'quantity' ||
-      field === 'purchasePrice' ||
-      field === 'weightGrams' ||
-      field === 'currentValue'
-    ) {
-      if (parsed[field] == null && isBlank(submission[field])) {
-        errors.push({ field, message: `${field} is required for ${assetType}.` });
-      }
-    }
-  }
-}
-
-const ALL_HOLDING_FIELDS: HoldingField[] = [
-  'isin',
-  'name',
-  'quantity',
-  'purchasePrice',
-  'purchaseDate',
-  'weightGrams',
-  'currentValue',
-];
-
-function validateExtraneousFields(
-  submission: HoldingSubmission,
-  assetType: AssetType,
-  errors: FieldError[],
-): void {
-  for (const field of ALL_HOLDING_FIELDS) {
-    if (isFieldApplicable(assetType, field)) continue;
-    const raw = submission[field];
-    if (raw != null && raw !== '') {
-      errors.push({
-        field,
-        message: `${field} does not apply to ${assetType} and must be omitted.`,
-      });
-    }
-  }
-}
-
-function validateIsin(
-  submission: HoldingSubmission,
-  assetType: AssetType,
-  errors: FieldError[],
-): string | null {
-  if (!isFieldApplicable(assetType, 'isin') || isBlank(submission.isin)) return null;
-  const isin = submission.isin as string;
-  if (!isValidIsin(isin)) {
-    errors.push({ field: 'isin', message: 'isin is not a well-formed ISIN.' });
-  }
-  return isin;
-}
-
-function validatePurchaseDate(
-  submission: HoldingSubmission,
-  assetType: AssetType,
-  errors: FieldError[],
-): Date | null {
-  if (!isFieldApplicable(assetType, 'purchaseDate') || isBlank(submission.purchaseDate))
-    return null;
-  const candidate = new Date(submission.purchaseDate as string);
-  if (Number.isNaN(candidate.getTime())) {
-    errors.push({ field: 'purchaseDate', message: 'purchaseDate must be a valid date.' });
-    return null;
-  }
+function parsePurchaseDate(raw: string | null | undefined, errors: FieldError[]): Date | null {
+  if (isBlank(raw)) return null;
+  const candidate = new Date(raw as string);
   const today = new Date();
   today.setHours(23, 59, 59, 999);
-  if (candidate.getTime() > today.getTime()) {
-    errors.push({ field: 'purchaseDate', message: 'purchaseDate must not be in the future.' });
+  if (Number.isNaN(candidate.getTime()) || candidate.getTime() > today.getTime()) {
+    errors.push({ field: 'purchaseDate', code: 'DECIMAL_INVALID' });
     return null;
   }
   return candidate;
 }
 
+function has(submission: HoldingSubmission, field: HoldingField): boolean {
+  return isApplicable(submission.assetType, field) && !isBlank(submission[field]);
+}
+
+/** Management, fields not listed for the type, and required presence. */
+function validateStructure(submission: HoldingSubmission, errors: FieldError[]): void {
+  const { assetType } = submission;
+  if (isBlank(submission.management)) {
+    errors.push({ field: 'management', code: 'REQUIRED' });
+  }
+  for (const field of ALL_HOLDING_FIELDS) {
+    if (isApplicable(assetType, field)) continue;
+    const raw = submission[field];
+    if (raw != null && raw !== '') {
+      errors.push({ field, code: field === 'isin' ? 'ISIN_NOT_ALLOWED' : 'FIELD_NOT_ALLOWED' });
+    }
+  }
+  for (const field of ASSET_TYPE_FIELDS[assetType].required) {
+    if (isBlank(submission[field])) errors.push({ field, code: 'REQUIRED' });
+  }
+}
+
+type Identity = Pick<ValidatedHolding, 'isin' | 'metal' | 'unit' | 'coinId'>;
+
+/** ISIN checksum and catalogue/unit membership (value checks only when present). */
+function validateIdentity(submission: HoldingSubmission, errors: FieldError[]): Identity {
+  const result: Identity = { isin: null, metal: null, unit: null, coinId: null };
+  if (has(submission, 'isin')) {
+    result.isin = submission.isin as string;
+    if (!isValidIsin(result.isin)) errors.push({ field: 'isin', code: 'ISIN_INVALID' });
+  }
+  if (has(submission, 'metal')) {
+    const entry = findMetal(submission.metal as string);
+    if (entry) result.metal = entry.code;
+    else errors.push({ field: 'metal', code: 'METAL_UNKNOWN' });
+  }
+  if (has(submission, 'unit')) {
+    if ((HOLDING_UNITS as readonly string[]).includes(submission.unit as string)) {
+      result.unit = submission.unit as HoldingUnit;
+    } else {
+      errors.push({ field: 'unit', code: 'UNIT_INVALID' });
+    }
+  }
+  if (has(submission, 'coinId')) {
+    if (findCoin(submission.coinId as string)) result.coinId = submission.coinId as string;
+    else errors.push({ field: 'coinId', code: 'COIN_UNKNOWN' });
+  }
+  return result;
+}
+
+type Amounts = Pick<
+  ValidatedHolding,
+  'quantity' | 'purchasePrice' | 'currentValue' | 'purchaseDate'
+>;
+
+function validateAmounts(submission: HoldingSubmission, errors: FieldError[]): Amounts {
+  const { assetType } = submission;
+  const decimal = (field: 'quantity' | 'purchasePrice' | 'currentValue'): Decimal | null =>
+    isApplicable(assetType, field) ? parseDecimal(field, submission[field], errors) : null;
+  const quantity = decimal('quantity');
+  if (
+    quantity &&
+    assetType === 'CRYPTO' &&
+    quantity.decimalPlaces() > CRYPTO_QUANTITY_MAX_DECIMALS
+  ) {
+    errors.push({ field: 'quantity', code: 'QUANTITY_DECIMALS' });
+  }
+  return {
+    quantity,
+    purchasePrice: decimal('purchasePrice'),
+    currentValue: decimal('currentValue'),
+    purchaseDate: isApplicable(assetType, 'purchaseDate')
+      ? parsePurchaseDate(submission.purchaseDate, errors)
+      : null,
+  };
+}
+
 /**
- * Validates a raw submission against every rule in data-model.md's
- * "Validation rules" section, reporting every failing field at once (SC-002)
- * rather than stopping at the first. The single source of truth for "what
- * makes a Holding valid" — consumed by the REST layer, and reusable by any
- * future import path (research.md #2).
+ * Validates a raw submission, reporting every failing field at once. The single
+ * source of truth for "what makes a Holding valid" (server and form, FR-018).
  */
 export function validateHoldingSubmission(submission: HoldingSubmission): ValidationResult {
+  // At runtime a stale client may send any string as assetType.
+  if (!isAssetType(submission.assetType)) {
+    return { valid: false, fieldErrors: [{ field: 'assetType', code: 'REQUIRED' }] };
+  }
+
   const errors: FieldError[] = [];
-  const { assetType } = submission;
+  validateStructure(submission, errors);
+  const identity = validateIdentity(submission, errors);
+  const amounts = validateAmounts(submission, errors);
 
-  // A client-supplied assetType is only a compile-time AssetType at the
-  // TypeScript boundary — at runtime (e.g. a stale client sending the
-  // pre-017 'GOLD'/'BITCOIN' literals) it may be any string. Reject early
-  // rather than let `ASSET_TYPE_FIELDS[assetType]` come back `undefined` and
-  // crash every check below (FR-011).
-  if (!isAssetType(assetType)) {
-    return {
-      valid: false,
-      fieldErrors: [
-        { field: 'assetType', message: `${String(assetType)} is not a recognized asset type.` },
-      ],
-    };
+  // Count code points, not UTF-16 units, so an emoji is one character.
+  const note = submission.note ?? '';
+  if (Array.from(note).length > NOTE_MAX_LENGTH) {
+    errors.push({ field: 'note', code: 'NOTE_TOO_LONG' });
   }
-
-  if (isBlank(submission.management)) {
-    errors.push({ field: 'management', message: 'Management is required.' });
-  }
-
-  // Parse every decimal field present, positivity-checked regardless of
-  // whether it turns out to be applicable — a stray field still gets a
-  // useful error rather than being silently accepted.
-  const parsed: ParsedDecimals = {
-    quantity: parsePositiveDecimal('quantity', submission.quantity, errors),
-    purchasePrice: parsePositiveDecimal('purchasePrice', submission.purchasePrice, errors),
-    weightGrams: parsePositiveDecimal('weightGrams', submission.weightGrams, errors),
-    currentValue: parsePositiveDecimal('currentValue', submission.currentValue, errors),
-  };
-
-  validateRequiredFields(submission, assetType, parsed, errors);
-  validateExtraneousFields(submission, assetType, errors);
-  const isin = validateIsin(submission, assetType, errors);
-  const purchaseDate = validatePurchaseDate(submission, assetType, errors);
 
   if (errors.length > 0) {
     return { valid: false, fieldErrors: errors };
@@ -257,18 +262,12 @@ export function validateHoldingSubmission(submission: HoldingSubmission): Valida
   return {
     valid: true,
     value: {
-      assetType,
+      assetType: submission.assetType,
       management: submission.management.trim(),
-      quantity: isFieldApplicable(assetType, 'quantity') ? parsed.quantity : null,
-      purchasePrice: isFieldApplicable(assetType, 'purchasePrice') ? parsed.purchasePrice : null,
-      purchaseDate,
-      isin,
-      name:
-        isFieldApplicable(assetType, 'name') && !isBlank(submission.name)
-          ? (submission.name as string).trim()
-          : null,
-      weightGrams: isFieldApplicable(assetType, 'weightGrams') ? parsed.weightGrams : null,
-      currentValue: isFieldApplicable(assetType, 'currentValue') ? parsed.currentValue : null,
+      note: isBlank(note) ? null : note,
+      name: has(submission, 'name') ? (submission.name as string).trim() : null,
+      ...identity,
+      ...amounts,
     },
   };
 }

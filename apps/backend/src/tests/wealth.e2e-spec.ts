@@ -412,7 +412,7 @@ describe('/wealth without ENCRYPTION_KEY', () => {
       expect(response.status).toBe(503);
       expect(response.body.error).toBe('WEALTH_UNAVAILABLE');
     }
-    expect((await s.admin.get('/holdings')).status).toBe(200);
+    expect((await s.admin.get('/holdings')).status).toBe(503);
   });
 });
 

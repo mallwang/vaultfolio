@@ -10,3 +10,5 @@ export { HoldingsService } from './lib/holdings.service.js';
 export { ImportsComponent } from './lib/imports/imports.component.js';
 export { HoldingsAreaComponent } from './lib/holdings-area/holdings-area.component.js';
 export { createHoldingsExportDefinition } from './lib/holdings-export.definition.js';
+export { holdingsAvailableGuard } from './lib/holdings-area/holdings-available.guard.js';
+export { HoldingsUnavailableComponent } from './lib/holdings-area/holdings-unavailable.component.js';

@@ -13,6 +13,7 @@ export const encryptionDe: TranslationDictionary = {
     earnings: 'Einkommen',
     retirement: 'Altersvorsorge',
     wealth: 'Vermögen',
+    holdings: 'Bestände',
     insurances: 'Versicherungen',
     'account-overview': 'Kontenübersicht',
     feedback: 'Feedback',
