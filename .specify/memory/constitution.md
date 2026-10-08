@@ -1,6 +1,14 @@
 <!--
 Sync Impact Report
-- Version change: 3.11.0 → 3.12.0 (MINOR: 040-encryption-key-rotation; the "Encryption at rest"
+- Version change: 3.12.0 → 3.13.0 (MINOR: 045-holdings-rework; Holdings joins the Sensitive
+  Personal Data rules, so its payloads are encrypted at rest; holdings bulk import is removed
+  from scope and holdings are entered manually only; no principle removed or redefined)
+- Modified sections (3.13.0):
+  - Product Scope → In Scope: Holdings bulk import bullet removed; wealth bullet no longer
+    references a Holdings import
+  - Product Scope → Out of Scope: origin rule no longer names Holdings CSV/JSON import
+  - Product Scope → Sensitive Personal Data: applies to Holdings
+- Previous: 3.11.0 → 3.12.0 (MINOR: 040-encryption-key-rotation; the "Encryption at rest"
   rule names the master key / data key hierarchy and the open encryption-key-rotation TODO is
   closed; no principle removed or redefined)
 - Modified sections:
@@ -235,7 +243,6 @@ stated.
   precious metals, and similar investment vehicles.
 - Holdings domain: manual entry and management of holdings and transactions (buys, sells,
   quantities, cost basis) via the UI.
-- Holdings domain: bulk import of holdings/transactions via CSV or JSON files.
 - Holdings domain: a portfolio overview that aggregates allocation across holdings — including
   looking through ETF composition to underlying constituent weights — so overweight positions and
   duplicate/overlapping exposure across different holdings (e.g., the same share held both
@@ -270,7 +277,7 @@ stated.
   snapshots (Stichtage) of assets and liabilities, each entry with a name, a class and an amount —
   with an overview and chart, a personal balance-sheet view (Aktiva/Passiva with equity as the
   balancing figure), a dashboard tile, and a PDF/data export. Data enters by manual UI entry only;
-  there is no bank, broker or Holdings import. Its manual entry data (entry names, classes,
+  there is no bank or broker import. Its manual entry data (entry names, classes,
   amounts, notes) falls under the Sensitive Personal Data rules.
 
 - Insurances domain: a user's own insurance contracts (type from a fixed catalog, insurer, term,
@@ -289,7 +296,7 @@ stated.
   concerns stay separated per the Frontend domain libraries Stack Decision.
 - Any integration with personal banking, brokerage, or payroll-system account APIs to read the
   user's account, transaction, or payroll data. All personal holdings/transaction and
-  expense/budget data MUST originate from manual UI entry or explicit CSV/JSON import — it MUST
+  expense/budget data MUST originate from manual UI entry (Holdings: manual entry only) or explicit CSV/JSON import — it MUST
   NOT be pulled automatically from a linked bank or brokerage account. This applies across all
   domains, including Account Overview: it MAY aggregate manually entered or imported balances
   across accounts, but MUST NOT itself integrate with a bank/brokerage API to fetch them live. The
@@ -323,7 +330,7 @@ provider is unreachable, since a user's recorded holdings are the source of trut
 
 ### Sensitive Personal Data
 
-The Earnings, Retirement, Insurances and Historic Wealth Development domains, and any future domain holding comparably sensitive personal
+The Earnings, Retirement, Insurances, Holdings and Historic Wealth Development domains, and any future domain holding comparably sensitive personal
 data (e.g., salary, tax, or health-related records), MUST follow these rules in addition to the rest of this
 constitution:
 
@@ -474,4 +481,4 @@ alignment with the Core Principles; unresolved violations MUST be justified in t
 Complexity Tracking section or the plan MUST be revised to comply. Reviewers MUST treat this
 constitution as authoritative over informal team conventions.
 
-**Version**: 3.12.0 | **Ratified**: 2026-08-13 | **Last Amended**: 2026-10-06
+**Version**: 3.13.0 | **Ratified**: 2026-08-13 | **Last Amended**: 2026-10-08
