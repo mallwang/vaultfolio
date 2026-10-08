@@ -19,10 +19,16 @@ import { I18nService } from './i18n.service';
 export class TranslatePipe implements PipeTransform {
   private readonly i18n = inject(I18nService);
 
-  transform(key: string | null | undefined): string {
+  transform(key: string | null | undefined, params?: Record<string, string | number>): string {
     if (!key) {
       return '';
     }
-    return this.i18n.translate(key);
+    let result = this.i18n.translate(key);
+    if (params) {
+      for (const [k, v] of Object.entries(params)) {
+        result = result.replaceAll(`{{${k}}}`, String(v));
+      }
+    }
+    return result;
   }
 }

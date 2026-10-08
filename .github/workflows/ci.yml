@@ -14,9 +14,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # PRs (potentially from forks) get a read-only token; only pushes to main
-  # (a protected branch) get the read-write token that can populate the cache.
-  NX_CLOUD_ACCESS_TOKEN: ${{ github.event_name == 'pull_request' && secrets.NX_CLOUD_READ_ONLY_ACCESS_TOKEN || secrets.NX_CLOUD_ACCESS_TOKEN }}
+  NX_NO_CLOUD: true
 
 jobs:
   lint-and-format:
@@ -39,6 +37,12 @@ jobs:
       - run: npm ci --prefer-offline
 
       - uses: nrwl/nx-set-shas@afb73a62d26e41464e9254689e1fd6122ee683c1 # v5
+
+      - uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
+        with:
+          path: .nx/cache
+          key: nx-${{ runner.os }}-${{ github.job }}-${{ github.sha }}
+          restore-keys: nx-${{ runner.os }}-${{ github.job }}-
 
       - run: npm run format:check
 
@@ -66,6 +70,12 @@ jobs:
       - run: npm ci --prefer-offline
 
       - uses: nrwl/nx-set-shas@afb73a62d26e41464e9254689e1fd6122ee683c1 # v5
+
+      - uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
+        with:
+          path: .nx/cache
+          key: nx-${{ runner.os }}-${{ github.job }}-${{ github.sha }}
+          restore-keys: nx-${{ runner.os }}-${{ github.job }}-
 
       - run: npx nx affected -t typecheck --base=$NX_BASE --head=$NX_HEAD
 
@@ -113,6 +123,12 @@ jobs:
 
       - uses: nrwl/nx-set-shas@afb73a62d26e41464e9254689e1fd6122ee683c1 # v5
 
+      - uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
+        with:
+          path: .nx/cache
+          key: nx-${{ runner.os }}-${{ github.job }}-${{ github.sha }}
+          restore-keys: nx-${{ runner.os }}-${{ github.job }}-
+
       - run: npx nx affected -t test --base=$NX_BASE --head=$NX_HEAD
 
   build:
@@ -135,6 +151,12 @@ jobs:
       - run: npm ci --prefer-offline
 
       - uses: nrwl/nx-set-shas@afb73a62d26e41464e9254689e1fd6122ee683c1 # v5
+
+      - uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
+        with:
+          path: .nx/cache
+          key: nx-${{ runner.os }}-${{ github.job }}-${{ github.sha }}
+          restore-keys: nx-${{ runner.os }}-${{ github.job }}-
 
       - run: npx nx affected -t build --base=$NX_BASE --head=$NX_HEAD
 
@@ -164,6 +186,12 @@ jobs:
           cache: npm
 
       - run: npm ci --prefer-offline
+
+      - uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
+        with:
+          path: .nx/cache
+          key: nx-${{ runner.os }}-${{ github.job }}-${{ github.sha }}
+          restore-keys: nx-${{ runner.os }}-${{ github.job }}-
 
       # Full coverage run (not `nx affected`) so every project has an
       # up-to-date lcov report — a project Sonar never sees coverage for

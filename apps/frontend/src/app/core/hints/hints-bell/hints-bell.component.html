@@ -1,0 +1,31 @@
+<button
+  pButton
+  data-testid="hints-bell"
+  type="button"
+  iconOnly
+  severity="secondary"
+  [text]="true"
+  [attr.aria-label]="'hints.bell.label' | translate"
+  [pTooltip]="'hints.bell.label' | translate"
+  tooltipPosition="bottom"
+  appendTo="body"
+  (click)="toggle($event)"
+>
+  <app-icon name="notifications" />
+  @if (badge().count > 0) {
+    <p-badge
+      data-testid="hints-badge"
+      [value]="badge().label"
+      severity="danger"
+      aria-live="polite"
+      [attr.aria-label]="'hints.bell.badgeLabel' | translate: { count: badge().count }"
+    />
+  } @else if (badge().dot) {
+    <p-badge
+      data-testid="hints-badge"
+      severity="secondary"
+      aria-live="polite"
+      [attr.aria-label]="'hints.bell.dot' | translate"
+    />
+  }
+</button>

@@ -10,3 +10,4 @@ export { InsurancesGapCheckComponent } from './lib/gap-check/gap-check.component
 export { InsurancesRemindersComponent } from './lib/reminders/reminders.component';
 export { InsurancesDashboardWidgetComponent } from './lib/insurances-dashboard-widget/insurances-dashboard-widget.component';
 export { createInsurancesExportDefinition } from './lib/insurances-export.definition';
+export { InsurancesHintProvider } from './lib/hints/insurances-hint-provider';

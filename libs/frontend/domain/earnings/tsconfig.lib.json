@@ -16,7 +16,13 @@
       "path": "../../../requests/tsconfig.lib.json"
     },
     {
+      "path": "../../document-reader/tsconfig.lib.json"
+    },
+    {
       "path": "../../../earnings/tsconfig.lib.json"
+    },
+    {
+      "path": "../../hints/tsconfig.lib.json"
     },
     {
       "path": "../../../export/tsconfig.lib.json"
@@ -26,9 +32,6 @@
     },
     {
       "path": "../../../api-contract/tsconfig.lib.json"
-    },
-    {
-      "path": "../../document-reader/tsconfig.lib.json"
     }
   ]
 }

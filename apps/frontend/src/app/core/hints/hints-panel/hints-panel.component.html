@@ -1,0 +1,95 @@
+<p-drawer
+  position="right"
+  [modal]="true"
+  [dismissible]="true"
+  [header]="'hints.panel.title' | translate"
+  [style]="{ width: 'min(26rem, 100vw)' }"
+  [visible]="visible()"
+  (visibleChange)="visible.set($event)"
+>
+  <ng-template #closeicon><app-icon name="close" /></ng-template>
+  <div class="hints-panel" data-testid="hints-panel">
+    @if (view().active.length === 0 && view().hidden.length === 0) {
+      <p class="hints-panel__empty">{{ 'hints.panel.empty' | translate }}</p>
+    } @else {
+      <ul class="hints-panel__list">
+        @for (hint of view().active; track hint.id) {
+          <li class="hints-panel__row" [attr.data-testid]="'hints-row-' + hintTestId(hint.id)">
+            <span class="hints-panel__severity hints-panel__severity--{{ hint.severity }}">
+              <app-icon [name]="hint.severity === 'warning' ? 'warning' : 'info'" size="1.25rem" />
+            </span>
+            <div class="hints-panel__content">
+              <strong>{{ hint.titleKey | translate }}</strong>
+              <p>{{ hint.descriptionKey | translate: hint.params }}</p>
+              <a
+                class="hints-panel__link"
+                [routerLink]="hint.target.commands"
+                [queryParams]="hint.target.queryParams"
+                [attr.data-testid]="'hints-link-' + hintTestId(hint.id)"
+                (click)="visible.set(false)"
+              >
+                {{ hint.linkLabelKey | translate }}
+              </a>
+            </div>
+            <button
+              type="button"
+              class="hints-panel__hide"
+              [attr.aria-label]="'hints.hint.hide' | translate"
+              [pTooltip]="'hints.hint.hide' | translate"
+              [attr.data-testid]="'hints-hide-' + hintTestId(hint.id)"
+              (click)="hide(hint.id)"
+            >
+              <app-icon name="visibility-off" size="1rem" />
+            </button>
+          </li>
+        }
+      </ul>
+    }
+
+    @if (view().hidden.length > 0) {
+      <button
+        pButton
+        type="button"
+        severity="secondary"
+        [text]="true"
+        class="hints-panel__hidden-toggle"
+        data-testid="hints-hidden-toggle"
+        (click)="toggleHidden()"
+      >
+        {{
+          showHidden()
+            ? ('hints.panel.hideHidden' | translate)
+            : ('hints.panel.showHidden' | translate: { count: view().hidden.length })
+        }}
+      </button>
+
+      @if (showHidden()) {
+        <ul class="hints-panel__list hints-panel__list--hidden">
+          @for (hint of view().hidden; track hint.id) {
+            <li
+              class="hints-panel__row hints-panel__row--hidden"
+              [attr.data-testid]="'hints-row-' + hintTestId(hint.id)"
+            >
+              <div class="hints-panel__content">
+                <strong>{{ hint.titleKey | translate }}</strong>
+              </div>
+              <button
+                pButton
+                type="button"
+                severity="secondary"
+                [text]="true"
+                iconOnly
+                [attr.aria-label]="'hints.hint.restore' | translate"
+                [pTooltip]="'hints.hint.restore' | translate"
+                [attr.data-testid]="'hints-restore-' + hintTestId(hint.id)"
+                (click)="restore(hint.id)"
+              >
+                <app-icon name="replay" />
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    }
+  </div>
+</p-drawer>

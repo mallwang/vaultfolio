@@ -51,6 +51,9 @@
     },
     {
       "path": "../../libs/frontend/shared-ui/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/frontend/hints/tsconfig.lib.json"
     }
   ]
 }

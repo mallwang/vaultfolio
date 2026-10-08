@@ -88,4 +88,6 @@ export const ICON_NAME_MAP: Record<string, string> = {
   build: 'build',
   // On-device text recognition of scans (034-ocr-fallback-pdf).
   scan: 'document_scanner',
+  // Notification center bell (043-notification-center).
+  notifications: 'notifications',
 };
