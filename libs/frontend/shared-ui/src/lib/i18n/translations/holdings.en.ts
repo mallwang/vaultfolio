@@ -6,6 +6,16 @@ import type { TranslationDictionary } from './en';
  * `nav.holdings` and `pageTitle.holdings*` stay in the shared nav/pageTitle groups.
  */
 export const holdingsEn: TranslationDictionary = {
+  holdingsTile: {
+    purchaseValue: 'Purchase value',
+    excluded: '{{n}} without purchase value not counted',
+    emptyTitle: 'No holdings yet',
+    emptyBody: 'Add your first holding to see its purchase value and distribution here.',
+    emptyCta: 'Add holding',
+    error: 'Holdings could not be loaded.',
+    unavailable: 'Holdings are temporarily unavailable.',
+    excludedNote: '{{n}} excluded, no value entered',
+  },
   holdingsDistribution: {
     title: 'Distribution by value',
     emptyState: 'Add a holding with a known value to see the distribution by value.',

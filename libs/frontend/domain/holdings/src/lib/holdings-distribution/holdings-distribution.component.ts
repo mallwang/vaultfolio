@@ -1,4 +1,5 @@
 import { Component, Input, OnChanges, OnInit, computed, inject, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import type { EChartsOption } from 'echarts';
 import type { HoldingResponse } from '@vaultfolio/api-contract';
 import { ASSET_TYPE_LABEL_KEYS } from '../holding-display';
@@ -8,6 +9,7 @@ import {
   ASSET_TYPE_COLORS,
   DashboardTileComponent,
   EchartComponent,
+  EmptyTileComponent,
   I18nService,
   TileDetailsDirective,
   TileValueComponent,
@@ -47,6 +49,7 @@ export type { HoldingsDistributionEntry } from './distribution-chart-option';
   selector: 'app-holdings-distribution',
   imports: [
     EchartComponent,
+    EmptyTileComponent,
     TranslatePipe,
     DashboardTileComponent,
     TileDetailsDirective,
@@ -69,13 +72,26 @@ export type { HoldingsDistributionEntry } from './distribution-chart-option';
         testIdPrefix="holdings-distribution-widget"
         [title]="'dashboard.allocation' | translate"
       >
-        @if (hasData()) {
+        @if (loadError(); as err) {
+          <p class="distribution__empty" data-testid="holdings-distribution-error">
+            {{
+              (err === 'unavailable' ? 'holdingsTile.unavailable' : 'holdingsTile.error')
+                | translate
+            }}
+          </p>
+        } @else if (hasData()) {
           <app-tile-value data-testid="holdings-distribution-total">{{
             centerLabel()
           }}</app-tile-value>
           <span class="distribution__note">{{ 'holdingsDistribution.title' | translate }}</span>
-        } @else {
-          <p class="distribution__empty">{{ 'holdingsDistribution.emptyState' | translate }}</p>
+        } @else if (loaded()) {
+          <app-empty-tile
+            link="/app/holdings"
+            testId="holdings-distribution-empty"
+            [title]="'holdingsTile.emptyTitle' | translate"
+            [body]="'holdingsTile.emptyBody' | translate"
+            [ctaLabel]="'holdingsTile.emptyCta' | translate"
+          />
         }
         @if (hasData()) {
           <div tileChart class="distribution__bar" data-testid="holdings-distribution-bar">
@@ -94,9 +110,8 @@ export type { HoldingsDistributionEntry } from './distribution-chart-option';
               <app-echart [option]="chartOption()" [loading]="false" />
             </div>
             @if (excludedCount() > 0) {
-              <p class="distribution__note">
-                {{ excludedCount() }} holding{{ excludedCount() === 1 ? '' : 's' }} excluded — no
-                value entered.
+              <p class="distribution__note" data-testid="holdings-distribution-excluded">
+                {{ 'holdingsTile.excludedNote' | translate: { n: excludedCount() } }}
               </p>
             }
           </div>
@@ -110,8 +125,7 @@ export type { HoldingsDistributionEntry } from './distribution-chart-option';
         </div>
         @if (excludedCount() > 0) {
           <p class="distribution__note">
-            {{ excludedCount() }} holding{{ excludedCount() === 1 ? '' : 's' }} excluded — no value
-            entered.
+            {{ 'holdingsTile.excludedNote' | translate: { n: excludedCount() } }}
           </p>
         }
       </div>
@@ -207,6 +221,8 @@ export class HoldingsDistributionComponent implements OnChanges, OnInit {
 
   /** The dashboard tile (no `[holdings]` bound) renders inside the shared tile frame. */
   protected readonly framed = signal(false);
+  protected readonly loaded = signal(false);
+  protected readonly loadError = signal<'error' | 'unavailable' | null>(null);
   protected readonly slices = computed(() =>
     (this.entries() ?? []).map((entry) => ({
       ...entry,
@@ -268,12 +284,15 @@ export class HoldingsDistributionComponent implements OnChanges, OnInit {
       next: (holdings) => {
         this.holdings = holdings;
         this.recompute();
+        this.loaded.set(true);
       },
-      // Falls back to the empty state on load failure, same as
-      // `DashboardComponent`'s own pre-021 fetch did.
-      error: () => {
+      // A failed load is its own state, never shown as "no holdings".
+      error: (e: unknown) => {
         this.holdings = [];
         this.recompute();
+        this.loadError.set(
+          e instanceof HttpErrorResponse && e.status === 503 ? 'unavailable' : 'error',
+        );
       },
     });
   }

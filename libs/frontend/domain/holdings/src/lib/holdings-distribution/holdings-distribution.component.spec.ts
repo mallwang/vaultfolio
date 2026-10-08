@@ -1,6 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import type { HoldingResponse } from '@vaultfolio/api-contract';
 import {
   HoldingsDistributionComponent,
@@ -54,7 +55,7 @@ describe('HoldingsDistributionComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [HoldingsDistributionComponent],
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
     }).compileComponents();
 
     fixture = TestBed.createComponent(HoldingsDistributionComponent);
@@ -279,11 +280,38 @@ describe('HoldingsDistributionComponent', () => {
     ]);
   });
 
-  it('falls back to the empty state when the self-fetch fails', () => {
+  it('shows an error state, distinct from empty, when the self-fetch fails', () => {
     fixture.detectChanges();
     httpMock.expectOne('/api/holdings').flush(null, { status: 500, statusText: 'Server Error' });
     fixture.detectChanges();
 
-    expect(fixture.componentInstance['hasData']()).toBe(false);
+    const el = fixture.nativeElement as HTMLElement;
+    expect(
+      el.querySelector('[data-testid="holdings-distribution-error"]')?.textContent?.trim(),
+    ).toBe('Holdings could not be loaded.');
+    expect(el.querySelector('[data-testid="holdings-distribution-empty"]')).toBeNull();
+  });
+
+  it('shows the unavailable text on a 503', () => {
+    fixture.detectChanges();
+    httpMock.expectOne('/api/holdings').flush(null, { status: 503, statusText: 'Unavailable' });
+    fixture.detectChanges();
+
+    expect(
+      (fixture.nativeElement as HTMLElement)
+        .querySelector('[data-testid="holdings-distribution-error"]')
+        ?.textContent?.trim(),
+    ).toBe('Holdings are temporarily unavailable.');
+  });
+
+  it('shows an empty tile with a CTA to the holdings area when the self-fetch returns nothing', () => {
+    fixture.detectChanges();
+    httpMock.expectOne('/api/holdings').flush([]);
+    fixture.detectChanges();
+
+    const cta = (fixture.nativeElement as HTMLElement).querySelector(
+      '[data-testid="holdings-distribution-empty"]',
+    );
+    expect(cta?.getAttribute('href')).toBe('/app/holdings');
   });
 });

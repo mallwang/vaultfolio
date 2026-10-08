@@ -138,16 +138,16 @@
 
 ### Tests for User Story 5
 
-- [ ] T047 [P] [US5] Create `libs/frontend/domain/holdings/src/lib/holdings-total-value/holdings-total-value.component.spec.ts` (new file): empty → `app-empty-tile` with CTA to the add-holding action; ETF/SHARE/CRYPTO purchase values summed exactly via `Decimal` (e.g. `10 × 12.34 + 0.5 × 100.01`); metal/deposit and holdings lacking a purchase price excluded and the hint shows the exact excluded count; failed load → error state distinct from empty
-- [ ] T048 [P] [US5] Update `libs/frontend/domain/holdings/src/lib/holdings-distribution/holdings-distribution.component.spec.ts` (if absent, create it): empty → `app-empty-tile` with CTA, load error → error state distinct from empty, populated → chart
+- [x] T047 [P] [US5] Create `libs/frontend/domain/holdings/src/lib/holdings-total-value/holdings-total-value.component.spec.ts` (new file): empty → `app-empty-tile` with CTA to the add-holding action; ETF/SHARE/CRYPTO purchase values summed exactly via `Decimal` (e.g. `10 × 12.34 + 0.5 × 100.01`); metal/deposit and holdings lacking a purchase price excluded and the hint shows the exact excluded count; failed load → error state distinct from empty
+- [x] T048 [P] [US5] Update `libs/frontend/domain/holdings/src/lib/holdings-distribution/holdings-distribution.component.spec.ts` (if absent, create it): empty → `app-empty-tile` with CTA, load error → error state distinct from empty, populated → chart
 
 ### Implementation for User Story 5
 
-- [ ] T049 [US5] Replace the "coming soon" stub in `libs/frontend/domain/holdings/src/lib/holdings-total-value/holdings-total-value.component.ts` with the "Kaufwert" total (label clearly says purchase value, not current value), `app-empty-tile` from shared-ui for the empty state, exclusion hint with count, error state following `libs/frontend/domain/insurances/src/lib/insurances-dashboard-widget/insurances-dashboard-widget.component.ts` (and its `data-testid` naming); make T047 pass
-- [ ] T050 [US5] Update `libs/frontend/domain/holdings/src/lib/holdings-distribution/holdings-distribution.component.ts` to `app-empty-tile` + error state; make T048 pass
-- [ ] T051 [US5] Check `apps/frontend/src/app/dashboard/dashboard-widgets.registry.ts` (holdings widgets) against both tiles (domain entitlement, shared loading so a failed GET shows the error in both) and update `apps/frontend/src/app/dashboard/dashboard-widgets.registry.spec.ts` if the widget wiring changes
-- [ ] T052 [P] [US5] Add tile i18n texts (Kaufwert label, hint with count, empty-state title/body/CTA, error text) to `libs/frontend/shared-ui/src/lib/i18n/translations/holdings.de.ts` and `holdings.en.ts`
-- [ ] T053 [P] [US5] Add `data-testid` for the tile CTA, hint and error elements and document the new ids in `docs/frontend/testid-conventions.md`
+- [x] T049 [US5] Replace the "coming soon" stub in `libs/frontend/domain/holdings/src/lib/holdings-total-value/holdings-total-value.component.ts` with the "Kaufwert" total (label clearly says purchase value, not current value), `app-empty-tile` from shared-ui for the empty state, exclusion hint with count, error state following `libs/frontend/domain/insurances/src/lib/insurances-dashboard-widget/insurances-dashboard-widget.component.ts` (and its `data-testid` naming); make T047 pass
+- [x] T050 [US5] Update `libs/frontend/domain/holdings/src/lib/holdings-distribution/holdings-distribution.component.ts` to `app-empty-tile` + error state; make T048 pass
+- [x] T051 [US5] Check `apps/frontend/src/app/dashboard/dashboard-widgets.registry.ts` (holdings widgets) against both tiles (domain entitlement, shared loading so a failed GET shows the error in both) and update `apps/frontend/src/app/dashboard/dashboard-widgets.registry.spec.ts` if the widget wiring changes
+- [x] T052 [P] [US5] Add tile i18n texts (Kaufwert label, hint with count, empty-state title/body/CTA, error text) to `libs/frontend/shared-ui/src/lib/i18n/translations/holdings.de.ts` and `holdings.en.ts`
+- [x] T053 [P] [US5] Add `data-testid` for the tile CTA, hint and error elements and document the new ids in `docs/frontend/testid-conventions.md`
 
 **Checkpoint**: tile specs green; US5 verified in the browser in T067.
 

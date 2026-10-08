@@ -4,6 +4,7 @@ import { en, type TranslationDictionary } from './en';
 const GROUPS = [
   'holdings',
   'holdingsDistribution',
+  'holdingsTile',
   'holdingsArea',
   'holdingsExport',
   'holdingMetal',

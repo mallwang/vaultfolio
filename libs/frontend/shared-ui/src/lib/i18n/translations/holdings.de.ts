@@ -6,6 +6,16 @@ import type { TranslationDictionary } from './en';
  * `nav.holdings` and `pageTitle.holdings*` stay in the shared nav/pageTitle groups.
  */
 export const holdingsDe: TranslationDictionary = {
+  holdingsTile: {
+    purchaseValue: 'Kaufwert',
+    excluded: '{{n}} ohne Kaufwert nicht berücksichtigt',
+    emptyTitle: 'Noch keine Bestände',
+    emptyBody: 'Lege deinen ersten Bestand an, um hier Kaufwert und Verteilung zu sehen.',
+    emptyCta: 'Bestand hinzufügen',
+    error: 'Bestände konnten nicht geladen werden.',
+    unavailable: 'Bestände sind vorübergehend nicht verfügbar.',
+    excludedNote: '{{n}} ausgeschlossen, kein Wert erfasst',
+  },
   holdingsDistribution: {
     title: 'Verteilung nach Wert',
     emptyState:
