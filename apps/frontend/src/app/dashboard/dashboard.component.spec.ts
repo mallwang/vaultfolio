@@ -105,7 +105,8 @@ describe('DashboardComponent', () => {
       () => {
         fixture.detectChanges();
         requests = httpMock.match('/api/holdings');
-        expect(requests).toHaveLength(1);
+        // Two tiles (purchase value + distribution) each load the holdings.
+        expect(requests).toHaveLength(2);
       },
       // vi.waitFor has its own timeout independent of the test's
       // testTimeout (vitest-base.config.ts) — the real dynamic chunk load
@@ -113,7 +114,7 @@ describe('DashboardComponent', () => {
       // is on, so give it the same headroom.
       { timeout: 15000 },
     );
-    requests[0].flush([]);
+    requests.forEach((r) => r.flush([]));
     fixture.detectChanges();
     await new Promise((resolve) => setTimeout(resolve, 0));
     fixture.detectChanges();
@@ -229,11 +230,12 @@ describe('DashboardComponent', () => {
         () => {
           fixture.detectChanges();
           requests = httpMock.match('/api/holdings');
-          expect(requests).toHaveLength(1);
+          // Two tiles (purchase value + distribution) each load the holdings.
+          expect(requests).toHaveLength(2);
         },
         { timeout: 15000 },
       );
-      requests[0].flush([
+      const rows = [
         {
           id: 'h1',
           assetType: 'DEPOSIT_MONEY',
@@ -248,7 +250,8 @@ describe('DashboardComponent', () => {
           createdAt: '2026-01-01T00:00:00.000Z',
           updatedAt: '2026-01-01T00:00:00.000Z',
         },
-      ]);
+      ];
+      requests.forEach((r) => r.flush(rows));
       await new Promise((resolve) => setTimeout(resolve, 0));
       fixture.detectChanges();
       return fixture.nativeElement as HTMLElement;
@@ -286,11 +289,12 @@ describe('DashboardComponent', () => {
         () => {
           fixture.detectChanges();
           requests = httpMock.match('/api/holdings');
-          expect(requests).toHaveLength(1);
+          // Two tiles (purchase value + distribution) each load the holdings.
+          expect(requests).toHaveLength(2);
         },
         { timeout: 15000 },
       );
-      requests[0].flush([]);
+      requests.forEach((r) => r.flush([]));
       fixture.detectChanges();
       await new Promise((resolve) => setTimeout(resolve, 0));
       fixture.detectChanges();

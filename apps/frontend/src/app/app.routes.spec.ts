@@ -157,7 +157,10 @@ describe('app.routes', () => {
 
     it('has no imports route any more', async () => {
       await router.navigateByUrl('/app/holdings/imports');
-      expect(location.path()).not.toBe('/app/holdings/imports');
+      // The wildcard keeps the URL and renders the not-found page.
+      let leaf = router.routerState.snapshot.root;
+      while (leaf.firstChild) leaf = leaf.firstChild;
+      expect(leaf.routeConfig?.path).toBe('**');
     });
 
     it('redirects a MEMBER opening an admin subsection address away, same as /app/admin', async () => {
