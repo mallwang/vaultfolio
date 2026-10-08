@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
  * Realistic, edge-case-free data for ALL features in the Member test account (default
- * claudius@allwang.family). Replaces that account's earnings, wealth, retirement, insurances and account-overview data.
+ * claudius@allwang.family). Replaces that account's earnings, wealth, retirement, insurances, holdings and account-overview data.
  *
  *   node tools/seed-realistic.mjs [--password <p>] [--email <e>] [--base http://localhost:3000]
- *        [--only earnings,wealth,retirement,insurances,account-overview]
+ *        [--only earnings,wealth,retirement,insurances,holdings,account-overview]
  *
  * Password: --password, or VAULTFOLIO_MEMBER_PASSWORD (env or repo-root .env.local).
  */

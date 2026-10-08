@@ -10,6 +10,7 @@ const FEATURES = [
   ['wealth', 'wealth/seed-wealth-testset.mjs'],
   ['retirement', 'retirement/seed-retirement-testset.mjs'],
   ['insurances', 'insurances/seed-insurances-testset.mjs'],
+  ['holdings', 'holdings/seed-holdings-testset.mjs'],
   ['account-overview', 'account-overview/seed-account-overview-testset.mjs'],
 ];
 
