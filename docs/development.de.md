@@ -204,8 +204,8 @@ Die Ausgabe ist deterministisch, ein Zurücksetzen ist also reproduzierbar.
 
 ## Schlüsselrotation (Hinweise für Entwickler)
 
-Die fünf verschlüsselten Bereiche (Einkommen, Altersvorsorge, Vermögen, Versicherungen,
-Kontoübersicht) teilen sich `libs/encryption` (Envelope-Primitive, Schlüssel-Fingerabdruck, Keyring im
+Die sechs verschlüsselten Bereiche (Einkommen, Altersvorsorge, Vermögen, Versicherungen,
+Kontoübersicht, Feedback) teilen sich `libs/encryption` (Envelope-Primitive, Schlüssel-Fingerabdruck, Keyring im
 Speicher) und das Backend-`EncryptionModule` (`apps/backend/src/encryption`: Schlüsseltabellen
 `encryption_data_keys` und `encryption_rotation_runs`, `DomainKeyringService` je Bereich,
 `RotationService`, Admin-Routen unter `/admin/encryption`). Die `*-crypto.service.ts` der Bereiche sind

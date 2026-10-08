@@ -138,10 +138,10 @@
 
 ## Phase 8: Polish & Cross-Cutting
 
-- [ ] T048 [P] Add `docs`/`CLAUDE.md`-style notes only where a convention changed (e.g. list `feedback` in encryption domain docs under `docs/` if domains are enumerated there; grep first)
+- [x] T048 [P] Add `docs`/`CLAUDE.md`-style notes only where a convention changed (e.g. list `feedback` in encryption domain docs under `docs/` if domains are enumerated there; grep first)
 - [x] T049 Run `npx nx run-many -t lint test typecheck -p backend frontend api-contract notifications shared-ui` (adjust project names via `npx nx show projects`), fix failures; run the backend e2e target
 - [ ] T050 Run the SonarQube check via `mcp__sonarqube__*` tools on the branch/PR for new issues and coverage of changed files
-- [ ] T051 Walk through `quickstart.md` end to end and fix gaps
+- [x] T051 Walk through `quickstart.md` end to end and fix gaps
 
 ---
 
