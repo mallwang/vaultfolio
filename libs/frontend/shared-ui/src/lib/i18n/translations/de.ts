@@ -84,7 +84,7 @@ export const de: TranslationDictionary = {
     insurances: 'Versicherungen',
     earnings: 'Einkommen',
     accounts: 'Konten',
-    totalValue: 'Gesamtwert',
+    totalValue: 'Kaufwert',
     allocation: 'Verteilung',
     comingSoon: 'Bald verfügbar',
     totalValueBody:

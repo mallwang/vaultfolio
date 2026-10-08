@@ -90,7 +90,7 @@ export const en: TranslationDictionary = {
     insurances: 'Insurances',
     earnings: 'Earnings',
     accounts: 'Accounts',
-    totalValue: 'Total value',
+    totalValue: 'Purchase value',
     allocation: 'Allocation',
     comingSoon: 'Coming soon',
     totalValueBody:
