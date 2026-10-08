@@ -1,0 +1,35 @@
+meta {
+  name: Create Share Holding
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/holdings
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "assetType": "SHARE",
+    "management": "Broker X",
+    "isin": "DE0007164600",
+    "name": "SAP SE",
+    "quantity": "12",
+    "purchasePrice": "120.50",
+    "purchaseDate": "2021-03-15"
+  }
+}
+
+docs {
+  Authenticated request — requires the `vaultfolio_session` cookie captured
+  by `auth/Login`.
+
+  purchaseDate is optional — omit the key entirely, never send "". Shares are
+  purchase lots and never merge.
+}

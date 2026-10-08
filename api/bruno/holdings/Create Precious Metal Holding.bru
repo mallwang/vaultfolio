@@ -1,0 +1,34 @@
+meta {
+  name: Create Precious Metal Holding
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/holdings
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "assetType": "PRECIOUS_METAL",
+    "management": "Degussa",
+    "metal": "XAU",
+    "quantity": "31.1035",
+    "unit": "G",
+    "currentValue": "2900.00"
+  }
+}
+
+docs {
+  Authenticated request — requires the `vaultfolio_session` cookie captured
+  by `auth/Login`.
+
+  metal is one of XAU, XAG, XPT, XPD; unit is G (gram) or OZT (troy ounce).
+  currentValue is optional. No ISIN.
+}

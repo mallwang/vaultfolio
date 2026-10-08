@@ -1,11 +1,11 @@
 meta {
-  name: Create ETF Holding
+  name: Update Holding
   type: http
-  seq: 2
+  seq: 7
 }
 
-post {
-  url: {{baseUrl}}/holdings
+put {
+  url: {{baseUrl}}/holdings/{{holdingId}}
   body: json
   auth: none
 }
@@ -16,20 +16,18 @@ headers {
 
 body:json {
   {
-    "assetType": "ETF",
     "management": "Broker X",
-    "note": "Sparplan",
+    "note": "Nachgekauft",
     "isin": "IE00B4L5Y983",
     "name": "iShares Core MSCI World",
-    "quantity": "10",
-    "purchasePrice": "75.30"
+    "quantity": "15",
+    "purchasePrice": "76.10"
   }
 }
 
 docs {
   Authenticated request — requires the `vaultfolio_session` cookie captured
   by `auth/Login`.
-
-  ISIN is checksum-validated. An equal position (ISIN + broker) is merged in
-  place and answered with 200 instead of 201.
+  Same body as the create request of the holding's type, without `assetType`
+  (immutable). Set `holdingId` to an id from `List Holdings`.
 }

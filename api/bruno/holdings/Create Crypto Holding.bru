@@ -1,0 +1,34 @@
+meta {
+  name: Create Crypto Holding
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/holdings
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "assetType": "CRYPTO",
+    "management": "Bitvavo",
+    "coinId": "bitcoin",
+    "quantity": "0.00000001",
+    "purchasePrice": "28500.00",
+    "purchaseDate": "2021-05-10"
+  }
+}
+
+docs {
+  Authenticated request — requires the `vaultfolio_session` cookie captured
+  by `auth/Login`.
+
+  coinId is a catalogue id (CoinGecko). At most 8 decimals in quantity, otherwise
+  400 QUANTITY_DECIMALS.
+}

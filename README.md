@@ -17,7 +17,7 @@ Vaultfolio is organized around independent domains (see
 [Frontend domain-library architecture](#frontend-domain-library-architecture)). **Holdings** —
 tracking _what you've invested_ (ETFs, shares, gold, and other holdings) — is the first, fully
 built domain; it does not connect to any bank or brokerage APIs, all data is entered manually
-through the UI, with CSV/JSON import as a convenience for bulk entry. Planned domains extend this
+through the UI, and holdings are stored encrypted at rest. Planned domains extend this
 beyond investing into a broader personal finance app: Retirement, Insurances, Budget Planner
 (day-to-day spending vs. income), Historic Wealth Development, and Account Overview (see
 [constitution](.specify/memory/constitution.md#product-scope) for the per-domain scope rules —
@@ -27,7 +27,7 @@ e.g., no domain connects to a bank/brokerage API directly, even Account Overview
 
 The tech stack scaffold is in place (Nx monorepo, NestJS backend, Angular frontend, SQLite,
 Docker Compose orchestration) per the project [constitution](.specify/memory/constitution.md).
-Holdings tracking (manual entry, CRUD, distribution-by-type chart) is built out;
+Holdings tracking (manual entry per asset type, CRUD, encrypted storage, purchase-value and distribution tiles) is built out;
 the frontend has grown into a multi-domain app shell — authentication/sessions, admin (accounts,
 invitations, sign-ups), self-service signup, profile/password/preferences settings, multi-language
 UI, theme switching, and a dashboard — with holdings as the first of several planned domains
