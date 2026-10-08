@@ -16,7 +16,7 @@
       "path": "../../../export/tsconfig.lib.json"
     },
     {
-      "path": "../../../insurances/tsconfig.lib.json"
+      "path": "../../hints/tsconfig.lib.json"
     },
     {
       "path": "../../shared-ui/tsconfig.lib.json"
@@ -26,6 +26,9 @@
     },
     {
       "path": "../../domain-access/tsconfig.lib.json"
+    },
+    {
+      "path": "../../../insurances/tsconfig.lib.json"
     }
   ]
 }

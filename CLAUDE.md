@@ -75,5 +75,5 @@
 
 ## Current Feature Plan
 
-Active implementation plan: [specs/042-unified-dashboard-tiles/plan.md](specs/042-unified-dashboard-tiles/plan.md)
+Active implementation plan: [specs/043-notification-center/plan.md](specs/043-notification-center/plan.md)
 <!-- SPECKIT END -->

@@ -1,4 +1,5 @@
 export { RetirementService } from './lib/retirement.service';
+export { RetirementHintProvider } from './lib/hints/retirement-hint-provider';
 export { RetirementAreaComponent } from './lib/retirement-area/retirement-area.component';
 export { retirementAvailableGuard } from './lib/retirement-area/retirement-available.guard';
 export { RetirementInfoComponent } from './lib/info/retirement-info.component';

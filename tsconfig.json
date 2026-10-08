@@ -95,6 +95,9 @@
     },
     {
       "path": "./libs/encryption"
+    },
+    {
+      "path": "./libs/frontend/hints"
     }
   ],
   "compilerOptions": {}

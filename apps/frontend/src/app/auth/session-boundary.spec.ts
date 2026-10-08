@@ -6,8 +6,8 @@ import type { SessionUser } from '@vaultfolio/api-contract';
 import { CurrentUserStore } from './current-user.store';
 import { PAGE_LOADER, SessionBoundary } from './session-boundary';
 
-const admin = { id: 'admin-1' } as SessionUser;
-const member = { id: 'member-1' } as SessionUser;
+const admin = { id: 'admin-1', domainScopes: [] } as unknown as SessionUser;
+const member = { id: 'member-1', domainScopes: [] } as unknown as SessionUser;
 
 describe('SessionBoundary', () => {
   const pageLoader = { assign: vi.fn(), reload: vi.fn() };
