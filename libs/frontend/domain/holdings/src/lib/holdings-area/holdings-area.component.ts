@@ -5,17 +5,14 @@ import { TranslatePipe, routeTabs } from '@vaultfolio/frontend-shared-ui';
 
 /**
  * Holdings area (021-frontend-extension-points, US3): a "List" sub-tab (the
- * pre-existing `HoldingsComponent` page, unchanged) plus an "Imports"
- * sub-tab (the pre-existing `ImportsComponent`, moved here from its own
- * standalone `/app/imports` route/nav entry — FR-008/FR-009). Mirrors
+ * `HoldingsComponent` page). Mirrors
  * `SettingsComponent`/`AdminComponent`'s existing PrimeNG tabs + child-
  * router-outlet container pattern exactly (research.md #5): `domainGuard
- * ('holdings')` stays on this component's own parent route only, and both
- * tabs inherit it the same way `adminGuard` already covers every Admin
+ * ('holdings')` stays on this component's own parent route only, and the
+ * tab inherits it the same way `adminGuard` already covers every Admin
  * sub-route (FR-011).
  *
- * Each tab is its own address (`/app/holdings/list`,
- * `/app/holdings/imports`) via child routes in `app.routes.ts` that
+ * The tab is its own address (`/app/holdings/list`) via a child route in `app.routes.ts` that
  * lazy-load the tab's component into the `<router-outlet>` below:
  * `activeTab` mirrors the active child segment so a direct visit opens the
  * right tab, and `onTabChange` navigates to the selected tab's route so the
@@ -36,9 +33,6 @@ import { TranslatePipe, routeTabs } from '@vaultfolio/frontend-shared-ui';
       <p-tablist>
         <p-tab value="list" data-testid="holdings-area-tab-list">{{
           'holdingsArea.list' | translate
-        }}</p-tab>
-        <p-tab value="imports" data-testid="holdings-area-tab-imports">{{
-          'holdingsArea.imports' | translate
         }}</p-tab>
       </p-tablist>
       <p-tabpanels>

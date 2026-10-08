@@ -37,7 +37,6 @@ export const de: TranslationDictionary = {
   nav: {
     dashboard: 'Übersicht',
     holdings: 'Bestände',
-    imports: 'Importe',
     retirement: 'Altersvorsorge',
     insurances: 'Versicherungen',
     haushaltsplaner: 'Haushaltsplaner',
@@ -90,11 +89,6 @@ export const de: TranslationDictionary = {
     comingSoon: 'Bald verfügbar',
     totalValueBody:
       'Diese Karte zeigt den Gesamtwert deiner Bestände, sobald Portfoliodaten verfügbar sind.',
-  },
-  imports: {
-    dropzoneTitle: 'Ziehe eine Abrechnung oder CSV-Datei hierher',
-    dropzoneBody:
-      'Der Import wird bald unterstützt — dieser Bereich wird Broker-Exporte akzeptieren und mit deinen Beständen abgleichen.',
   },
   assetType: {
     ETF: 'ETF',
@@ -524,7 +518,6 @@ export const de: TranslationDictionary = {
     dashboard: 'Übersicht',
     holdings: 'Bestände',
     holdingsList: 'Bestände · Liste',
-    holdingsImports: 'Bestände · Importe',
     retirement: 'Altersvorsorge',
     insurances: 'Versicherungen',
     haushaltsplaner: 'Haushaltsplaner',

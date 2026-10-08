@@ -43,7 +43,6 @@ export const en: TranslationDictionary = {
   nav: {
     dashboard: 'Dashboard',
     holdings: 'Holdings',
-    imports: 'Imports',
     retirement: 'Retirement',
     insurances: 'Insurances',
     haushaltsplaner: 'Budget Planner',
@@ -96,11 +95,6 @@ export const en: TranslationDictionary = {
     comingSoon: 'Coming soon',
     totalValueBody:
       "This card will show your holdings' combined total value once portfolio data is available.",
-  },
-  imports: {
-    dropzoneTitle: 'Drag a statement or CSV file here',
-    dropzoneBody:
-      'Import support is coming soon — this area will accept broker exports and reconcile them against your holdings.',
   },
   assetType: {
     ETF: 'ETF',
@@ -523,7 +517,6 @@ export const en: TranslationDictionary = {
     dashboard: 'Dashboard',
     holdings: 'Holdings',
     holdingsList: 'Holdings · List',
-    holdingsImports: 'Holdings · Imports',
     retirement: 'Retirement',
     insurances: 'Insurances',
     haushaltsplaner: 'Budget Planner',

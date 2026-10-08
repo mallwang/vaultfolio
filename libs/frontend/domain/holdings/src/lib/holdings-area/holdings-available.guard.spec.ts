@@ -17,9 +17,11 @@ describe('holdingsAvailableGuard', () => {
     expect(await run(of([]))).toBe(true);
   });
 
-  it('redirects to the holdings area on 503', async () => {
+  it('redirects to the unavailable page on 503', async () => {
     const result = await run(throwError(() => new HttpErrorResponse({ status: 503 })));
-    expect(TestBed.inject(Router).serializeUrl(result as UrlTree)).toBe('/app/holdings');
+    expect(TestBed.inject(Router).serializeUrl(result as UrlTree)).toBe(
+      '/app/holdings/unavailable',
+    );
   });
 
   it('lets the screen open on any other error', async () => {

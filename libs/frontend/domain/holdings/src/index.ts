@@ -7,7 +7,6 @@ export { HoldingsComponent } from './lib/holdings.component.js';
 // consumers of a domain library (contracts/module-boundaries.md guarantee 2).
 export { HoldingsDistributionComponent } from './lib/holdings-distribution/holdings-distribution.component.js';
 export { HoldingsService } from './lib/holdings.service.js';
-export { ImportsComponent } from './lib/imports/imports.component.js';
 export { HoldingsAreaComponent } from './lib/holdings-area/holdings-area.component.js';
 export { createHoldingsExportDefinition } from './lib/holdings-export.definition.js';
 export { holdingsAvailableGuard } from './lib/holdings-area/holdings-available.guard.js';

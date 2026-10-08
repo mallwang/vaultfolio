@@ -1,6 +1,7 @@
 import { inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import type { EChartsOption } from 'echarts';
+import { findCoin } from '@vaultfolio/domain-holdings';
 import type { FeatureExportDefinition, ExportRow } from '@vaultfolio/export';
 import type { HoldingResponse } from '@vaultfolio/api-contract';
 import { I18nService, ASSET_TYPE_COLORS } from '@vaultfolio/frontend-shared-ui';
@@ -12,13 +13,17 @@ import { buildDistributionChartOption } from './holdings-distribution/distributi
 function toRow(holding: HoldingResponse, assetName: string): ExportRow {
   return {
     assetType: holding.assetType,
-    name: assetName,
     isin: holding.isin,
-    management: holding.management,
+    name: assetName,
+    metal: holding.metal,
+    coin: holding.coinId ? (findCoin(holding.coinId)?.symbol ?? holding.coinId) : null,
     quantity: holding.quantity,
+    unit: holding.unit,
     purchasePrice: holding.purchasePrice,
-    currentValue: holding.currentValue,
     purchaseDate: holding.purchaseDate,
+    currentValue: holding.currentValue,
+    management: holding.management,
+    note: holding.note,
   };
 }
 
@@ -44,18 +49,22 @@ export function createHoldingsExportDefinition(): FeatureExportDefinition {
     infoboxKey: 'holdingsExport.infobox',
     columns: [
       { key: 'assetType', labelKey: 'holdingsExport.columnAssetType', format: 'text' },
-      { key: 'name', labelKey: 'holdingsExport.columnName', format: 'text' },
       { key: 'isin', labelKey: 'holdingsExport.columnIsin', format: 'text' },
-      { key: 'management', labelKey: 'holdingsExport.columnManagement', format: 'text' },
+      { key: 'name', labelKey: 'holdingsExport.columnName', format: 'text' },
+      { key: 'metal', labelKey: 'holdingsExport.columnMetal', format: 'text' },
+      { key: 'coin', labelKey: 'holdingsExport.columnCoin', format: 'text' },
       { key: 'quantity', labelKey: 'holdingsExport.columnQuantity', format: 'decimal' },
+      { key: 'unit', labelKey: 'holdingsExport.columnUnit', format: 'text' },
       { key: 'purchasePrice', labelKey: 'holdingsExport.columnPurchasePrice', format: 'currency' },
+      { key: 'purchaseDate', labelKey: 'holdingsExport.columnPurchaseDate', format: 'date' },
       {
         key: 'currentValue',
         labelKey: 'holdingsExport.columnCurrentValue',
         format: 'currency',
         summable: true,
       },
-      { key: 'purchaseDate', labelKey: 'holdingsExport.columnPurchaseDate', format: 'date' },
+      { key: 'management', labelKey: 'holdingsExport.columnManagement', format: 'text' },
+      { key: 'note', labelKey: 'holdingsExport.columnNote', format: 'text' },
     ],
     async fetchData(): Promise<ExportRow[]> {
       const holdings = await firstValueFrom(holdingsService.list());

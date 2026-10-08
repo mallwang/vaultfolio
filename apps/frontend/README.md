@@ -25,7 +25,7 @@ in scope.
 ## Application Area folder convention
 
 Every top-level, navigable section of the product ("Application Area") gets its own folder
-directly under `src/app/` (e.g. `dashboard/`, `holdings/`, `imports/`, `settings/`), holding a
+directly under `src/app/` (e.g. `dashboard/`, `holdings/`, `settings/`), holding a
 standalone Angular component. `health-status/` lives under `settings/` since it's Settings'
 "System health" section rather than its own top-level area.
 

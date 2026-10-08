@@ -43,7 +43,6 @@ export const holdingsEn: TranslationDictionary = {
   },
   holdingsArea: {
     list: 'List',
-    imports: 'Imports',
   },
   holdingsExport: {
     title: 'Holdings',
@@ -51,6 +50,10 @@ export const holdingsEn: TranslationDictionary = {
       'About this export — Holdings. Holdings is the primary tracking domain, letting you record and monitor your investment positions across asset types (ETF, Share, Precious Metal, Crypto, Deposit Money). This file contains every holding currently on your Holdings list.',
     columnAssetType: 'Type',
     columnName: 'Asset',
+    columnMetal: 'Metal',
+    columnCoin: 'Coin',
+    columnUnit: 'Unit',
+    columnNote: 'Note',
     columnIsin: 'ISIN',
     columnManagement: 'Management',
     columnQuantity: 'Quantity',

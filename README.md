@@ -27,7 +27,7 @@ e.g., no domain connects to a bank/brokerage API directly, even Account Overview
 
 The tech stack scaffold is in place (Nx monorepo, NestJS backend, Angular frontend, SQLite,
 Docker Compose orchestration) per the project [constitution](.specify/memory/constitution.md).
-Holdings tracking (manual entry, CRUD, CSV/JSON import, distribution-by-type chart) is built out;
+Holdings tracking (manual entry, CRUD, distribution-by-type chart) is built out;
 the frontend has grown into a multi-domain app shell — authentication/sessions, admin (accounts,
 invitations, sign-ups), self-service signup, profile/password/preferences settings, multi-language
 UI, theme switching, and a dashboard — with holdings as the first of several planned domains

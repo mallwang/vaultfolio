@@ -44,7 +44,6 @@ export const holdingsDe: TranslationDictionary = {
   },
   holdingsArea: {
     list: 'Liste',
-    imports: 'Importe',
   },
   holdingsExport: {
     title: 'Bestände',
@@ -52,6 +51,10 @@ export const holdingsDe: TranslationDictionary = {
       'Über diesen Export — Holdings. Holdings ist der zentrale Tracking-Bereich, in dem du deine Investmentpositionen über verschiedene Anlageklassen hinweg erfassen und verfolgen (ETF, Aktie, Edelmetall, Krypto, Festgeld/Tagesgeld). Diese Datei enthält alle aktuell in deiner Holdings-Liste vorhandenen Positionen.',
     columnAssetType: 'Typ',
     columnName: 'Anlage',
+    columnMetal: 'Metall',
+    columnCoin: 'Coin',
+    columnUnit: 'Einheit',
+    columnNote: 'Notiz',
     columnIsin: 'ISIN',
     columnManagement: 'Verwaltung',
     columnQuantity: 'Menge',

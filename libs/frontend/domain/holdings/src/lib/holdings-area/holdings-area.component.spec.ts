@@ -14,9 +14,6 @@ class FakeResizeObserver {
 @Component({ selector: 'app-stub-list', template: `list content` })
 class StubListComponent {}
 
-@Component({ selector: 'app-stub-imports', template: `imports content` })
-class StubImportsComponent {}
-
 const routes: Routes = [
   {
     path: 'holdings',
@@ -24,7 +21,6 @@ const routes: Routes = [
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'list' },
       { path: 'list', component: StubListComponent },
-      { path: 'imports', component: StubImportsComponent },
     ],
   },
 ];
@@ -55,22 +51,12 @@ describe('HoldingsAreaComponent', () => {
     expect(harness.routeNativeElement?.textContent).toContain('list content');
   });
 
-  it('shows the "imports" tab as active and its content on a direct visit to /holdings/imports', async () => {
-    const harness = await RouterTestingHarness.create('/holdings/imports');
-
-    const tab = harness.routeNativeElement?.querySelector('[data-p-active="true"]');
-    expect(tab?.textContent?.trim()).toBe('Imports');
-    expect(harness.routeNativeElement?.textContent).toContain('imports content');
-  });
-
-  it('navigates to the imports route when the Imports tab is selected', async () => {
+  it('renders only the List tab', async () => {
     const harness = await RouterTestingHarness.create('/holdings');
-    const component = harness.routeDebugElement?.componentInstance as HoldingsAreaComponent;
 
-    component['onTabChange']('imports');
-    await harness.fixture.whenStable();
-    harness.detectChanges();
-
-    expect(harness.routeNativeElement?.textContent).toContain('imports content');
+    expect(harness.routeNativeElement?.querySelectorAll('p-tab').length).toBe(1);
+    expect(
+      harness.routeNativeElement?.querySelector('[data-testid="holdings-area-tab-imports"]'),
+    ).toBeNull();
   });
 });

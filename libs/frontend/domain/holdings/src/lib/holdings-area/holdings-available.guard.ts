@@ -5,8 +5,8 @@ import { catchError, firstValueFrom, map, of } from 'rxjs';
 import { HoldingsService } from '../holdings.service';
 
 /**
- * Blocks the form screens while the server cannot decrypt holdings data: probes `GET /holdings`
- * and sends the visitor back to the area, which then shows the unavailable state. Any other error
+ * Blocks the list while the server cannot decrypt holdings data: probes `GET /holdings`
+ * and sends the visitor to the unguarded `/app/holdings/unavailable` child (no redirect loop). Any other error
  * lets the screen open; its own calls report it.
  */
 export const holdingsAvailableGuard = (): Promise<boolean | UrlTree> => {
@@ -19,7 +19,7 @@ export const holdingsAvailableGuard = (): Promise<boolean | UrlTree> => {
         catchError((error: unknown) =>
           of(
             error instanceof HttpErrorResponse && error.status === 503
-              ? router.createUrlTree(['/app/holdings'])
+              ? router.createUrlTree(['/app/holdings/unavailable'])
               : true,
           ),
         ),

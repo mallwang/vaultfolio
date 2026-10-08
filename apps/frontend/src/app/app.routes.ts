@@ -27,9 +27,9 @@ const lazyParserRequestGuard: CanActivateFn = () => {
 };
 
 /**
- * Same for the Holdings library's `holdingsAvailableGuard` (imports tab only). It redirects to
- * `/app/holdings`, which resolves to the unguarded `list` child, so it must never sit on the area
- * parent or on `list`: that would loop on a 503.
+ * Same for the Holdings library's `holdingsAvailableGuard` (list only). It redirects to
+ * the unguarded `unavailable` sibling, so it must never sit on the area parent or on `unavailable`:
+ * that would loop on a 503.
  */
 const lazyHoldingsAvailableGuard: CanActivateFn = () => {
   const injector = inject(EnvironmentInjector);
@@ -147,15 +147,17 @@ export const routes: Routes = [
           {
             path: 'list',
             title: 'pageTitle.holdingsList',
+            canActivate: [lazyHoldingsAvailableGuard],
             loadComponent: () =>
               import('@vaultfolio/frontend-domain-holdings').then((m) => m.HoldingsComponent),
           },
           {
-            path: 'imports',
-            title: 'pageTitle.holdingsImports',
-            canActivate: [lazyHoldingsAvailableGuard],
+            path: 'unavailable',
+            title: 'pageTitle.holdingsList',
             loadComponent: () =>
-              import('@vaultfolio/frontend-domain-holdings').then((m) => m.ImportsComponent),
+              import('@vaultfolio/frontend-domain-holdings').then(
+                (m) => m.HoldingsUnavailableComponent,
+              ),
           },
         ],
       },
