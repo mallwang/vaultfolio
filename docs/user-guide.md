@@ -17,6 +17,7 @@ infrastructure.
 2. [Navigation](#2-navigation)
    - 2.1 [Sidebar](#21-sidebar)
    - 2.2 [Header](#22-header)
+   - 2.3 [Sending Feedback](#23-sending-feedback)
 3. [Dashboard](#3-dashboard)
 4. [Holdings](#4-holdings)
    - 4.1 [The Holdings List](#41-the-holdings-list)
@@ -105,13 +106,14 @@ to (see [Managing Accounts](#91-managing-accounts)).
 
 The header is always visible. It contains:
 
-| Element           | What it does                                        |
-| ----------------- | --------------------------------------------------- |
-| Logo              | Returns to the dashboard                            |
-| Language switcher | Switches the UI display language (English / German) |
-| Theme toggle      | Switches between light and dark mode                |
-| Your name         | Displays your display name and role badge           |
-| Sign Out          | Ends your session                                   |
+| Element           | What it does                                                         |
+| ----------------- | -------------------------------------------------------------------- |
+| Logo              | Returns to the dashboard                                             |
+| Feedback          | Opens the feedback dialog ([Sending Feedback](#23-sending-feedback)) |
+| Language switcher | Switches the UI display language (English / German)                  |
+| Theme toggle      | Switches between light and dark mode                                 |
+| Your name         | Displays your display name and role badge                            |
+| Sign Out          | Ends your session                                                    |
 
 > **Display language vs. email language:** The language switcher changes what you
 > see in the UI. To change the language of emails you receive from Vaultfolio, go
@@ -121,6 +123,32 @@ The header is always visible. It contains:
 > behind for the next person who signs in. A browser has one Vaultfolio session at a time, shared
 > by all its tabs: if you sign in with another account in a second tab (or accept an invitation
 > there), the first tab reloads and shows that account as soon as you return to it.
+
+### 2.3 Sending Feedback
+
+Questions, ideas or problems? Click the feedback icon in the header to write to the
+administrators directly.
+
+1. Choose a **category** (Feature request, Problem or Other), then enter a **subject** and a
+   **message**. Please do not include passwords or account data.
+2. Click **Send**. The dialog closes and a confirmation shows how many feedbacks you have left.
+
+Each administrator receives your message by email, together with your name and email address,
+so they can reply to you.
+
+**Limit:** You can send up to 5 feedbacks per 24 hours. The dialog shows how many are left and,
+once the limit is reached, when the next slot is free. You can keep writing while the limit is
+reached and send the text later.
+
+**Drafts:** Nothing you type is lost by accident.
+
+- If you click **Cancel** with text entered, you can **Keep writing**, **Save draft and close**
+  or **Discard**.
+- If sending fails (for example because the server is unreachable), the dialog stays open and
+  shows an error. Try again, or click **Save draft and close** and send it later.
+- A saved draft stays in this browser only. Open the feedback dialog again to continue; a notice
+  in the notification center ("Unsent feedback") also links to it. Sending the draft, or
+  discarding it, removes it.
 
 ---
 

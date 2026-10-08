@@ -81,7 +81,7 @@ export interface SeededRow {
 
 const NOW = '2026-10-01T10:00:00.000Z';
 
-/** Insert statements (without ciphertext) for the eight encrypted tables; `$1` id, `$2` owner, `$3` ciphertext. */
+/** Insert statements (without ciphertext) for the encrypted tables; `$1` id, `$2` owner, `$3` ciphertext. */
 const FIXTURE_SQL: Record<string, string> = {
   earnings_records: `INSERT INTO earnings_records (id, owner_id, import_id, employer_id, period, issued, kind, seq, amounts_enc, key_version, created_at)
     VALUES ($1, $2, 'i', 'e', '2026-01', '2026-01', 'REGULAR', 1, $3, 1, '${NOW}')`,
@@ -99,11 +99,13 @@ const FIXTURE_SQL: Record<string, string> = {
     VALUES ($2, $3, 1, '${NOW}')`,
   account_overview_entries: `INSERT INTO account_overview_entries (id, owner_id, payload_enc, key_version, created_at, updated_at)
     VALUES ($1, $2, $3, 1, '${NOW}', '${NOW}')`,
+  feedback_submissions: `INSERT INTO feedback_submissions (id, owner_id, category, language, payload_enc, key_version, created_at)
+    VALUES ($1, $2, 'other', 'en', $3, 1, '${NOW}')`,
 };
 
 /**
  * Pre-feature database: creates the schema, then writes one legacy `v1` row (encrypted directly with
- * the domain's master key) into each of the eight encrypted tables. Returns what was written.
+ * the domain's master key) into each of the encrypted tables. Returns what was written.
  */
 export async function seedLegacyDatabase(tempDir: string, masterKey: string): Promise<SeededRow[]> {
   process.env.DATABASE_PATH = path.join(tempDir, 'test.db');

@@ -187,7 +187,7 @@ The output is deterministic, so a reset is reproducible.
 
 ## Encryption key rotation (developer notes)
 
-The five encrypted domains (earnings, retirement, wealth, insurances, account overview) share
+The six encrypted domains (earnings, retirement, wealth, insurances, account overview, feedback) share
 `libs/encryption` (envelope primitives, key fingerprint, in-memory keyring) and the backend
 `EncryptionModule` (`apps/backend/src/encryption`: key store tables `encryption_data_keys` and
 `encryption_rotation_runs`, per-domain `DomainKeyringService`, `RotationService`, admin routes under

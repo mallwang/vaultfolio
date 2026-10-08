@@ -92,7 +92,7 @@ describe('RotationService', () => {
         lastRun: null,
         runningRun: null,
       });
-      expect(rotation.status()).toHaveLength(5);
+      expect(rotation.status()).toHaveLength(6);
       expect(rotation.status().find((s) => s.domain === 'earnings')?.state).toBe('READY');
       expect(JSON.stringify(rotation.status())).not.toMatch(/k1:/);
     });

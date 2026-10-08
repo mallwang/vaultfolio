@@ -23,6 +23,15 @@ export const hintsEn: TranslationDictionary = {
     insurances: 'Insurances',
     earnings: 'Earnings',
     retirement: 'Retirement',
+    feedback: 'Feedback',
+  },
+  feedback: {
+    draft: {
+      title: 'Unsent feedback',
+      description:
+        'Your feedback “{{subject}}” was not sent. It is saved as a draft in this browser.',
+      linkLabel: 'Open draft',
+    },
   },
   insurances: {
     redundant: {

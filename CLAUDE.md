@@ -75,5 +75,5 @@
 
 ## Current Feature Plan
 
-Active implementation plan: [specs/043-notification-center/plan.md](specs/043-notification-center/plan.md)
+Active implementation plan: [specs/044-user-feedback/plan.md](specs/044-user-feedback/plan.md)
 <!-- SPECKIT END -->

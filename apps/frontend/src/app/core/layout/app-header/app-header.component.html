@@ -16,6 +16,7 @@
     @if (user()?.role) {
       <span class="role-badge">{{ roleLabelKey() | translate }}</span>
     }
+    <app-feedback-button />
     <app-hints-bell (toggled)="hintsPanel.toggle()" />
     <app-hints-panel #hintsPanel />
     <p-select

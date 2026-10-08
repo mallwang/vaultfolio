@@ -12,6 +12,12 @@ export const HINT_PROVIDER_CONTRIBUTIONS = new InjectionToken<HintProviderContri
     providedIn: 'root',
     factory: (): HintProviderContribution[] => [
       {
+        sourceId: 'feedback',
+        groupLabelKey: 'hints.groups.feedback',
+        loadProvider: () =>
+          import('../feedback/feedback-hint-provider').then((m) => m.FeedbackHintProvider),
+      },
+      {
         sourceId: 'insurances',
         domainId: 'insurances',
         groupLabelKey: 'hints.groups.insurances',

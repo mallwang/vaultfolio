@@ -91,7 +91,7 @@ describe('encryption: upgrade of a pre-feature database (US4)', () => {
   it('records one LEGACY_MIGRATION run per domain and reports counts per version', async () => {
     const api = await adminApi(t);
     const history = (await api.get('/admin/encryption/history')).body as EncryptionHistoryResponse;
-    expect(history.runs).toHaveLength(5);
+    expect(history.runs).toHaveLength(6);
     for (const run of history.runs) {
       expect(run).toMatchObject({
         kind: 'LEGACY_MIGRATION',

@@ -1,5 +1,5 @@
 import { HttpException } from '@nestjs/common';
-import type { ErrorResponseDetail } from '@vaultfolio/api-contract';
+import type { ErrorResponseDetail, FeedbackQuota } from '@vaultfolio/api-contract';
 
 /** Constructor payload shared by every `BusinessException` subclass. */
 export interface BusinessExceptionBody {
@@ -11,6 +11,8 @@ export interface BusinessExceptionBody {
   details?: ErrorResponseDetail[];
   /** Only for duplicate-resource conflicts: the id of the existing resource. */
   existingId?: string;
+  /** Only for `feedback_limit_reached`: the caller's current quota. */
+  quota?: FeedbackQuota;
 }
 
 /**
@@ -22,11 +24,13 @@ export interface BusinessExceptionBody {
 export abstract class BusinessException extends HttpException {
   readonly details?: ErrorResponseDetail[];
   readonly existingId?: string;
+  readonly quota?: FeedbackQuota;
 
   protected constructor(body: BusinessExceptionBody, status: number) {
     super({ error: body.error, message: body.message }, status);
     this.details = body.details;
     this.existingId = body.existingId;
+    this.quota = body.quota;
   }
 }
 

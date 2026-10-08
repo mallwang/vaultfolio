@@ -1,0 +1,219 @@
+<p-dialog
+  [header]="'feedback.dialog.title' | translate"
+  [visible]="store.open()"
+  [modal]="true"
+  [closable]="false"
+  [closeOnEscape]="false"
+  [dismissableMask]="false"
+  [draggable]="false"
+  [focusTrap]="true"
+  [style]="{ width: '36rem' }"
+  [breakpoints]="{ '640px': '94vw' }"
+  [pt]="{ root: { 'data-testid': 'feedback-dialog' } }"
+>
+  <div class="feedback">
+    <p class="feedback__note">{{ 'feedback.dialog.note' | translate }}</p>
+
+    @if (store.error(); as err) {
+      <div
+        class="feedback__banner feedback__banner--error"
+        role="alert"
+        data-testid="feedback-error-banner"
+      >
+        {{ 'feedback.errors.' + err | translate }}
+        <button
+          pButton
+          type="button"
+          class="feedback__banner-action"
+          data-testid="feedback-error-save-draft"
+          severity="secondary"
+          size="small"
+          [disabled]="store.pending()"
+          (click)="keepDraft()"
+        >
+          {{ 'feedback.confirm.keepDraft' | translate }}
+        </button>
+      </div>
+    }
+    @if (store.limited()) {
+      <div
+        class="feedback__banner feedback__banner--warn"
+        role="alert"
+        data-testid="feedback-limit-banner"
+      >
+        @if (resetTime(); as time) {
+          {{ 'feedback.errors.limitReached' | translate: { time: time } }}
+        } @else {
+          {{ 'feedback.errors.limitReachedNoTime' | translate }}
+        }
+      </div>
+    }
+
+    <div class="feedback__field">
+      <span id="feedback-category-label">{{ 'feedback.dialog.category' | translate }}</span>
+      <p-selectbutton
+        data-testid="feedback-category"
+        ariaLabelledBy="feedback-category-label"
+        [options]="categories()"
+        optionLabel="label"
+        optionValue="value"
+        [allowEmpty]="false"
+        [ngModel]="store.category()"
+        (ngModelChange)="store.category.set($event)"
+      />
+    </div>
+
+    <div class="feedback__field">
+      <label for="feedback-subject">{{ 'feedback.dialog.subject' | translate }}</label>
+      <input
+        pInputText
+        id="feedback-subject"
+        data-testid="feedback-subject"
+        [maxlength]="subjectMax"
+        [ngModel]="store.subject()"
+        (ngModelChange)="store.subject.set($event)"
+        (blur)="subjectTouched.set(true)"
+        [attr.aria-invalid]="subjectTouched() && !store.subject().trim()"
+        aria-describedby="feedback-subject-help"
+      />
+      <small id="feedback-subject-help" class="feedback__help">
+        @if (subjectTouched() && !store.subject().trim()) {
+          <span class="feedback__err">{{
+            'feedback.dialog.errors.subjectRequired' | translate
+          }}</span>
+        }
+        <span class="feedback__counter">{{
+          'feedback.dialog.counter' | translate: { count: store.subject().length, max: subjectMax }
+        }}</span>
+      </small>
+    </div>
+
+    <div class="feedback__field">
+      <label for="feedback-message">{{ 'feedback.dialog.message' | translate }}</label>
+      <textarea
+        pTextarea
+        id="feedback-message"
+        data-testid="feedback-message"
+        rows="6"
+        [maxlength]="messageMax"
+        [ngModel]="store.message()"
+        (ngModelChange)="store.message.set($event)"
+        (blur)="messageTouched.set(true)"
+        [attr.aria-invalid]="messageTouched() && !store.message().trim()"
+        aria-describedby="feedback-message-help"
+      ></textarea>
+      <small id="feedback-message-help" class="feedback__help">
+        @if (messageTouched() && !store.message().trim()) {
+          <span class="feedback__err">{{
+            'feedback.dialog.errors.messageRequired' | translate
+          }}</span>
+        }
+        <span class="feedback__counter">{{
+          'feedback.dialog.counter' | translate: { count: store.message().length, max: messageMax }
+        }}</span>
+      </small>
+    </div>
+
+    @if (store.open()) {
+      <app-turnstile
+        #turnstileRef
+        [siteKey]="siteKey"
+        action="feedback"
+        (tokenChange)="token.set($event)"
+      />
+    }
+
+    <div class="feedback__footer">
+      @if (store.quota(); as q) {
+        <div
+          class="feedback__quota"
+          data-testid="feedback-quota"
+          [class.feedback__quota--warn]="store.limited()"
+        >
+          <span class="feedback__dots" aria-hidden="true">
+            @for (on of dots(); track $index) {
+              <span class="feedback__dot" [class.feedback__dot--on]="on"></span>
+            }
+          </span>
+          @if (store.limited() && resetTime(); as time) {
+            {{
+              'feedback.quota.labelReset'
+                | translate: { remaining: q.remaining, limit: q.limit, time: time }
+            }}
+          } @else {
+            {{ 'feedback.quota.label' | translate: { remaining: q.remaining, limit: q.limit } }}
+          }
+        </div>
+      }
+      <div class="feedback__actions">
+        <button
+          pButton
+          type="button"
+          data-testid="feedback-cancel"
+          severity="secondary"
+          [text]="true"
+          [disabled]="store.pending()"
+          (click)="cancel()"
+        >
+          {{ 'feedback.dialog.cancel' | translate }}
+        </button>
+        <button
+          pButton
+          type="button"
+          data-testid="feedback-submit"
+          [disabled]="!canSend()"
+          [loading]="store.pending()"
+          (click)="send()"
+        >
+          {{ (store.pending() ? 'feedback.dialog.sending' : 'feedback.dialog.send') | translate }}
+        </button>
+      </div>
+    </div>
+  </div>
+</p-dialog>
+
+<p-dialog
+  [header]="'feedback.confirm.title' | translate"
+  [visible]="confirming()"
+  [modal]="true"
+  [closable]="false"
+  [closeOnEscape]="false"
+  [draggable]="false"
+  [style]="{ width: '34rem' }"
+  [breakpoints]="{ '640px': '94vw' }"
+  [pt]="{ root: { 'data-testid': 'feedback-cancel-confirm' } }"
+>
+  <div class="feedback" role="alertdialog" aria-describedby="feedback-confirm-text">
+    <p id="feedback-confirm-text">{{ 'feedback.confirm.text' | translate }}</p>
+    <div class="feedback__actions">
+      <button
+        pButton
+        type="button"
+        data-testid="feedback-cancel-keep"
+        severity="secondary"
+        [text]="true"
+        (click)="confirming.set(false)"
+      >
+        {{ 'feedback.confirm.keep' | translate }}
+      </button>
+      <button
+        pButton
+        type="button"
+        data-testid="feedback-cancel-keep-draft"
+        severity="secondary"
+        (click)="keepDraft()"
+      >
+        {{ 'feedback.confirm.keepDraft' | translate }}
+      </button>
+      <button
+        pButton
+        type="button"
+        data-testid="feedback-cancel-discard"
+        severity="danger"
+        (click)="discard()"
+      >
+        {{ 'feedback.confirm.discard' | translate }}
+      </button>
+    </div>
+  </div>
+</p-dialog>

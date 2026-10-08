@@ -1,3 +1,4 @@
+import { FeedbackButtonComponent } from '../../feedback/feedback-button/feedback-button.component';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Component, computed, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -53,6 +54,7 @@ interface LanguageOption {
     TooltipModule,
     TranslatePipe,
     IconComponent,
+    FeedbackButtonComponent,
     HintsBellComponent,
     HintsPanelComponent,
   ],
