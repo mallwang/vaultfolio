@@ -4,7 +4,7 @@ import type { TranslationDictionary } from './en';
 export const retirementDe: TranslationDictionary = {
   title: 'Altersvorsorge',
   toolbar: {
-    howProtected: 'So werden Ihre Daten geschützt',
+    howProtected: 'So werden deine Daten geschützt',
     manual: 'Manuell erfassen',
     upload: 'Dokument hochladen',
   },
@@ -51,7 +51,7 @@ export const retirementDe: TranslationDictionary = {
   },
   unavailable: {
     title: 'Altersvorsorge ist nicht verfügbar',
-    body: 'Der Server kann die Altersvorsorge-Daten derzeit nicht lesen (der Verschlüsselungsschlüssel fehlt oder passt nicht). Ihre Daten gehen nicht verloren. Bitten Sie die Administration, die Konfiguration zu prüfen.',
+    body: 'Der Server kann die Altersvorsorge-Daten derzeit nicht lesen (der Verschlüsselungsschlüssel fehlt oder passt nicht). Deine Daten gehen nicht verloren. Bitte die Administration, die Konfiguration zu prüfen.',
   },
   info: {
     title: 'Weiterführende Informationen',
@@ -69,41 +69,41 @@ export const retirementDe: TranslationDictionary = {
       drv: {
         title: 'Die drei Säulen der Altersvorsorge',
         description:
-          'Die Deutsche Rentenversicherung erklärt, wie gesetzliche, betriebliche und private Vorsorge zusammenspielen und wie sich Ihre Rente berechnet.',
+          'Die Deutsche Rentenversicherung erklärt, wie gesetzliche, betriebliche und private Vorsorge zusammenspielen und wie sich deine Rente berechnet.',
         source: 'Deutsche Rentenversicherung',
       },
       finanzfluss: {
         title: 'Rentenlückenrechner',
         description:
-          'Schätzen Sie die Lücke zwischen Ihrer erwarteten Rente und dem Einkommen, das Sie im Ruhestand wünschen.',
+          'Schätze die Lücke zwischen deiner erwarteten Rente und dem Einkommen, das du im Ruhestand wünschst.',
         source: 'Finanzfluss',
       },
       finanztip: {
         title: 'Die Rentenlücke verstehen',
         description:
-          'Ein Ratgeber dazu, was die Rentenlücke ist, wie Sie sie abschätzen und wie sie sich schließen lässt.',
+          'Ein Ratgeber dazu, was die Rentenlücke ist, wie du sie abschätzt und wie sie sich schließen lässt.',
         source: 'Finanztip',
       },
     },
   },
   privacy: {
-    title: 'Ihre Altersvorsorge-Daten',
+    title: 'Deine Altersvorsorge-Daten',
     sub: 'Altersvorsorge-Dokumente enthalten sensible Daten. Das passiert mit ihnen.',
     device: {
-      title: 'Dokumente bleiben auf Ihrem Gerät',
-      body: 'PDFs werden in Ihrem Browser gelesen. Die Datei und ihr Text werden nie hochgeladen; gesendet werden nur die Werte, die Sie bestätigen.',
+      title: 'Dokumente bleiben auf deinem Gerät',
+      body: 'PDFs werden in deinem Browser gelesen. Die Datei und ihr Text werden nie hochgeladen; gesendet werden nur die Werte, die du bestätigst.',
     },
     figures: {
       title: 'Nur Beträge, keine Kennungen',
-      body: 'Name, Anschrift, Steuer-ID und Bankdaten werden weder abgefragt noch gespeichert. Beträge sowie Versicherungs- und Vertragsnummern, falls Sie sie eintragen, werden verschlüsselt gespeichert.',
+      body: 'Name, Anschrift, Steuer-ID und Bankdaten werden weder abgefragt noch gespeichert. Beträge sowie Versicherungs- und Vertragsnummern, falls du sie einträgst, werden verschlüsselt gespeichert.',
     },
     onlyYou: {
-      title: 'Nur Sie sehen sie',
-      body: 'Niemand sonst in Vaultfolio sieht Ihre Altersvorsorge-Daten, auch keine Administratoren. Der Betreiber dieser Vaultfolio-Instanz betreibt den Server und verwaltet den Schlüssel.',
+      title: 'Nur du siehst sie',
+      body: 'Niemand sonst in Vaultfolio sieht deine Altersvorsorge-Daten, auch keine Administratoren. Der Betreiber dieser Vaultfolio-Instanz betreibt den Server und verwaltet den Schlüssel.',
     },
     request: {
       title: 'Optional: Parser anfragen',
-      body: 'Wird ein Dokument nicht erkannt, können Sie einen Parser anfragen. Gesendet wird nur eine anonymisierte, neu aufgebaute Kopie – personenbezogene Daten werden entfernt, jede Zahl wird ersetzt und unbekannte Wörter werden maskiert, sofern Sie sie nicht behalten – nach Ihrer Prüfung und Einwilligung. Administratoren dieser Instanz können sie sehen; sie wird 30 Tage nach Abschluss der Anfrage gelöscht. Die Originaldatei und Ihre echten Beträge verlassen Ihr Gerät nie.',
+      body: 'Wird ein Dokument nicht erkannt, kannst du einen Parser anfragen. Gesendet wird nur eine anonymisierte, neu aufgebaute Kopie – personenbezogene Daten werden entfernt, jede Zahl wird ersetzt und unbekannte Wörter werden maskiert, sofern du sie nicht behältst – nach deiner Prüfung und Einwilligung. Administratoren dieser Instanz können sie sehen; sie wird 30 Tage nach Abschluss der Anfrage gelöscht. Die Originaldatei und deine echten Beträge verlassen dein Gerät nie.',
     },
     links: {
       title: 'Links übertragen keine Daten',
@@ -111,9 +111,9 @@ export const retirementDe: TranslationDictionary = {
     },
     dangerTitle: 'Alle Altersvorsorge-Daten löschen',
     dangerSub:
-      'Entfernt dauerhaft alle Einträge zu gesetzlicher, betrieblicher und privater Vorsorge. Ihr Konto und Ihre übrigen Vaultfolio-Daten bleiben erhalten.',
+      'Entfernt dauerhaft alle Einträge zu gesetzlicher, betrieblicher und privater Vorsorge. Dein Konto und deine übrigen Vaultfolio-Daten bleiben erhalten.',
     deleteHint:
-      'Sie können einzelne Einträge oder alle Ihre Altersvorsorge-Daten jederzeit löschen.',
+      'Du kannst einzelne Einträge oder alle deine Altersvorsorge-Daten jederzeit löschen.',
     deleteAll: 'Alle Altersvorsorge-Daten löschen',
     deleteAllHeader: 'Alle Altersvorsorge-Daten löschen?',
     deleteAllMessage:
@@ -208,15 +208,15 @@ export const retirementDe: TranslationDictionary = {
     empty: {
       statutory: {
         title: 'Noch keine gesetzliche Rente',
-        body: 'Laden Sie Ihre Renteninformation hoch oder geben Sie die Werte manuell ein.',
+        body: 'Lade deine Renteninformation hoch oder gib die Werte manuell ein.',
       },
       occupational: {
         title: 'Noch keine betriebliche Altersvorsorge',
-        body: 'Laden Sie eine Mitteilung zu Ihrer Betriebsrente hoch oder erfassen Sie den Vertrag manuell.',
+        body: 'Lade eine Mitteilung zu deiner Betriebsrente hoch oder erfasse den Vertrag manuell.',
       },
       private: {
         title: 'Noch keine private Vorsorge',
-        body: 'Laden Sie eine Mitteilung zu Riester, privater Rente oder Sparkonto hoch oder erfassen Sie den Vertrag manuell.',
+        body: 'Lade eine Mitteilung zu Riester, privater Rente oder Sparkonto hoch oder erfasse den Vertrag manuell.',
       },
     },
     add: {
@@ -242,7 +242,7 @@ export const retirementDe: TranslationDictionary = {
     title: 'Altersvorsorge-Dokument hochladen',
     dropTitle: 'Renteninformation, Standmitteilungen oder Kontoauszüge hier ablegen',
     dropSub:
-      'Die Dateien werden auf diesem Gerät gelesen. Gespeichert wird erst, wenn Sie bestätigen.',
+      'Die Dateien werden auf diesem Gerät gelesen. Gespeichert wird erst, wenn du bestätigst.',
     choose: 'Datei auswählen',
     supported: 'Unterstützt',
     formatChips: {
@@ -251,7 +251,7 @@ export const retirementDe: TranslationDictionary = {
       capital: 'Kapitalkonto-Auszug',
     },
     deviceBanner:
-      'Dokumente bleiben auf Ihrem Gerät – gesendet werden nur die Werte, die Sie bestätigen.',
+      'Dokumente bleiben auf deinem Gerät – gesendet werden nur die Werte, die du bestätigst.',
     reading: 'Dokument wird gelesen…',
     reviewTitle: 'Erkannte Werte prüfen',
     checksPassed: 'Plausibilitätsprüfung bestanden',
@@ -288,7 +288,7 @@ export const retirementDe: TranslationDictionary = {
       UNREADABLE:
         'Abgelehnt: Die Datei konnte nicht gelesen werden. Sie ist möglicherweise beschädigt.',
       PASSWORD_PROTECTED:
-        'Abgelehnt: Das PDF ist passwortgeschützt. Entfernen Sie das Passwort und versuchen Sie es erneut.',
+        'Abgelehnt: Das PDF ist passwortgeschützt. Entferne das Passwort und versuche es erneut.',
       IMAGE_ONLY:
         'Abgelehnt: Die Datei wurde als PDF erkannt, enthält aber keinen automatisch auswertbaren Text (z. B. ein Scan oder ein PDF mit in Grafik umgewandelter Schrift). Aus dieser Datei wird nichts gespeichert.',
       TOO_MANY_PAGES:
@@ -339,7 +339,7 @@ export const retirementDe: TranslationDictionary = {
     },
     empty: {
       title: 'Noch nichts erfasst',
-      body: 'Laden Sie ein Dokument hoch oder erfassen Sie einen Vertrag manuell, um Ihr Altersvorsorge-Bild zu sehen.',
+      body: 'Lade ein Dokument hoch oder erfasse einen Vertrag manuell, um dein Altersvorsorge-Bild zu sehen.',
     },
     notes: {
       outdated:
@@ -382,6 +382,6 @@ export const retirementDe: TranslationDictionary = {
     RETIREMENT_IMPORTED_READONLY: 'Importierte Einträge können nicht bearbeitet werden.',
     RETIREMENT_NOT_IMPORTED: 'Nur importierte Einträge haben Ergänzungsfelder.',
     RETIREMENT_STATUTORY_EXISTS:
-      'Es gibt bereits einen Eintrag zur gesetzlichen Rente. Ersetzen Sie ihn stattdessen.',
+      'Es gibt bereits einen Eintrag zur gesetzlichen Rente. Ersetze ihn stattdessen.',
   },
 };

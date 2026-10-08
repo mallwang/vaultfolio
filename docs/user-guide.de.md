@@ -333,7 +333,7 @@ Einkommensentwicklung anders als andere Bereiche:
   wird eine anonymisierte, neu aufgebaute Kopie – nie die Datei und nie deine echten
   Beträge – an die Administratoren gesendet.
 
-Der Link **So werden Ihre Daten geschützt** in der Werkzeugleiste öffnet diesen Hinweis
+Der Link **So werden deine Daten geschützt** in der Werkzeugleiste öffnet diesen Hinweis
 jederzeit. Zeigt die Seite _Einkommensdaten sind vorübergehend nicht verfügbar_, kann
 der Server deine Werte gerade nicht entschlüsseln; deine Daten sind nicht verloren –
 wende dich an den Betreiber.
@@ -373,10 +373,10 @@ Wird eine Abrechnung abgelehnt, weil eine Prüfung nicht aufgeht, öffnen sich i
 der Zeile, damit du einen falsch gelesenen Wert korrigieren kannst: Die an der fehlgeschlagenen
 Prüfung beteiligten Werte sind hervorgehoben (**In fehlgeschlagener Prüfung**) und editierbar –
 `1.234,56` und `1234.56` funktionieren. Die Prüfungen laufen bei jeder Änderung neu; sobald
-sie bestehen, zeigt die Zeile **Von Ihnen korrigiert** und kann importiert werden. **Gelesenen
+sie bestehen, zeigt die Zeile **Von dir korrigiert** und kann importiert werden. **Gelesenen
 Wert wiederherstellen** setzt den Originalwert zurück. Andere Werte sind nicht editierbar, der
 Server prüft beim Import alles erneut, und korrigierte Werte bleiben in Vorschau,
-Importverlauf („1 Wert von Ihnen korrigiert“) und Monatsdetail markiert. Klappe **Werte, die gesendet werden** auf, um genau zu sehen, was dein
+Importverlauf („1 Wert von dir korrigiert“) und Monatsdetail markiert. Klappe **Werte, die gesendet werden** auf, um genau zu sehen, was dein
 Gerät verlässt. Gespeichert wird erst, wenn du unten auf die Import-Schaltfläche
 klickst.
 

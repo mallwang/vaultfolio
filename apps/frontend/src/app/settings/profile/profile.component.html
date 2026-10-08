@@ -107,7 +107,7 @@
           pInputText
           id="new-password"
           type="password"
-          placeholder="8–200 characters"
+          [placeholder]="'profile.newPasswordPlaceholder' | translate"
           autocomplete="new-password"
           [ngModel]="newPassword()"
           (ngModelChange)="newPassword.set($event)"

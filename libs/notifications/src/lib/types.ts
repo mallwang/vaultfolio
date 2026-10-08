@@ -36,4 +36,6 @@ export interface RenderNotificationRequest<V = Record<string, unknown>> {
   preferredLanguage: string | null;
   /** Per-type view model (e.g. `{ resetUrl }` for `password-reset`). */
   viewModel: V;
+  /** Recipient address, shown in the HTML footer. */
+  recipient?: string;
 }

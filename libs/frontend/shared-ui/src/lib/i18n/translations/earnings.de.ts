@@ -7,7 +7,7 @@ export const earningsDe: TranslationDictionary = {
     employer: 'Arbeitgeber',
     allEmployers: 'Alle Arbeitgeber',
     importDocuments: 'Dokumente importieren',
-    howProtected: 'So werden Ihre Daten geschützt',
+    howProtected: 'So werden deine Daten geschützt',
   },
   tabs: {
     overview: 'Überblick',
@@ -104,7 +104,7 @@ export const earningsDe: TranslationDictionary = {
     IMAGE_ONLY:
       'Abgelehnt: Die Datei wurde als PDF erkannt, enthält aber keinen automatisch auswertbaren Text (z. B. ein Scan oder ein PDF mit in Grafik umgewandelter Schrift). Aus dieser Datei wird nichts gespeichert.',
     PASSWORD_PROTECTED:
-      'Abgelehnt: Das PDF ist passwortgeschützt. Entfernen Sie das Passwort und versuchen Sie es erneut.',
+      'Abgelehnt: Das PDF ist passwortgeschützt. Entferne das Passwort und versuche es erneut.',
     UNREADABLE:
       'Abgelehnt: Die Datei konnte nicht gelesen werden. Sie ist möglicherweise beschädigt.',
     MISSING_FIELD: 'Abgelehnt: Ein notwendiger Wert ({{field}}) wurde im Dokument nicht gefunden.',
@@ -122,15 +122,15 @@ export const earningsDe: TranslationDictionary = {
     BATCH_CONFLICT:
       'Übersprungen: {{period}} ist auch in einer anderen ausgewählten Datei enthalten, die später abgerechnet wurde.',
     EARNINGS_UNAVAILABLE: 'Einkommensdaten sind vorübergehend nicht verfügbar.',
-    generic: 'Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.',
+    generic: 'Etwas ist schiefgelaufen. Bitte versuche es erneut.',
   },
   unavailable: {
     title: 'Einkommensdaten sind vorübergehend nicht verfügbar',
-    body: 'Der Server kann Ihre Einkommenswerte gerade nicht entschlüsseln. Deshalb wird nichts angezeigt und es werden keine neuen Importe angenommen. Ihre Daten sind nicht verloren. Bitte wenden Sie sich an den Betreiber dieser Vaultfolio-Instanz.',
+    body: 'Der Server kann deine Einkommenswerte gerade nicht entschlüsseln. Deshalb wird nichts angezeigt und es werden keine neuen Importe angenommen. Deine Daten sind nicht verloren. Bitte wende dich an den Betreiber dieser Vaultfolio-Instanz.',
   },
   empty: {
     title: 'Noch keine Einkommensdaten',
-    body: 'Importieren Sie Ihre Gehaltsabrechnungen und Lohnsteuerbescheinigungen als PDF, um zu sehen, wie sich Ihr Einkommen entwickelt hat. Gelesen werden nur unterstützte Formate; Werte lassen sich nicht von Hand eingeben.',
+    body: 'Importiere deine Gehaltsabrechnungen und Lohnsteuerbescheinigungen als PDF, um zu sehen, wie sich dein Einkommen entwickelt hat. Gelesen werden nur unterstützte Formate; Werte lassen sich nicht von Hand eingeben.',
   },
   overview: {
     checkIssueOne: 'Die Datenprüfung hat 1 Problem gefunden.',
@@ -164,9 +164,9 @@ export const earningsDe: TranslationDictionary = {
     ratiosSub: 'Pro Kalenderjahr',
   },
   detail: {
-    corrected: 'von Ihnen korrigiert',
+    corrected: 'von dir korrigiert',
     title: 'Monatsdetail',
-    pick: 'Klicken Sie im Diagramm oder in der Tabelle auf einen Monat, um seine Abrechnungen zu sehen.',
+    pick: 'Klicke im Diagramm oder in der Tabelle auf einen Monat, um seine Abrechnungen zu sehen.',
     sections: '{{count}} Abrechnungsteile',
     sectionsOne: '1 Abrechnungsteil',
     checksPassed: 'Prüfungen bestanden',
@@ -223,11 +223,11 @@ export const earningsDe: TranslationDictionary = {
     lateExcludedOne: '1 Korrektur nach der letzten Abrechnung nicht berücksichtigt ({{months}})',
     lateExcludedMany:
       '{{count}} Korrekturen nach der letzten Abrechnung nicht berücksichtigt ({{months}})',
-    missingHint: 'Importieren Sie die fehlenden Abrechnungen für {{months}}, um das zu beheben.',
+    missingHint: 'Importiere die fehlenden Abrechnungen für {{months}}, um das zu beheben.',
     noPayslipsHint:
-      'Für {{year}} sind keine Abrechnungen importiert. Importieren Sie die Abrechnungen, um die Werte zu prüfen.',
+      'Für {{year}} sind keine Abrechnungen importiert. Importiere die Abrechnungen, um die Werte zu prüfen.',
     differHint:
-      'Werte weichen für {{year}} ab: {{fields}}. Prüfen Sie, ob eine Abrechnung oder Korrektur fehlt.',
+      'Werte weichen für {{year}} ab: {{fields}}. Prüfe, ob eine Abrechnung oder Korrektur fehlt.',
     allGood: 'Alle Prüfungen bestanden.',
     empty: 'Noch nichts zu prüfen.',
   },
@@ -248,8 +248,8 @@ export const earningsDe: TranslationDictionary = {
     countOne: '1 Import',
     expandAll: 'Alle aufklappen',
     collapseAll: 'Alle zuklappen',
-    correctedTag: '{{count}} Werte von Ihnen korrigiert',
-    correctedTagOne: '1 Wert von Ihnen korrigiert',
+    correctedTag: '{{count}} Werte von dir korrigiert',
+    correctedTagOne: '1 Wert von dir korrigiert',
     deleteImport: 'Import löschen',
     deleteHeader: 'Import löschen',
     deleteMessage:
@@ -257,17 +257,17 @@ export const earningsDe: TranslationDictionary = {
     deleted: 'Import gelöscht',
     employerNames: 'Arbeitgebernamen',
     employerNamesSub:
-      'Arbeitgeber werden aus Ihren Dokumenten erkannt. Sie können ändern, wie sie angezeigt werden; Beträge lassen sich nicht bearbeiten.',
+      'Arbeitgeber werden aus deinen Dokumenten erkannt. Du kannst ändern, wie sie angezeigt werden; Beträge lassen sich nicht bearbeiten.',
     detectedAs: 'Erkannt als',
     longName:
-      'Dieser Name hat {{count}} Zeichen und wird in Tabellen und im PDF-Export mehrzeilig. Geben Sie rechts einen kürzeren Anzeigenamen ein und speichern Sie ihn – er gilt überall in der Einkommensentwicklung.',
+      'Dieser Name hat {{count}} Zeichen und wird in Tabellen und im PDF-Export mehrzeilig. Gib rechts einen kürzeren Anzeigenamen ein und speichere ihn – er gilt überall in der Einkommensentwicklung.',
     displayName: 'Anzeigename',
     nameTooLong:
-      'Dieser Name hat {{count}} Zeichen – erlaubt sind höchstens {{max}}. Kürzen Sie ihn um {{over}}, um ihn zu speichern.',
+      'Dieser Name hat {{count}} Zeichen – erlaubt sind höchstens {{max}}. Kürze ihn um {{over}}, um ihn zu speichern.',
     renamed: 'Anzeigename gespeichert',
     dangerTitle: 'Alle Einkommensdaten löschen',
     dangerSub:
-      'Entfernt dauerhaft alle Abrechnungswerte, Lohnsteuerbescheinigungen, Arbeitgebernamen und den Importverlauf. Ihre übrigen Vaultfolio-Daten bleiben erhalten.',
+      'Entfernt dauerhaft alle Abrechnungswerte, Lohnsteuerbescheinigungen, Arbeitgebernamen und den Importverlauf. Deine übrigen Vaultfolio-Daten bleiben erhalten.',
     deleteAll: 'Alle Einkommensdaten löschen',
     deleteAllHeader: 'Alle Einkommensdaten löschen?',
     deleteAllMessage:
@@ -276,35 +276,35 @@ export const earningsDe: TranslationDictionary = {
     delete: 'Löschen',
   },
   privacy: {
-    title: 'Ihre Einkommensdaten',
-    sub: 'Gehaltsabrechnungen enthalten einige Ihrer sensibelsten Daten. Das passiert mit ihnen.',
-    deviceTitle: 'Dokumente bleiben auf Ihrem Gerät',
+    title: 'Deine Einkommensdaten',
+    sub: 'Gehaltsabrechnungen enthalten einige deiner sensibelsten Daten. Das passiert mit ihnen.',
+    deviceTitle: 'Dokumente bleiben auf deinem Gerät',
     device:
-      'PDFs werden in Ihrem Browser gelesen. Die Datei und ihr Text werden nie hochgeladen; gesendet werden nur die Werte aus der Importvorschau. Ein Scan ohne Text wird nur mit Ihrer Zustimmung per Texterkennung auf Ihrem Gerät gelesen: Der erkannte Text ist Rohtext unter denselben Regeln und wird nie hochgeladen, gespeichert oder zwischengespeichert.',
+      'PDFs werden in deinem Browser gelesen. Die Datei und ihr Text werden nie hochgeladen; gesendet werden nur die Werte aus der Importvorschau. Ein Scan ohne Text wird nur mit deiner Zustimmung per Texterkennung auf deinem Gerät gelesen: Der erkannte Text ist Rohtext unter denselben Regeln und wird nie hochgeladen, gespeichert oder zwischengespeichert.',
     figuresTitle: 'Nur Beträge, keine Kennungen',
     figures:
       'Steuer-ID, Sozialversicherungsnummer, IBAN, Name und Adresse werden weder gesendet noch gespeichert. Beträge werden verschlüsselt gespeichert.',
-    onlyYouTitle: 'Nur Sie sehen sie',
+    onlyYouTitle: 'Nur du siehst sie',
     onlyYou:
-      'Niemand sonst in Vaultfolio sieht Ihre Einkommensdaten, auch keine Administratoren. Der Betreiber dieser Vaultfolio-Instanz betreibt den Server und verwaltet den Schlüssel.',
+      'Niemand sonst in Vaultfolio sieht deine Einkommensdaten, auch keine Administratoren. Der Betreiber dieser Vaultfolio-Instanz betreibt den Server und verwaltet den Schlüssel.',
     requestTitle: 'Optional: Parser anfragen',
     request:
-      'Wird ein Dokument nicht erkannt, können Sie einen Parser anfragen. Gesendet wird nur eine anonymisierte, neu aufgebaute Kopie – personenbezogene Daten werden entfernt, jede Zahl wird ersetzt und unbekannte Wörter werden maskiert, sofern Sie sie nicht behalten – nach Ihrer Prüfung und Einwilligung. Administratoren dieser Instanz können sie sehen; sie wird 30 Tage nach Abschluss der Anfrage gelöscht. Die Originaldatei und Ihre echten Beträge verlassen Ihr Gerät nie.',
+      'Wird ein Dokument nicht erkannt, kannst du einen Parser anfragen. Gesendet wird nur eine anonymisierte, neu aufgebaute Kopie – personenbezogene Daten werden entfernt, jede Zahl wird ersetzt und unbekannte Wörter werden maskiert, sofern du sie nicht behältst – nach deiner Prüfung und Einwilligung. Administratoren dieser Instanz können sie sehen; sie wird 30 Tage nach Abschluss der Anfrage gelöscht. Die Originaldatei und deine echten Beträge verlassen dein Gerät nie.',
     deleteHint:
-      'Einzelne Importe oder alle Einkommensdaten können Sie jederzeit auf dem Reiter „Importe“ löschen.',
+      'Einzelne Importe oder alle Einkommensdaten kannst du jederzeit auf dem Reiter „Importe“ löschen.',
   },
   import: {
     title: 'Dokumente importieren',
     back: 'Zurück zur Einkommensentwicklung',
     dropTitle: 'Gehaltsabrechnungen, Lohnsteuerbescheinigungen oder eine Exportdatei hier ablegen',
     dropSub:
-      'Die Dateien werden auf diesem Gerät gelesen. Gespeichert wird erst, wenn Sie unten bestätigen.',
+      'Die Dateien werden auf diesem Gerät gelesen. Gespeichert wird erst, wenn du unten bestätigst.',
     chooseFiles: 'Dateien auswählen',
     supported: 'Unterstützt',
     deviceBanner:
-      'Dokumente bleiben auf Ihrem Gerät – gesendet werden nur die unten gezeigten Werte.',
+      'Dokumente bleiben auf deinem Gerät – gesendet werden nur die unten gezeigten Werte.',
     reading: '{{done}} von {{total}} Dateien gelesen',
-    checking: 'Abgleich mit Ihren vorhandenen Daten …',
+    checking: 'Abgleich mit deinen vorhandenen Daten …',
     statusNEW: 'Neu',
     statusREPLACES: 'Ersetzt',
     statusDUPLICATE: 'Duplikat',
@@ -330,25 +330,25 @@ export const earningsDe: TranslationDictionary = {
     done: '{{count}} Dateien importiert',
     doneOne: '1 Datei importiert',
     year: 'Jahr {{year}}',
-    statusCORRECTED: 'Von Ihnen korrigiert',
+    statusCORRECTED: 'Von dir korrigiert',
     checkFailedCorrectable:
       'Prüfung für {{period}} fehlgeschlagen: {{check}} weicht um {{difference}} ab.',
     correctHint:
-      'Vergleichen Sie die Werte unten mit Ihrer Abrechnung und korrigieren Sie einen falsch gelesenen Wert.',
+      'Vergleiche die Werte unten mit deiner Abrechnung und korrigiere einen falsch gelesenen Wert.',
     involved: 'Werte in der fehlgeschlagenen Prüfung: {{figures}}.',
     passTitle: 'Alle Prüfungen bestehen wieder',
     passBody:
-      'Korrigierte Werte bleiben als „von Ihnen korrigiert“ markiert und werden beim Import erneut geprüft.',
+      'Korrigierte Werte bleiben als „von dir korrigiert“ markiert und werden beim Import erneut geprüft.',
     inFailingCheck: 'In fehlgeschlagener Prüfung',
     onlyInvolved:
       'Nur Werte, die an der fehlgeschlagenen Prüfung beteiligt sind, können bearbeitet werden.',
-    correctedByYou: 'von Ihnen korrigiert',
+    correctedByYou: 'von dir korrigiert',
     readValue: 'Aus dem Dokument gelesen: {{value}}',
     restore: 'Gelesenen Wert wiederherstellen',
     restoreAria: 'Gelesenen Wert von {{figure}} wiederherstellen',
-    invalidAmount: 'Geben Sie einen Betrag ein, zum Beispiel 1.234,56',
-    corrected: '{{count}} Werte von Ihnen korrigiert',
-    correctedOne: '1 Wert von Ihnen korrigiert',
+    invalidAmount: 'Gib einen Betrag ein, zum Beispiel 1.234,56',
+    corrected: '{{count}} Werte von dir korrigiert',
+    correctedOne: '1 Wert von dir korrigiert',
     removeFile: 'Datei entfernen',
   },
   widget: {

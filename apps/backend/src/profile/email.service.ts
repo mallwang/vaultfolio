@@ -25,6 +25,7 @@ export class EmailService {
     const rendered = renderNotification({
       type: 'email-change-verification',
       preferredLanguage: user.emailLanguage,
+      recipient: user.email,
       viewModel: { newEmail, verifyUrl },
     });
     await this.mailerService.send({ to: user.email, ...rendered });
@@ -39,6 +40,7 @@ export class EmailService {
     const rendered = renderNotification({
       type: 'password-reset',
       preferredLanguage: user.emailLanguage,
+      recipient: user.email,
       viewModel: { resetUrl },
     });
     await this.mailerService.send({ to: user.email, ...rendered });

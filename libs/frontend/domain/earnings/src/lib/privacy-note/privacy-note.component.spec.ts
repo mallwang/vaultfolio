@@ -32,7 +32,7 @@ describe('PrivacyNoteComponent', () => {
     TestBed.inject(I18nService).setLanguage('de');
     const fixture = TestBed.createComponent(PrivacyNoteComponent);
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('Texterkennung auf Ihrem Gerät');
+    expect(fixture.nativeElement.textContent).toContain('Texterkennung auf deinem Gerät');
     TestBed.inject(I18nService).setLanguage('en');
   });
 

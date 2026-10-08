@@ -36,7 +36,7 @@ export const requestsDe: TranslationDictionary = {
   },
   admin: {
     subtitle: 'Anfragen von Nutzern, z. B. für einen Parser eines neuen Dokumentlayouts.',
-    loadError: 'Die Anfragen konnten nicht geladen werden. Bitte erneut versuchen.',
+    loadError: 'Die Anfragen konnten nicht geladen werden. Bitte versuche es erneut.',
     emptyState: 'Noch keine Anfragen.',
     filterLabel: 'Statusfilter',
     filterAll: 'Alle Status',
@@ -249,7 +249,7 @@ export const requestsDe: TranslationDictionary = {
     ocr: {
       noticeTitle: 'Automatisch erkannt',
       notice:
-        'Dieser Text wurde automatisch erkannt und kann Fehler enthalten. Prüfen Sie das Muster, bevor Sie es senden.',
+        'Dieser Text wurde automatisch erkannt und kann Fehler enthalten. Prüfe das Muster, bevor du es sendest.',
       lookalike:
         'Werte, die wie eine IBAN, Steuer-ID oder Sozialversicherungsnummer aussehen, werden entfernt, auch wenn eine Ziffer falsch gelesen wurde.',
       removedKinds: 'Entfernt: {{kinds}}.',

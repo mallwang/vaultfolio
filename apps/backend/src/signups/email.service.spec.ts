@@ -33,6 +33,7 @@ describe('EmailService (signups)', () => {
     expect(renderNotification).toHaveBeenCalledWith({
       type: 'signup-verification',
       preferredLanguage: null,
+      recipient: expect.any(String),
       viewModel: { verifyUrl: 'https://vaultfolio.example.com/signup/verify/tok123' },
     });
     expect(mailerService.send).toHaveBeenCalledWith({
@@ -58,6 +59,7 @@ describe('EmailService (signups)', () => {
     expect(renderNotification).toHaveBeenCalledWith({
       type: 'signup-admin-alert',
       preferredLanguage: 'en',
+      recipient: expect.any(String),
       viewModel: {
         requestEmail: 'newuser@example.com',
         reviewUrl: 'https://vaultfolio.example.com/app/admin/signups',
@@ -66,6 +68,7 @@ describe('EmailService (signups)', () => {
     expect(renderNotification).toHaveBeenCalledWith({
       type: 'signup-admin-alert',
       preferredLanguage: 'de',
+      recipient: expect.any(String),
       viewModel: {
         requestEmail: 'newuser@example.com',
         reviewUrl: 'https://vaultfolio.example.com/app/admin/signups',
@@ -94,6 +97,7 @@ describe('EmailService (signups)', () => {
     expect(renderNotification).toHaveBeenCalledWith({
       type: 'signup-welcome',
       preferredLanguage: null,
+      recipient: expect.any(String),
       viewModel: { appUrl: 'https://vaultfolio.example.com' },
     });
 
@@ -101,6 +105,7 @@ describe('EmailService (signups)', () => {
     expect(renderNotification).toHaveBeenCalledWith({
       type: 'signup-rejection',
       preferredLanguage: null,
+      recipient: expect.any(String),
       viewModel: {},
     });
   });

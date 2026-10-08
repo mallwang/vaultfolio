@@ -24,6 +24,11 @@ module.exports = {
       compiler: 'tsc',
       main: './scripts/generate-openapi.ts',
       tsConfig: './tsconfig.app.json',
+      // notification-renderer.ts reads its partials from disk at import time.
+      assets: [
+        { input: 'libs/notifications/src/lib/templates', glob: '**/*', output: 'templates' },
+        { input: 'libs/notifications/src/lib/partials', glob: '**/*', output: 'partials' },
+      ],
       optimization: false,
       outputHashing: 'none',
       generatePackageJson: false,

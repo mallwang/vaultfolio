@@ -8,7 +8,7 @@ export const encryptionDe: TranslationDictionary = {
   title: 'Verschlüsselungsschlüssel',
   subtitle:
     'Schlüsselstatus je Bereich. Schlüsselwerte werden hier nie angezeigt und nur über die Server-Umgebung gesetzt.',
-  loadError: 'Der Verschlüsselungsstatus konnte nicht geladen werden. Bitte erneut versuchen.',
+  loadError: 'Der Verschlüsselungsstatus konnte nicht geladen werden. Bitte versuche es erneut.',
   domain: {
     earnings: 'Einkommen',
     retirement: 'Altersvorsorge',
@@ -74,7 +74,7 @@ export const encryptionDe: TranslationDictionary = {
     ENCRYPTION_KEY_IN_USE:
       'Datensätze verwenden diesen Schlüssel noch. Zuerst die Daten neu verschlüsseln.',
     ENCRYPTION_CONFIRMATION_MISMATCH: 'Die Bestätigung stimmt nicht mit der Bereichs-ID überein.',
-    generic: 'Der Vorgang ist fehlgeschlagen. Bitte erneut versuchen.',
+    generic: 'Der Vorgang ist fehlgeschlagen. Bitte versuche es erneut.',
   },
   history: {
     title: 'Verlauf',

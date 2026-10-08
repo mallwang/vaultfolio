@@ -1,7 +1,6 @@
-<p>{{> header-en}}</p>
+{{#> layout-en}}
 <p>{{> salutation-en}}</p>
 <p>Your request "{{typeName}}" ({{featureName}}) has been handled. You can import your document again now.</p>
-<p><a href="{{importUrl}}">Go to Earnings import</a></p>
+{{> button url=importUrl label="Go to Earnings import"}}
 <p>{{> signature-en}}</p>
-<hr>
-<p style="font-size:12px;color:#888">{{> footer-en}}</p>
+{{/layout-en}}

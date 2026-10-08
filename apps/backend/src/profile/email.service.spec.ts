@@ -37,6 +37,7 @@ describe('EmailService (profile)', () => {
     expect(renderNotification).toHaveBeenCalledWith({
       type: 'password-reset',
       preferredLanguage: 'de',
+      recipient: expect.any(String),
       viewModel: { resetUrl: 'https://vaultfolio.example.com/account/reset-password/tok123' },
     });
     expect(mailerService.send).toHaveBeenCalledWith({ to: 'user@example.com', ...rendered });
@@ -52,6 +53,7 @@ describe('EmailService (profile)', () => {
     expect(renderNotification).toHaveBeenCalledWith({
       type: 'email-change-verification',
       preferredLanguage: null,
+      recipient: expect.any(String),
       viewModel: {
         newEmail: 'new@example.com',
         verifyUrl: 'https://vaultfolio.example.com/account/verify-email/tok456',

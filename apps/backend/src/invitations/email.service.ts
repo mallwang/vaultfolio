@@ -28,6 +28,7 @@ export class EmailService {
     const rendered = renderNotification({
       type: 'invitation',
       preferredLanguage: null,
+      recipient: to,
       viewModel: { acceptUrl },
     });
     await this.mailerService.send({ to, ...rendered });

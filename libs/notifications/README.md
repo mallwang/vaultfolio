@@ -33,6 +33,7 @@ src/lib/
 - Partial content is plain text (no HTML markup) so the same file can be
   included from both the `.html.hbs` and `.text.hbs` variant of a template —
   the HTML template wraps it in its own tags (e.g. `<p>{{> footer-en}}</p>`).
+- HTML templates wrap their body in `{{#> layout-<lang>}}…{{/layout-<lang>}}` (teal header, white card, footer with recipient/app/GitHub links and copyright) and render links with the language-neutral `{{> button url=… label="…"}}` partial. Pass `recipient` to `renderNotification` to show the "sent to" line; `APP_BASE_URL` feeds the footer app link.
 
 Whether a given type has content for a given language is a directory-listing
 question: if `templates/<type>/<lang>.*.hbs` exist, that language is used; if

@@ -1,8 +1,7 @@
-<p>{{> header-en}}</p>
+{{#> layout-en}}
 <p>{{> salutation-en}}</p>
 <p>Confirm <strong>{{newEmail}}</strong> as your new Vaultfolio email address.</p>
-<p><a href="{{verifyUrl}}">Confirm email change</a></p>
+{{> button url=verifyUrl label="Confirm email change"}}
 <p>If you didn't request this, you can safely ignore this email.</p>
 <p>{{> signature-en}}</p>
-<hr>
-<p style="font-size:12px;color:#888">{{> footer-en}}</p>
+{{/layout-en}}
