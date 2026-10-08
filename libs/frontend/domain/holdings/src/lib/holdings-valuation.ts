@@ -1,6 +1,9 @@
 import Decimal from 'decimal.js';
 import type { HoldingResponse } from '@vaultfolio/api-contract';
 
+// Default precision (20 significant digits) would round quantity x price of large values.
+Decimal.set({ precision: 60 });
+
 /**
  * data-model.md "New view-model types" — the shared, exported valuation and
  * grouping logic extracted from `HoldingsDistributionComponent`'s former

@@ -48,11 +48,11 @@ export function validatedHoldingToPayload(value: ValidatedHolding): HoldingPaylo
     name: value.name,
     metal: value.metal,
     coinId: value.coinId,
-    quantity: value.quantity?.toString() ?? null,
+    quantity: value.quantity?.toFixed() ?? null,
     unit: value.unit,
-    purchasePrice: value.purchasePrice?.toString() ?? null,
+    purchasePrice: value.purchasePrice?.toFixed() ?? null,
     purchaseDate: value.purchaseDate ? isoDateOnly(value.purchaseDate) : null,
-    currentValue: value.currentValue?.toString() ?? null,
+    currentValue: value.currentValue?.toFixed() ?? null,
   };
 }
 
@@ -91,11 +91,11 @@ export function holdingToResponse(holding: Holding): HoldingResponse {
     name: holding.name,
     metal: holding.metal,
     coinId: holding.coinId,
-    quantity: holding.quantity?.toString() ?? null,
+    quantity: holding.quantity?.toFixed() ?? null,
     unit: holding.unit,
-    purchasePrice: holding.purchasePrice?.toString() ?? null,
+    purchasePrice: holding.purchasePrice?.toFixed() ?? null,
     purchaseDate: holding.purchaseDate ? isoDateOnly(holding.purchaseDate) : null,
-    currentValue: holding.currentValue?.toString() ?? null,
+    currentValue: holding.currentValue?.toFixed() ?? null,
     createdAt: holding.createdAt.toISOString(),
     updatedAt: holding.updatedAt.toISOString(),
   };

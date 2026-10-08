@@ -396,6 +396,105 @@ describe('/holdings', () => {
     });
   });
 
+  describe('precision (US3)', () => {
+    const roundTrip = async (body: Record<string, unknown>) => {
+      const created = await post('/holdings').send(body);
+      expect(created.status).toBe(201);
+      const list = await get('/holdings');
+      return (list.body as Record<string, unknown>[])[0];
+    };
+
+    it('round-trips crypto 0.00000001 and metal 2.5 OZT as identical strings', async () => {
+      expect(await roundTrip({ ...validBitcoin, quantity: '0.00000001' })).toMatchObject({
+        quantity: '0.00000001',
+      });
+      await database.query('DELETE FROM holdings');
+      expect(await roundTrip({ ...validGold, quantity: '2.5', unit: 'OZT' })).toMatchObject({
+        quantity: '2.5',
+        unit: 'OZT',
+      });
+    });
+
+    it('rejects 9 decimals with QUANTITY_DECIMALS', async () => {
+      const response = await post('/holdings').send({ ...validBitcoin, quantity: '0.000000001' });
+      expect(response.status).toBe(400);
+      expect(response.body.errors).toContainEqual({ field: 'quantity', code: 'QUANTITY_DECIMALS' });
+    });
+
+    it('rejects a metal without unit', async () => {
+      const { unit: _unit, ...noUnit } = validGold;
+      const response = await post('/holdings').send(noUnit);
+      expect(response.status).toBe(400);
+    });
+
+    it('round-trips very large quantity and price exactly', async () => {
+      const row = await roundTrip({
+        ...validShare,
+        quantity: '12345678901234567890.12345678',
+        purchasePrice: '98765432109876543210.12345678',
+      });
+      expect(row).toMatchObject({
+        quantity: '12345678901234567890.12345678',
+        purchasePrice: '98765432109876543210.12345678',
+      });
+    });
+  });
+
+  describe('note (US4)', () => {
+    const deposit = {
+      assetType: 'DEPOSIT_MONEY',
+      management: 'N26',
+      name: 'Savings',
+      currentValue: '10',
+    };
+    const bodies: { assetType: string }[] = [
+      validEtf,
+      validShare,
+      validGold,
+      validBitcoin,
+      deposit,
+    ];
+
+    it.each(bodies.map((b) => [b.assetType, b]))(
+      '%s round-trips with and without a note',
+      async (_type, body) => {
+        const without = await post('/holdings').send(body);
+        expect(without.status).toBe(201);
+        expect(without.body.note).toBeNull();
+        await database.query('DELETE FROM holdings');
+        const withNote = await post('/holdings').send({ ...(body as object), note: 'my note' });
+        expect(withNote.status).toBe(201);
+        expect((await get('/holdings')).body[0].note).toBe('my note');
+      },
+    );
+
+    it('accepts 500 characters and 500 emoji', async () => {
+      for (const note of ['x'.repeat(500), '😀'.repeat(500)]) {
+        await database.query('DELETE FROM holdings');
+        const response = await post('/holdings').send({ ...validShare, note });
+        expect(response.status).toBe(201);
+        expect(response.body.note).toBe(note);
+      }
+    });
+
+    it('rejects 501 emoji with NOTE_TOO_LONG', async () => {
+      const response = await post('/holdings').send({ ...validShare, note: '😀'.repeat(501) });
+      expect(response.status).toBe(400);
+      expect(response.body.errors).toContainEqual({ field: 'note', code: 'NOTE_TOO_LONG' });
+    });
+
+    it('updates and clears the note via PUT', async () => {
+      const created = await post('/holdings').send({ ...validShare, note: 'first' });
+      const { assetType: _t, ...rest } = validShare;
+      const updated = await put(`/holdings/${created.body.id}`).send({ ...rest, note: 'second' });
+      expect(updated.status).toBe(200);
+      expect(updated.body.note).toBe('second');
+      const cleared = await put(`/holdings/${created.body.id}`).send(rest);
+      expect(cleared.status).toBe(200);
+      expect(cleared.body.note).toBeNull();
+    });
+  });
+
   describe('encryption at rest', () => {
     it('stores no plaintext in the holdings table', async () => {
       await post('/holdings').send({ ...validShare, note: 'very private note' });

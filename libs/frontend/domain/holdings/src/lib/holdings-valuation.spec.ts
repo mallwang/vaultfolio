@@ -1,6 +1,7 @@
 import Decimal from 'decimal.js';
 import type { HoldingResponse } from '@vaultfolio/api-contract';
 import { computeHoldingValue, groupHoldingsByKey } from './holdings-valuation';
+import { toGrams } from '@vaultfolio/domain-holdings';
 
 function holding(overrides: Partial<HoldingResponse>): HoldingResponse {
   return {
@@ -22,6 +23,25 @@ function holding(overrides: Partial<HoldingResponse>): HoldingResponse {
     ...overrides,
   };
 }
+
+describe('metal weights', () => {
+  it('sums 2 OZT + 10 G to exactly 72.207 g', () => {
+    const total = [toGrams('2', 'OZT'), toGrams('10', 'G')].reduce(
+      (sum, g) => sum.plus(g),
+      new Decimal(0),
+    );
+    expect(total.toFixed()).toBe('72.207');
+  });
+
+  it('sums large quantities and prices without precision loss', () => {
+    const big = (quantity: string, price: string) =>
+      computeHoldingValue(
+        holding({ assetType: 'CRYPTO', quantity, purchasePrice: price }),
+      )?.toFixed();
+    expect(big('12345678901234.12345678', '1')).toBe('12345678901234.12345678');
+    expect(big('0.00000001', '99999999999999.99999999')).toBe('999999.9999999999999999');
+  });
+});
 
 describe('computeHoldingValue', () => {
   it('computes PRECIOUS_METAL value from currentValue', () => {
