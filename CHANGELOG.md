@@ -1,3 +1,13 @@
+## 0.0.16 (2026-10-08)
+
+### 🚀 Features
+
+- **feedback:** add in-app user feedback with admin notification mail ([#95](https://github.com/mallwang/vaultfolio/pull/95))
+- **frontend:** let domains provide their own dashboard tiles ([#92](https://github.com/mallwang/vaultfolio/pull/92))
+- **frontend:** unify dashboard tiles with shared frame and domain icons ([#93](https://github.com/mallwang/vaultfolio/pull/93))
+- **frontend:** add notification center with side drawer and domain hints ([#94](https://github.com/mallwang/vaultfolio/pull/94))
+- **maintenance:** add per-domain maintenance mode with admin Domains tab ([#91](https://github.com/mallwang/vaultfolio/pull/91))
+
 ## 0.0.15 (2026-10-07)
 
 ### 🚀 Features
