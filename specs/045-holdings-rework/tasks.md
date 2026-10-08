@@ -105,11 +105,11 @@
 
 **Independent Test**: A metal in ounces and one in grams display consistently and contribute the correct amount; a crypto holding of 0.00000001 is stored and shown exactly.
 
-- [ ] T038 [P] [US3] Extend `libs/frontend/domain/holdings/src/lib/holding-form/holding-form.component.spec.ts` and `libs/frontend/domain/holdings/src/lib/holdings.component.spec.ts`: unit selector only for metals (G/OZT), entering `2.5` OZT shows `2.5` OZT after save and reload (SC-004), crypto `0.00000001` accepted and shown as `0.00000001`, `0.000000001` shows the `QUANTITY_DECIMALS` message in de and en
-- [ ] T039 [US3] Implement in `libs/frontend/domain/holdings/src/lib/holding-form/holding-form.component.ts` the metal unit select (default G, `data-testid` `holding-form-unit`) with a hint of the conversion (1 oz = 31.1035 g), and an 8-decimal quantity input (no JS number rounding — keep strings); in `libs/frontend/domain/holdings/src/lib/holdings.component.ts` display quantity + unit exactly as entered, no rounding pipe
-- [ ] T040 [P] [US3] Use `toGrams` from `@vaultfolio/domain-holdings` wherever metal weights are summed in `libs/frontend/domain/holdings/src/lib/holdings-valuation.ts`; extend `libs/frontend/domain/holdings/src/lib/holdings-valuation.spec.ts` with exact values (2 OZT + 10 G = `72.207` g; large quantities/prices summed without precision loss)
-- [ ] T041 [P] [US3] Add precision cases to `apps/backend/src/tests/holdings.e2e-spec.ts`: POST crypto `"0.00000001"` and metal `"2.5"` `OZT` → GET returns identical strings; 9 decimals → 400 `QUANTITY_DECIMALS`; unit missing on a metal → 400; very large quantity/price round-trip exactly
-- [ ] T042 [P] [US3] Add unit/precision i18n texts (unit names, hint, `QUANTITY_DECIMALS` wording) to `libs/frontend/shared-ui/src/lib/i18n/translations/holdings.de.ts` and `holdings.en.ts`
+- [x] T038 [P] [US3] Extend `libs/frontend/domain/holdings/src/lib/holding-form/holding-form.component.spec.ts` and `libs/frontend/domain/holdings/src/lib/holdings.component.spec.ts`: unit selector only for metals (G/OZT), entering `2.5` OZT shows `2.5` OZT after save and reload (SC-004), crypto `0.00000001` accepted and shown as `0.00000001`, `0.000000001` shows the `QUANTITY_DECIMALS` message in de and en
+- [x] T039 [US3] Implement in `libs/frontend/domain/holdings/src/lib/holding-form/holding-form.component.ts` the metal unit select (default G, `data-testid` `holding-form-unit`) with a hint of the conversion (1 oz = 31.1035 g), and an 8-decimal quantity input (no JS number rounding — keep strings); in `libs/frontend/domain/holdings/src/lib/holdings.component.ts` display quantity + unit exactly as entered, no rounding pipe
+- [x] T040 [P] [US3] Use `toGrams` from `@vaultfolio/domain-holdings` wherever metal weights are summed in `libs/frontend/domain/holdings/src/lib/holdings-valuation.ts`; extend `libs/frontend/domain/holdings/src/lib/holdings-valuation.spec.ts` with exact values (2 OZT + 10 G = `72.207` g; large quantities/prices summed without precision loss)
+- [x] T041 [P] [US3] Add precision cases to `apps/backend/src/tests/holdings.e2e-spec.ts`: POST crypto `"0.00000001"` and metal `"2.5"` `OZT` → GET returns identical strings; 9 decimals → 400 `QUANTITY_DECIMALS`; unit missing on a metal → 400; very large quantity/price round-trip exactly
+- [x] T042 [P] [US3] Add unit/precision i18n texts (unit names, hint, `QUANTITY_DECIMALS` wording) to `libs/frontend/shared-ui/src/lib/i18n/translations/holdings.de.ts` and `holdings.en.ts`
 
 **Checkpoint**: US3 independent test passes (unit + e2e specs).
 
@@ -121,10 +121,10 @@
 
 **Independent Test**: Save holdings of each type with no note, a 500-character note and an over-limit note.
 
-- [ ] T043 [P] [US4] Extend `libs/frontend/domain/holdings/src/lib/holding-form/holding-form.component.spec.ts`: note field on all 5 types, remaining counter (`500` → `499` after one char), counter counts an emoji as one character, 501 characters blocks submit and shows `NOTE_TOO_LONG` text in de and en
-- [ ] T044 [US4] Add the note textarea with live remaining-length counter (count by characters via `Array.from(value).length`, matching T007) to `libs/frontend/domain/holdings/src/lib/holding-form/holding-form.component.ts`, with `data-testid` `holding-form-note` and `holding-form-note-counter`; show the note in the list in `libs/frontend/domain/holdings/src/lib/holdings.component.ts` (+ spec assertion in `holdings.component.spec.ts`)
-- [ ] T045 [P] [US4] Add note cases to `apps/backend/src/tests/holdings.e2e-spec.ts`: each asset type with and without note round-trips; 500-character and 500-emoji notes accepted; 501 → 400 `NOTE_TOO_LONG`; note updated and cleared via PUT
-- [ ] T046 [P] [US4] Add note label/counter i18n texts to `libs/frontend/shared-ui/src/lib/i18n/translations/holdings.de.ts` and `holdings.en.ts`
+- [x] T043 [P] [US4] Extend `libs/frontend/domain/holdings/src/lib/holding-form/holding-form.component.spec.ts`: note field on all 5 types, remaining counter (`500` → `499` after one char), counter counts an emoji as one character, 501 characters blocks submit and shows `NOTE_TOO_LONG` text in de and en
+- [x] T044 [US4] Add the note textarea with live remaining-length counter (count by characters via `Array.from(value).length`, matching T007) to `libs/frontend/domain/holdings/src/lib/holding-form/holding-form.component.ts`, with `data-testid` `holding-form-note` and `holding-form-note-counter`; show the note in the list in `libs/frontend/domain/holdings/src/lib/holdings.component.ts` (+ spec assertion in `holdings.component.spec.ts`)
+- [x] T045 [P] [US4] Add note cases to `apps/backend/src/tests/holdings.e2e-spec.ts`: each asset type with and without note round-trips; 500-character and 500-emoji notes accepted; 501 → 400 `NOTE_TOO_LONG`; note updated and cleared via PUT
+- [x] T046 [P] [US4] Add note label/counter i18n texts to `libs/frontend/shared-ui/src/lib/i18n/translations/holdings.de.ts` and `holdings.en.ts`
 
 **Checkpoint**: US4 independent test passes.
 

@@ -107,13 +107,90 @@ describe('HoldingFormComponent', () => {
     expect(bitcoin).toMatchObject({ name: 'Bitcoin', symbol: 'BTC', label: 'Bitcoin (BTC)' });
   });
 
-  it('shows the note counter while typing', () => {
-    const note = byId('holding-form-note') as HTMLTextAreaElement;
-    note.value = 'hello';
-    note.dispatchEvent(new Event('input'));
+  const typeNote = (text: string): void => {
+    form().controls.note.setValue(text);
     fixture.detectChanges();
-    expect(el().textContent).toContain('5 / 500');
+  };
+  const counter = (): string => byId('holding-form-note-counter')?.textContent?.trim() ?? '';
+
+  it('counts down the remaining note length, an emoji counting as one character', () => {
+    expect(counter()).toBe('500 characters left');
+    typeNote('a');
+    expect(counter()).toBe('499 characters left');
+    typeNote('😀');
+    expect(counter()).toBe('499 characters left');
   });
+
+  it.each([
+    ['en', 'The note must not exceed 500 characters.'],
+    ['de', 'Die Notiz darf höchstens 500 Zeichen lang sein.'],
+  ])('blocks a 501-character note and shows NOTE_TOO_LONG in %s', (lang, message) => {
+    i18n.setLanguage(lang as 'en' | 'de');
+    form().patchValue({ management: 'Bank', isin: VALID_ISIN, quantity: 1, purchasePrice: 1 });
+    typeNote('x'.repeat(501));
+    submit();
+    httpMock.expectNone('/api/holdings');
+    expect(byId('holding-form-note-error')?.textContent).toContain(message);
+  });
+
+  it('shows the unit select only for metals, defaulting to G', () => {
+    expect(byId('holding-form-unit')).toBeNull();
+    selectType('PRECIOUS_METAL');
+    expect(byId('holding-form-unit')).not.toBeNull();
+    expect(form().controls.unit.value).toBe('G');
+    expect(el().textContent).toContain('1 troy ounce = 31.1035 g');
+  });
+
+  it('POSTs a metal quantity of 2.5 with unit OZT', () => {
+    selectType('PRECIOUS_METAL');
+    form().patchValue({ metal: 'XAU', quantity: 2.5, unit: 'OZT', management: 'Bank' });
+    submit();
+    const req = httpMock.expectOne('/api/holdings');
+    expect(req.request.body).toMatchObject({ quantity: '2.5', unit: 'OZT' });
+  });
+
+  it('POSTs a crypto quantity of 0.00000001 without exponent notation', () => {
+    selectType('CRYPTO');
+    form().patchValue({
+      coinId: 'bitcoin',
+      quantity: 0.00000001,
+      purchasePrice: 1,
+      management: 'X',
+    });
+    submit();
+    expect(httpMock.expectOne('/api/holdings').request.body.quantity).toBe('0.00000001');
+  });
+
+  it.each([
+    ['en', 'Quantity allows at most 8 decimal places.'],
+    ['de', 'Die Menge erlaubt höchstens 8 Nachkommastellen.'],
+  ])('shows QUANTITY_DECIMALS for 9 decimals in %s', (lang, message) => {
+    i18n.setLanguage(lang as 'en' | 'de');
+    selectType('CRYPTO');
+    form().patchValue({
+      coinId: 'bitcoin',
+      quantity: 0.000000001,
+      purchasePrice: 1,
+      management: 'X',
+    });
+    submit();
+    httpMock.expectNone('/api/holdings');
+    expect(byId('holding-form-quantity-error')?.textContent).toContain(message);
+  });
+
+  it('shows the 8-decimals hint for crypto only', () => {
+    expect(byId('holding-form-quantity-hint')).toBeNull();
+    selectType('CRYPTO');
+    expect(byId('holding-form-quantity-hint')).not.toBeNull();
+  });
+
+  it.each(['ETF', 'SHARE', 'PRECIOUS_METAL', 'CRYPTO', 'DEPOSIT_MONEY'])(
+    'has a note field for %s',
+    (type) => {
+      selectType(type);
+      expect(byId('holding-form-note')).not.toBeNull();
+    },
+  );
 
   it('POSTs an ETF with decimals as strings and optional fields omitted', () => {
     form().patchValue({

@@ -175,9 +175,19 @@ import { HoldingsService } from './holdings.service';
           <ng-template #body let-holding>
             <tr>
               <td>{{ labelFor(holding.assetType) }}</td>
-              <td>{{ assetName(holding) }}</td>
+              <td>
+                {{ assetName(holding) }}
+                @if (holding.note) {
+                  <details [attr.data-testid]="'holdings-row-' + holding.id + '-note'">
+                    <summary>{{ 'holdings.showNote' | translate }}</summary>
+                    {{ holding.note }}
+                  </details>
+                }
+              </td>
               <td>{{ holding.management }}</td>
-              <td>{{ holding.quantity | localeNumber }}</td>
+              <td [attr.data-testid]="'holdings-row-' + holding.id + '-quantity'">
+                {{ holding.quantity ?? '—' }}{{ holding.unit ? ' ' + unitLabel(holding.unit) : '' }}
+              </td>
               <td>
                 {{
                   holding.purchasePrice ?? holding.currentValue
@@ -379,6 +389,10 @@ export class HoldingsComponent implements OnInit {
 
   protected readonly dialogVisible = signal(false);
   protected readonly editingHolding = signal<HoldingResponse | null>(null);
+
+  protected unitLabel(unit: string): string {
+    return unit === 'OZT' ? 'oz t' : 'g';
+  }
 
   protected assetName(holding: HoldingResponse): string {
     return holdingAssetName(holding, (key) => this.translate.transform(key));

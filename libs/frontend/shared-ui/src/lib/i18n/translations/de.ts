@@ -142,7 +142,8 @@ export const de: TranslationDictionary = {
     unitHint: '1 Feinunze = 31,1035 g',
     note: 'Notiz',
     notePlaceholder: 'Optionale Notiz',
-    noteCounter: '{{count}} / {{max}}',
+    noteCounter: 'Noch {{count}} Zeichen',
+    quantityHint: 'Bis zu 8 Nachkommastellen.',
     saveFailed: 'Das Asset konnte nicht gespeichert werden. Bitte erneut versuchen.',
   },
   settings: {

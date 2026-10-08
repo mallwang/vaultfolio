@@ -148,7 +148,8 @@ export const en: TranslationDictionary = {
     unitHint: '1 troy ounce = 31.1035 g',
     note: 'Note',
     notePlaceholder: 'Optional note',
-    noteCounter: '{{count}} / {{max}}',
+    noteCounter: '{{count}} characters left',
+    quantityHint: 'Up to 8 decimal places.',
     saveFailed: 'Unable to save this holding. Please try again.',
   },
   settings: {

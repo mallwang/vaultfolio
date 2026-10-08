@@ -26,6 +26,7 @@ export const holdingsDe: TranslationDictionary = {
     columnQuantity: 'Menge',
     columnPrice: 'Preis / Wert',
     columnPurchaseDate: 'Kaufdatum',
+    showNote: 'Notiz anzeigen',
     editHolding: 'Bestand bearbeiten',
     deleteHolding: 'Bestand löschen',
     emptyStateTitle: 'Noch keine Bestände',

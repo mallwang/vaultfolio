@@ -44,7 +44,7 @@ import { HoldingsService } from '../holdings.service';
 function toDecimalString(value: number): string {
   const text = String(value);
   if (!text.includes('e')) return text;
-  let fixed = value.toFixed(8);
+  let fixed = value.toFixed(20);
   while (fixed.endsWith('0')) fixed = fixed.slice(0, -1);
   return fixed.endsWith('.') ? fixed.slice(0, -1) : fixed;
 }
@@ -216,6 +216,11 @@ function fromIsoDateOnly(value: string): Date {
             [maxFractionDigits]="8"
             [placeholder]="'holdingForm.quantityPlaceholder' | translate"
           />
+          @if (assetType() === 'CRYPTO') {
+            <span class="unit-hint" data-testid="holding-form-quantity-hint">{{
+              'holdingForm.quantityHint' | translate
+            }}</span>
+          }
           @if (errorCode('quantity'); as code) {
             <p-message severity="error" data-testid="holding-form-quantity-error">{{
               'holdingError.' + code | translate
@@ -340,8 +345,8 @@ function fromIsoDateOnly(value: string): Date {
             formControlName="note"
             [placeholder]="'holdingForm.notePlaceholder' | translate"
           ></textarea>
-          <span class="note-counter">{{
-            'holdingForm.noteCounter' | translate: { count: noteLength(), max: noteMax }
+          <span class="note-counter" data-testid="holding-form-note-counter">{{
+            'holdingForm.noteCounter' | translate: { count: noteMax - noteLength() }
           }}</span>
           @if (errorCode('note'); as code) {
             <p-message severity="error" data-testid="holding-form-note-error">{{
@@ -539,12 +544,13 @@ export class HoldingFormComponent implements OnChanges {
     })),
   );
 
-  private readonly assetType = signal<AssetType>('ETF');
+  protected readonly assetType = signal<AssetType>('ETF');
   private readonly fields = computed(
     () => new Set<HoldingField>(fieldsForAssetType(this.assetType())),
   );
   /** Error code per field, from client validation or the server's 400 `errors[]`. */
   private readonly fieldErrors = signal<Record<string, string>>({});
+  private readonly noteText = signal('');
   protected readonly submitError = signal(false);
   protected readonly submitting = signal(false);
 
@@ -568,6 +574,7 @@ export class HoldingFormComponent implements OnChanges {
   }
 
   constructor() {
+    this.form.controls.note.valueChanges.subscribe((note) => this.noteText.set(note ?? ''));
     this.form.controls.assetType.valueChanges.subscribe((type) => {
       this.assetType.set(type);
       this.fieldErrors.set({});
@@ -624,7 +631,7 @@ export class HoldingFormComponent implements OnChanges {
   }
 
   protected noteLength(): number {
-    return this.form.controls.note.value?.length ?? 0;
+    return Array.from(this.noteText()).length;
   }
 
   private clearError(field: string): void {

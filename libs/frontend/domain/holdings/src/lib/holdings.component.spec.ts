@@ -128,6 +128,33 @@ describe('HoldingsComponent', () => {
     );
   });
 
+  it('shows quantity and unit exactly as entered, and the note when present', () => {
+    const ozt = {
+      ...goldNoValue,
+      id: 'g2',
+      quantity: '2.5',
+      unit: 'OZT' as const,
+      note: 'in the safe',
+    };
+    const btc = {
+      ...etf,
+      id: 'c1',
+      assetType: 'CRYPTO' as const,
+      isin: null,
+      name: null,
+      coinId: 'bitcoin',
+      quantity: '0.00000001',
+    };
+    flushList([ozt, btc, etf]);
+    const el = fixture.nativeElement as HTMLElement;
+    const text = (id: string) => el.querySelector(`[data-testid="${id}"]`)?.textContent?.trim();
+    expect(text('holdings-row-g2-quantity')).toBe('2.5 oz t');
+    expect(text('holdings-row-c1-quantity')).toBe('0.00000001');
+    expect(text('holdings-row-etf-1-quantity')).toBe('12.5');
+    expect(text('holdings-row-g2-note')).toContain('in the safe');
+    expect(el.querySelector('[data-testid="holdings-row-etf-1-note"]')).toBeNull();
+  });
+
   it('renders the fetched holdings with mixed asset types', () => {
     flushList([etf, goldNoValue]);
 
