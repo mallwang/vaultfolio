@@ -86,9 +86,17 @@ export class FeedbackDialogComponent {
       : null;
   });
 
+  /** Element that had focus when the dialog opened (the header button), refocused on close. */
+  private returnFocusTo: HTMLElement | null = null;
+
   constructor() {
     effect(() => {
-      if (!this.store.open()) {
+      if (this.store.open()) {
+        this.returnFocusTo =
+          document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      } else {
+        this.returnFocusTo?.focus();
+        this.returnFocusTo = null;
         this.token.set(null);
         this.confirming.set(false);
         this.subjectTouched.set(false);

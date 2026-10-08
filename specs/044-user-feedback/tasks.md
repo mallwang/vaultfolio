@@ -67,7 +67,7 @@
 - [x] T022 [US1] Create `apps/frontend/src/app/core/feedback/feedback.store.ts` (open state, generated `attemptId` per attempt, `send()` via `HttpClient` to `/feedback`, quota signal via `GET /feedback/quota`)
 - [x] T023 [US1] Create `apps/frontend/src/app/core/feedback/feedback-dialog/` (`p-dialog` per T004, category, subject, message with char counters, `app-turnstile` row, submit/cancel, sending state, success toast on 201) with `data-testid`s (`feedback-dialog`, `feedback-category`, `feedback-subject`, `feedback-message`, `feedback-submit`, `feedback-cancel`) per `docs/frontend/testid-conventions.md` Match the approved layout in `design.md` / `mockup.html`.
 - [x] T024 [US1] Create `apps/frontend/src/app/core/feedback/feedback-button/` and place it left of the hints bell in `apps/frontend/src/app/core/layout/app-header/app-header.component.{html,ts}` (testid `feedback-button`), mount the dialog in the app shell; update `app-header.component.spec.ts`
-- [ ] T025 [US1] Run the `verify-ui` skill: sign in with the test account, send feedback, confirm dialog closes and toast appears (desktop + mobile width, light + dark)
+- [x] T025 [US1] Run the `verify-ui` skill: sign in with the test account, send feedback, confirm dialog closes and toast appears (desktop + mobile width, light + dark)
 
 **Checkpoint**: MVP: feedback can be sent and arrives encrypted-at-rest + mailed.
 
@@ -81,7 +81,7 @@
 
 - [x] T026 [P] [US2] Extend `feedback-dialog.component.spec.ts`: backdrop click keeps open; Escape triggers cancel; empty → closes immediately; text → in-dialog confirm (confirm closes + discards, decline returns); cancel disabled while sending
 - [x] T027 [US2] Implement in `feedback-dialog.component.{ts,html}`: `closable=false`, `dismissableMask=false`, `closeOnEscape=false`, manual Escape handler → cancel flow, in-dialog cancel confirm (testids `feedback-cancel-confirm`, `feedback-cancel-keep`), cancel disabled while pending; focus trap and `aria-live` error region (FR-016)
-- [ ] T028 [US2] `verify-ui`: click backdrop, press Escape, cancel empty vs. with text; keyboard-only pass (Tab order, focus return to the header button)
+- [x] T028 [US2] `verify-ui`: click backdrop, press Escape, cancel empty vs. with text; keyboard-only pass (Tab order, focus return to the header button)
 
 ---
 
@@ -106,7 +106,7 @@
 - [x] T036 [P] [US3] Create `feedback-hint-provider.ts` (`HintProvider`, id `feedback.draft`, info severity) and add the entry (`sourceId:'feedback'`, no `domainId`, `groupLabelKey`) to `apps/frontend/src/app/core/hints/hint-providers.registry.ts`
 - [x] T037 [P] [US3] Add hint texts and group label to `libs/frontend/shared-ui/src/lib/i18n/translations/hints.en.ts` and `hints.de.ts` (+ parity spec update)
 - [x] T038 [US3] In the shell, open the dialog when the route has `?feedback=draft` and strip the param (`app-shell` or the feedback button host component); spec for the param handling
-- [ ] T039 [US3] `verify-ui`: force a failing send (e.g. Playwright route abort), confirm error + draft restore after reload + hint in the bell opens the dialog; second user does not see the draft
+- [x] T039 [US3] `verify-ui`: force a failing send (e.g. Playwright route abort), confirm error + draft restore after reload + hint in the bell opens the dialog; second user does not see the draft
 
 ---
 
@@ -120,7 +120,7 @@
 - [x] T041 [P] [US4] Extend `feedback.e2e-spec.ts`: sixth request → 429 `feedback_limit_reached` with quota body, `GET /feedback/quota` values, concurrent requests of one user cannot exceed 5
 - [x] T042 [US4] Implement real quota in `feedback.service.ts` (rolling window from stored rows, per-user lock covering quota + idempotency) and the 429 body
 - [x] T043 [US4] Dialog quota footer (remaining, reset time, localized), submit disabled with explanation at limit while editing/draft stays possible, quota refresh after send and on 429; testids `feedback-quota`, `feedback-limit-banner`; Vitest cases in the dialog/store specs
-- [ ] T044 [US4] `verify-ui`: use the synthetic test account to reach the limit (5 sends) and confirm footer, disabled submit and draft editing
+- [x] T044 [US4] `verify-ui`: use the synthetic test account to reach the limit (5 sends) and confirm footer, disabled submit and draft editing
 
 ---
 
@@ -132,7 +132,7 @@
 
 - [x] T045 [P] [US5] Extend `feedback.e2e-spec.ts`: missing/invalid token → 403 `bot_protection_failed`, nothing stored, quota unchanged
 - [x] T046 [US5] Dialog: gate submit on the Turnstile token, reset `app-turnstile` after every failed attempt, show retry message on 403 and keep the draft (reuse existing `app-turnstile` as in the signup/login forms); Vitest case
-- [ ] T047 [US5] `verify-ui`: confirm challenge row renders and resets after a failed attempt
+- [x] T047 [US5] `verify-ui`: confirm challenge row renders and resets after a failed attempt
 
 ---
 

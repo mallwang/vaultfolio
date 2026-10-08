@@ -17,6 +17,7 @@ eigenen Infrastruktur.
 2. [Navigation](#2-navigation)
    - 2.1 [Seitenleiste](#21-seitenleiste)
    - 2.2 [Kopfzeile](#22-kopfzeile)
+   - 2.3 [Feedback senden](#23-feedback-senden)
 3. [Dashboard](#3-dashboard)
 4. [Holdings](#4-holdings)
    - 4.1 [Die Holdings-Liste](#41-die-holdings-liste)
@@ -107,13 +108,14 @@ hat (siehe [Konten verwalten](#91-konten-verwalten)).
 
 Die Kopfzeile ist immer sichtbar. Sie enthält:
 
-| Element          | Funktion                                                        |
-| ---------------- | --------------------------------------------------------------- |
-| Logo             | Zurück zum Dashboard                                            |
-| Sprachumschalter | Wechselt die Anzeigesprache der Oberfläche (Englisch / Deutsch) |
-| Thema-Umschalter | Wechselt zwischen hellem und dunklem Modus                      |
-| Dein Name        | Zeigt deinen Anzeigenamen und deine Rolle                       |
-| Abmelden         | Beendet deine Sitzung                                           |
+| Element          | Funktion                                                            |
+| ---------------- | ------------------------------------------------------------------- |
+| Logo             | Zurück zum Dashboard                                                |
+| Feedback         | Öffnet den Feedback-Dialog ([Feedback senden](#23-feedback-senden)) |
+| Sprachumschalter | Wechselt die Anzeigesprache der Oberfläche (Englisch / Deutsch)     |
+| Thema-Umschalter | Wechselt zwischen hellem und dunklem Modus                          |
+| Dein Name        | Zeigt deinen Anzeigenamen und deine Rolle                           |
+| Abmelden         | Beendet deine Sitzung                                               |
 
 > **Anzeigesprache vs. E-Mail-Sprache:** Der Sprachumschalter ändert, was du in der Oberfläche
 > siehst. Um die Sprache der E-Mails zu ändern, die du von Vaultfolio erhältst, gehe zu
@@ -124,6 +126,34 @@ Die Kopfzeile ist immer sichtbar. Sie enthält:
 > eine Vaultfolio-Sitzung, die sich alle Tabs teilen: Meldest du dich in einem zweiten Tab mit
 > einem anderen Konto an (oder nimmst dort eine Einladung an), lädt der erste Tab neu und zeigt
 > dieses Konto, sobald du zu ihm zurückkehrst.
+
+### 2.3 Feedback senden
+
+Fragen, Ideen oder Probleme? Klicke in der Kopfzeile auf das Feedback-Symbol, um den
+Administratoren direkt zu schreiben.
+
+1. Wähle eine **Kategorie** (Funktionswunsch, Problem oder Sonstiges) und gib einen **Betreff**
+   sowie eine **Nachricht** ein. Bitte schreibe keine Passwörter oder Kontodaten hinein.
+2. Klicke auf **Senden**. Der Dialog schließt sich und eine Bestätigung zeigt, wie viele
+   Feedbacks du noch senden kannst.
+
+Jeder Administrator erhält deine Nachricht per E-Mail, zusammen mit deinem Namen und deiner
+E-Mail-Adresse, damit er dir antworten kann.
+
+**Limit:** Du kannst bis zu 5 Feedbacks pro 24 Stunden senden. Der Dialog zeigt, wie viele noch
+übrig sind und – sobald das Limit erreicht ist – wann der nächste Platz frei wird. Bei erreichtem
+Limit kannst du weiterschreiben und den Text später senden.
+
+**Entwürfe:** Nichts, was du tippst, geht versehentlich verloren.
+
+- Klickst du mit eingegebenem Text auf **Abbrechen**, kannst du **Weiterschreiben**,
+  **Entwurf speichern und schließen** oder **Verwerfen**.
+- Schlägt das Senden fehl (etwa weil der Server nicht erreichbar ist), bleibt der Dialog offen und
+  zeigt einen Fehler. Versuche es erneut oder klicke auf **Entwurf speichern und schließen** und
+  sende den Text später.
+- Ein gespeicherter Entwurf bleibt nur in diesem Browser. Öffne den Feedback-Dialog erneut, um
+  weiterzuschreiben; ein Hinweis im Benachrichtigungscenter („Ungesendetes Feedback“) führt
+  ebenfalls dorthin. Sendest oder verwirfst du den Entwurf, wird er entfernt.
 
 ---
 
