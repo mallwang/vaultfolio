@@ -19,6 +19,9 @@
       "path": "../../shared-ui/tsconfig.lib.json"
     },
     {
+      "path": "../../../domain/holdings/tsconfig.lib.json"
+    },
+    {
       "path": "../../../api-contract/tsconfig.lib.json"
     }
   ]

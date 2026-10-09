@@ -38,9 +38,15 @@ describe('encryption translations', () => {
 
   it('names every domain, state, run kind and run status', () => {
     const expected = [
-      ...['earnings', 'retirement', 'wealth', 'insurances', 'account-overview', 'feedback'].map(
-        (d) => `encryption.domain.${d}`,
-      ),
+      ...[
+        'earnings',
+        'retirement',
+        'wealth',
+        'holdings',
+        'insurances',
+        'account-overview',
+        'feedback',
+      ].map((d) => `encryption.domain.${d}`),
       ...['READY', 'KEY_MISSING', 'KEY_MISMATCH', 'MIGRATING', 'REENCRYPTING'].map(
         (s) => `encryption.state.${s}`,
       ),

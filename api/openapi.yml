@@ -35,6 +35,7 @@ paths:
               - retirement
               - wealth
               - insurances
+              - holdings
               - account-overview
               - feedback
             type: string
@@ -81,6 +82,7 @@ paths:
               - retirement
               - wealth
               - insurances
+              - holdings
               - account-overview
               - feedback
             type: string
@@ -125,6 +127,7 @@ paths:
               - retirement
               - wealth
               - insurances
+              - holdings
               - account-overview
               - feedback
             type: string
@@ -183,6 +186,7 @@ paths:
               - retirement
               - wealth
               - insurances
+              - holdings
               - account-overview
               - feedback
             type: string
@@ -444,6 +448,9 @@ paths:
                   $ref: '#/components/schemas/HoldingResponseDto'
         '503': &ref_5
           description: >-
+            Holdings data is unavailable (no usable encryption key).
+
+
             DOMAIN_MAINTENANCE: the domain is temporarily unavailable (non-admin
             callers).
           content:
@@ -2925,6 +2932,7 @@ components:
             - retirement
             - wealth
             - insurances
+            - holdings
             - account-overview
             - feedback
         kind:
@@ -3263,21 +3271,34 @@ components:
           nullable: true
           example: '123.45'
           description: Decimal string.
-        purchaseDate:
+        note:
           type: object
           nullable: true
-          format: date
+          maxLength: 500
         isin:
           type: object
           nullable: true
         name:
           type: object
           nullable: true
-        weightGrams:
+        metal:
+          type: string
+          nullable: true
+          enum: &ref_38
+            - XAU
+            - XAG
+            - XPT
+            - XPD
+        coinId:
           type: object
           nullable: true
-          example: '15.5'
-          description: Decimal string.
+          description: Crypto catalogue id (CoinGecko).
+        unit:
+          type: string
+          nullable: true
+          enum: &ref_39
+            - G
+            - OZT
         currentValue:
           type: object
           nullable: true
@@ -3300,10 +3321,13 @@ components:
       properties:
         assetType:
           type: string
-          enum: &ref_38
+          enum: &ref_40
             - ETF
         management:
           type: string
+        note:
+          type: string
+          maxLength: 500
         isin:
           type: string
         name:
@@ -3326,10 +3350,13 @@ components:
       properties:
         assetType:
           type: string
-          enum: &ref_39
+          enum: &ref_41
             - SHARE
         management:
           type: string
+        note:
+          type: string
+          maxLength: 500
         isin:
           type: string
         name:
@@ -3340,10 +3367,6 @@ components:
         purchasePrice:
           type: string
           example: '123.45'
-        purchaseDate:
-          type: string
-          format: date
-          description: Omit entirely, not "".
       required:
         - assetType
         - management
@@ -3356,49 +3379,59 @@ components:
       properties:
         assetType:
           type: string
-          enum: &ref_40
+          enum: &ref_42
             - PRECIOUS_METAL
         management:
           type: string
-        name:
+        note:
           type: string
-        weightGrams:
+          maxLength: 500
+        metal:
+          type: string
+          enum: *ref_38
+        quantity:
           type: string
           example: '15.5'
-        currentValue:
+        unit:
           type: string
-          example: '1000.00'
-          description: Used only by the distribution view.
+          enum: *ref_39
+        purchasePrice:
+          type: string
+          example: '93.24'
+          description: Purchase price per unit.
       required:
         - assetType
         - management
-        - name
-        - weightGrams
+        - metal
+        - quantity
+        - unit
+        - purchasePrice
     CreateCryptoHoldingRequestDto:
       type: object
       properties:
         assetType:
           type: string
-          enum: &ref_41
+          enum: &ref_43
             - CRYPTO
         management:
           type: string
-        name:
+        note:
           type: string
+          maxLength: 500
+        coinId:
+          type: string
+          description: Crypto catalogue id (CoinGecko).
         quantity:
           type: string
           example: '0.5'
+          description: At most 8 decimals.
         purchasePrice:
           type: string
           example: '30000.00'
-        purchaseDate:
-          type: string
-          format: date
-          description: Omit entirely, not "".
       required:
         - assetType
         - management
-        - name
+        - coinId
         - quantity
         - purchasePrice
     CreateDepositMoneyHoldingRequestDto:
@@ -3406,10 +3439,13 @@ components:
       properties:
         assetType:
           type: string
-          enum: &ref_42
+          enum: &ref_44
             - DEPOSIT_MONEY
         management:
           type: string
+        note:
+          type: string
+          maxLength: 500
         name:
           type: string
         currentValue:
@@ -3423,33 +3459,39 @@ components:
     HoldingValidationErrorResponseDto:
       type: object
       properties:
-        error:
-          type: string
-          enum:
-            - VALIDATION_FAILED
         message:
           type: string
-        fieldErrors:
+        errors:
           type: array
           items:
             type: object
+            required:
+              - field
+              - code
             properties:
               field:
                 type: string
-              message:
+              code:
                 type: string
+                description: >-
+                  REQUIRED, ISIN_INVALID, ISIN_NOT_ALLOWED, METAL_UNKNOWN,
+                  COIN_UNKNOWN, UNIT_INVALID, QUANTITY_NOT_POSITIVE,
+                  QUANTITY_DECIMALS, NOTE_TOO_LONG, DECIMAL_INVALID,
+                  FIELD_NOT_ALLOWED
       required:
-        - error
         - message
-        - fieldErrors
+        - errors
     UpdateEtfHoldingRequestDto:
       type: object
       properties:
         assetType:
           type: string
-          enum: *ref_38
+          enum: *ref_40
         management:
           type: string
+        note:
+          type: string
+          maxLength: 500
         isin:
           type: string
         name:
@@ -3472,9 +3514,12 @@ components:
       properties:
         assetType:
           type: string
-          enum: *ref_39
+          enum: *ref_41
         management:
           type: string
+        note:
+          type: string
+          maxLength: 500
         isin:
           type: string
         name:
@@ -3485,10 +3530,6 @@ components:
         purchasePrice:
           type: string
           example: '123.45'
-        purchaseDate:
-          type: string
-          format: date
-          description: Omit entirely, not "".
       required:
         - assetType
         - management
@@ -3501,47 +3542,57 @@ components:
       properties:
         assetType:
           type: string
-          enum: *ref_40
+          enum: *ref_42
         management:
           type: string
-        name:
+        note:
           type: string
-        weightGrams:
+          maxLength: 500
+        metal:
+          type: string
+          enum: *ref_38
+        quantity:
           type: string
           example: '15.5'
-        currentValue:
+        unit:
           type: string
-          example: '1000.00'
-          description: Used only by the distribution view.
+          enum: *ref_39
+        purchasePrice:
+          type: string
+          example: '93.24'
+          description: Purchase price per unit.
       required:
         - assetType
         - management
-        - name
-        - weightGrams
+        - metal
+        - quantity
+        - unit
+        - purchasePrice
     UpdateCryptoHoldingRequestDto:
       type: object
       properties:
         assetType:
           type: string
-          enum: *ref_41
+          enum: *ref_43
         management:
           type: string
-        name:
+        note:
           type: string
+          maxLength: 500
+        coinId:
+          type: string
+          description: Crypto catalogue id (CoinGecko).
         quantity:
           type: string
           example: '0.5'
+          description: At most 8 decimals.
         purchasePrice:
           type: string
           example: '30000.00'
-        purchaseDate:
-          type: string
-          format: date
-          description: Omit entirely, not "".
       required:
         - assetType
         - management
-        - name
+        - coinId
         - quantity
         - purchasePrice
     UpdateDepositMoneyHoldingRequestDto:
@@ -3549,9 +3600,12 @@ components:
       properties:
         assetType:
           type: string
-          enum: *ref_42
+          enum: *ref_44
         management:
           type: string
+        note:
+          type: string
+          maxLength: 500
         name:
           type: string
         currentValue:
@@ -3852,7 +3906,7 @@ components:
           nullable: true
         emailLanguage:
           type: string
-          enum: &ref_43
+          enum: &ref_45
             - en
             - de
           nullable: true
@@ -3895,7 +3949,7 @@ components:
       properties:
         emailLanguage:
           type: string
-          enum: *ref_43
+          enum: *ref_45
           nullable: true
       required:
         - emailLanguage
@@ -3947,7 +4001,7 @@ components:
           type: string
         category:
           type: string
-          enum: &ref_44
+          enum: &ref_46
             - GENERAL
             - LEISURE
             - SAVINGS
@@ -3956,7 +4010,7 @@ components:
             - OTHER
         status:
           type: string
-          enum: &ref_45
+          enum: &ref_47
             - ACTIVE
             - DECOMMISSIONED
           description: >-
@@ -4009,11 +4063,11 @@ components:
           type: string
         category:
           type: string
-          enum: *ref_44
+          enum: *ref_46
           description: Omit to default to 'OTHER'.
         status:
           type: string
-          enum: *ref_45
+          enum: *ref_47
           description: Omit to default to 'ACTIVE'.
         provider:
           type: string
@@ -4063,11 +4117,11 @@ components:
           type: string
         category:
           type: string
-          enum: *ref_44
+          enum: *ref_46
           description: Omit to default to 'OTHER'.
         status:
           type: string
-          enum: *ref_45
+          enum: *ref_47
           description: Omit to default to 'ACTIVE'.
         provider:
           type: string
@@ -4308,7 +4362,7 @@ components:
           pattern: ^\d{4}-(0[1-9]|1[0-2])$
         kind:
           type: string
-          enum: &ref_46
+          enum: &ref_48
             - REGULAR
             - CORRECTION
             - PAYOUT_ONLY
@@ -4325,7 +4379,7 @@ components:
             server re-runs every check on the submitted figures.
           items:
             type: string
-            enum: &ref_48
+            enum: &ref_50
               - gross
               - wageTax
               - soli
@@ -4448,7 +4502,7 @@ components:
           maxLength: 255
         sourceType:
           type: string
-          enum: &ref_47
+          enum: &ref_49
             - PAYSLIP_PDF
             - CERTIFICATE_PDF
             - EXPORT_JSON
@@ -4508,7 +4562,7 @@ components:
           nullable: true
         kind:
           type: string
-          enum: *ref_46
+          enum: *ref_48
           nullable: true
         seq:
           type: object
@@ -4669,7 +4723,7 @@ components:
           type: string
         sourceType:
           type: string
-          enum: *ref_47
+          enum: *ref_49
         parserId:
           type: string
         parserVersion:
@@ -5114,7 +5168,7 @@ components:
             saved before figure correction.
           items:
             type: string
-            enum: *ref_48
+            enum: *ref_50
       required:
         - gross
         - taxGross
@@ -5166,7 +5220,7 @@ components:
           pattern: ^\d{4}-(0[1-9]|1[0-2])$
         kind:
           type: string
-          enum: *ref_46
+          enum: *ref_48
         seq:
           type: number
         amounts:
@@ -5188,40 +5242,40 @@ components:
       properties:
         gross:
           type: object
-          additionalProperties: &ref_49
+          additionalProperties: &ref_51
             type: string
-          example: &ref_50
+          example: &ref_52
             2026-09: '5200.00'
           description: period → amount
         regular:
           type: object
-          additionalProperties: *ref_49
-          example: *ref_50
+          additionalProperties: *ref_51
+          example: *ref_52
           description: period → amount
         bonus:
           type: object
-          additionalProperties: *ref_49
-          example: *ref_50
+          additionalProperties: *ref_51
+          example: *ref_52
           description: period → amount
         net:
           type: object
-          additionalProperties: *ref_49
-          example: *ref_50
+          additionalProperties: *ref_51
+          example: *ref_52
           description: period → amount
         taxes:
           type: object
-          additionalProperties: *ref_49
-          example: *ref_50
+          additionalProperties: *ref_51
+          example: *ref_52
           description: period → amount
         social:
           type: object
-          additionalProperties: *ref_49
-          example: *ref_50
+          additionalProperties: *ref_51
+          example: *ref_52
           description: period → amount
         payout:
           type: object
-          additionalProperties: *ref_49
-          example: *ref_50
+          additionalProperties: *ref_51
+          example: *ref_52
           description: period → amount
       required:
         - gross
@@ -5493,13 +5547,13 @@ components:
           type: string
         pillar:
           type: string
-          enum: &ref_51
+          enum: &ref_53
             - STATUTORY
             - OCCUPATIONAL
             - PRIVATE
         contractType:
           type: string
-          enum: &ref_52
+          enum: &ref_54
             - STATUTORY_PENSION
             - DIRECT_INSURANCE
             - PENSIONSKASSE
@@ -5512,7 +5566,7 @@ components:
             - ALTERSVORSORGEDEPOT
         origin:
           type: string
-          enum: &ref_53
+          enum: &ref_55
             - IMPORTED
             - MANUAL
         providerLabel:
@@ -5684,7 +5738,7 @@ components:
           description: Canonical decimal string (EUR, up to 2 decimal places).
         expectedScenario:
           type: string
-          enum: &ref_56
+          enum: &ref_58
             - '0'
             - '3'
             - '6'
@@ -5712,16 +5766,16 @@ components:
           type: string
         pillar:
           type: string
-          enum: *ref_51
+          enum: *ref_53
         contractType:
           type: string
-          enum: *ref_52
+          enum: *ref_54
         origin:
           type: string
-          enum: *ref_53
+          enum: *ref_55
         status:
           type: string
-          enum: &ref_54
+          enum: &ref_56
             - ACTIVE
             - PAID_UP
             - IN_PAYOUT
@@ -5742,7 +5796,7 @@ components:
           nullable: true
         figures:
           description: Figures of the contract type (strict per-type whitelist).
-          oneOf: &ref_55
+          oneOf: &ref_57
             - $ref: '#/components/schemas/RetirementStatutoryFiguresDto'
             - $ref: '#/components/schemas/RetirementPensionFiguresDto'
             - $ref: '#/components/schemas/RetirementCapitalAccountFiguresDto'
@@ -5969,10 +6023,10 @@ components:
       properties:
         contractType:
           type: string
-          enum: *ref_52
+          enum: *ref_54
         status:
           type: string
-          enum: *ref_54
+          enum: *ref_56
         providerLabel:
           type: string
           maxLength: 80
@@ -5991,10 +6045,10 @@ components:
           description: Insurance or contract number; stored encrypted.
         figures:
           description: Figures of the contract type (strict per-type whitelist).
-          oneOf: *ref_55
+          oneOf: *ref_57
         origin:
           type: string
-          enum: *ref_53
+          enum: *ref_55
         supplement:
           description: IMPORTED only.
           allOf:
@@ -6017,10 +6071,10 @@ components:
       properties:
         contractType:
           type: string
-          enum: *ref_52
+          enum: *ref_54
         status:
           type: string
-          enum: *ref_54
+          enum: *ref_56
         providerLabel:
           type: string
           maxLength: 80
@@ -6039,7 +6093,7 @@ components:
           description: Insurance or contract number; stored encrypted.
         figures:
           description: Figures of the contract type (strict per-type whitelist).
-          oneOf: *ref_55
+          oneOf: *ref_57
       required:
         - contractType
         - status
@@ -6066,10 +6120,10 @@ components:
           description: Canonical decimal string (EUR, up to 2 decimal places).
         expectedScenario:
           type: string
-          enum: *ref_56
+          enum: *ref_58
         status:
           type: string
-          enum: *ref_54
+          enum: *ref_56
     WealthClassRefDto:
       type: object
       properties:
@@ -6101,7 +6155,7 @@ components:
       properties:
         side:
           type: string
-          enum: &ref_57
+          enum: &ref_59
             - ASSET
             - LIABILITY
         class:
@@ -6178,7 +6232,7 @@ components:
       properties:
         side:
           type: string
-          enum: *ref_57
+          enum: *ref_59
         class:
           $ref: '#/components/schemas/WealthClassRefDto'
         group:
@@ -6279,7 +6333,7 @@ components:
       properties:
         type:
           type: string
-          enum: &ref_58
+          enum: &ref_60
             - STATUTORY_HEALTH
             - STATUTORY_CARE
             - STATUTORY_PENSION
@@ -6307,9 +6361,9 @@ components:
           type: array
           maxItems: 10
           description: 'Combination products: further catalog types this contract covers.'
-          items: &ref_59
+          items: &ref_61
             type: string
-            enum: *ref_58
+            enum: *ref_60
         name:
           type: string
           minLength: 1
@@ -6322,7 +6376,7 @@ components:
           maxLength: 50
         status:
           type: string
-          enum: &ref_60
+          enum: &ref_62
             - ACTIVE
             - CANCELLED
             - ENDED
@@ -6339,7 +6393,7 @@ components:
           description: Decimal string, at most two digits.
         interval:
           type: string
-          enum: &ref_61
+          enum: &ref_63
             - MONTHLY
             - QUARTERLY
             - HALF_YEARLY
@@ -6502,12 +6556,12 @@ components:
       properties:
         type:
           type: string
-          enum: *ref_58
+          enum: *ref_60
         alsoCovers:
           type: array
           maxItems: 10
           description: 'Combination products: further catalog types this contract covers.'
-          items: *ref_59
+          items: *ref_61
         name:
           type: string
           minLength: 1
@@ -6520,7 +6574,7 @@ components:
           maxLength: 50
         status:
           type: string
-          enum: *ref_60
+          enum: *ref_62
         startDate:
           type: string
           example: '2025-01-01'
@@ -6534,7 +6588,7 @@ components:
           description: Decimal string, at most two digits.
         interval:
           type: string
-          enum: *ref_61
+          enum: *ref_63
         paymentMonth:
           type: number
           minimum: 1
@@ -6623,7 +6677,7 @@ components:
           type: string
         status:
           type: string
-          enum: &ref_62
+          enum: &ref_64
             - OPEN
             - IN_PROGRESS
             - DONE
@@ -6706,7 +6760,7 @@ components:
           type: string
         status:
           type: string
-          enum: *ref_62
+          enum: *ref_64
         note:
           type: string
           nullable: true
@@ -6765,7 +6819,7 @@ components:
       properties:
         status:
           type: string
-          enum: *ref_62
+          enum: *ref_64
         note:
           type: string
           maxLength: 2000

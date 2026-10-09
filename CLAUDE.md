@@ -75,5 +75,5 @@
 
 ## Current Feature Plan
 
-Active implementation plan: [specs/044-user-feedback/plan.md](specs/044-user-feedback/plan.md)
+Active implementation plan: [specs/045-holdings-rework/plan.md](specs/045-holdings-rework/plan.md)
 <!-- SPECKIT END -->

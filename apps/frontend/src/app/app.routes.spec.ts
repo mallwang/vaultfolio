@@ -105,7 +105,6 @@ describe('app.routes', () => {
 
     it.each([
       ['/app/dashboard', '/app/dashboard'],
-      ['/app/holdings', '/app/holdings/list'],
       ['/app/settings', '/app/settings/profile'],
     ])('resolves %s under /app/*', async (path, expected) => {
       await router.navigateByUrl(path);
@@ -128,15 +127,41 @@ describe('app.routes', () => {
       },
     );
 
-    // 021 US3: Holdings' "List"/"Imports" tabs are each directly
-    // addressable, same convention as Settings/Admin's own tabs.
-    it.each(['/app/holdings/list', '/app/holdings/imports'])(
-      'resolves %s directly to itself',
+    // The list carries the availability probe, so each case answers `GET /api/holdings`.
+    it.each(['/app/holdings', '/app/holdings/list'])(
+      'opens %s as the list when holdings are available',
       async (path) => {
-        await router.navigateByUrl(path);
-        expect(location.path()).toBe(path);
+        const http = TestBed.inject(HttpTestingController);
+        const navigation = router.navigateByUrl(path);
+        await vi.waitFor(() => http.expectOne('/api/holdings').flush([]));
+        await navigation;
+        expect(location.path()).toBe('/app/holdings/list');
       },
     );
+
+    it('sends /app/holdings/list to /app/holdings/unavailable on 503 without looping', async () => {
+      const http = TestBed.inject(HttpTestingController);
+      const navigation = router.navigateByUrl('/app/holdings/list');
+      await vi.waitFor(() =>
+        http
+          .expectOne('/api/holdings')
+          .flush(
+            { error: 'HOLDINGS_UNAVAILABLE' },
+            { status: 503, statusText: 'Service Unavailable' },
+          ),
+      );
+      await navigation;
+      expect(location.path()).toBe('/app/holdings/unavailable');
+      http.expectNone('/api/holdings');
+    });
+
+    it('has no imports route any more', async () => {
+      await router.navigateByUrl('/app/holdings/imports');
+      // The wildcard keeps the URL and renders the not-found page.
+      let leaf = router.routerState.snapshot.root;
+      while (leaf.firstChild) leaf = leaf.firstChild;
+      expect(leaf.routeConfig?.path).toBe('**');
+    });
 
     it('redirects a MEMBER opening an admin subsection address away, same as /app/admin', async () => {
       await router.navigateByUrl('/app/admin/invitations');
@@ -274,10 +299,7 @@ describe('app.routes', () => {
       fakeCurrentUser.setAuthenticated(userWithoutHoldings);
     });
 
-    // 021 US3, Acceptance Scenario 3: the Imports tab inherits
-    // domainGuard('holdings') from the Holdings parent route, same as the
-    // "list" tab already was denied before this feature.
-    it.each(['/app/holdings/list', '/app/holdings/imports'])(
+    it.each(['/app/holdings/list', '/app/holdings/unavailable'])(
       'denies direct visits to %s the same way as the rest of Holdings',
       async (path) => {
         await router.navigateByUrl(path);

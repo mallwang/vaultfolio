@@ -95,7 +95,27 @@ export type PdfSection =
       /** Renders the tiles above the chart instead of after it. */
       beforeChart?: boolean;
     }
-  | { kind: 'bar'; title: string; caption?: string; segments: PdfBarSegment[] };
+  | { kind: 'bar'; title: string; caption?: string; segments: PdfBarSegment[] }
+  | {
+      /** Bordered mini tables in a grid, starting on a new page. */
+      kind: 'cards';
+      title: string;
+      cards: PdfCard[];
+      /** Cards per grid row; defaults to 3. */
+      columnsPerRow?: number;
+    };
+
+/** One bordered mini table of a `cards` section. */
+export interface PdfCard {
+  /** Already translated. */
+  title: string;
+  /** Hex color of a small marker before the title. */
+  color?: string;
+  columns: PdfTableColumn[];
+  rows: PdfTableRow[];
+  /** Already translated; shown as the only row when `rows` is empty. */
+  emptyText?: string;
+}
 
 /** One figure tile of a `kpis` section; tiles share the page width evenly. */
 export interface PdfKpiTile {
@@ -124,7 +144,7 @@ export interface PdfBarSegment {
   color: string;
 }
 
-export type ExportTableColumnFormat = 'text' | 'integer' | 'money' | 'ratio' | 'date';
+export type ExportTableColumnFormat = 'text' | 'integer' | 'decimal' | 'money' | 'ratio' | 'date';
 
 export interface ExportTableColumn {
   /** Stable, language-independent key (JSON field name). */
@@ -140,6 +160,8 @@ export interface ExportTableColumn {
    * that do not recalculate still show it. CSV and JSON ignore this and carry the value.
    */
   formula?: string;
+  /** Excel only: with `formula`, rows where a referenced cell is empty keep their plain value. */
+  formulaNeedsValues?: boolean;
   /** Excel only: a row with `emphasis: 'total'` sums the column's data rows with `SUM(…)`. */
   sumInTotal?: boolean;
   /** Excel only: presentation that differs from the flat CSV/JSON column. */

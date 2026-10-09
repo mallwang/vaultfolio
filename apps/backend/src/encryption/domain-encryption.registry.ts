@@ -56,6 +56,10 @@ export const DOMAIN_ENCRYPTION: readonly DomainEncryption[] = [
     tables: [payloadTable('insurance_contracts'), payloadTable('insurance_settings', 'owner_id')],
   },
   {
+    id: 'holdings',
+    tables: [payloadTable('holdings')],
+  },
+  {
     id: 'account-overview',
     tables: [payloadTable('account_overview_entries')],
   },

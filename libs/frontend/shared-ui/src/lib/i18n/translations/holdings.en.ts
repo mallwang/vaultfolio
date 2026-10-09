@@ -1,0 +1,102 @@
+import type { TranslationDictionary } from './en';
+
+/**
+ * Holdings texts (English), spread into the root dictionary so existing
+ * key paths (`holdings.*`, `holdingsDistribution.*`, `holdingsExport.*`) stay valid.
+ * `nav.holdings` and `pageTitle.holdings*` stay in the shared nav/pageTitle groups.
+ */
+export const holdingsEn: TranslationDictionary = {
+  holdingsTile: {
+    open: 'Go to portfolio',
+    emptyTitle: 'No positions yet',
+    emptyBody: 'Add your first position to see its purchase value and distribution here.',
+    emptyCta: 'Add position',
+    error: 'Positions could not be loaded.',
+    unavailable: 'Positions are temporarily unavailable.',
+    caption: 'Purchase value incl. deposit money',
+  },
+  holdingsDistribution: {
+    title: 'Distribution by value',
+    emptyState: 'Add a position with a known value to see the distribution by value.',
+  },
+  holdings: {
+    unavailable: {
+      title: 'Positions are temporarily unavailable',
+      body: 'The server cannot read the stored positions right now. Nothing is lost – please try again later or contact your administrator.',
+    },
+    addHolding: 'Add position',
+    filterPlaceholder: 'Search positions',
+    countSingular: 'position',
+    countPlural: 'positions',
+    columnType: 'Type',
+    columnAsset: 'Asset',
+    columnManagement: 'Management',
+    columnQuantity: 'Quantity',
+    columnPrice: 'Price / value',
+    showNote: 'Show note',
+    chartsHide: 'Hide charts',
+    chartsShow: 'Show charts',
+    columnTotal: 'Total cost',
+    footerTotal: 'Total',
+    footerTotalFiltered: 'Total (filtered)',
+    footerOfTotal: 'of',
+    editHolding: 'Edit position',
+    deleteHolding: 'Delete position',
+    emptyStateTitle: 'No positions yet',
+    emptyStateBody: 'Add your first position to see it listed here.',
+    addFirstHolding: 'Add your first position',
+    loadError: 'Unable to load positions. Please try again.',
+    deleteConfirmHeader: 'Delete position',
+    deleteConfirmMessage:
+      'Delete this {{assetType}} position ({{management}})? This cannot be undone.',
+    delete: 'Delete',
+    deleted: 'Position deleted',
+    alreadyDeleted: 'Already deleted',
+    alreadyDeletedDetail: 'This position was already removed.',
+    deleteError: 'Unable to delete this position.',
+  },
+  holdingsExport: {
+    title: 'Portfolio',
+    infobox:
+      'About this export — Portfolio. The portfolio is the primary tracking domain, letting you record and monitor your investment positions across asset types (ETF, Share, Precious Metal, Crypto, Deposit Money). This file contains every position currently in your portfolio.',
+    columnAssetType: 'Type',
+    columnName: 'Asset',
+    columnMetal: 'Metal',
+    columnCoin: 'Coin',
+    columnUnit: 'Unit',
+    columnNote: 'Note',
+    columnIsin: 'ISIN',
+    columnManagement: 'Management',
+    columnQuantity: 'Quantity',
+    columnPurchasePrice: 'Ø purchase price',
+    columnCurrentValue: 'Current value',
+    columnPurchaseSum: 'Purchase sum',
+    total: 'Total',
+    cardsTitle: 'Overview',
+    allPositions: 'All positions',
+    columnShare: 'Share',
+    columnAmount: 'Amount',
+    noPositions: 'No positions',
+    chartDistribution: 'Portfolio Distribution',
+  },
+  holdingMetal: {
+    XAU: 'Gold',
+    XAG: 'Silver',
+    XPT: 'Platinum',
+    XPD: 'Palladium',
+  },
+  holdingError: {
+    REQUIRED: 'This field is required.',
+    ISIN_INVALID: 'Enter a well-formed 12-character ISIN.',
+    ISIN_NOT_ALLOWED: 'This ISIN cannot be used for this asset type.',
+    METAL_UNKNOWN: 'Select one of the listed metals.',
+    COIN_UNKNOWN: 'Select one of the listed coins.',
+    UNIT_INVALID: 'Select gram or troy ounce.',
+    QUANTITY_NOT_POSITIVE: 'Quantity must be greater than zero.',
+    QUANTITY_DECIMALS: 'Quantity allows at most 8 decimal places.',
+    NOTE_TOO_LONG: 'The note must not exceed 500 characters.',
+    DECIMAL_INVALID:
+      'Enter a valid, non-negative amount or a valid date that is not in the future.',
+    FIELD_NOT_ALLOWED: 'This field is not allowed for this asset type.',
+  },
+};

@@ -18,6 +18,7 @@ body:json {
   {
     "assetType": "ETF",
     "management": "Broker X",
+    "note": "Sparplan",
     "isin": "IE00B4L5Y983",
     "name": "iShares Core MSCI World",
     "quantity": "10",
@@ -28,4 +29,7 @@ body:json {
 docs {
   Authenticated request — requires the `vaultfolio_session` cookie captured
   by `auth/Login`.
+
+  ISIN is checksum-validated. An equal position (ISIN + broker) is merged in
+  place and answered with 200 instead of 201.
 }

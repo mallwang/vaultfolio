@@ -5,13 +5,13 @@ Developer scripts that are not part of the build. The seed scripts fill the test
 
 ## Seed scripts
 
-Two entry points seed every data feature (earnings, wealth, retirement, insurances, account overview) through the
+Two entry points seed every data feature (earnings, wealth, retirement, insurances, holdings, account overview) through the
 REST API of a running backend. Each one **replaces** the account's existing data of those features.
 
-| Script                                           | Account (default)                  | Data                                                                                                      |
-| ------------------------------------------------ | ---------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| [seed-comprehensive.mjs](seed-comprehensive.mjs) | `claude@allwang.family` (Admin)    | Load and limit set: 50-year career, 597 wealth snapshots, 81 retirement records, 30 contracts, edge cases |
-| [seed-realistic.mjs](seed-realistic.mjs)         | `claudius@allwang.family` (Member) | Plausible, edge-case-free set: 12-year career, 10 years of wealth, 7 retirement entries, 7 contracts      |
+| Script                                           | Account (default)                  | Data                                                                                                                   |
+| ------------------------------------------------ | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| [seed-comprehensive.mjs](seed-comprehensive.mjs) | `claude@allwang.family` (Admin)    | Load and limit set: 50-year career, 597 wealth snapshots, 81 retirement records, 30 contracts, 26 holdings, edge cases |
+| [seed-realistic.mjs](seed-realistic.mjs)         | `claudius@allwang.family` (Member) | Plausible, edge-case-free set: 12-year career, 10 years of wealth, 7 retirement entries, 7 contracts, 11 holdings      |
 
 ```bash
 # backend running on http://localhost:3000
@@ -28,7 +28,7 @@ Requirements:
   `VAULTFOLIO_MEMBER_PASSWORD` (Member), set in the environment or in the gitignored repo-root
   `.env.local`. Prefer `.env.local` — a password on the command line ends up in the shell history.
 
-Options: `--email <e>`, `--base <url>`, `--only earnings,wealth,retirement,insurances,account-overview`.
+Options: `--email <e>`, `--base <url>`, `--only earnings,wealth,retirement,insurances,holdings,account-overview`.
 
 The output is deterministic (insurance dates are relative to today so deadline warnings show), so
 a reset is reproducible.
@@ -45,7 +45,10 @@ and `--out file.json` to write the data without uploading.
 | Wealth           | [wealth/seed-wealth-testset.mjs](wealth/seed-wealth-testset.mjs)                                         |
 | Retirement       | [retirement/seed-retirement-testset.mjs](retirement/seed-retirement-testset.mjs)                         |
 | Insurances       | [insurances/seed-insurances-testset.mjs](insurances/seed-insurances-testset.mjs)                         |
+| Holdings         | [holdings/seed-holdings-testset.mjs](holdings/seed-holdings-testset.mjs)                                 |
 | Account overview | [account-overview/seed-account-overview-testset.mjs](account-overview/seed-account-overview-testset.mjs) |
+
+The holdings seed always replaces the account's holdings (delete each, then create) and fails if the final count differs from the created count.
 
 `--profile` defaults to `comprehensive`; `--replace` is required to overwrite a non-empty account.
 Shared helpers live in [seed-lib.mjs](seed-lib.mjs).

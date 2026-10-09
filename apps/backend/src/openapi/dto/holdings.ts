@@ -1,6 +1,9 @@
 import { ApiProperty, ApiPropertyOptional, getSchemaPath } from '@nestjs/swagger';
 
 /** Mirrors `libs/api-contract/src/lib/holdings.ts`'s `AssetType`. */
+export const METALS = ['XAU', 'XAG', 'XPT', 'XPD'] as const;
+export const UNITS = ['G', 'OZT'] as const;
+
 export const ASSET_TYPES = ['ETF', 'SHARE', 'PRECIOUS_METAL', 'CRYPTO', 'DEPOSIT_MONEY'] as const;
 
 /**
@@ -25,8 +28,8 @@ export class HoldingResponseDto {
   @ApiPropertyOptional({ nullable: true, example: '123.45', description: 'Decimal string.' })
   purchasePrice!: string | null;
 
-  @ApiPropertyOptional({ nullable: true, format: 'date' })
-  purchaseDate!: string | null;
+  @ApiPropertyOptional({ nullable: true, maxLength: 500 })
+  note!: string | null;
 
   @ApiPropertyOptional({ nullable: true })
   isin!: string | null;
@@ -34,8 +37,14 @@ export class HoldingResponseDto {
   @ApiPropertyOptional({ nullable: true })
   name!: string | null;
 
-  @ApiPropertyOptional({ nullable: true, example: '15.5', description: 'Decimal string.' })
-  weightGrams!: string | null;
+  @ApiPropertyOptional({ nullable: true, enum: METALS })
+  metal!: (typeof METALS)[number] | null;
+
+  @ApiPropertyOptional({ nullable: true, description: 'Crypto catalogue id (CoinGecko).' })
+  coinId!: string | null;
+
+  @ApiPropertyOptional({ nullable: true, enum: UNITS })
+  unit!: (typeof UNITS)[number] | null;
 
   @ApiPropertyOptional({ nullable: true, example: '1000.00', description: 'Decimal string.' })
   currentValue!: string | null;
@@ -53,6 +62,9 @@ export class CreateEtfHoldingRequestDto {
 
   @ApiProperty()
   management!: string;
+
+  @ApiPropertyOptional({ maxLength: 500 })
+  note?: string;
 
   @ApiProperty()
   isin!: string;
@@ -74,6 +86,9 @@ export class CreateShareHoldingRequestDto {
   @ApiProperty()
   management!: string;
 
+  @ApiPropertyOptional({ maxLength: 500 })
+  note?: string;
+
   @ApiProperty()
   isin!: string;
 
@@ -85,9 +100,6 @@ export class CreateShareHoldingRequestDto {
 
   @ApiProperty({ example: '123.45' })
   purchasePrice!: string;
-
-  @ApiPropertyOptional({ format: 'date', description: 'Omit entirely, not "".' })
-  purchaseDate?: string;
 }
 
 export class CreatePreciousMetalHoldingRequestDto {
@@ -97,14 +109,20 @@ export class CreatePreciousMetalHoldingRequestDto {
   @ApiProperty()
   management!: string;
 
-  @ApiProperty()
-  name!: string;
+  @ApiPropertyOptional({ maxLength: 500 })
+  note?: string;
+
+  @ApiProperty({ enum: METALS })
+  metal!: (typeof METALS)[number];
 
   @ApiProperty({ example: '15.5' })
-  weightGrams!: string;
+  quantity!: string;
 
-  @ApiPropertyOptional({ example: '1000.00', description: 'Used only by the distribution view.' })
-  currentValue?: string;
+  @ApiProperty({ enum: UNITS })
+  unit!: (typeof UNITS)[number];
+
+  @ApiProperty({ example: '93.24', description: 'Purchase price per unit.' })
+  purchasePrice!: string;
 }
 
 export class CreateCryptoHoldingRequestDto {
@@ -114,17 +132,17 @@ export class CreateCryptoHoldingRequestDto {
   @ApiProperty()
   management!: string;
 
-  @ApiProperty()
-  name!: string;
+  @ApiPropertyOptional({ maxLength: 500 })
+  note?: string;
 
-  @ApiProperty({ example: '0.5' })
+  @ApiProperty({ description: 'Crypto catalogue id (CoinGecko).' })
+  coinId!: string;
+
+  @ApiProperty({ example: '0.5', description: 'At most 8 decimals.' })
   quantity!: string;
 
   @ApiProperty({ example: '30000.00' })
   purchasePrice!: string;
-
-  @ApiPropertyOptional({ format: 'date', description: 'Omit entirely, not "".' })
-  purchaseDate?: string;
 }
 
 export class CreateDepositMoneyHoldingRequestDto {
@@ -133,6 +151,9 @@ export class CreateDepositMoneyHoldingRequestDto {
 
   @ApiProperty()
   management!: string;
+
+  @ApiPropertyOptional({ maxLength: 500 })
+  note?: string;
 
   @ApiProperty()
   name!: string;
@@ -179,9 +200,6 @@ export const updateHoldingRequestSchema = {
 
 /** Mirrors `libs/api-contract/src/lib/holdings.ts`'s `HoldingValidationErrorResponse`. */
 export class HoldingValidationErrorResponseDto {
-  @ApiProperty({ enum: ['VALIDATION_FAILED'] })
-  error!: 'VALIDATION_FAILED';
-
   @ApiProperty()
   message!: string;
 
@@ -189,10 +207,27 @@ export class HoldingValidationErrorResponseDto {
     type: 'array',
     items: {
       type: 'object',
-      properties: { field: { type: 'string' }, message: { type: 'string' } },
+      required: ['field', 'code'],
+      properties: {
+        field: { type: 'string' },
+        code: {
+          type: 'string',
+          description:
+            'REQUIRED, ISIN_INVALID, ISIN_NOT_ALLOWED, METAL_UNKNOWN, COIN_UNKNOWN, UNIT_INVALID, QUANTITY_NOT_POSITIVE, QUANTITY_DECIMALS, NOTE_TOO_LONG, DECIMAL_INVALID, FIELD_NOT_ALLOWED',
+        },
+      },
     },
   })
-  fieldErrors!: { field: string; message: string }[];
+  errors!: { field: string; code: string }[];
+}
+
+/** 503 body returned while the holdings key is unavailable. */
+export class HoldingsUnavailableResponseDto {
+  @ApiProperty({ enum: ['HOLDINGS_UNAVAILABLE'] })
+  error!: 'HOLDINGS_UNAVAILABLE';
+
+  @ApiProperty()
+  message!: string;
 }
 
 /** Mirrors `libs/api-contract/src/lib/holdings.ts`'s `HoldingNotFoundErrorResponse`. */

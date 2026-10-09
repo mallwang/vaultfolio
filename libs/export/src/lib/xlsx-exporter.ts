@@ -84,6 +84,7 @@ const TABLE_NUM_FMT = {
   money: '#,##0.00 "€"',
   ratio: '0.0%',
   integer: '0',
+  decimal: 'General',
   date: 'dd.mm.yyyy',
 } as const;
 
@@ -177,6 +178,10 @@ function cellFormula(
     return `SUM(${letter}${firstData}:${letter}${lastData})`;
   }
   if (!column.formula) return undefined;
+  if (column.formulaNeedsValues) {
+    const keys = [...column.formula.matchAll(/\{(\w+)\}/g)].map((m) => m[1]);
+    if (keys.some((key) => row.cells[key] == null)) return undefined;
+  }
   // `{prev:key}` needs a data row above; the first data row keeps its plain value.
   if (column.formula.includes('{prev:') && (!firstData || rowNumber <= firstData)) return undefined;
   return column.formula.replace(

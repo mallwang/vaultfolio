@@ -17,8 +17,7 @@ Vaultfolio ist um unabhängige Domänen organisiert (siehe
 [Frontend-Domänenbibliothek-Architektur](#frontend-domänenbibliothek-architektur)). **Holdings** –
 die Verfolgung _deiner Anlagen_ (ETFs, Aktien, Gold und weitere Positionen) – ist die erste,
 vollständig ausgebaute Domäne. Sie verbindet sich nicht mit Bank- oder Broker-APIs; alle Daten
-werden manuell über die Oberfläche eingegeben, mit CSV/JSON-Import als Komfort für die
-Massenerfassung. Geplante Domänen erweitern die Anwendung über das Anlagetracking hinaus zu
+werden manuell über die Oberfläche eingegeben, und Holdings werden verschlüsselt gespeichert. Geplante Domänen erweitern die Anwendung über das Anlagetracking hinaus zu
 einer umfassenden Finanzverwaltungs-App: Altersvorsorge, Versicherungen, Haushaltsplaner
 (Haushalt und Budget), Historische Vermögensentwicklung und Kontenübersicht.
 

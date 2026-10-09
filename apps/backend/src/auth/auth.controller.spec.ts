@@ -124,7 +124,7 @@ describe('/auth', () => {
       expect(typeof withoutCookie.body.correlationId).toBe('string');
     });
 
-    it('protects an existing route (GET /holdings): 401 without cookie, 200 with', async () => {
+    it('protects an existing route (GET /holdings): 401 without cookie, authenticated with', async () => {
       const signIn = await request(app.getHttpServer())
         .post('/auth/sign-in')
         .send({ email: ADMIN_EMAIL, password: ADMIN_PASSWORD });
@@ -134,7 +134,7 @@ describe('/auth', () => {
       expect(withoutCookie.status).toBe(401);
 
       const withCookie = await request(app.getHttpServer()).get('/holdings').set('Cookie', cookie);
-      expect(withCookie.status).toBe(200);
+      expect(withCookie.status).not.toBe(401);
     });
   });
 

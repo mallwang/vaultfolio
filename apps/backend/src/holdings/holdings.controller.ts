@@ -1,4 +1,15 @@
-import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Put, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpStatus,
+  Param,
+  Post,
+  Put,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBody, ApiExtraModels, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import type { Response } from 'express';
 import type {
@@ -8,6 +19,7 @@ import type {
   HoldingValidationErrorResponse,
   UpdateHoldingRequest,
 } from '@vaultfolio/api-contract';
+import { HoldingsAvailableGuard } from './holdings-available.guard';
 import { HoldingsService } from './holdings.service';
 import { holdingToResponse } from './holdings.mapper';
 import type { FieldError } from '@vaultfolio/domain-holdings';
@@ -25,6 +37,7 @@ import {
   HoldingNotFoundErrorResponseDto,
   HoldingResponseDto,
   HoldingValidationErrorResponseDto,
+  HoldingsUnavailableResponseDto,
   UpdateCryptoHoldingRequestDto,
   UpdateDepositMoneyHoldingRequestDto,
   UpdateEtfHoldingRequestDto,
@@ -34,12 +47,8 @@ import {
   updateHoldingRequestSchema,
 } from '../openapi/dto/holdings';
 
-function validationErrorBody(fieldErrors: FieldError[]): HoldingValidationErrorResponse {
-  return {
-    error: 'VALIDATION_FAILED',
-    message: 'One or more fields are invalid.',
-    fieldErrors,
-  };
+function validationErrorBody(errors: FieldError[]): HoldingValidationErrorResponse {
+  return { message: 'One or more fields are invalid.', errors };
 }
 
 const NOT_FOUND_BODY: HoldingNotFoundErrorResponse = {
@@ -53,14 +62,20 @@ const NOT_FOUND_BODY: HoldingNotFoundErrorResponse = {
 @ApiDomainMaintenanceResponse()
 @Controller('holdings')
 @RequiresDomain('holdings')
+@UseGuards(HoldingsAvailableGuard)
+@ApiResponse({
+  status: 503,
+  description: 'Holdings data is unavailable (no usable encryption key).',
+  type: HoldingsUnavailableResponseDto,
+})
 export class HoldingsController {
   constructor(private readonly holdingsService: HoldingsService) {}
 
   @Get()
   @ApiOperation({ summary: "List the caller's holdings." })
   @ApiResponse({ status: 200, type: [HoldingResponseDto] })
-  async list(@CurrentUser() user: RequestUser): Promise<HoldingResponse[]> {
-    const holdings = await this.holdingsService.findAll(user.id);
+  list(@CurrentUser() user: RequestUser): HoldingResponse[] {
+    const holdings = this.holdingsService.findAll(user.id);
     return holdings.map(holdingToResponse);
   }
 
@@ -80,12 +95,12 @@ export class HoldingsController {
     description: 'One or more fields are invalid.',
     type: HoldingValidationErrorResponseDto,
   })
-  async create(
+  create(
     @Body() body: CreateHoldingRequest,
     @CurrentUser() user: RequestUser,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<HoldingResponse | HoldingValidationErrorResponse> {
-    const result = await this.holdingsService.create(body, user.id);
+  ): HoldingResponse | HoldingValidationErrorResponse {
+    const result = this.holdingsService.create(body, user.id);
 
     if (result.kind === 'invalid') {
       res.status(HttpStatus.BAD_REQUEST);
@@ -117,13 +132,13 @@ export class HoldingsController {
     description: 'This holding no longer exists.',
     type: HoldingNotFoundErrorResponseDto,
   })
-  async update(
+  update(
     @Param('id') id: string,
     @Body() body: UpdateHoldingRequest,
     @CurrentUser() user: RequestUser,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<HoldingResponse | HoldingValidationErrorResponse | HoldingNotFoundErrorResponse> {
-    const result = await this.holdingsService.update(id, body, user.id);
+  ): HoldingResponse | HoldingValidationErrorResponse | HoldingNotFoundErrorResponse {
+    const result = this.holdingsService.update(id, body, user.id);
 
     if (result.kind === 'not_found') {
       res.status(HttpStatus.NOT_FOUND);
@@ -146,12 +161,12 @@ export class HoldingsController {
     description: 'This holding no longer exists.',
     type: HoldingNotFoundErrorResponseDto,
   })
-  async delete(
+  delete(
     @Param('id') id: string,
     @CurrentUser() user: RequestUser,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<HoldingNotFoundErrorResponse | undefined> {
-    const deleted = await this.holdingsService.delete(id, user.id);
+  ): HoldingNotFoundErrorResponse | undefined {
+    const deleted = this.holdingsService.delete(id, user.id);
 
     if (!deleted) {
       res.status(HttpStatus.NOT_FOUND);

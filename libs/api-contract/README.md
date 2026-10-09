@@ -15,7 +15,7 @@ silently drift on wire shape.
 | `invitations.ts`      | Invitation API types (create, list, cancel, accept, error codes)                                                                                                                                        |
 | `signups.ts`          | Self-service signup API types (request, verify, admin review, error codes)                                                                                                                              |
 | `profile.ts`          | Profile/password/settings API types (display name, email, password, preferences)                                                                                                                        |
-| `holdings.ts`         | Holdings API types (`AssetType`, `HoldingDto`, create/update/import request types, error codes)                                                                                                         |
+| `holdings.ts`         | Holdings API types (`AssetType`, `HoldingDto`, create/update request types, error codes)                                                                                                                |
 | `i18n.ts`             | `SUPPORTED_LANGUAGES` — single source of truth for the language catalog (frontend picker + backend validation)                                                                                          |
 | `error-response.ts`   | `ErrorResponse` — the shared error body shape (`error`, `message`, `correlationId`, optional `details`) every backend error response carries, per `@vaultfolio/observability`'s `GlobalExceptionFilter` |
 

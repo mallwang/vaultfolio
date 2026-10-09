@@ -18,7 +18,6 @@ describe('DASHBOARD_WIDGET_CONTRIBUTIONS', () => {
   it('only holdings, earnings, retirement, insurances, wealth and account-overview contribute a Dashboard widget', () => {
     expect(DASHBOARD_WIDGET_CONTRIBUTIONS.map((c) => c.domainId)).toEqual([
       'holdings',
-      'holdings',
       'earnings',
       'retirement',
       'insurances',

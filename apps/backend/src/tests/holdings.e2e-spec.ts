@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
@@ -50,14 +51,16 @@ describe('/holdings', () => {
   const validGold: CreateHoldingRequest = {
     assetType: 'PRECIOUS_METAL',
     management: 'Private',
-    name: 'Gold',
-    weightGrams: '31.1',
+    metal: 'XAU',
+    quantity: '31.1',
+    unit: 'G',
+    purchasePrice: '1800.00',
   };
 
   const validBitcoin: CreateHoldingRequest = {
     assetType: 'CRYPTO',
     management: 'Private',
-    name: 'Bitcoin',
+    coinId: 'bitcoin',
     quantity: '0.25',
     purchasePrice: '42000.00',
   };
@@ -65,6 +68,7 @@ describe('/holdings', () => {
   beforeAll(async () => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'vaultfolio-holdings-e2e-'));
     process.env.DATABASE_PATH = path.join(tempDir, 'test.db');
+    process.env.ENCRYPTION_KEY = randomBytes(32).toString('base64');
     process.env.BOOTSTRAP_ADMIN_EMAIL = ADMIN_EMAIL;
     process.env.BOOTSTRAP_ADMIN_PASSWORD = ADMIN_PASSWORD;
 
@@ -87,6 +91,7 @@ describe('/holdings', () => {
   afterAll(async () => {
     await app.close();
     delete process.env.DATABASE_PATH;
+    delete process.env.ENCRYPTION_KEY;
     delete process.env.BOOTSTRAP_ADMIN_EMAIL;
     delete process.env.BOOTSTRAP_ADMIN_PASSWORD;
     fs.rmSync(tempDir, { recursive: true, force: true });
@@ -169,19 +174,17 @@ describe('/holdings', () => {
       expect(list.body).toHaveLength(1);
     });
 
-    it('replaces the existing row in place on a second matching Precious metal submission, same name+management (200, same id, no duplicate)', async () => {
+    it('merges a repeat Precious metal submission with the same metal and management (200, same id, no duplicate)', async () => {
       const first = await post('/holdings').send(validGold);
       expect(first.status).toBe(201);
-      const originalId = first.body.id;
 
-      const second = await post('/holdings').send({ ...validGold, weightGrams: '50' });
+      const second = await post('/holdings').send({ ...validGold, quantity: '50' });
 
       expect(second.status).toBe(200);
-      expect(second.body.id).toBe(originalId);
-      expect(second.body.weightGrams).toBe('50');
-
-      const list = await get('/holdings');
-      expect(list.body).toHaveLength(1);
+      expect(second.body.id).toBe(first.body.id);
+      expect(second.body.quantity).toBe('50');
+      expect(second.body.createdAt).toBe(first.body.createdAt);
+      expect((await get('/holdings')).body).toHaveLength(1);
     });
 
     it('creates a second, distinct row for a repeat Share submission (201, distinct id, no merge)', async () => {
@@ -215,80 +218,93 @@ describe('/holdings', () => {
       expect(list.body).toHaveLength(2);
     });
 
-    it('two Precious metal submissions with the same management but different name never merge (201 then 201, FR-005)', async () => {
+    it('keeps different metals under the same management apart (201 then 201)', async () => {
       const gold = await post('/holdings').send(validGold);
-      const silver = await post('/holdings').send({ ...validGold, name: 'Silver' });
+      const silver = await post('/holdings').send({ ...validGold, metal: 'XAG' });
 
       expect(gold.status).toBe(201);
       expect(silver.status).toBe(201);
       expect(silver.body.id).not.toBe(gold.body.id);
-
-      const list = await get('/holdings');
-      expect(list.body).toHaveLength(2);
+      expect((await get('/holdings')).body).toHaveLength(2);
     });
 
-    it('two Precious metal submissions with the same management and name merge (201 then 200, FR-005)', async () => {
-      const first = await post('/holdings').send(validGold);
-      const second = await post('/holdings').send({ ...validGold, weightGrams: '100' });
+    it('merges Deposit money by normalised name and management (201 then 200)', async () => {
+      const deposit = {
+        assetType: 'DEPOSIT_MONEY',
+        management: 'N26',
+        name: 'Tagesgeld',
+        currentValue: '100',
+      };
+      const first = await post('/holdings').send(deposit);
+      const second = await post('/holdings').send({
+        ...deposit,
+        name: '  tagesgeld ',
+        currentValue: '250.5',
+      });
 
       expect(first.status).toBe(201);
       expect(second.status).toBe(200);
       expect(second.body.id).toBe(first.body.id);
-
-      const list = await get('/holdings');
-      expect(list.body).toHaveLength(1);
+      expect(second.body.currentValue).toBe('250.5');
     });
   });
 
   describe('POST /holdings — validation failures (FR-009, FR-010, SC-002)', () => {
-    const expectFieldError = async (body: Record<string, unknown>, field: string) => {
+    const expectFieldError = async (body: Record<string, unknown>, field: string, code: string) => {
       const response = await post('/holdings').send(body);
 
       expect(response.status).toBe(400);
-      expect(response.body.error).toBe('VALIDATION_FAILED');
-      expect(response.body.fieldErrors).toContainEqual(expect.objectContaining({ field }));
+      expect(response.body.errors).toContainEqual({ field, code });
     };
 
     it('rejects negative quantity', () =>
-      expectFieldError({ ...validShare, quantity: '-1' }, 'quantity'));
+      expectFieldError({ ...validShare, quantity: '-1' }, 'quantity', 'QUANTITY_NOT_POSITIVE'));
 
     it('rejects negative purchasePrice', () =>
-      expectFieldError({ ...validShare, purchasePrice: '-1' }, 'purchasePrice'));
+      expectFieldError({ ...validShare, purchasePrice: '-1' }, 'purchasePrice', 'DECIMAL_INVALID'));
 
-    it('rejects negative weight for Precious metal', () =>
-      expectFieldError({ ...validGold, weightGrams: '-1' }, 'weightGrams'));
+    it('rejects negative currentValue for Deposit money', () =>
+      expectFieldError(
+        { assetType: 'DEPOSIT_MONEY', management: 'N26', name: 'x', currentValue: '-1' },
+        'currentValue',
+        'DECIMAL_INVALID',
+      ));
 
-    it('rejects negative currentValue for Precious metal', () =>
-      expectFieldError({ ...validGold, currentValue: '-1' }, 'currentValue'));
+    it('rejects an unknown metal', () =>
+      expectFieldError({ ...validGold, metal: 'XXX' }, 'metal', 'METAL_UNKNOWN'));
 
-    it('rejects a blank name for Precious metal (FR-009, SC-004)', () =>
-      expectFieldError({ ...validGold, name: '' }, 'name'));
+    it('rejects an invalid unit', () =>
+      expectFieldError({ ...validGold, unit: 'KG' }, 'unit', 'UNIT_INVALID'));
 
-    it('rejects a blank name for Crypto (FR-009, SC-004)', () =>
-      expectFieldError({ ...validBitcoin, name: '   ' }, 'name'));
+    it('rejects an unknown coin', () =>
+      expectFieldError({ ...validBitcoin, coinId: 'nope' }, 'coinId', 'COIN_UNKNOWN'));
 
-    it('rejects a future purchase date', async () => {
-      const future = new Date();
-      future.setFullYear(future.getFullYear() + 1);
-      await expectFieldError(
-        { ...validShare, purchaseDate: future.toISOString().slice(0, 10) },
-        'purchaseDate',
-      );
-    });
+    it('rejects more than 8 decimals for Crypto quantity', () =>
+      expectFieldError(
+        { ...validBitcoin, quantity: '0.123456789' },
+        'quantity',
+        'QUANTITY_DECIMALS',
+      ));
+
+    it('rejects a note over 500 characters', () =>
+      expectFieldError({ ...validShare, note: 'x'.repeat(501) }, 'note', 'NOTE_TOO_LONG'));
 
     it('rejects a malformed ISIN', () =>
-      expectFieldError({ ...validShare, isin: 'NOT-AN-ISIN' }, 'isin'));
+      expectFieldError({ ...validShare, isin: 'NOT-AN-ISIN' }, 'isin', 'ISIN_INVALID'));
 
     it('rejects a missing Management value', () =>
-      expectFieldError({ ...validShare, management: '' }, 'management'));
+      expectFieldError({ ...validShare, management: '' }, 'management', 'REQUIRED'));
 
     it('rejects a missing required type-specific field (ETF isin)', async () => {
       const { isin: _isin, ...withoutIsin } = validEtf;
-      await expectFieldError(withoutIsin, 'isin');
+      await expectFieldError(withoutIsin, 'isin', 'REQUIRED');
     });
 
-    it('rejects extraneous fields for the wrong type (Precious metal with isin)', () =>
-      expectFieldError({ ...validGold, isin: 'US0378331005' }, 'isin'));
+    it('rejects an isin on Precious metal', () =>
+      expectFieldError({ ...validGold, isin: 'US0378331005' }, 'isin', 'ISIN_NOT_ALLOWED'));
+
+    it('rejects a metal on a Share', () =>
+      expectFieldError({ ...validShare, metal: 'XAU' }, 'metal', 'FIELD_NOT_ALLOWED'));
 
     it('reports every failing field at once, not just the first', async () => {
       const response = await post('/holdings').send({
@@ -299,21 +315,12 @@ describe('/holdings', () => {
       });
 
       expect(response.status).toBe(400);
-      const fields = (response.body.fieldErrors as { field: string }[]).map((e) => e.field);
+      const fields = (response.body.errors as { field: string }[]).map((e) => e.field);
       expect(fields).toEqual(expect.arrayContaining(['management', 'isin', 'quantity', 'name']));
     });
 
-    it('rejects the old GOLD asset-type value on write (FR-011)', () =>
-      expectFieldError(
-        { assetType: 'GOLD', management: 'Private', weightGrams: '10' },
-        'assetType',
-      ));
-
-    it('rejects the old BITCOIN asset-type value on write (FR-011)', () =>
-      expectFieldError(
-        { assetType: 'BITCOIN', management: 'Private', quantity: '0.1', purchasePrice: '40000' },
-        'assetType',
-      ));
+    it('rejects an unknown asset type', () =>
+      expectFieldError({ assetType: 'GOLD', management: 'Private' }, 'assetType', 'REQUIRED'));
   });
 
   describe('PUT /holdings/:id (FR-014)', () => {
@@ -342,7 +349,7 @@ describe('/holdings', () => {
       expect(untouched).toBeDefined();
     });
 
-    it('returns the same 400 fieldErrors shape as POST on invalid input', async () => {
+    it('returns the same 400 errors shape as POST on invalid input', async () => {
       const created = await post('/holdings').send(validShare);
 
       const response = await put(`/holdings/${created.body.id}`).send({
@@ -354,7 +361,18 @@ describe('/holdings', () => {
       });
 
       expect(response.status).toBe(400);
-      expect(response.body.error).toBe('VALIDATION_FAILED');
+      expect(response.body.errors).toEqual([{ field: 'quantity', code: 'QUANTITY_NOT_POSITIVE' }]);
+    });
+
+    it('rejects an assetType change (400 FIELD_NOT_ALLOWED on assetType)', async () => {
+      const created = await post('/holdings').send(validShare);
+      const response = await put(`/holdings/${created.body.id}`).send({
+        ...validShare,
+        assetType: 'ETF',
+      });
+
+      expect(response.status).toBe(400);
+      expect(response.body.errors).toEqual([{ field: 'assetType', code: 'FIELD_NOT_ALLOWED' }]);
     });
 
     it('returns 404 HOLDING_NOT_FOUND for a non-existent id', async () => {
@@ -366,6 +384,118 @@ describe('/holdings', () => {
 
       expect(response.status).toBe(404);
       expect(response.body.error).toBe('HOLDING_NOT_FOUND');
+    });
+  });
+
+  describe('precision (US3)', () => {
+    const roundTrip = async (body: Record<string, unknown>) => {
+      const created = await post('/holdings').send(body);
+      expect(created.status).toBe(201);
+      const list = await get('/holdings');
+      return (list.body as Record<string, unknown>[])[0];
+    };
+
+    it('round-trips crypto 0.00000001 and metal 2.5 OZT as identical strings', async () => {
+      expect(await roundTrip({ ...validBitcoin, quantity: '0.00000001' })).toMatchObject({
+        quantity: '0.00000001',
+      });
+      await database.query('DELETE FROM holdings');
+      expect(await roundTrip({ ...validGold, quantity: '2.5', unit: 'OZT' })).toMatchObject({
+        quantity: '2.5',
+        unit: 'OZT',
+      });
+    });
+
+    it('rejects 9 decimals with QUANTITY_DECIMALS', async () => {
+      const response = await post('/holdings').send({ ...validBitcoin, quantity: '0.000000001' });
+      expect(response.status).toBe(400);
+      expect(response.body.errors).toContainEqual({ field: 'quantity', code: 'QUANTITY_DECIMALS' });
+    });
+
+    it('rejects a metal without unit', async () => {
+      const { unit: _unit, ...noUnit } = validGold;
+      const response = await post('/holdings').send(noUnit);
+      expect(response.status).toBe(400);
+    });
+
+    it('round-trips very large quantity and price exactly', async () => {
+      const row = await roundTrip({
+        ...validShare,
+        quantity: '12345678901234567890.12345678',
+        purchasePrice: '98765432109876543210.12345678',
+      });
+      expect(row).toMatchObject({
+        quantity: '12345678901234567890.12345678',
+        purchasePrice: '98765432109876543210.12345678',
+      });
+    });
+  });
+
+  describe('note (US4)', () => {
+    const deposit = {
+      assetType: 'DEPOSIT_MONEY',
+      management: 'N26',
+      name: 'Savings',
+      currentValue: '10',
+    };
+    const bodies: { assetType: string }[] = [
+      validEtf,
+      validShare,
+      validGold,
+      validBitcoin,
+      deposit,
+    ];
+
+    it.each(bodies.map((b) => [b.assetType, b]))(
+      '%s round-trips with and without a note',
+      async (_type, body) => {
+        const without = await post('/holdings').send(body);
+        expect(without.status).toBe(201);
+        expect(without.body.note).toBeNull();
+        await database.query('DELETE FROM holdings');
+        const withNote = await post('/holdings').send({ ...(body as object), note: 'my note' });
+        expect(withNote.status).toBe(201);
+        expect((await get('/holdings')).body[0].note).toBe('my note');
+      },
+    );
+
+    it('accepts 500 characters and 500 emoji', async () => {
+      for (const note of ['x'.repeat(500), '😀'.repeat(500)]) {
+        await database.query('DELETE FROM holdings');
+        const response = await post('/holdings').send({ ...validShare, note });
+        expect(response.status).toBe(201);
+        expect(response.body.note).toBe(note);
+      }
+    });
+
+    it('rejects 501 emoji with NOTE_TOO_LONG', async () => {
+      const response = await post('/holdings').send({ ...validShare, note: '😀'.repeat(501) });
+      expect(response.status).toBe(400);
+      expect(response.body.errors).toContainEqual({ field: 'note', code: 'NOTE_TOO_LONG' });
+    });
+
+    it('updates and clears the note via PUT', async () => {
+      const created = await post('/holdings').send({ ...validShare, note: 'first' });
+      const { assetType: _t, ...rest } = validShare;
+      const updated = await put(`/holdings/${created.body.id}`).send({ ...rest, note: 'second' });
+      expect(updated.status).toBe(200);
+      expect(updated.body.note).toBe('second');
+      const cleared = await put(`/holdings/${created.body.id}`).send(rest);
+      expect(cleared.status).toBe(200);
+      expect(cleared.body.note).toBeNull();
+    });
+  });
+
+  describe('encryption at rest', () => {
+    it('stores no plaintext in the holdings table', async () => {
+      await post('/holdings').send({ ...validShare, note: 'very private note' });
+      const rows = await database.query<{ payload_enc: string; key_version: number }>(
+        'SELECT payload_enc, key_version FROM holdings',
+      );
+      expect(rows).toHaveLength(1);
+      expect(rows[0].key_version).toBe(2);
+      expect(rows[0].payload_enc).not.toContain('Apple');
+      expect(rows[0].payload_enc).not.toContain('very private note');
     });
   });
 

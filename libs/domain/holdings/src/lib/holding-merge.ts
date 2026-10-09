@@ -1,44 +1,52 @@
+import type { AssetType } from './asset-type.js';
 import type { Holding } from './holding.js';
-import type { ValidatedHolding } from './holding-validation.js';
 
 export type MergeDecision = { kind: 'create' } | { kind: 'update'; existingId: string };
 
+/** The fields `findMergeKey` reads; satisfied by both `Holding` and a validated submission. */
+export interface MergeKeySource {
+  readonly assetType: AssetType;
+  readonly management: string;
+  readonly isin: string | null;
+  readonly metal: string | null;
+  readonly name: string | null;
+}
+
 /**
- * FR-011/FR-011a: given a validated incoming submission and the set of
- * existing holdings, decides whether the repository should insert a new row
- * or replace an existing one in place. A pure decision function — no I/O
- * (Principle I) — mirrored by the repository's own upsert-lookup query
- * (research.md #4) so "what counts as the same asset" lives in one place.
- *
- * - SHARE/CRYPTO: always a new row, regardless of any match.
- * - ETF: matches an existing row on `(isin, management)`.
- * - PRECIOUS_METAL: matches an existing row on `(name, management)` — "Gold"
- *   and "Silver" under the same Management never match each other (FR-005).
- * - A match under a *different* management value never counts as the same
- *   asset — Management is part of the identity key for both ETF and
- *   Precious metal.
+ * Identity of "the same position": ETF `(isin, management)`, metal `(metal,
+ * management)`, deposit `(normalised name, management)`. SHARE and CRYPTO are
+ * purchase lots and never merge (`null`). Two holdings with equal non-null
+ * keys are the same position.
+ */
+export function findMergeKey(holding: MergeKeySource): string | null {
+  switch (holding.assetType) {
+    case 'ETF':
+      return JSON.stringify(['ETF', holding.isin, holding.management]);
+    case 'PRECIOUS_METAL':
+      return JSON.stringify(['PRECIOUS_METAL', holding.metal, holding.management]);
+    case 'DEPOSIT_MONEY':
+      return JSON.stringify([
+        'DEPOSIT_MONEY',
+        (holding.name ?? '').trim().replace(/\s+/g, ' ').toLowerCase(),
+        holding.management,
+      ]);
+    default:
+      return null;
+  }
+}
+
+/**
+ * Decides whether a validated submission creates a new row or replaces an
+ * existing one in place (the caller keeps `id` and `createdAt`). Pure, no I/O.
  */
 export function decideMerge(
-  submission: ValidatedHolding,
+  submission: MergeKeySource,
   existing: readonly Holding[],
 ): MergeDecision {
-  if (submission.assetType === 'SHARE' || submission.assetType === 'CRYPTO') {
+  const key = findMergeKey(submission);
+  if (key === null) {
     return { kind: 'create' };
   }
-
-  const match = existing.find((holding) => {
-    if (holding.assetType !== submission.assetType) {
-      return false;
-    }
-    if (holding.management !== submission.management) {
-      return false;
-    }
-    if (submission.assetType === 'ETF') {
-      return holding.isin === submission.isin;
-    }
-    // PRECIOUS_METAL: management match alone is not sufficient — name must match too.
-    return holding.name === submission.name;
-  });
-
+  const match = existing.find((holding) => findMergeKey(holding) === key);
   return match ? { kind: 'update', existingId: match.id } : { kind: 'create' };
 }

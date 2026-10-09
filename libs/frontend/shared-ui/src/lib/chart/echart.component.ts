@@ -103,6 +103,7 @@ export class EchartComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   private instance: EChartsNamespace.ECharts | undefined;
   private resizeObserver: ResizeObserver | undefined;
+  private resizeFrame = 0;
 
   constructor() {
     // FR-004: re-theme the live instance on every theme change without
@@ -123,7 +124,13 @@ export class EchartComponent implements AfterViewInit, OnChanges, OnDestroy {
       this.applyState();
       this.applyThemeFragment(this.themeService.theme());
 
-      this.resizeObserver = new ResizeObserver(() => this.instance?.resize());
+      // Deferred to the next frame: resizing synchronously inside the callback can change the
+      // observed box again, which the browser reports as "ResizeObserver loop completed with
+      // undelivered notifications" (surfaced by GlobalErrorHandler as an app error).
+      this.resizeObserver = new ResizeObserver(() => {
+        cancelAnimationFrame(this.resizeFrame);
+        this.resizeFrame = requestAnimationFrame(() => this.instance?.resize());
+      });
       this.resizeObserver.observe(this.hostRef.nativeElement);
     });
   }
@@ -140,6 +147,7 @@ export class EchartComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   ngOnDestroy(): void {
     this.resizeObserver?.disconnect();
+    cancelAnimationFrame(this.resizeFrame);
     this.instance?.dispose();
   }
 

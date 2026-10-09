@@ -105,6 +105,7 @@ describe('DashboardComponent', () => {
       () => {
         fixture.detectChanges();
         requests = httpMock.match('/api/holdings');
+        // The distribution tile loads the holdings.
         expect(requests).toHaveLength(1);
       },
       // vi.waitFor has its own timeout independent of the test's
@@ -113,7 +114,7 @@ describe('DashboardComponent', () => {
       // is on, so give it the same headroom.
       { timeout: 15000 },
     );
-    requests[0].flush([]);
+    requests.forEach((r) => r.flush([]));
     fixture.detectChanges();
     await new Promise((resolve) => setTimeout(resolve, 0));
     fixture.detectChanges();
@@ -194,7 +195,7 @@ describe('DashboardComponent', () => {
 
     expect(
       (fixture.nativeElement as HTMLElement).querySelectorAll('app-dynamic-outlet'),
-    ).toHaveLength(2);
+    ).toHaveLength(1);
     httpMock.match('/api/holdings');
   });
 
@@ -229,18 +230,18 @@ describe('DashboardComponent', () => {
         () => {
           fixture.detectChanges();
           requests = httpMock.match('/api/holdings');
+          // The distribution tile loads the holdings.
           expect(requests).toHaveLength(1);
         },
         { timeout: 15000 },
       );
-      requests[0].flush([
+      const rows = [
         {
           id: 'h1',
           assetType: 'DEPOSIT_MONEY',
           management: 'Bank',
           quantity: null,
           purchasePrice: null,
-          purchaseDate: null,
           isin: null,
           name: null,
           weightGrams: null,
@@ -248,7 +249,8 @@ describe('DashboardComponent', () => {
           createdAt: '2026-01-01T00:00:00.000Z',
           updatedAt: '2026-01-01T00:00:00.000Z',
         },
-      ]);
+      ];
+      requests.forEach((r) => r.flush(rows));
       await new Promise((resolve) => setTimeout(resolve, 0));
       fixture.detectChanges();
       return fixture.nativeElement as HTMLElement;
@@ -261,7 +263,6 @@ describe('DashboardComponent', () => {
         byTestId(el, 'holdings-distribution-widget-toggle')?.getAttribute('aria-expanded'),
       ).toBe('false');
       expect(byTestId(el, 'holdings-distribution-widget-details')?.hidden).toBe(true);
-      expect(byTestId(el, 'holdings-total-value-toggle')).toBeNull();
     });
 
     it('expands only the clicked tile and remembers it across a reload', async () => {
@@ -286,11 +287,12 @@ describe('DashboardComponent', () => {
         () => {
           fixture.detectChanges();
           requests = httpMock.match('/api/holdings');
+          // The distribution tile loads the holdings.
           expect(requests).toHaveLength(1);
         },
         { timeout: 15000 },
       );
-      requests[0].flush([]);
+      requests.forEach((r) => r.flush([]));
       fixture.detectChanges();
       await new Promise((resolve) => setTimeout(resolve, 0));
       fixture.detectChanges();
@@ -306,23 +308,6 @@ describe('DashboardComponent', () => {
     const byTestId = (el: HTMLElement, id: string) =>
       el.querySelector(`[data-testid="${id}"]`) as HTMLElement;
 
-    it('moves a tile with the arrow keys and remembers the order', () => {
-      fakeCurrentUser.setAuthenticated(entitledUser);
-      fixture.detectChanges();
-      const el = fixture.nativeElement as HTMLElement;
-
-      byTestId(el, 'dashboard-tile-handle-holdings-total-value').dispatchEvent(
-        new KeyboardEvent('keydown', { key: 'ArrowRight' }),
-      );
-      fixture.detectChanges();
-
-      expect(tileIds(el)).toEqual([
-        'dashboard-tile-holdings-distribution',
-        'dashboard-tile-holdings-total-value',
-      ]);
-      expect(localStorage.getItem('vaultfolio.dashboard-layout.user-1')).toContain('"order"');
-    });
-
     it('switches a tile off through the edit dialog', async () => {
       fakeCurrentUser.setAuthenticated(entitledUser);
       fixture.detectChanges();
@@ -333,11 +318,11 @@ describe('DashboardComponent', () => {
       await fixture.whenStable();
       fixture.detectChanges();
 
-      const toggle = byTestId(document.body, 'dashboard-edit-toggle-holdings-total-value');
+      const toggle = byTestId(document.body, 'dashboard-edit-toggle-holdings-distribution');
       (toggle.querySelector('input') as HTMLInputElement).click();
       fixture.detectChanges();
 
-      expect(tileIds(el)).toEqual(['dashboard-tile-holdings-distribution']);
+      expect(tileIds(el)).toEqual([]);
     });
   });
 
@@ -352,7 +337,7 @@ describe('DashboardComponent', () => {
       fixture.detectChanges();
 
       const el = fixture.nativeElement as HTMLElement;
-      for (const id of ['holdings-total-value', 'holdings-distribution']) {
+      for (const id of ['holdings-distribution']) {
         expect(el.querySelector(`[data-testid="dashboard-tile-maintenance-${id}"]`)).not.toBeNull();
         expect(
           el.querySelector(`[data-testid="dashboard-tile-${id}"] app-dynamic-outlet`),

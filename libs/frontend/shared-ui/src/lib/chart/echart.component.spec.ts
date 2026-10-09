@@ -148,8 +148,10 @@ describe('EchartComponent', () => {
 
     expect(FakeResizeObserver.instances).toHaveLength(1);
     FakeResizeObserver.instances[0].trigger();
+    expect(mockInstance.resize).not.toHaveBeenCalled(); // deferred to next frame (avoids ResizeObserver loop error)
 
-    expect(mockInstance.resize).toHaveBeenCalled();
+    await new Promise((r) => requestAnimationFrame(r));
+    expect(mockInstance.resize).toHaveBeenCalledTimes(1);
   });
 
   it('disposes the ECharts instance and disconnects the resize observer on destroy', async () => {

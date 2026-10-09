@@ -76,10 +76,10 @@ describe('ExportDialogComponent', () => {
   });
 
   it.each([
-    ['pdf', 'Holdings.pdf'],
-    ['xlsx', 'Holdings.xlsx'],
-    ['csv', 'Holdings.csv'],
-    ['json', 'Holdings.json'],
+    ['pdf', 'Portfolio.pdf'],
+    ['xlsx', 'Portfolio.xlsx'],
+    ['csv', 'Portfolio.csv'],
+    ['json', 'Portfolio.json'],
   ])('shows the real file name and downloads exactly that for %s', async (format, fileName) => {
     await open();
 
@@ -94,7 +94,7 @@ describe('ExportDialogComponent', () => {
     button('xlsx').click();
     await vi.waitFor(() => expect(downloads).toHaveLength(1));
     button('csv').click();
-    await vi.waitFor(() => expect(downloads).toEqual(['Holdings.xlsx', 'Holdings.csv']));
+    await vi.waitFor(() => expect(downloads).toEqual(['Portfolio.xlsx', 'Portfolio.csv']));
     expect(byId('export-dialog')).not.toBeNull();
     expect(byId('export-dialog')).not.toBeNull();
   });
@@ -140,7 +140,7 @@ describe('ExportDialogComponent', () => {
     fixture.detectChanges();
     release();
 
-    await vi.waitFor(() => expect(downloads).toEqual(['Holdings.json']));
+    await vi.waitFor(() => expect(downloads).toEqual(['Portfolio.json']));
   });
 
   describe('tables (ZIP) and data text', () => {
@@ -150,16 +150,16 @@ describe('ExportDialogComponent', () => {
       );
       await open('tabled');
 
-      expect(byId('export-filename-csv')?.textContent?.trim()).toBe('Holdings.zip');
+      expect(byId('export-filename-csv')?.textContent?.trim()).toBe('Portfolio.zip');
       expect(byId('export-card-csv')?.textContent).toContain(
         TestBed.inject(I18nService).translate('export.dialog.csv.typeZip'),
       );
-      expect(byId('export-filename-xlsx')?.textContent?.trim()).toBe('Holdings.xlsx');
+      expect(byId('export-filename-xlsx')?.textContent?.trim()).toBe('Portfolio.xlsx');
     });
 
     it('shows a single .csv without tables', async () => {
       await open();
-      expect(byId('export-filename-csv')?.textContent?.trim()).toBe('Holdings.csv');
+      expect(byId('export-filename-csv')?.textContent?.trim()).toBe('Portfolio.csv');
     });
 
     it('uses the override text only for the overridden format', async () => {

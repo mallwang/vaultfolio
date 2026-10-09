@@ -1,0 +1,31 @@
+meta {
+  name: Create Deposit Money Holding
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/holdings
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "assetType": "DEPOSIT_MONEY",
+    "management": "Sparkasse",
+    "name": "Tagesgeld",
+    "currentValue": "12500.00"
+  }
+}
+
+docs {
+  Authenticated request — requires the `vaultfolio_session` cookie captured
+  by `auth/Login`.
+
+  Free-text name; an equal position (name ignoring case/spacing + bank) is merged.
+}

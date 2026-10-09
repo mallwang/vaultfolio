@@ -1,64 +1,78 @@
 import Decimal from 'decimal.js';
 import { Holding } from '@vaultfolio/domain-holdings';
-import type { AssetType, ValidatedHolding } from '@vaultfolio/domain-holdings';
+import type { AssetType, HoldingSubmission, ValidatedHolding } from '@vaultfolio/domain-holdings';
 import type {
   CreateHoldingRequest,
   HoldingResponse,
   UpdateHoldingRequest,
 } from '@vaultfolio/api-contract';
 
-/** Raw `better-sqlite3` row shape for the `holdings` table (snake_case columns). */
+/** Raw `better-sqlite3` row of the `holdings` table; everything but the ids lives in `payload_enc`. */
 export interface HoldingRow {
   id: string;
-  asset_type: AssetType;
+  owner_id: string;
+  payload_enc: string;
+  key_version: number;
+  created_at: string;
+  updated_at: string;
+}
+
+/** The encrypted JSON payload: decimals as strings, a pre-rework `purchaseDate` key in old payloads is ignored. */
+export interface HoldingPayload {
+  assetType: AssetType;
   management: string;
-  quantity: string | null;
-  purchase_price: string | null;
-  purchase_date: Date | string | null;
+  note: string | null;
   isin: string | null;
   name: string | null;
-  weight_grams: string | null;
-  current_value: string | null;
-  created_at: Date | string;
-  updated_at: Date | string;
+  metal: string | null;
+  coinId: string | null;
+  quantity: string | null;
+  unit: string | null;
+  purchasePrice: string | null;
+  currentValue: string | null;
 }
 
-function toDecimalOrNull(value: string | null): Decimal | null {
-  return value == null ? null : new Decimal(value);
+const decimalOrNull = (value: string | null): Decimal | null =>
+  value == null ? null : new Decimal(value);
+
+/** Validated submission -> the payload that gets encrypted. */
+export function validatedHoldingToPayload(value: ValidatedHolding): HoldingPayload {
+  return {
+    assetType: value.assetType,
+    management: value.management,
+    note: value.note,
+    isin: value.isin,
+    name: value.name,
+    metal: value.metal,
+    coinId: value.coinId,
+    quantity: value.quantity?.toFixed() ?? null,
+    unit: value.unit,
+    purchasePrice: value.purchasePrice?.toFixed() ?? null,
+    currentValue: value.currentValue?.toFixed() ?? null,
+  };
 }
 
-function toDateOnly(value: Date | string | null): Date | null {
-  if (value == null) {
-    return null;
-  }
-  return value instanceof Date ? value : new Date(value);
-}
-
-/** SQLite's `TEXT` timestamp columns come back as ISO-8601 strings, not `Date` (research.md #4). */
-function toDate(value: Date | string): Date {
-  return value instanceof Date ? value : new Date(value);
-}
-
-/** DB row -> domain `Holding`. */
-export function rowToHolding(row: HoldingRow): Holding {
+/** Decrypted payload + row metadata -> domain `Holding`. */
+export function payloadToHolding(
+  row: Pick<HoldingRow, 'id' | 'created_at' | 'updated_at'>,
+  payload: HoldingPayload,
+): Holding {
   return new Holding({
     id: row.id,
-    assetType: row.asset_type,
-    management: row.management,
-    quantity: toDecimalOrNull(row.quantity),
-    purchasePrice: toDecimalOrNull(row.purchase_price),
-    purchaseDate: toDateOnly(row.purchase_date),
-    isin: row.isin,
-    name: row.name,
-    weightGrams: toDecimalOrNull(row.weight_grams),
-    currentValue: toDecimalOrNull(row.current_value),
-    createdAt: toDate(row.created_at),
-    updatedAt: toDate(row.updated_at),
+    assetType: payload.assetType,
+    management: payload.management,
+    note: payload.note,
+    isin: payload.isin,
+    name: payload.name,
+    metal: payload.metal as Holding['metal'],
+    coinId: payload.coinId,
+    quantity: decimalOrNull(payload.quantity),
+    unit: payload.unit as Holding['unit'],
+    purchasePrice: decimalOrNull(payload.purchasePrice),
+    currentValue: decimalOrNull(payload.currentValue),
+    createdAt: new Date(row.created_at),
+    updatedAt: new Date(row.updated_at),
   });
-}
-
-function toIsoDateOnly(date: Date): string {
-  return date.toISOString().slice(0, 10);
 }
 
 /** domain `Holding` -> API `HoldingResponse` (decimal/date fields as wire strings). */
@@ -67,76 +81,46 @@ export function holdingToResponse(holding: Holding): HoldingResponse {
     id: holding.id,
     assetType: holding.assetType,
     management: holding.management,
-    quantity: holding.quantity?.toString() ?? null,
-    purchasePrice: holding.purchasePrice?.toString() ?? null,
-    purchaseDate: holding.purchaseDate ? toIsoDateOnly(holding.purchaseDate) : null,
+    note: holding.note,
     isin: holding.isin,
     name: holding.name,
-    weightGrams: holding.weightGrams?.toString() ?? null,
-    currentValue: holding.currentValue?.toString() ?? null,
+    metal: holding.metal,
+    coinId: holding.coinId,
+    quantity: holding.quantity?.toFixed() ?? null,
+    unit: holding.unit,
+    purchasePrice: holding.purchasePrice?.toFixed() ?? null,
+    currentValue: holding.currentValue?.toFixed() ?? null,
     createdAt: holding.createdAt.toISOString(),
     updatedAt: holding.updatedAt.toISOString(),
   };
 }
 
-/** POST /holdings body -> domain validation's raw submission shape. */
-export function createRequestToSubmission(body: CreateHoldingRequest) {
-  return requestToSubmission(body.assetType, body as unknown as Record<string, unknown>);
-}
+const str = (v: unknown): string | null | undefined => {
+  if (typeof v === 'string') return v;
+  if (v == null) return undefined;
+  return typeof v === 'object' ? JSON.stringify(v) : String(v);
+};
 
-/** PUT /holdings/:id body (plus the holding's existing, immutable assetType) -> raw submission shape. */
-export function updateRequestToSubmission(assetType: AssetType, body: UpdateHoldingRequest) {
-  return requestToSubmission(assetType, body as unknown as Record<string, unknown>);
-}
-
-function requestToSubmission(
+/**
+ * Request body -> raw submission. Every field is passed through (not only the ones the asset type
+ * allows) so the domain validation can reject non-applicable ones with FIELD_NOT_ALLOWED.
+ */
+export function requestToSubmission(
   assetType: AssetType,
-  body: Record<string, unknown>,
-): {
-  assetType: AssetType;
-  management: string;
-  quantity?: string | null;
-  purchasePrice?: string | null;
-  purchaseDate?: string | null;
-  isin?: string | null;
-  name?: string | null;
-  weightGrams?: string | null;
-  currentValue?: string | null;
-} {
+  body: CreateHoldingRequest | UpdateHoldingRequest,
+): HoldingSubmission {
+  const b = body as unknown as Record<string, unknown>;
   return {
     assetType,
-    management: typeof body.management === 'string' ? body.management : '',
-    quantity: typeof body.quantity === 'string' ? body.quantity : undefined,
-    purchasePrice: typeof body.purchasePrice === 'string' ? body.purchasePrice : undefined,
-    purchaseDate: typeof body.purchaseDate === 'string' ? body.purchaseDate : undefined,
-    isin: typeof body.isin === 'string' ? body.isin : undefined,
-    name: typeof body.name === 'string' ? body.name : undefined,
-    weightGrams: typeof body.weightGrams === 'string' ? body.weightGrams : undefined,
-    currentValue: typeof body.currentValue === 'string' ? body.currentValue : undefined,
-  };
-}
-
-/** Validated submission -> the field set the repository persists (snake_case values, wire-ready). */
-export function validatedHoldingToRow(value: ValidatedHolding): {
-  asset_type: AssetType;
-  management: string;
-  quantity: string | null;
-  purchase_price: string | null;
-  purchase_date: string | null;
-  isin: string | null;
-  name: string | null;
-  weight_grams: string | null;
-  current_value: string | null;
-} {
-  return {
-    asset_type: value.assetType,
-    management: value.management,
-    quantity: value.quantity?.toString() ?? null,
-    purchase_price: value.purchasePrice?.toString() ?? null,
-    purchase_date: value.purchaseDate ? toIsoDateOnly(value.purchaseDate) : null,
-    isin: value.isin,
-    name: value.name,
-    weight_grams: value.weightGrams?.toString() ?? null,
-    current_value: value.currentValue?.toString() ?? null,
+    management: typeof b.management === 'string' ? b.management : '',
+    note: str(b.note),
+    isin: str(b.isin),
+    name: str(b.name),
+    metal: str(b.metal),
+    unit: str(b.unit),
+    coinId: str(b.coinId),
+    quantity: str(b.quantity),
+    purchasePrice: str(b.purchasePrice),
+    currentValue: str(b.currentValue),
   };
 }

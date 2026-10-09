@@ -69,10 +69,10 @@ describe('FeatureExportRunner', () => {
   });
 
   it.each<[ExportFormat, string]>([
-    ['pdf', 'Holdings.pdf'],
-    ['xlsx', 'Holdings.xlsx'],
-    ['csv', 'Holdings.csv'],
-    ['json', 'Holdings.json'],
+    ['pdf', 'Portfolio.pdf'],
+    ['xlsx', 'Portfolio.xlsx'],
+    ['csv', 'Portfolio.csv'],
+    ['json', 'Portfolio.json'],
   ])('triggers a %s download named %s', async (format, expectedFileName) => {
     const result = await runner.run('holdings', format);
 
@@ -189,9 +189,9 @@ describe('FeatureExportRunner', () => {
     });
 
     it.each<[ExportFormat, string]>([
-      ['xlsx', 'Holdings.xlsx'],
-      ['csv', 'Holdings.zip'],
-      ['json', 'Holdings.json'],
+      ['xlsx', 'Portfolio.xlsx'],
+      ['csv', 'Portfolio.zip'],
+      ['json', 'Portfolio.json'],
     ])('passes the tables and skips fetchData for %s (%s)', async (format, fileName) => {
       await runner.run('tabled', format);
 
@@ -206,7 +206,7 @@ describe('FeatureExportRunner', () => {
 
       expect(calls).toEqual(['fetchData']);
       expect(exported[0].tables).toBeUndefined();
-      expect(downloadedFileNames).toEqual(['Holdings.pdf']);
+      expect(downloadedFileNames).toEqual(['Portfolio.pdf']);
     });
   });
 });

@@ -179,7 +179,7 @@ dort sind die Kacheln zweispaltig aufgelistet.
 fokussiere den Griff und nutze die Pfeiltasten). Über **Dashboard bearbeiten** oberhalb der Kacheln
 schaltest du einzelne Kacheln ein oder aus. Das Dashboard zeigt nur Kacheln von Features, die für
 dein Konto freigeschaltet sind; ohne freigeschaltetes Feature gibt es keine Kacheln – wende dich an
-den Administrator. Das Feature „Bestände“ liefert die Kacheln **Gesamtwert** und **Verteilung**, die
+den Administrator. Das Feature „Bestände“ liefert die Kacheln **Kaufwert** und **Verteilung**, die
 sich einzeln ein- oder ausschalten lassen. Deine Anordnung wird nur in diesem
 Browser und pro Konto gespeichert; **Zurücksetzen** stellt den Standard wieder her.
 
@@ -193,43 +193,62 @@ Anlageposition über verschiedene Anlagetypen hinweg.
 ### 4.1 Die Holdings-Liste
 
 Gehe zu **Holdings → Liste**. Die Tabelle zeigt alle deine Positionen mit folgenden Spalten:
-Typ, Anlage, Verwaltung (Broker oder Bank), Menge / Gewicht, Preis / Wert und Kaufdatum.
+Typ, Anlage (Name von ETF/Aktie, Metall, Coin oder Kontobezeichnung), Verwaltung (Broker oder
+Bank), Menge (bei Edelmetallen mit Einheit), Preis / Wert und Kaufdatum. Positionen mit Notiz
+zeigen eine Notiz-Schaltfläche, die den Text einblendet.
 
 Nutze das Suchfeld oberhalb der Tabelle, um nach einem dieser Felder zu filtern.
+
+Deine Positionen werden verschlüsselt gespeichert. Steht dem Server kein nutzbarer
+Verschlüsselungsschlüssel zur Verfügung, zeigt Holdings statt der Liste die Seite „vorübergehend
+nicht verfügbar“. Einen Import gibt es nicht: Positionen werden von Hand erfasst.
 
 ### 4.2 Eine Position hinzufügen
 
 Klicke auf **Position hinzufügen** (oben rechts im Panel). Ein Dialog öffnet sich. Wähle
-zuerst den Anlagetyp – die verfügbaren Felder ändern sich je nach Typ (siehe unten). Fülle
-die Felder aus und speichere.
+zuerst den Anlagetyp – das Formular zeigt dann nur die Felder dieses Typs (siehe unten). Fülle
+die Felder aus und speichere. Fügst du einen ETF, ein Edelmetall oder eine Einlage hinzu, die du beim
+selben Broker bzw. bei derselben Bank schon hältst, wird die bestehende Position aktualisiert statt
+doppelt angelegt; Aktien- und Krypto-Käufe bleiben als einzelne Posten bestehen.
 
 ### 4.3 Anlagetypen und ihre Felder
 
-| Feld            |      ETF      |     Aktie     | Edelmetall |    Krypto    | Einlagengeld |
-| --------------- | :-----------: | :-----------: | :--------: | :----------: | :----------: |
-| ISIN            | ✓ (validiert) | ✓ (validiert) |     —      |      —       |      —       |
-| Name            |       ✓       |       ✓       |     ✓      |      ✓       |      ✓       |
-| Verwaltung      |       ✓       |       ✓       |     ✓      |      ✓       |      ✓       |
-| Menge           |       ✓       |       ✓       |     —      |      ✓       |      —       |
-| Gewicht (Gramm) |       —       |       —       |     ✓      |      —       |      —       |
-| Ø Kaufpreis     |       ✓       |       ✓       |     —      |      ✓       |      —       |
-| Aktueller Wert  |       —       |       —       |     ✓      |      —       |      ✓       |
-| Kaufdatum       |       —       | ✓ (optional)  |     —      | ✓ (optional) |      —       |
+| Feld           |      ETF      |     Aktie     |  Edelmetall  |    Krypto    | Einlagengeld |
+| -------------- | :-----------: | :-----------: | :----------: | :----------: | :----------: |
+| ISIN           | ✓ (validiert) | ✓ (validiert) |      —       |      —       |      —       |
+| Name           |       ✓       |       ✓       |      —       |      —       |      ✓       |
+| Metall (Liste) |       —       |       —       |      ✓       |      —       |      —       |
+| Coin (Liste)   |       —       |       —       |      —       |      ✓       |      —       |
+| Broker / Bank  |       ✓       |       ✓       |      ✓       |      ✓       |      ✓       |
+| Menge          |       ✓       |       ✓       | ✓ + Einheit  |      ✓       |      —       |
+| Ø Kaufpreis    |       ✓       |       ✓       |      —       |      ✓       |      —       |
+| Aktueller Wert |       —       |       —       | ✓ (optional) |      —       |      ✓       |
+| Kaufdatum      |       —       | ✓ (optional)  |      —       | ✓ (optional) |      —       |
+| Notiz          | ✓ (optional)  | ✓ (optional)  | ✓ (optional) | ✓ (optional) | ✓ (optional) |
 
-Die ISIN-Validierung prüft die Prüfsumme automatisch – bei einer fehlerhaften ISIN erscheint
-sofort eine Fehlermeldung.
+- Die **ISIN** wird beim Tippen geprüft (Format und Prüfsumme).
+- **Edelmetalle** wählst du aus einer festen Liste: Gold, Silber, Platin, Palladium. Wähle pro
+  Position Gramm oder Feinunze (1 oz = 31,1035 g); die eingegebene Einheit bleibt erhalten und wird
+  angezeigt.
+- **Krypto-Coins** wählst du aus einer kuratierten Liste, die du nach Name oder Symbol durchsuchen
+  kannst. Die Menge darf bis zu acht Nachkommastellen haben und wird nie gerundet; mehr werden
+  abgelehnt.
+- **Mengen** müssen größer als null sein.
+- Die **Notiz** ist optional, höchstens 500 Zeichen; das Formular zeigt die verbleibende Länge.
 
-**Verwaltung** ist der Broker, die Bank oder die Börse, bei der du die Position hältst (z. B.
-„Trade Republic", „DKB", „Coinbase"). Das Feld ist Freitext und wird zum Filtern und Gruppieren
-verwendet.
+**Broker / Bank** ist der Ort, an dem du die Position hältst (z. B. „Trade Republic", „DKB",
+„Coinbase"). Das Feld ist Freitext und wird zum Filtern und Gruppieren verwendet.
 
-### 4.4 Verteilungsdiagramme
+### 4.4 Dashboard-Kacheln und Verteilungsdiagramme
 
-Oberhalb der Holdings-Tabelle zeigt ein Raster aus Kreisdiagrammen, wie dein Portfolio nach
-Wert verteilt ist. Das erste Diagramm umfasst alle Anlagetypen zusammen. Weitere Diagramme
-schlüsseln jeden Typ einzeln auf (bis zu fünf zusätzliche Kacheln).
+Das Dashboard hat eine Kachel **Kaufwert**: die Summe der Kaufpreise deiner Positionen. Sie ist als
+Kaufwert (nicht aktueller Wert) beschriftet und nennt, wie viele Positionen ohne Kaufpreis nicht
+mitgezählt werden. Die Kachel **Verteilung** und die Diagramme oberhalb der Holdings-Tabelle zeigen,
+wie dein Portfolio nach Wert verteilt ist (ein Diagramm für alle Typen, bis zu fünf weitere für
+einzelne Typen); Positionen ohne Wert werden als ausgeschlossen vermerkt.
 
-Diagramme erscheinen erst, wenn mindestens eine Position mit bekanntem Wert hinzugefügt wurde.
+Ohne Positionen zeigen beide Kacheln einen Leerzustand mit einer Schaltfläche **Position
+hinzufügen**; schlägt das Laden fehl, zeigen sie stattdessen einen Fehler.
 
 ### 4.5 Positionen bearbeiten und löschen
 

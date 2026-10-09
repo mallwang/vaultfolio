@@ -923,7 +923,7 @@ describe('/earnings without a usable key (FR-044)', () => {
         expect(response.body.error).toBe('EARNINGS_UNAVAILABLE');
       }
       expect((await admin.post('/earnings/imports').send({ files: [] })).status).toBe(503);
-      expect((await admin.get('/holdings')).status).toBe(200);
+      expect((await admin.get('/holdings')).status).toBe(503);
     } finally {
       await t.close();
     }
@@ -949,7 +949,7 @@ describe('/earnings without a usable key (FR-044)', () => {
       expect((await admin.post('/earnings/imports/preview').send({ files: [file] })).status).toBe(
         503,
       );
-      expect((await admin.get('/holdings')).status).toBe(200);
+      expect((await admin.get('/holdings')).status).toBe(503);
     } finally {
       await second.close();
       fs.rmSync(tempDir, { recursive: true, force: true });

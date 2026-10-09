@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
@@ -31,8 +32,11 @@ describe('Holdings persistence across app module restart (SC-002)', () => {
   const validGold: CreateHoldingRequest = {
     assetType: 'PRECIOUS_METAL',
     management: 'Home safe',
-    name: 'Gold',
-    weightGrams: '12.34567891',
+    metal: 'XAU',
+    quantity: '12.34567891',
+    unit: 'G',
+    purchasePrice: '1800.00',
+    note: 'Secret note',
   };
 
   const buildApp = async (): Promise<{ app: INestApplication; cookie: string }> => {
@@ -57,12 +61,14 @@ describe('Holdings persistence across app module restart (SC-002)', () => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'vaultfolio-persistence-'));
     databasePath = path.join(tempDir, 'vaultfolio.db');
     process.env.DATABASE_PATH = databasePath;
+    process.env.ENCRYPTION_KEY = randomBytes(32).toString('base64');
     process.env.BOOTSTRAP_ADMIN_EMAIL = ADMIN_EMAIL;
     process.env.BOOTSTRAP_ADMIN_PASSWORD = ADMIN_PASSWORD;
   });
 
   afterAll(() => {
     delete process.env.DATABASE_PATH;
+    delete process.env.ENCRYPTION_KEY;
     delete process.env.BOOTSTRAP_ADMIN_EMAIL;
     delete process.env.BOOTSTRAP_ADMIN_PASSWORD;
     fs.rmSync(tempDir, { recursive: true, force: true });
@@ -80,6 +86,8 @@ describe('Holdings persistence across app module restart (SC-002)', () => {
     // The database file (and its -wal/-shm siblings) survives the app close,
     // exactly as a bind-mounted ./data directory survives `docker compose down`.
     expect(fs.existsSync(databasePath)).toBe(true);
+    // Content is encrypted at rest, not readable in the raw file.
+    expect(fs.readFileSync(databasePath).includes('Secret note')).toBe(false);
 
     const { app: secondApp, cookie: secondCookie } = await buildApp();
     try {
@@ -92,8 +100,10 @@ describe('Holdings persistence across app module restart (SC-002)', () => {
       expect(response.body[0]).toMatchObject({
         assetType: 'PRECIOUS_METAL',
         management: 'Home safe',
-        name: 'Gold',
-        weightGrams: '12.34567891',
+        metal: 'XAU',
+        quantity: '12.34567891',
+        unit: 'G',
+        note: 'Secret note',
       });
     } finally {
       await secondApp.close();

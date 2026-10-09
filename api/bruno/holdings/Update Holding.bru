@@ -1,0 +1,33 @@
+meta {
+  name: Update Holding
+  type: http
+  seq: 7
+}
+
+put {
+  url: {{baseUrl}}/holdings/{{holdingId}}
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "management": "Broker X",
+    "note": "Nachgekauft",
+    "isin": "IE00B4L5Y983",
+    "name": "iShares Core MSCI World",
+    "quantity": "15",
+    "purchasePrice": "76.10"
+  }
+}
+
+docs {
+  Authenticated request — requires the `vaultfolio_session` cookie captured
+  by `auth/Login`.
+  Same body as the create request of the holding's type, without `assetType`
+  (immutable). Set `holdingId` to an id from `List Holdings`.
+}

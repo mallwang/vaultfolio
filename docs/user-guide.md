@@ -173,7 +173,7 @@ tiles are listed in two columns.
 (or focus the handle and use the arrow keys). Choose **Edit dashboard** above the tiles to switch
 individual tiles on or off. The dashboard only shows tiles of features that are enabled for your
 account; with no feature enabled there are no tiles — ask your administrator. The Holdings feature
-provides the **Total value** and **Allocation** tiles, which can be switched on or off
+provides the **Purchase value** and **Allocation** tiles, which can be switched on or off
 individually. Your arrangement is saved in this browser only, per account, and **Reset** restores
 the default.
 
@@ -187,44 +187,59 @@ investment positions across asset types.
 ### 4.1 The Holdings List
 
 Go to **Holdings → List**. The table shows all your holdings with these columns:
-Type, Asset, Management (the broker or bank), Quantity / Weight, Price / Value, and
-Purchase Date.
+Type, Asset (ETF/share name, metal, coin or account description), Management (the broker or
+bank), Quantity (precious metals with their unit), Price / Value, and Purchase Date. Holdings with
+a note show a note button that reveals the text.
 
 Use the search box above the table to filter by any of those fields.
+
+Your holdings are stored encrypted. If the server has no usable encryption key, Holdings shows a
+"temporarily unavailable" page instead of the list. There is no import: holdings are entered by hand.
 
 ### 4.2 Adding a Holding
 
 Click **Add holding** (top right of the panel). A dialog opens. Select the asset
-type first — the available fields change depending on the type (see below). Fill in
-the fields and save.
+type first — the form then shows only the fields of that type (see below). Fill in
+the fields and save. Adding an ETF, precious metal or deposit that you already hold at the same
+broker/bank updates the existing position instead of creating a duplicate; shares and crypto
+purchases are kept as separate lots.
 
 ### 4.3 Asset Types and Their Fields
 
 | Field            |      ETF      |     Share     | Precious Metal |    Crypto    | Deposit Money |
 | ---------------- | :-----------: | :-----------: | :------------: | :----------: | :-----------: |
 | ISIN             | ✓ (validated) | ✓ (validated) |       —        |      —       |       —       |
-| Name             |       ✓       |       ✓       |       ✓        |      ✓       |       ✓       |
-| Management       |       ✓       |       ✓       |       ✓        |      ✓       |       ✓       |
-| Quantity         |       ✓       |       ✓       |       —        |      ✓       |       —       |
-| Weight (grams)   |       —       |       —       |       ✓        |      —       |       —       |
+| Name             |       ✓       |       ✓       |       —        |      —       |       ✓       |
+| Metal (list)     |       —       |       —       |       ✓        |      —       |       —       |
+| Coin (list)      |       —       |       —       |       —        |      ✓       |       —       |
+| Broker / bank    |       ✓       |       ✓       |       ✓        |      ✓       |       ✓       |
+| Quantity         |       ✓       |       ✓       |    ✓ + unit    |      ✓       |       —       |
 | Ø Purchase price |       ✓       |       ✓       |       —        |      ✓       |       —       |
-| Current value    |       —       |       —       |       ✓        |      —       |       ✓       |
+| Current value    |       —       |       —       |  ✓ (optional)  |      —       |       ✓       |
 | Purchase date    |       —       | ✓ (optional)  |       —        | ✓ (optional) |       —       |
+| Note             | ✓ (optional)  | ✓ (optional)  |  ✓ (optional)  | ✓ (optional) | ✓ (optional)  |
 
-ISIN validation checks the checksum automatically — you will see an error immediately
-if the ISIN is malformed.
+- **ISIN** is checked (format and checksum) as you type.
+- **Precious metals** are chosen from a fixed list: gold, silver, platinum, palladium. Pick grams
+  or troy ounces (1 oz = 31.1035 g) per holding; the unit you enter is kept and shown.
+- **Crypto** coins are chosen from a curated list that you can search by name or symbol. The
+  quantity may have up to eight decimal places and is never rounded; more are rejected.
+- **Quantities** must be greater than zero.
+- **Note** is optional, up to 500 characters; the form shows how many remain.
 
-**Management** is the broker, bank, or exchange where you hold the position (e.g.
-"Trade Republic", "DKB", "Coinbase"). It is free text and used for filtering and
-grouping.
+**Broker / bank** is where you hold the position (e.g. "Trade Republic", "DKB", "Coinbase"). It is
+free text and used for filtering and grouping.
 
-### 4.4 Distribution Charts
+### 4.4 Dashboard Tiles and Distribution Charts
 
-Above the holdings table, a grid of pie charts shows how your portfolio is distributed
-by value. The first chart covers all asset types combined. Additional charts break down
-each type individually (up to five extra tiles).
+The dashboard has a **Purchase value** tile: the sum of the purchase prices of your holdings. It is
+labelled as purchase value, not current value, and tells you how many holdings are not counted
+because they have no purchase price. The **Allocation** tile and the charts above the holdings
+table show how your portfolio is distributed by value (one chart for all types, up to five
+more for single types); holdings without a value are listed as excluded.
 
-Charts only appear once at least one holding with a known value has been added.
+With no holdings, both tiles show an empty state with an **Add holding** button; if loading fails
+they show an error instead.
 
 ### 4.5 Editing and Deleting Holdings
 

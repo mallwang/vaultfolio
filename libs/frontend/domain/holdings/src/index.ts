@@ -1,4 +1,3 @@
-export { HoldingsTotalValueComponent } from './lib/holdings-total-value/holdings-total-value.component.js';
 export { HoldingsComponent } from './lib/holdings.component.js';
 // Also consumed directly by `apps/frontend/src/app/dashboard` (the
 // Allocation card embeds the same distribution chart the Holdings page
@@ -7,6 +6,6 @@ export { HoldingsComponent } from './lib/holdings.component.js';
 // consumers of a domain library (contracts/module-boundaries.md guarantee 2).
 export { HoldingsDistributionComponent } from './lib/holdings-distribution/holdings-distribution.component.js';
 export { HoldingsService } from './lib/holdings.service.js';
-export { ImportsComponent } from './lib/imports/imports.component.js';
-export { HoldingsAreaComponent } from './lib/holdings-area/holdings-area.component.js';
 export { createHoldingsExportDefinition } from './lib/holdings-export.definition.js';
+export { holdingsAvailableGuard } from './lib/holdings-area/holdings-available.guard.js';
+export { HoldingsUnavailableComponent } from './lib/holdings-area/holdings-unavailable.component.js';

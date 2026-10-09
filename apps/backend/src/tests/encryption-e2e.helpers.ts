@@ -95,6 +95,8 @@ const FIXTURE_SQL: Record<string, string> = {
     VALUES ($2, $3, 1, '${NOW}')`,
   insurance_contracts: `INSERT INTO insurance_contracts (id, owner_id, payload_enc, key_version, created_at, updated_at)
     VALUES ($1, $2, $3, 1, '${NOW}', '${NOW}')`,
+  holdings: `INSERT INTO holdings (id, owner_id, payload_enc, key_version, created_at, updated_at)
+    VALUES ($1, $2, $3, 1, '${NOW}', '${NOW}')`,
   insurance_settings: `INSERT INTO insurance_settings (owner_id, payload_enc, key_version, updated_at)
     VALUES ($2, $3, 1, '${NOW}')`,
   account_overview_entries: `INSERT INTO account_overview_entries (id, owner_id, payload_enc, key_version, created_at, updated_at)

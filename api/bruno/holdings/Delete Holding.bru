@@ -1,0 +1,18 @@
+meta {
+  name: Delete Holding
+  type: http
+  seq: 8
+}
+
+delete {
+  url: {{baseUrl}}/holdings/{{holdingId}}
+  body: none
+  auth: none
+}
+
+docs {
+  Authenticated request — requires the `vaultfolio_session` cookie captured
+  by `auth/Login`.
+  Set `holdingId` to an id from `List Holdings`. Answers 204, or 404
+  HOLDING_NOT_FOUND.
+}

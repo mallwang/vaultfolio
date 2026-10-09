@@ -1,6 +1,7 @@
 import Decimal from 'decimal.js';
 import type { HoldingResponse } from '@vaultfolio/api-contract';
 import { computeHoldingValue, groupHoldingsByKey } from './holdings-valuation';
+import { toGrams } from '@vaultfolio/domain-holdings';
 
 function holding(overrides: Partial<HoldingResponse>): HoldingResponse {
   return {
@@ -9,10 +10,12 @@ function holding(overrides: Partial<HoldingResponse>): HoldingResponse {
     management: 'Broker',
     quantity: null,
     purchasePrice: null,
-    purchaseDate: null,
     isin: null,
     name: null,
-    weightGrams: null,
+    note: null,
+    metal: null,
+    coinId: null,
+    unit: null,
     currentValue: null,
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
@@ -20,15 +23,38 @@ function holding(overrides: Partial<HoldingResponse>): HoldingResponse {
   };
 }
 
+describe('metal weights', () => {
+  it('sums 2 OZT + 10 G to exactly 72.207 g', () => {
+    const total = [toGrams('2', 'OZT'), toGrams('10', 'G')].reduce(
+      (sum, g) => sum.plus(g),
+      new Decimal(0),
+    );
+    expect(total.toFixed()).toBe('72.207');
+  });
+
+  it('sums large quantities and prices without precision loss', () => {
+    const big = (quantity: string, price: string) =>
+      computeHoldingValue(
+        holding({ assetType: 'CRYPTO', quantity, purchasePrice: price }),
+      )?.toFixed();
+    expect(big('12345678901234.12345678', '1')).toBe('12345678901234.12345678');
+    expect(big('0.00000001', '99999999999999.99999999')).toBe('999999.9999999999999999');
+  });
+});
+
 describe('computeHoldingValue', () => {
-  it('computes PRECIOUS_METAL value from currentValue', () => {
-    const value = computeHoldingValue(holding({ assetType: 'PRECIOUS_METAL', currentValue: '25' }));
+  it('computes PRECIOUS_METAL value from quantity x purchasePrice', () => {
+    const value = computeHoldingValue(
+      holding({ assetType: 'PRECIOUS_METAL', quantity: '1', purchasePrice: '25' }),
+    );
     expect(value?.toString()).toBe('25');
   });
 
-  it('returns null for PRECIOUS_METAL with no currentValue', () => {
+  it('returns null for PRECIOUS_METAL with no purchasePrice', () => {
     expect(
-      computeHoldingValue(holding({ assetType: 'PRECIOUS_METAL', currentValue: null })),
+      computeHoldingValue(
+        holding({ assetType: 'PRECIOUS_METAL', quantity: '1', purchasePrice: null }),
+      ),
     ).toBeNull();
   });
 
@@ -83,8 +109,20 @@ describe('groupHoldingsByKey', () => {
   it('sums two holdings sharing the same key into one entry', () => {
     const result = groupHoldingsByKey(
       [
-        holding({ id: '1', assetType: 'PRECIOUS_METAL', name: 'Gold', currentValue: '25' }),
-        holding({ id: '2', assetType: 'PRECIOUS_METAL', name: 'Gold', currentValue: '17.5' }),
+        holding({
+          id: '1',
+          assetType: 'PRECIOUS_METAL',
+          name: 'Gold',
+          quantity: '1',
+          purchasePrice: '25',
+        }),
+        holding({
+          id: '2',
+          assetType: 'PRECIOUS_METAL',
+          name: 'Gold',
+          quantity: '1',
+          purchasePrice: '17.5',
+        }),
       ],
       (h) => h.name,
     );

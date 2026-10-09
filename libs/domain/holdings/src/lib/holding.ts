@@ -1,35 +1,36 @@
 import Decimal from 'decimal.js';
 import type { AssetType } from './asset-type.js';
+import type { MetalCode } from './metal-catalog.js';
+import type { HoldingUnit } from './units.js';
 
 /**
- * The core entity (spec.md's "Holding" Key Entity, data-model.md's Holding
- * table): one holding row — either a purchase lot (Share/Crypto: one row per
- * submission) or a current position (ETF/Precious metal: one row per
- * `(identifier, management)` pair, replaced in place on repeat submission).
- * Framework-independent (Principle I) — no NestJS/Angular/SQLite-row
- * concerns here. All monetary/quantity fields are `Decimal`, never a native
- * `number` (constitution's Money/decimal handling clause).
+ * One holding (data-model.md payload). Framework-independent (Principle I).
+ * Monetary/quantity fields are `Decimal`, never `number`. Fields that do not
+ * apply to the asset type are `null`.
  */
 export interface HoldingProps {
   /** Generated at creation (`randomUUID()`), never client-supplied. */
   readonly id: string;
-  /** Immutable after creation (FR-008). */
+  /** Immutable after creation. */
   readonly assetType: AssetType;
-  /** Free text, required for every asset type (FR-002). */
   readonly management: string;
-  /** Required for ETF/SHARE/CRYPTO; `null` for PRECIOUS_METAL. */
-  readonly quantity: Decimal | null;
-  /** Required for ETF/SHARE/CRYPTO; `null` for PRECIOUS_METAL. "Average purchase price" for ETF. */
-  readonly purchasePrice: Decimal | null;
-  /** Optional for SHARE/CRYPTO only; always `null` for ETF/PRECIOUS_METAL. */
-  readonly purchaseDate: Date | null;
-  /** Required for ETF/SHARE; `null` for PRECIOUS_METAL/CRYPTO. */
+  /** Optional free text, at most 500 characters. */
+  readonly note: string | null;
+  /** ETF/SHARE only. */
   readonly isin: string | null;
-  /** Required for ETF/SHARE/PRECIOUS_METAL/CRYPTO. */
+  /** ETF/SHARE/DEPOSIT_MONEY only. */
   readonly name: string | null;
-  /** Required for PRECIOUS_METAL; `null` otherwise. */
-  readonly weightGrams: Decimal | null;
-  /** Optional, PRECIOUS_METAL only; `null` otherwise. */
+  /** PRECIOUS_METAL only (catalogue code). */
+  readonly metal: MetalCode | null;
+  /** CRYPTO only (catalogue id). */
+  readonly coinId: string | null;
+  /** ETF/SHARE/PRECIOUS_METAL/CRYPTO. */
+  readonly quantity: Decimal | null;
+  /** PRECIOUS_METAL only; the unit the quantity was entered in. */
+  readonly unit: HoldingUnit | null;
+  /** ETF/SHARE/CRYPTO; PRECIOUS_METAL optional (per unit). */
+  readonly purchasePrice: Decimal | null;
+  /** DEPOSIT_MONEY only. */
   readonly currentValue: Decimal | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;
@@ -39,12 +40,14 @@ export class Holding implements HoldingProps {
   readonly id: string;
   readonly assetType: AssetType;
   readonly management: string;
-  readonly quantity: Decimal | null;
-  readonly purchasePrice: Decimal | null;
-  readonly purchaseDate: Date | null;
+  readonly note: string | null;
   readonly isin: string | null;
   readonly name: string | null;
-  readonly weightGrams: Decimal | null;
+  readonly metal: MetalCode | null;
+  readonly coinId: string | null;
+  readonly quantity: Decimal | null;
+  readonly unit: HoldingUnit | null;
+  readonly purchasePrice: Decimal | null;
   readonly currentValue: Decimal | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;
@@ -53,26 +56,26 @@ export class Holding implements HoldingProps {
     this.id = props.id;
     this.assetType = props.assetType;
     this.management = props.management;
-    this.quantity = props.quantity;
-    this.purchasePrice = props.purchasePrice;
-    this.purchaseDate = props.purchaseDate;
+    this.note = props.note;
     this.isin = props.isin;
     this.name = props.name;
-    this.weightGrams = props.weightGrams;
+    this.metal = props.metal;
+    this.coinId = props.coinId;
+    this.quantity = props.quantity;
+    this.unit = props.unit;
+    this.purchasePrice = props.purchasePrice;
     this.currentValue = props.currentValue;
     this.createdAt = props.createdAt;
     this.updatedAt = props.updatedAt;
   }
 
   /**
-   * This holding's value for the FR-012a distribution view: `quantity ×
-   * purchasePrice` for Share/Crypto/ETF, `currentValue` for Precious metal.
-   * Returns `null` when there is no computable value (e.g. Precious metal
-   * with no current value entered) — such holdings are excluded from the
-   * percentage base entirely, never counted as zero (research.md #6).
+   * Value for the distribution view: `quantity × purchasePrice` for
+   * ETF/SHARE/CRYPTO/PRECIOUS_METAL, `currentValue` for DEPOSIT_MONEY. `null`
+   * when not computable (excluded from the base, never counted as zero).
    */
   computeValue(): Decimal | null {
-    if (this.assetType === 'PRECIOUS_METAL' || this.assetType === 'DEPOSIT_MONEY') {
+    if (this.assetType === 'DEPOSIT_MONEY') {
       return this.currentValue;
     }
     if (this.quantity && this.purchasePrice) {

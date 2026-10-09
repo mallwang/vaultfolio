@@ -34,8 +34,10 @@ const etf: HoldingResponse = {
   name: 'iShares Core MSCI World',
   quantity: '12.5',
   purchasePrice: '78.42',
-  purchaseDate: null,
-  weightGrams: null,
+  note: null,
+  metal: null,
+  coinId: null,
+  unit: null,
   currentValue: null,
   createdAt: '2026-08-01T09:00:00.000Z',
   updatedAt: '2026-08-01T09:00:00.000Z',
@@ -46,11 +48,13 @@ const goldNoValue: HoldingResponse = {
   assetType: 'PRECIOUS_METAL',
   management: 'Private',
   isin: null,
-  name: 'Gold',
-  quantity: null,
+  name: null,
+  note: null,
+  metal: 'XAU',
+  coinId: null,
+  unit: 'G',
+  quantity: '31.1',
   purchasePrice: null,
-  purchaseDate: null,
-  weightGrams: '31.1',
   currentValue: null,
   createdAt: '2026-08-10T09:00:00.000Z',
   updatedAt: '2026-08-10T09:00:00.000Z',
@@ -61,11 +65,13 @@ const silverNoValue: HoldingResponse = {
   assetType: 'PRECIOUS_METAL',
   management: 'Private',
   isin: null,
-  name: 'Silver',
-  quantity: null,
+  name: null,
+  note: null,
+  metal: 'XAG',
+  coinId: null,
+  unit: 'G',
+  quantity: '500',
   purchasePrice: null,
-  purchaseDate: null,
-  weightGrams: '500',
   currentValue: null,
   createdAt: '2026-08-11T09:00:00.000Z',
   updatedAt: '2026-08-11T09:00:00.000Z',
@@ -119,6 +125,33 @@ describe('HoldingsComponent', () => {
     );
   });
 
+  it('shows quantity and unit exactly as entered, and the note when present', () => {
+    const ozt = {
+      ...goldNoValue,
+      id: 'g2',
+      quantity: '2.5',
+      unit: 'OZT' as const,
+      note: 'in the safe',
+    };
+    const btc = {
+      ...etf,
+      id: 'c1',
+      assetType: 'CRYPTO' as const,
+      isin: null,
+      name: null,
+      coinId: 'bitcoin',
+      quantity: '0.00000001',
+    };
+    flushList([ozt, btc, etf]);
+    const el = fixture.nativeElement as HTMLElement;
+    const text = (id: string) => el.querySelector(`[data-testid="${id}"]`)?.textContent?.trim();
+    expect(text('holdings-row-g2-quantity')).toBe('2.5 oz t');
+    expect(text('holdings-row-c1-quantity')).toBe('0.00000001');
+    expect(text('holdings-row-etf-1-quantity')).toBe('12.5');
+    expect(el.querySelector('[data-testid="holdings-row-g2-note"]')).not.toBeNull();
+    expect(el.querySelector('[data-testid="holdings-row-etf-1-note"]')).toBeNull();
+  });
+
   it('renders the fetched holdings with mixed asset types', () => {
     flushList([etf, goldNoValue]);
 
@@ -145,8 +178,10 @@ describe('HoldingsComponent', () => {
       name: 'Bitcoin',
       quantity: '0.1',
       purchasePrice: '40000',
-      purchaseDate: null,
-      weightGrams: null,
+      note: null,
+      metal: null,
+      coinId: null,
+      unit: null,
       currentValue: null,
       createdAt: '2026-08-12T09:00:00.000Z',
       updatedAt: '2026-08-12T09:00:00.000Z',
@@ -167,6 +202,34 @@ describe('HoldingsComponent', () => {
     expect(text).toContain('Bitcoin');
   });
 
+  it('shows a coin row as "Name (SYM)" and falls back to the raw code for stale metal or coin ids', () => {
+    const coin: HoldingResponse = {
+      ...goldNoValue,
+      id: 'c-1',
+      assetType: 'CRYPTO',
+      metal: null,
+      unit: null,
+      coinId: 'bitcoin',
+      quantity: '0.1',
+      purchasePrice: '40000',
+    };
+    const staleMetal: HoldingResponse = {
+      ...goldNoValue,
+      id: 'm-9',
+      metal: 'XXX' as HoldingResponse['metal'],
+    };
+    const staleCoin: HoldingResponse = { ...coin, id: 'c-9', coinId: 'gone-coin' };
+    flushList([coin, staleMetal, staleCoin]);
+
+    const rows = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('tbody tr'),
+    ).map((r) => r.textContent ?? '');
+    expect(rows).toHaveLength(3);
+    expect(rows[0]).toContain('Bitcoin (BTC)');
+    expect(rows[1]).toContain('XXX');
+    expect(rows[2]).toContain('gone-coin');
+  });
+
   it('shows a "—" indicator for a holding missing price/date', () => {
     flushList([goldNoValue]);
 
@@ -178,7 +241,7 @@ describe('HoldingsComponent', () => {
     flushList([]);
 
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
-    expect(text).toContain('No holdings yet');
+    expect(text).toContain('No positions yet');
   });
 
   it('renders all 6 chart tiles (main + 5 per-type) in fixed ASSET_TYPES order, each fed the full holdings list (FR-002, FR-009, FR-010)', () => {
@@ -190,8 +253,10 @@ describe('HoldingsComponent', () => {
       name: 'Apple',
       quantity: '1',
       purchasePrice: '100',
-      purchaseDate: null,
-      weightGrams: null,
+      note: null,
+      metal: null,
+      coinId: null,
+      unit: null,
       currentValue: null,
       createdAt: '2026-08-14T09:00:00.000Z',
       updatedAt: '2026-08-14T09:00:00.000Z',
@@ -204,8 +269,10 @@ describe('HoldingsComponent', () => {
       name: 'Bitcoin',
       quantity: '0.1',
       purchasePrice: '40000',
-      purchaseDate: null,
-      weightGrams: null,
+      note: null,
+      metal: null,
+      coinId: null,
+      unit: null,
       currentValue: null,
       createdAt: '2026-08-15T09:00:00.000Z',
       updatedAt: '2026-08-15T09:00:00.000Z',
