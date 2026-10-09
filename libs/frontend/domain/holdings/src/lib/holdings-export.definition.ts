@@ -41,13 +41,11 @@ const TOP_N = 5;
 /** Same grouping as the on-screen tiles: by name, largest first, top 5, share of `total`. */
 function topRows(entries: { key: string; value: number }[], total: number, totalLabel: string) {
   if (!entries.length) return [];
+  const sorted = [...entries].sort((a, b) => b.value - a.value);
   return [
-    ...entries
-      .sort((a, b) => b.value - a.value)
-      .slice(0, TOP_N)
-      .map((e) => ({
-        cells: { name: e.key, share: total > 0 ? e.value / total : 0, amount: e.value },
-      })),
+    ...sorted.slice(0, TOP_N).map((e) => ({
+      cells: { name: e.key, share: total > 0 ? e.value / total : 0, amount: e.value },
+    })),
     { cells: { name: totalLabel, share: 1, amount: total }, emphasis: 'total' as const },
   ];
 }

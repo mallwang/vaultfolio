@@ -97,7 +97,8 @@ export function holdingToResponse(holding: Holding): HoldingResponse {
 
 const str = (v: unknown): string | null | undefined => {
   if (typeof v === 'string') return v;
-  return v == null ? undefined : String(v);
+  if (v == null) return undefined;
+  return typeof v === 'object' ? JSON.stringify(v) : String(v);
 };
 
 /**
