@@ -3395,16 +3395,17 @@ components:
         unit:
           type: string
           enum: *ref_39
-        currentValue:
+        purchasePrice:
           type: string
-          example: '1000.00'
-          description: Used only by the distribution view.
+          example: '93.24'
+          description: Purchase price per unit.
       required:
         - assetType
         - management
         - metal
         - quantity
         - unit
+        - purchasePrice
     CreateCryptoHoldingRequestDto:
       type: object
       properties:
@@ -3556,16 +3557,17 @@ components:
         unit:
           type: string
           enum: *ref_39
-        currentValue:
+        purchasePrice:
           type: string
-          example: '1000.00'
-          description: Used only by the distribution view.
+          example: '93.24'
+          description: Purchase price per unit.
       required:
         - assetType
         - management
         - metal
         - quantity
         - unit
+        - purchasePrice
     UpdateCryptoHoldingRequestDto:
       type: object
       properties:
