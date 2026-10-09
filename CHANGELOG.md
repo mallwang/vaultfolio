@@ -1,3 +1,10 @@
+## 0.0.17 (2026-10-09)
+
+### 🚀 Features
+
+- **holdings:** encrypt holdings and rework forms, units and dashboard tiles ([#97](https://github.com/mallwang/vaultfolio/pull/97))
+- **notifications:** add shared email layout and use informal "du" throughout ([#96](https://github.com/mallwang/vaultfolio/pull/96))
+
 ## 0.0.16 (2026-10-08)
 
 ### 🚀 Features
