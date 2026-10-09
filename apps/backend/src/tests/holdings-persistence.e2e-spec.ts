@@ -35,6 +35,7 @@ describe('Holdings persistence across app module restart (SC-002)', () => {
     metal: 'XAU',
     quantity: '12.34567891',
     unit: 'G',
+    purchasePrice: '1800.00',
     note: 'Secret note',
   };
 

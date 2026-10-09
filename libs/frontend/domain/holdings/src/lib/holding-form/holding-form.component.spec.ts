@@ -20,7 +20,6 @@ const makeHolding = (overrides: Partial<HoldingResponse> = {}): HoldingResponse 
   quantity: '12.5',
   unit: null,
   purchasePrice: '78.42',
-  purchaseDate: null,
   currentValue: null,
   createdAt: '2026-01-01T00:00:00.000Z',
   updatedAt: '2026-01-01T00:00:00.000Z',
@@ -65,12 +64,9 @@ describe('HoldingFormComponent', () => {
 
   it.each([
     ['ETF', ['isin', 'name', 'quantity', 'purchase-price', 'management', 'note']],
-    [
-      'SHARE',
-      ['isin', 'name', 'quantity', 'purchase-price', 'purchase-date', 'management', 'note'],
-    ],
-    ['PRECIOUS_METAL', ['metal', 'quantity', 'unit', 'current-value', 'management', 'note']],
-    ['CRYPTO', ['coin', 'quantity', 'purchase-price', 'purchase-date', 'management', 'note']],
+    ['SHARE', ['isin', 'name', 'quantity', 'purchase-price', 'management', 'note']],
+    ['PRECIOUS_METAL', ['metal', 'quantity', 'unit', 'purchase-price', 'management', 'note']],
+    ['CRYPTO', ['coin', 'quantity', 'purchase-price', 'management', 'note']],
     ['DEPOSIT_MONEY', ['name', 'current-value', 'management', 'note']],
   ])('%s shows exactly its own fields', (type, expected) => {
     selectType(type);
@@ -82,7 +78,6 @@ describe('HoldingFormComponent', () => {
       'quantity',
       'unit',
       'purchase-price',
-      'purchase-date',
       'current-value',
       'management',
       'note',
@@ -143,7 +138,13 @@ describe('HoldingFormComponent', () => {
 
   it('POSTs a metal quantity of 2.5 with unit OZT', () => {
     selectType('PRECIOUS_METAL');
-    form().patchValue({ metal: 'XAU', quantity: 2.5, unit: 'OZT', management: 'Bank' });
+    form().patchValue({
+      metal: 'XAU',
+      quantity: 2.5,
+      unit: 'OZT',
+      purchasePrice: 1800,
+      management: 'Bank',
+    });
     submit();
     const req = httpMock.expectOne('/api/holdings');
     expect(req.request.body).toMatchObject({ quantity: '2.5', unit: 'OZT' });
@@ -221,6 +222,7 @@ describe('HoldingFormComponent', () => {
       metal: 'XAU',
       quantity: 2,
       unit: 'OZT',
+      purchasePrice: 1800,
       name: 'ignored',
     });
     submit();
@@ -231,6 +233,7 @@ describe('HoldingFormComponent', () => {
       metal: 'XAU',
       quantity: '2',
       unit: 'OZT',
+      purchasePrice: '1800',
     });
     req.flush(makeHolding());
   });
@@ -242,7 +245,6 @@ describe('HoldingFormComponent', () => {
       coinId: 'bitcoin',
       quantity: 0.1,
       purchasePrice: 30000,
-      purchaseDate: new Date(2024, 0, 5),
     });
     submit();
     const req = httpMock.expectOne('/api/holdings');
@@ -252,7 +254,6 @@ describe('HoldingFormComponent', () => {
       coinId: 'bitcoin',
       quantity: '0.1',
       purchasePrice: '30000',
-      purchaseDate: '2024-01-05',
     });
     req.flush(makeHolding());
   });
@@ -331,6 +332,23 @@ describe('HoldingFormComponent', () => {
     httpMock.expectOne('/api/holdings').flush({}, { status: 503, statusText: 'Unavailable' });
     fixture.detectChanges();
     expect(byId('holding-form-error')?.textContent).toContain('Unable to save this holding');
+  });
+
+  describe('purchase total', () => {
+    it('derives total from price and price from total', () => {
+      form().patchValue({ quantity: 10 });
+      form().controls.purchasePrice.setValue(5);
+      expect(form().controls.purchaseTotal.value).toBe(50);
+      form().controls.purchaseTotal.setValue(80);
+      expect(form().controls.purchasePrice.value).toBe(8);
+      form().controls.quantity.setValue(20);
+      expect(form().controls.purchasePrice.value).toBe(4);
+    });
+
+    it('is hidden for deposit money', () => {
+      selectType('DEPOSIT_MONEY');
+      expect(byId('holding-form-purchase-total')).toBeNull();
+    });
   });
 
   describe('edit mode', () => {

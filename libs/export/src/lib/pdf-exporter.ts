@@ -1,5 +1,6 @@
 import type { Content, TDocumentDefinitions } from 'pdfmake/interfaces.js';
 import type {
+  PdfCard,
   PdfKpiTile,
   PdfSection,
   PdfTableColumn,
@@ -313,7 +314,84 @@ function drawBlankDiagonals(
   }
 }
 
+const CARD_BORDER = '#999999';
+
+/** One bordered card: title row, header row and body rows in a nested table. */
+function cardContent(card: PdfCard, locale: string): Content {
+  const fontSize = SECTION_FONT_SIZE;
+  const span = card.columns.length;
+  const filler = (n: number) => Array.from({ length: n }, () => ({}));
+  const body: unknown[][] = [
+    [
+      {
+        text: card.title,
+        bold: true,
+        fontSize: fontSize + 2,
+        colSpan: span,
+        ...(card.color ? { color: card.color } : {}),
+      },
+      ...filler(span - 1),
+    ],
+    card.columns.map((column) => ({
+      text: column.label,
+      style: 'tableHeader',
+      fontSize,
+      alignment: column.align ?? (column.format === 'text' ? 'left' : 'right'),
+    })),
+    ...(card.rows.length
+      ? card.rows.map((row) => card.columns.map((c) => sectionCell(row, c, locale, fontSize)))
+      : [
+          [
+            { text: card.emptyText ?? MISSING, colSpan: span, color: '#666666' },
+            ...filler(span - 1),
+          ],
+        ]),
+  ];
+  return {
+    table: { headerRows: 2, widths: card.columns.map(sectionColumnWidth), body },
+    layout: {
+      hLineWidth: (i: number, node: { table: { body: unknown[] } }) => {
+        if (i === 0 || i === node.table.body.length) return 0.75;
+        return i === 2 ? 1 : 0.25;
+      },
+      vLineWidth: (i: number, node: { table: { widths: unknown[] } }) =>
+        i === 0 || i === node.table.widths.length ? 0.75 : 0,
+      hLineColor: () => CARD_BORDER,
+      vLineColor: () => CARD_BORDER,
+      paddingLeft: () => 4,
+      paddingRight: () => 4,
+      paddingTop: () => 3,
+      paddingBottom: () => 3,
+    },
+  } as unknown as Content;
+}
+
+function cardsContent(section: Extract<PdfSection, { kind: 'cards' }>, locale: string): Content[] {
+  const perRow = section.columnsPerRow ?? 3;
+  const widths: (string | number)[] = [];
+  for (let i = 0; i < perRow; i++) widths.push(...(i ? [TILE_GAP, '*'] : ['*']));
+  const grid: Content[] = [];
+  for (let start = 0; start < section.cards.length; start += perRow) {
+    const cells: unknown[] = [];
+    for (let i = 0; i < perRow; i++) {
+      const card = section.cards[start + i];
+      if (i) cells.push({ text: '' });
+      cells.push(card ? cardContent(card, locale) : { text: '' });
+    }
+    grid.push({
+      table: { widths, body: [cells], dontBreakRows: true },
+      layout: 'noBorders',
+      margin: [0, 0, 0, TILE_GAP],
+    } as unknown as Content);
+  }
+  return [
+    { text: section.title, style: 'sectionHeader', pageBreak: 'before', margin: [0, 0, 0, 8] },
+    ...grid,
+  ] as unknown as Content[];
+}
+
 function sectionContent(section: PdfSection, locale: string, contentWidth: number): Content[] {
+  if (section.kind === 'cards') return cardsContent(section, locale);
   if (section.kind === 'kpis') {
     return [kpiRow(section.tiles)];
   }
@@ -444,7 +522,7 @@ function contentWidthOf(resolved: ResolvedFeatureExport): number {
 }
 
 function chartWidthOf(resolved: ResolvedFeatureExport): number {
-  return resolved.pdfSections?.length ? PAGE_CONTENT_WIDTH : 440;
+  return resolved.pdfSections?.length && !resolved.chartSideTable ? PAGE_CONTENT_WIDTH : 440;
 }
 
 function footerOf(resolved: ResolvedFeatureExport): string {

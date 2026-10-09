@@ -28,11 +28,9 @@ export interface HoldingProps {
   readonly quantity: Decimal | null;
   /** PRECIOUS_METAL only; the unit the quantity was entered in. */
   readonly unit: HoldingUnit | null;
-  /** ETF/SHARE/CRYPTO. */
+  /** ETF/SHARE/CRYPTO; PRECIOUS_METAL optional (per unit). */
   readonly purchasePrice: Decimal | null;
-  /** SHARE/CRYPTO, optional. */
-  readonly purchaseDate: Date | null;
-  /** PRECIOUS_METAL (optional) / DEPOSIT_MONEY. */
+  /** DEPOSIT_MONEY only. */
   readonly currentValue: Decimal | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;
@@ -50,7 +48,6 @@ export class Holding implements HoldingProps {
   readonly quantity: Decimal | null;
   readonly unit: HoldingUnit | null;
   readonly purchasePrice: Decimal | null;
-  readonly purchaseDate: Date | null;
   readonly currentValue: Decimal | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;
@@ -67,7 +64,6 @@ export class Holding implements HoldingProps {
     this.quantity = props.quantity;
     this.unit = props.unit;
     this.purchasePrice = props.purchasePrice;
-    this.purchaseDate = props.purchaseDate;
     this.currentValue = props.currentValue;
     this.createdAt = props.createdAt;
     this.updatedAt = props.updatedAt;
@@ -75,11 +71,11 @@ export class Holding implements HoldingProps {
 
   /**
    * Value for the distribution view: `quantity × purchasePrice` for
-   * ETF/SHARE/CRYPTO, `currentValue` for PRECIOUS_METAL/DEPOSIT_MONEY. `null`
+   * ETF/SHARE/CRYPTO/PRECIOUS_METAL, `currentValue` for DEPOSIT_MONEY. `null`
    * when not computable (excluded from the base, never counted as zero).
    */
   computeValue(): Decimal | null {
-    if (this.assetType === 'PRECIOUS_METAL' || this.assetType === 'DEPOSIT_MONEY') {
+    if (this.assetType === 'DEPOSIT_MONEY') {
       return this.currentValue;
     }
     if (this.quantity && this.purchasePrice) {

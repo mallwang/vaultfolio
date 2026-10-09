@@ -12,12 +12,12 @@ Decimal.set({ precision: 60 });
  * byte-for-byte the same "computable value" rule and excluded-holdings
  * accounting (Principle I).
  *
- * `currentValue` for `PRECIOUS_METAL`/`DEPOSIT_MONEY`, `quantity ×
- * purchasePrice` for `ETF`/`SHARE`/`CRYPTO`; `null` when the relevant
+ * `currentValue` for `DEPOSIT_MONEY`, `quantity ×
+ * purchasePrice` for `ETF`/`SHARE`/`CRYPTO`/`PRECIOUS_METAL`; `null` when the relevant
  * field(s) are missing (not computable).
  */
 export function computeHoldingValue(holding: HoldingResponse): Decimal | null {
-  if (holding.assetType === 'PRECIOUS_METAL' || holding.assetType === 'DEPOSIT_MONEY') {
+  if (holding.assetType === 'DEPOSIT_MONEY') {
     return holding.currentValue != null ? new Decimal(holding.currentValue) : null;
   }
   if (holding.quantity != null && holding.purchasePrice != null) {

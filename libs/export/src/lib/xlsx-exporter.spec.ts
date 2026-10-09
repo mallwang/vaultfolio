@@ -191,6 +191,32 @@ describe('exportXlsx with tables', () => {
     expect(sheet.getCell('D4').value).toEqual({ formula: 'IF(B4=0,0,C4/B4)', result: 0.125 });
   });
 
+  it('keeps the plain value when formulaNeedsValues finds an empty referenced cell', async () => {
+    const table: ExportTable = {
+      id: 't',
+      title: 'N',
+      columns: [
+        { key: 'qty', label: 'Menge', format: 'decimal' },
+        { key: 'price', label: 'Preis', format: 'money' },
+        {
+          key: 'sum',
+          label: 'Summe',
+          format: 'money',
+          formula: '{qty}*{price}',
+          formulaNeedsValues: true,
+        },
+      ],
+      rows: [
+        { cells: { qty: '2', price: '1.50', sum: '3.00' } },
+        { cells: { qty: null, price: null, sum: '10.00' } },
+      ],
+    };
+    const sheet = (await readWorkbook(await exportXlsx(withTables([table])))).worksheets[0];
+
+    expect(sheet.getCell('C2').value).toEqual({ formula: 'A2*B2', result: 3 });
+    expect(sheet.getCell('C3').value).toBe(10);
+  });
+
   it('merges a grouped two-row header and skips hidden columns', async () => {
     const table: ExportTable = {
       id: 't',

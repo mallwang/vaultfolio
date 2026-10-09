@@ -25,22 +25,21 @@ describe('DashboardLayoutStore', () => {
   const ids = () => store.visibleTiles().map((t) => t.id);
 
   it('shows only the tiles of domains the account has, in default order', () => {
-    expect(ids()).toEqual(['holdings-total-value', 'holdings-distribution']);
+    expect(ids()).toEqual(['holdings-distribution']);
     currentUser.setAuthenticated(user('u3', ['holdings', 'earnings']));
     TestBed.tick();
-    expect(ids()).toEqual(['holdings-total-value', 'holdings-distribution', 'earnings']);
+    expect(ids()).toEqual(['holdings-distribution', 'earnings']);
     currentUser.setAuthenticated(user('u4', []));
     TestBed.tick();
     expect(ids()).toEqual([]);
   });
 
   it('persists order and hidden tiles per user in localStorage', () => {
-    store.moveVisible(0, 1);
     store.setTileVisible('holdings-distribution', false);
 
-    expect(ids()).toEqual(['holdings-total-value']);
+    expect(ids()).toEqual([]);
     expect(JSON.parse(localStorage.getItem('vaultfolio.dashboard-layout.u1') ?? '')).toEqual({
-      order: ['holdings-distribution', 'holdings-total-value'],
+      order: ['holdings-distribution'],
       hidden: ['holdings-distribution'],
       expanded: [],
     });
@@ -51,14 +50,14 @@ describe('DashboardLayoutStore', () => {
   });
 
   it('restores the saved layout in a fresh store and resets to defaults', () => {
-    store.setTileVisible('holdings-total-value', false);
+    store.setTileVisible('holdings-distribution', false);
     TestBed.resetTestingModule();
     TestBed.inject(CurrentUserStore).setAuthenticated(user('u1', ['holdings']));
     const fresh = TestBed.inject(DashboardLayoutStore);
-    expect(fresh.visibleTiles().map((t) => t.id)).not.toContain('holdings-total-value');
+    expect(fresh.visibleTiles().map((t) => t.id)).not.toContain('holdings-distribution');
 
     fresh.reset();
-    expect(fresh.visibleTiles().map((t) => t.id)).toContain('holdings-total-value');
+    expect(fresh.visibleTiles().map((t) => t.id)).toContain('holdings-distribution');
     expect(fresh.isCustomized()).toBe(false);
   });
 
@@ -70,7 +69,6 @@ describe('DashboardLayoutStore', () => {
     it('expands and collapses a tile and persists it per user', () => {
       store.setExpanded('holdings-distribution', true);
       expect(store.isExpanded('holdings-distribution')).toBe(true);
-      expect(store.isExpanded('holdings-total-value')).toBe(false);
       expect(
         JSON.parse(localStorage.getItem('vaultfolio.dashboard-layout.u1') ?? '').expanded,
       ).toEqual(['holdings-distribution']);

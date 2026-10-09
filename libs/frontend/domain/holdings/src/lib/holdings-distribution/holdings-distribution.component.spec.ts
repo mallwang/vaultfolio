@@ -32,7 +32,6 @@ function holding(overrides: Partial<HoldingResponse>): HoldingResponse {
     management: 'Broker',
     quantity: null,
     purchasePrice: null,
-    purchaseDate: null,
     isin: null,
     name: null,
     note: null,
@@ -74,7 +73,13 @@ describe('HoldingsDistributionComponent', () => {
   const holdings: HoldingResponse[] = [
     holding({ id: '1', assetType: 'SHARE', quantity: '10', purchasePrice: '5' }), // 50
     holding({ id: '2', assetType: 'SHARE', quantity: '2', purchasePrice: '5' }), // 10 -> 60 total SHARE
-    holding({ id: '3', assetType: 'PRECIOUS_METAL', name: 'Gold', currentValue: '25' }), // 25
+    holding({
+      id: '3',
+      assetType: 'PRECIOUS_METAL',
+      name: 'Gold',
+      quantity: '1',
+      purchasePrice: '25',
+    }), // 25
     holding({ id: '4', assetType: 'ETF', quantity: null, purchasePrice: null }), // excluded
   ];
 
@@ -99,18 +104,17 @@ describe('HoldingsDistributionComponent', () => {
         label: { color: contrastTextColor(ASSET_TYPE_COLORS.PRECIOUS_METAL) },
       },
     ]);
-    expect(fixture.componentInstance['excludedCount']()).toBe(1);
   });
 
-  it('still includes a legend and a rendered center-label element (FR-008, unaffected by the sibling HoldingsTypeBreakdownComponent)', () => {
+  it('renders ranked bars (largest first) instead of a donut on the holdings page', () => {
     fixture.componentRef.setInput('holdings', holdings);
     fixture.detectChanges();
 
-    const option = fixture.componentInstance['chartOption']();
-    expect(option.legend).toBeDefined();
-
     const el = fixture.nativeElement as HTMLElement;
-    expect(el.querySelector('.distribution__center-label')).not.toBeNull();
+    const names = Array.from(el.querySelectorAll('.rank__name')).map((n) => n.textContent?.trim());
+    expect(names).toEqual(['Share', 'Precious metal']);
+    expect(el.querySelector('app-echart')).toBeNull();
+    expect(fixture.componentInstance['chartOption']().legend).toBeDefined();
   });
 
   it('sums two differently-named Crypto holdings into exactly one type-level slice (research.md #6a)', () => {
@@ -172,7 +176,13 @@ describe('HoldingsDistributionComponent', () => {
 
   it('labels a single-holding type by the type, never the holding name (spec.md Acceptance Scenario 4)', () => {
     fixture.componentRef.setInput('holdings', [
-      holding({ id: '1', assetType: 'PRECIOUS_METAL', name: 'Gold', currentValue: '25' }),
+      holding({
+        id: '1',
+        assetType: 'PRECIOUS_METAL',
+        name: 'Gold',
+        quantity: '1',
+        purchasePrice: '25',
+      }),
     ]);
     fixture.detectChanges();
 
@@ -199,7 +209,13 @@ describe('HoldingsDistributionComponent', () => {
         purchasePrice: '100',
       }),
       holding({ id: '2', assetType: 'SHARE', name: 'Apple', quantity: '1', purchasePrice: '100' }),
-      holding({ id: '3', assetType: 'PRECIOUS_METAL', name: 'Gold', currentValue: '100' }),
+      holding({
+        id: '3',
+        assetType: 'PRECIOUS_METAL',
+        name: 'Gold',
+        quantity: '1',
+        purchasePrice: '100',
+      }),
       holding({
         id: '4',
         assetType: 'CRYPTO',
@@ -223,7 +239,7 @@ describe('HoldingsDistributionComponent', () => {
     ]);
   });
 
-  it('omits a type entirely when none of its holdings have a computable value, while excludedCount still reflects them (research.md #6c, FR-004/FR-007)', () => {
+  it('omits a type entirely when none of its holdings have a computable value (research.md #6c, FR-004/FR-007)', () => {
     fixture.componentRef.setInput('holdings', [
       holding({ id: '1', assetType: 'SHARE', quantity: '10', purchasePrice: '5' }), // 50
       holding({ id: '2', assetType: 'ETF', quantity: null, purchasePrice: null }), // excluded
@@ -242,7 +258,6 @@ describe('HoldingsDistributionComponent', () => {
         label: { color: contrastTextColor(ASSET_TYPE_COLORS.SHARE) },
       },
     ]);
-    expect(fixture.componentInstance['excludedCount']()).toBe(2);
   });
 
   it('renders no <app-echart> and shows the localized empty-state message when nothing is computable', () => {
@@ -255,7 +270,7 @@ describe('HoldingsDistributionComponent', () => {
     expect(fixture.componentInstance['hasData']()).toBe(false);
     expect(el.querySelector('app-echart')).toBeNull();
     expect(el.textContent).toContain(
-      'Add a holding with a known value to see the distribution by value.',
+      'Add a position with a known value to see the distribution by value.',
     );
   });
 
@@ -280,6 +295,31 @@ describe('HoldingsDistributionComponent', () => {
     ]);
   });
 
+  it('shows the top 3 types always and the rest under the details on the dashboard tile', () => {
+    fixture.detectChanges();
+    httpMock
+      .expectOne('/api/holdings')
+      .flush([
+        holding({ id: '1', assetType: 'ETF', quantity: '1', purchasePrice: '500' }),
+        holding({ id: '2', assetType: 'SHARE', quantity: '1', purchasePrice: '400' }),
+        holding({ id: '3', assetType: 'CRYPTO', quantity: '1', purchasePrice: '300' }),
+        holding({ id: '4', assetType: 'PRECIOUS_METAL', quantity: '1', purchasePrice: '200' }),
+        holding({ id: '5', assetType: 'DEPOSIT_MONEY', currentValue: '100' }),
+      ]);
+    fixture.detectChanges();
+
+    const el = fixture.nativeElement as HTMLElement;
+    el.querySelector<HTMLElement>('[data-testid="holdings-distribution-widget-toggle"]')?.click();
+    fixture.detectChanges();
+    const names = (testId: string) =>
+      Array.from(el.querySelectorAll(`[data-testid="${testId}"] .distribution__name`)).map((n) =>
+        n.textContent?.trim(),
+      );
+    expect(names('holdings-distribution-top')).toEqual(['ETF', 'Share', 'Crypto']);
+    expect(names('holdings-distribution-legend')).toEqual(['Precious metal', 'Deposit money']);
+    expect(el.querySelectorAll('[data-testid="holdings-distribution-bar"] span')).toHaveLength(5);
+  });
+
   it('shows an error state, distinct from empty, when the self-fetch fails', () => {
     fixture.detectChanges();
     httpMock.expectOne('/api/holdings').flush(null, { status: 500, statusText: 'Server Error' });
@@ -288,7 +328,7 @@ describe('HoldingsDistributionComponent', () => {
     const el = fixture.nativeElement as HTMLElement;
     expect(
       el.querySelector('[data-testid="holdings-distribution-error"]')?.textContent?.trim(),
-    ).toBe('Holdings could not be loaded.');
+    ).toBe('Positions could not be loaded.');
     expect(el.querySelector('[data-testid="holdings-distribution-empty"]')).toBeNull();
   });
 
@@ -301,7 +341,7 @@ describe('HoldingsDistributionComponent', () => {
       (fixture.nativeElement as HTMLElement)
         .querySelector('[data-testid="holdings-distribution-error"]')
         ?.textContent?.trim(),
-    ).toBe('Holdings are temporarily unavailable.');
+    ).toBe('Positions are temporarily unavailable.');
   });
 
   it('shows an empty tile with a CTA to the holdings area when the self-fetch returns nothing', () => {

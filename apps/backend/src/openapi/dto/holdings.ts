@@ -28,9 +28,6 @@ export class HoldingResponseDto {
   @ApiPropertyOptional({ nullable: true, example: '123.45', description: 'Decimal string.' })
   purchasePrice!: string | null;
 
-  @ApiPropertyOptional({ nullable: true, format: 'date' })
-  purchaseDate!: string | null;
-
   @ApiPropertyOptional({ nullable: true, maxLength: 500 })
   note!: string | null;
 
@@ -103,9 +100,6 @@ export class CreateShareHoldingRequestDto {
 
   @ApiProperty({ example: '123.45' })
   purchasePrice!: string;
-
-  @ApiPropertyOptional({ format: 'date', description: 'Omit entirely, not "".' })
-  purchaseDate?: string;
 }
 
 export class CreatePreciousMetalHoldingRequestDto {
@@ -127,8 +121,8 @@ export class CreatePreciousMetalHoldingRequestDto {
   @ApiProperty({ enum: UNITS })
   unit!: (typeof UNITS)[number];
 
-  @ApiPropertyOptional({ example: '1000.00', description: 'Used only by the distribution view.' })
-  currentValue?: string;
+  @ApiProperty({ example: '93.24', description: 'Purchase price per unit.' })
+  purchasePrice!: string;
 }
 
 export class CreateCryptoHoldingRequestDto {
@@ -149,9 +143,6 @@ export class CreateCryptoHoldingRequestDto {
 
   @ApiProperty({ example: '30000.00' })
   purchasePrice!: string;
-
-  @ApiPropertyOptional({ format: 'date', description: 'Omit entirely, not "".' })
-  purchaseDate?: string;
 }
 
 export class CreateDepositMoneyHoldingRequestDto {
@@ -222,7 +213,7 @@ export class HoldingValidationErrorResponseDto {
         code: {
           type: 'string',
           description:
-            'REQUIRED, ISIN_INVALID, ISIN_NOT_ALLOWED, METAL_UNKNOWN, COIN_UNKNOWN, UNIT_INVALID, QUANTITY_NOT_POSITIVE, QUANTITY_DECIMALS, NOTE_TOO_LONG, DECIMAL_INVALID (also an invalid or future purchaseDate), FIELD_NOT_ALLOWED',
+            'REQUIRED, ISIN_INVALID, ISIN_NOT_ALLOWED, METAL_UNKNOWN, COIN_UNKNOWN, UNIT_INVALID, QUANTITY_NOT_POSITIVE, QUANTITY_DECIMALS, NOTE_TOO_LONG, DECIMAL_INVALID, FIELD_NOT_ALLOWED',
         },
       },
     },

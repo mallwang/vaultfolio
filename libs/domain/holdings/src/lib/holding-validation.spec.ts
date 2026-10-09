@@ -23,6 +23,7 @@ const validGold: HoldingSubmission = {
   metal: 'XAU',
   quantity: '2',
   unit: 'OZT',
+  purchasePrice: '1800.00',
 };
 const validBitcoin: HoldingSubmission = {
   assetType: 'CRYPTO',
@@ -80,7 +81,7 @@ describe('validateHoldingSubmission - valid submissions', () => {
     ]);
   });
 
-  it('parses a metal with its unit and no currentValue', () => {
+  it('parses a metal with its unit and purchase price', () => {
     const result = validateHoldingSubmission(validGold);
     if (!result.valid) throw new Error('expected valid');
     expect([result.value.metal, result.value.unit, result.value.currentValue]).toEqual([
@@ -209,20 +210,5 @@ describe('validateHoldingSubmission - note', () => {
     const result = validateHoldingSubmission({ ...validEtf, note: '  ' });
     if (!result.valid) throw new Error('expected valid');
     expect(result.value.note).toBeNull();
-  });
-});
-
-describe('validateHoldingSubmission - purchaseDate', () => {
-  it('accepts a past date and rejects a future one', () => {
-    expect(validateHoldingSubmission({ ...validShare, purchaseDate: '2020-01-02' }).valid).toBe(
-      true,
-    );
-    expect(errorsOf({ ...validShare, purchaseDate: '2999-01-01' })).toHaveLength(1);
-  });
-
-  it('rejects purchaseDate on an ETF', () => {
-    expect(errorsOf({ ...validEtf, purchaseDate: '2020-01-02' })).toEqual([
-      { field: 'purchaseDate', code: 'FIELD_NOT_ALLOWED' },
-    ]);
   });
 });

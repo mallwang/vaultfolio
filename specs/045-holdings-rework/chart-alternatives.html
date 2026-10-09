@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="de">
+  <meta charset="utf-8" /><title>Bestände – Chart-Alternativen</title>
+  <style>
+    body {
+      font: 14px system-ui;
+      margin: 0;
+      padding: 2rem;
+      background: #f1f5f9;
+      color: #0f172a;
+    }
+    h1 {
+      margin: 0 0 0.25rem;
+    }
+    .sub {
+      color: #64748b;
+      margin-bottom: 2rem;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+      gap: 1.25rem;
+    }
+    .card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 1.25rem;
+      box-shadow: 0 1px 3px #0002;
+    }
+    .card h2 {
+      margin: 0;
+      font-size: 1rem;
+    }
+    .tag {
+      font-size: 0.75rem;
+      color: #64748b;
+      margin: 0.15rem 0 1rem;
+    }
+    .pros {
+      font-size: 0.8rem;
+      color: #475569;
+      margin-top: 1rem;
+      border-top: 1px solid #e2e8f0;
+      padding-top: 0.6rem;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    li {
+      display: grid;
+      grid-template-columns: 14px 1fr auto 4.5rem;
+      gap: 0.5rem;
+      align-items: center;
+      padding: 0.3rem 0;
+    }
+    li i {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+    }
+    em {
+      font-style: normal;
+      color: #64748b;
+      text-align: right;
+    }
+    .stack {
+      display: flex;
+      height: 22px;
+      border-radius: 6px;
+      overflow: hidden;
+      gap: 2px;
+      margin-bottom: 1rem;
+    }
+    .rb {
+      display: grid;
+      grid-template-columns: 8rem 1fr 5.5rem 4rem;
+      gap: 0.5rem;
+      align-items: center;
+      padding: 0.3rem 0;
+    }
+    .rl {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .rt {
+      background: #e2e8f0;
+      height: 10px;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+    .rt div {
+      height: 100%;
+      border-radius: 5px;
+    }
+    .rb b {
+      text-align: right;
+    }
+    .rb em {
+      text-align: right;
+    }
+    .donutw {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+    .donutw svg {
+      width: 150px;
+      flex: none;
+    }
+    .donutw ul {
+      flex: 1;
+    }
+    .ctr {
+      font: bold 13px system-ui;
+      text-anchor: middle;
+    }
+    .tmw {
+      display: grid;
+      grid-template-columns: 1.6fr 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 3px;
+      height: 210px;
+    }
+    .tm {
+      border-radius: 6px;
+      padding: 0.5rem;
+      font-size: 0.8rem;
+    }
+    .wide {
+      grid-column: 1/-1;
+    }
+  </style>
+  <h1>Bestände – Visualisierung statt Donut</h1>
+  <div class="sub">
+    Beispieldaten · Problem: Prozentzahlen im Donut werden bei kleinen Segmenten/Kacheln
+    abgeschnitten. Alle Varianten zeigen Werte <b>neben</b> der Grafik statt darin.
+  </div>
+  <div class="grid">
+    <div class="card">
+      <h2>A · Gestapelter Balken + Legende</h2>
+      <div class="tag">Verteilung nach Typ – passt direkt zum Dashboard-Balken</div>
+      <div class="stack">
+        <div style="flex: 42500; background: #16a34a" title="ETF"></div>
+        <div style="flex: 31200; background: #2563eb" title="Aktie"></div>
+        <div style="flex: 12800; background: #ffd700" title="Edelmetall"></div>
+        <div style="flex: 9100; background: #0d9488" title="Tagesgeld"></div>
+        <div style="flex: 6400; background: #7c3aed" title="Krypto"></div>
+      </div>
+      <ul>
+        <li><i style="background: #16a34a"></i><span>ETF</span><b>42.500 €</b><em>41,7 %</em></li>
+        <li><i style="background: #2563eb"></i><span>Aktie</span><b>31.200 €</b><em>30,6 %</em></li>
+        <li>
+          <i style="background: #ffd700"></i><span>Edelmetall</span><b>12.800 €</b><em>12,5 %</em>
+        </li>
+        <li>
+          <i style="background: #0d9488"></i><span>Tagesgeld</span><b>9.100 €</b><em>8,9 %</em>
+        </li>
+        <li><i style="background: #7c3aed"></i><span>Krypto</span><b>6.400 €</b><em>6,3 %</em></li>
+      </ul>
+      <div class="pros">
+        + sehr kompakt, identisch zum Dashboard · + Beschriftung nie abgeschnitten · − sehr kleine
+        Anteile kaum sichtbar
+      </div>
+    </div>
+    <div class="card">
+      <h2>B · Rangliste mit Balken</h2>
+      <div class="tag">Ein Balken je Typ, sortiert nach Wert</div>
+      <div class="rb">
+        <span class="rl">ETF</span>
+        <div class="rt"><div style="width: 100%; background: #16a34a"></div></div>
+        <b>42.500 €</b><em>41,7 %</em>
+      </div>
+      <div class="rb">
+        <span class="rl">Aktie</span>
+        <div class="rt"><div style="width: 73%; background: #2563eb"></div></div>
+        <b>31.200 €</b><em>30,6 %</em>
+      </div>
+      <div class="rb">
+        <span class="rl">Edelmetall</span>
+        <div class="rt"><div style="width: 30%; background: #ffd700"></div></div>
+        <b>12.800 €</b><em>12,5 %</em>
+      </div>
+      <div class="rb">
+        <span class="rl">Tagesgeld</span>
+        <div class="rt"><div style="width: 21%; background: #0d9488"></div></div>
+        <b>9.100 €</b><em>8,9 %</em>
+      </div>
+      <div class="rb">
+        <span class="rl">Krypto</span>
+        <div class="rt"><div style="width: 15%; background: #7c3aed"></div></div>
+        <b>6.400 €</b><em>6,3 %</em>
+      </div>
+      <div class="pros">
+        + Größenvergleich am genauesten lesbar · + skaliert auf 15+ Einträge · − braucht etwas mehr
+        Höhe
+      </div>
+    </div>
+    <div class="card">
+      <h2>C · Donut + Legende daneben</h2>
+      <div class="tag">Gleiche Optik, Zahlen aus dem Ring in die Liste verschoben</div>
+      <div class="donutw">
+        <svg viewBox="0 0 120 120">
+          <circle
+            r="40"
+            cx="60"
+            cy="60"
+            fill="none"
+            stroke="#16a34a"
+            stroke-width="18"
+            stroke-dasharray="103.7 147.6"
+            stroke-dashoffset="0.0"
+            transform="rotate(-90 60 60)"
+          />
+          <circle
+            r="40"
+            cx="60"
+            cy="60"
+            fill="none"
+            stroke="#2563eb"
+            stroke-width="18"
+            stroke-dasharray="75.9 175.5"
+            stroke-dashoffset="-104.7"
+            transform="rotate(-90 60 60)"
+          />
+          <circle
+            r="40"
+            cx="60"
+            cy="60"
+            fill="none"
+            stroke="#ffd700"
+            stroke-width="18"
+            stroke-dasharray="30.5 220.8"
+            stroke-dashoffset="-181.6"
+            transform="rotate(-90 60 60)"
+          />
+          <circle
+            r="40"
+            cx="60"
+            cy="60"
+            fill="none"
+            stroke="#7c3aed"
+            stroke-width="18"
+            stroke-dasharray="14.8 236.6"
+            stroke-dashoffset="-213.1"
+            transform="rotate(-90 60 60)"
+          />
+          <circle
+            r="40"
+            cx="60"
+            cy="60"
+            fill="none"
+            stroke="#0d9488"
+            stroke-width="18"
+            stroke-dasharray="21.4 229.9"
+            stroke-dashoffset="-228.9"
+            transform="rotate(-90 60 60)"
+          />
+          <text class="ctr" x="60" y="64">102.000 €</text>
+        </svg>
+        <ul>
+          <li>
+            <i style="background: #16a34a"></i><span>ETF</span><b hidden>42.500 €</b><em>41,7 %</em>
+          </li>
+          <li>
+            <i style="background: #2563eb"></i><span>Aktie</span><b hidden>31.200 €</b
+            ><em>30,6 %</em>
+          </li>
+          <li>
+            <i style="background: #ffd700"></i><span>Edelmetall</span><b hidden>12.800 €</b
+            ><em>12,5 %</em>
+          </li>
+          <li>
+            <i style="background: #0d9488"></i><span>Tagesgeld</span><b hidden>9.100 €</b
+            ><em>8,9 %</em>
+          </li>
+          <li>
+            <i style="background: #7c3aed"></i><span>Krypto</span><b hidden>6.400 €</b
+            ><em>6,3 %</em>
+          </li>
+        </ul>
+      </div>
+      <div class="pros">
+        + kleinste Änderung am Bestand · + gewohnte Optik · − Donut weiterhin platzintensiv (6
+        Kacheln)
+      </div>
+    </div>
+    <div class="card">
+      <h2>D · Treemap</h2>
+      <div class="tag">Fläche = Wert, Beschriftung in der Kachel</div>
+      <div class="tmw">
+        <div class="tm" style="grid-row: 1/3; background: #16a34a; color: #fff">
+          <b>ETF</b><br />42.500 € · 41,7 %
+        </div>
+        <div class="tm" style="background: #2563eb; color: #fff">
+          <b>Aktie</b><br />31.200 € · 30,6 %
+        </div>
+        <div class="tm" style="background: #ffd700; color: #1f2937">
+          <b>Edelmetall</b><br />12.800 € · 12,5 %
+        </div>
+        <div class="tm" style="grid-column: 2; background: #0d9488; color: #fff">
+          <b>Tagesgeld</b><br />9.100 € · 8,9 %
+        </div>
+        <div class="tm" style="grid-column: 3; background: #7c3aed; color: #fff">
+          <b>Krypto</b><br />6.400 € · 6,3 %
+        </div>
+      </div>
+      <div class="pros">
+        + viele Einträge, Fläche gut vergleichbar · − kleine Kacheln brauchen Tooltip · −
+        ungewohnter
+      </div>
+    </div>
+    <div class="card wide">
+      <h2>Pro Typ (heute 5 Mini-Donuts) → Empfehlung: B je Typ, z. B. ETF</h2>
+      <div class="tag">
+        Lange Namen werden mit „…“ gekürzt, voller Name im Tooltip; kein Platzproblem mehr bei
+        vielen Einträgen
+      </div>
+      <div class="rb">
+        <span class="rl" title="Vanguard FTSE All-World">Vanguard FTSE All-World</span>
+        <div class="rt"><div style="width: 100%; background: #16a34a"></div></div>
+        <b>18.200 €</b><em>42,8 %</em>
+      </div>
+      <div class="rb">
+        <span class="rl" title="iShares MSCI World">iShares MSCI World</span>
+        <div class="rt"><div style="width: 68%; background: #16a34a"></div></div>
+        <b>12.400 €</b><em>29,2 %</em>
+      </div>
+      <div class="rb">
+        <span class="rl" title="Xtrackers S&P 500">Xtrackers S&P 500</span>
+        <div class="rt"><div style="width: 38%; background: #16a34a"></div></div>
+        <b>6.900 €</b><em>16,2 %</em>
+      </div>
+      <div class="rb">
+        <span class="rl" title="iShares Core DAX">iShares Core DAX</span>
+        <div class="rt"><div style="width: 16%; background: #16a34a"></div></div>
+        <b>3.000 €</b><em>7,1 %</em>
+      </div>
+      <div class="rb">
+        <span class="rl" title="Amundi MSCI EM">Amundi MSCI EM</span>
+        <div class="rt"><div style="width: 8%; background: #16a34a"></div></div>
+        <b>1.500 €</b><em>3,5 %</em>
+      </div>
+      <div class="rb">
+        <span class="rl" title="Lyxor Stoxx 600">Lyxor Stoxx 600</span>
+        <div class="rt"><div style="width: 2%; background: #16a34a"></div></div>
+        <b>300 €</b><em>0,7 %</em>
+      </div>
+      <div class="rb">
+        <span class="rl" title="Sonstige">Sonstige</span>
+        <div class="rt"><div style="width: 1%; background: #16a34a"></div></div>
+        <b>200 €</b><em>0,5 %</em>
+      </div>
+      <div class="pros">
+        Statt 5 kleiner Kacheln in einer Reihe: Karten mit Ranglisten (3 / 2 / 1 Spalte je nach
+        Breite). Diese Balken sind reines HTML/CSS – kein ECharts, damit entfällt auch das
+        ResizeObserver-Problem.
+      </div>
+    </div>
+  </div>
+</html>

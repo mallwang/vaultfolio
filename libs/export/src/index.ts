@@ -11,6 +11,7 @@ export type {
   FeatureExportDefinition,
   PdfColumnFormat,
   PdfBarSegment,
+  PdfCard,
   PdfKpiTile,
   PdfSection,
   PdfTableColumn,

@@ -140,8 +140,6 @@ export const routes: Routes = [
         path: 'holdings',
         title: 'pageTitle.holdings',
         canActivate: [domainGuard('holdings')],
-        loadComponent: () =>
-          import('@vaultfolio/frontend-domain-holdings').then((m) => m.HoldingsAreaComponent),
         children: [
           { path: '', pathMatch: 'full', redirectTo: 'list' },
           {

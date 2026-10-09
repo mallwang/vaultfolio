@@ -24,7 +24,6 @@ export type HoldingField =
   | 'coinId'
   | 'quantity'
   | 'purchasePrice'
-  | 'purchaseDate'
   | 'currentValue'
   | 'note';
 
@@ -36,7 +35,6 @@ export const ALL_HOLDING_FIELDS: readonly HoldingField[] = [
   'coinId',
   'quantity',
   'purchasePrice',
-  'purchaseDate',
   'currentValue',
   'note',
 ];
@@ -60,15 +58,15 @@ export const ASSET_TYPE_FIELDS: Readonly<Record<AssetType, AssetTypeFieldMetadat
   },
   SHARE: {
     required: ['isin', 'name', 'quantity', 'purchasePrice'],
-    optional: ['purchaseDate', 'note'],
+    optional: ['note'],
   },
   PRECIOUS_METAL: {
-    required: ['metal', 'quantity', 'unit'],
-    optional: ['currentValue', 'note'],
+    required: ['metal', 'quantity', 'unit', 'purchasePrice'],
+    optional: ['note'],
   },
   CRYPTO: {
     required: ['coinId', 'quantity', 'purchasePrice'],
-    optional: ['purchaseDate', 'note'],
+    optional: ['note'],
   },
   DEPOSIT_MONEY: {
     required: ['name', 'currentValue'],

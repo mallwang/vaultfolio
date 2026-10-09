@@ -34,7 +34,6 @@ const etf: HoldingResponse = {
   name: 'iShares Core MSCI World',
   quantity: '12.5',
   purchasePrice: '78.42',
-  purchaseDate: null,
   note: null,
   metal: null,
   coinId: null,
@@ -56,7 +55,6 @@ const goldNoValue: HoldingResponse = {
   unit: 'G',
   quantity: '31.1',
   purchasePrice: null,
-  purchaseDate: null,
   currentValue: null,
   createdAt: '2026-08-10T09:00:00.000Z',
   updatedAt: '2026-08-10T09:00:00.000Z',
@@ -74,7 +72,6 @@ const silverNoValue: HoldingResponse = {
   unit: 'G',
   quantity: '500',
   purchasePrice: null,
-  purchaseDate: null,
   currentValue: null,
   createdAt: '2026-08-11T09:00:00.000Z',
   updatedAt: '2026-08-11T09:00:00.000Z',
@@ -151,7 +148,7 @@ describe('HoldingsComponent', () => {
     expect(text('holdings-row-g2-quantity')).toBe('2.5 oz t');
     expect(text('holdings-row-c1-quantity')).toBe('0.00000001');
     expect(text('holdings-row-etf-1-quantity')).toBe('12.5');
-    expect(text('holdings-row-g2-note')).toContain('in the safe');
+    expect(el.querySelector('[data-testid="holdings-row-g2-note"]')).not.toBeNull();
     expect(el.querySelector('[data-testid="holdings-row-etf-1-note"]')).toBeNull();
   });
 
@@ -181,7 +178,6 @@ describe('HoldingsComponent', () => {
       name: 'Bitcoin',
       quantity: '0.1',
       purchasePrice: '40000',
-      purchaseDate: null,
       note: null,
       metal: null,
       coinId: null,
@@ -245,7 +241,7 @@ describe('HoldingsComponent', () => {
     flushList([]);
 
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
-    expect(text).toContain('No holdings yet');
+    expect(text).toContain('No positions yet');
   });
 
   it('renders all 6 chart tiles (main + 5 per-type) in fixed ASSET_TYPES order, each fed the full holdings list (FR-002, FR-009, FR-010)', () => {
@@ -257,7 +253,6 @@ describe('HoldingsComponent', () => {
       name: 'Apple',
       quantity: '1',
       purchasePrice: '100',
-      purchaseDate: null,
       note: null,
       metal: null,
       coinId: null,
@@ -274,7 +269,6 @@ describe('HoldingsComponent', () => {
       name: 'Bitcoin',
       quantity: '0.1',
       purchasePrice: '40000',
-      purchaseDate: null,
       note: null,
       metal: null,
       coinId: null,

@@ -10,6 +10,15 @@ export const ASSET_TYPE_LABEL_KEYS: Readonly<Record<AssetType, string>> = {
   DEPOSIT_MONEY: 'assetType.DEPOSIT_MONEY',
 };
 
+/** Icon (`ICON_NAME_MAP` name) per asset type — shared by the form's type picker and the table. */
+export const ASSET_TYPE_ICONS: Readonly<Record<AssetType, string>> = {
+  ETF: 'chart-line',
+  SHARE: 'building',
+  PRECIOUS_METAL: 'diamond',
+  CRYPTO: 'currency-bitcoin',
+  DEPOSIT_MONEY: 'wallet',
+};
+
 /** Translation keys for the "name" field's example placeholder, per asset type. */
 export const ASSET_TYPE_NAME_PLACEHOLDER_KEYS: Readonly<Record<AssetType, string>> = {
   ETF: 'holdingForm.namePlaceholderEtf',

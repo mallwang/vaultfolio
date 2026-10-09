@@ -5,7 +5,6 @@ const GROUPS = [
   'holdings',
   'holdingsDistribution',
   'holdingsTile',
-  'holdingsArea',
   'holdingsExport',
   'holdingMetal',
   'holdingError',

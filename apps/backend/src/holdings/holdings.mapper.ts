@@ -17,7 +17,7 @@ export interface HoldingRow {
   updated_at: string;
 }
 
-/** The encrypted JSON payload: decimals as strings, `purchaseDate` as `YYYY-MM-DD`. */
+/** The encrypted JSON payload: decimals as strings, a pre-rework `purchaseDate` key in old payloads is ignored. */
 export interface HoldingPayload {
   assetType: AssetType;
   management: string;
@@ -29,14 +29,11 @@ export interface HoldingPayload {
   quantity: string | null;
   unit: string | null;
   purchasePrice: string | null;
-  purchaseDate: string | null;
   currentValue: string | null;
 }
 
 const decimalOrNull = (value: string | null): Decimal | null =>
   value == null ? null : new Decimal(value);
-
-const isoDateOnly = (date: Date): string => date.toISOString().slice(0, 10);
 
 /** Validated submission -> the payload that gets encrypted. */
 export function validatedHoldingToPayload(value: ValidatedHolding): HoldingPayload {
@@ -51,7 +48,6 @@ export function validatedHoldingToPayload(value: ValidatedHolding): HoldingPaylo
     quantity: value.quantity?.toFixed() ?? null,
     unit: value.unit,
     purchasePrice: value.purchasePrice?.toFixed() ?? null,
-    purchaseDate: value.purchaseDate ? isoDateOnly(value.purchaseDate) : null,
     currentValue: value.currentValue?.toFixed() ?? null,
   };
 }
@@ -73,7 +69,6 @@ export function payloadToHolding(
     quantity: decimalOrNull(payload.quantity),
     unit: payload.unit as Holding['unit'],
     purchasePrice: decimalOrNull(payload.purchasePrice),
-    purchaseDate: payload.purchaseDate ? new Date(payload.purchaseDate) : null,
     currentValue: decimalOrNull(payload.currentValue),
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
@@ -94,7 +89,6 @@ export function holdingToResponse(holding: Holding): HoldingResponse {
     quantity: holding.quantity?.toFixed() ?? null,
     unit: holding.unit,
     purchasePrice: holding.purchasePrice?.toFixed() ?? null,
-    purchaseDate: holding.purchaseDate ? isoDateOnly(holding.purchaseDate) : null,
     currentValue: holding.currentValue?.toFixed() ?? null,
     createdAt: holding.createdAt.toISOString(),
     updatedAt: holding.updatedAt.toISOString(),
@@ -126,7 +120,6 @@ export function requestToSubmission(
     coinId: str(b.coinId),
     quantity: str(b.quantity),
     purchasePrice: str(b.purchasePrice),
-    purchaseDate: str(b.purchaseDate),
     currentValue: str(b.currentValue),
   };
 }

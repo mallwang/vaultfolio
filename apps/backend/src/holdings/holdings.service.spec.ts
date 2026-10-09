@@ -71,6 +71,7 @@ describe('HoldingsService', () => {
       metal: 'XAU',
       quantity: '1',
       unit: 'OZT',
+      purchasePrice: '1800',
     };
     expect(service.create(metal, owner).kind).toBe('created');
     expect(service.create({ ...metal, quantity: '2' }, owner).kind).toBe('updated');

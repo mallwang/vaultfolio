@@ -54,6 +54,7 @@ describe('/holdings', () => {
     metal: 'XAU',
     quantity: '31.1',
     unit: 'G',
+    purchasePrice: '1800.00',
   };
 
   const validBitcoin: CreateHoldingRequest = {
@@ -287,16 +288,6 @@ describe('/holdings', () => {
 
     it('rejects a note over 500 characters', () =>
       expectFieldError({ ...validShare, note: 'x'.repeat(501) }, 'note', 'NOTE_TOO_LONG'));
-
-    it('rejects a future purchase date', async () => {
-      const future = new Date();
-      future.setFullYear(future.getFullYear() + 1);
-      await expectFieldError(
-        { ...validShare, purchaseDate: future.toISOString().slice(0, 10) },
-        'purchaseDate',
-        'DECIMAL_INVALID',
-      );
-    });
 
     it('rejects a malformed ISIN', () =>
       expectFieldError({ ...validShare, isin: 'NOT-AN-ISIN' }, 'isin', 'ISIN_INVALID'));

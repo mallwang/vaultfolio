@@ -30,15 +30,22 @@ import {
   type HoldingUnit,
 } from '@vaultfolio/domain-holdings';
 import { ButtonModule } from 'primeng/button';
-import { DatePickerModule } from 'primeng/datepicker';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { SelectModule } from 'primeng/select';
 import { TextareaModule } from 'primeng/textarea';
 import { IconComponent, TranslatePipe, I18nService } from '@vaultfolio/frontend-shared-ui';
-import { ASSET_TYPE_LABEL_KEYS, ASSET_TYPE_NAME_PLACEHOLDER_KEYS } from '../holding-display';
+import {
+  ASSET_TYPE_ICONS,
+  ASSET_TYPE_LABEL_KEYS,
+  ASSET_TYPE_NAME_PLACEHOLDER_KEYS,
+} from '../holding-display';
 import { HoldingsService } from '../holdings.service';
+
+function round(value: number, digits: number): number {
+  return Number(value.toFixed(digits));
+}
 
 /** Decimal string for the API; never exponent notation (`String(1e-7)` is "1e-7"). */
 function toDecimalString(value: number): string {
@@ -47,18 +54,6 @@ function toDecimalString(value: number): string {
   let fixed = value.toFixed(20);
   while (fixed.endsWith('0')) fixed = fixed.slice(0, -1);
   return fixed.endsWith('.') ? fixed.slice(0, -1) : fixed;
-}
-
-function toIsoDateOnly(value: Date): string {
-  const month = String(value.getMonth() + 1).padStart(2, '0');
-  const day = String(value.getDate()).padStart(2, '0');
-  return `${value.getFullYear()}-${month}-${day}`;
-}
-
-/** Parses YYYY-MM-DD as a local date (new Date(iso) is UTC and can shift a day). */
-function fromIsoDateOnly(value: string): Date {
-  const [year, month, day] = value.slice(0, 10).split('-').map(Number);
-  return new Date(year, month - 1, day);
 }
 
 /**
@@ -77,7 +72,6 @@ function fromIsoDateOnly(value: string): Date {
     ReactiveFormsModule,
     InputTextModule,
     InputNumberModule,
-    DatePickerModule,
     ButtonModule,
     MessageModule,
     SelectModule,
@@ -88,12 +82,12 @@ function fromIsoDateOnly(value: string): Date {
   providers: [TranslatePipe],
   template: `
     <form [formGroup]="form" (ngSubmit)="submit()" class="holding-form">
-      <fieldset class="field field--fieldset" data-testid="holding-form-type">
+      <fieldset class="field field--full field--fieldset" data-testid="holding-form-type">
         <legend>{{ 'holdingForm.assetType' | translate }}</legend>
         @if (isEditMode) {
           <div class="type-select type-select--locked">
             <span class="type-option type-option--locked">
-              <app-icon [name]="iconFor(form.controls.assetType.value)" />
+              <app-icon size="1rem" [name]="iconFor(form.controls.assetType.value)" />
               {{ labelFor(form.controls.assetType.value) }}
             </span>
           </div>
@@ -108,7 +102,7 @@ function fromIsoDateOnly(value: string): Date {
                 [attr.aria-pressed]="form.controls.assetType.value === option.value"
                 (click)="selectAssetType(option.value)"
               >
-                <app-icon [name]="option.icon" />
+                <app-icon size="1rem" [name]="option.icon" />
                 {{ labelFor(option.value) }}
               </button>
             }
@@ -157,11 +151,12 @@ function fromIsoDateOnly(value: string): Date {
         </div>
       }
       @if (has('metal')) {
-        <div class="field">
+        <div class="field" [class]="span('metal')">
           <label for="metal" [class.field-label--required]="isRequired('metal')">
             {{ 'holdingForm.metal' | translate }}
           </label>
           <p-select
+            [fluid]="true"
             inputId="metal"
             data-testid="holding-form-metal"
             formControlName="metal"
@@ -179,11 +174,12 @@ function fromIsoDateOnly(value: string): Date {
         </div>
       }
       @if (has('coinId')) {
-        <div class="field">
+        <div class="field" [class]="span('coinId')">
           <label for="coinId" [class.field-label--required]="isRequired('coinId')">
             {{ 'holdingForm.coin' | translate }}
           </label>
           <p-select
+            [fluid]="true"
             inputId="coinId"
             data-testid="holding-form-coin"
             formControlName="coinId"
@@ -203,11 +199,12 @@ function fromIsoDateOnly(value: string): Date {
         </div>
       }
       @if (has('quantity')) {
-        <div class="field">
+        <div class="field" [class]="span('quantity')">
           <label for="quantity" [class.field-label--required]="isRequired('quantity')">
             {{ 'holdingForm.quantity' | translate }}
           </label>
           <p-inputnumber
+            [fluid]="true"
             inputId="quantity"
             data-testid="holding-form-quantity"
             formControlName="quantity"
@@ -229,11 +226,12 @@ function fromIsoDateOnly(value: string): Date {
         </div>
       }
       @if (has('unit')) {
-        <div class="field">
+        <div class="field" [class]="span('unit')">
           <label for="unit" [class.field-label--required]="isRequired('unit')">
             {{ 'holdingForm.unit' | translate }}
           </label>
           <p-select
+            [fluid]="true"
             inputId="unit"
             data-testid="holding-form-unit"
             formControlName="unit"
@@ -250,16 +248,18 @@ function fromIsoDateOnly(value: string): Date {
         </div>
       }
       @if (has('purchasePrice')) {
-        <div class="field">
+        <div class="field" [class]="span('purchasePrice')">
           <label for="purchasePrice" [class.field-label--required]="isRequired('purchasePrice')">
             {{ 'holdingForm.purchasePrice' | translate }}
           </label>
           <p-inputnumber
+            [fluid]="true"
             inputId="purchasePrice"
             data-testid="holding-form-purchase-price"
             formControlName="purchasePrice"
             mode="decimal"
             [locale]="i18n.language()"
+            [minFractionDigits]="2"
             [maxFractionDigits]="8"
             [placeholder]="'holdingForm.purchasePricePlaceholder' | translate"
           />
@@ -270,25 +270,22 @@ function fromIsoDateOnly(value: string): Date {
           }
         </div>
       }
-      @if (has('purchaseDate')) {
-        <div class="field">
-          <label for="purchaseDate" [class.field-label--required]="isRequired('purchaseDate')">
-            {{ 'holdingForm.purchaseDate' | translate }}
-          </label>
-          <p-datepicker
-            inputId="purchaseDate"
-            data-testid="holding-form-purchase-date"
-            formControlName="purchaseDate"
-            [dateFormat]="dateFormat()"
-            [showIcon]="true"
-            [placeholder]="'holdingForm.purchaseDatePlaceholder' | translate"
-            ><ng-template #triggericon><app-icon name="calendar" /></ng-template
-          ></p-datepicker>
-          @if (errorCode('purchaseDate'); as code) {
-            <p-message severity="error" data-testid="holding-form-purchase-date-error">{{
-              'holdingError.' + code | translate
-            }}</p-message>
-          }
+      @if (has('purchasePrice')) {
+        <div class="field" [class]="span('purchaseTotal')">
+          <label for="purchaseTotal" class="field-label--required">{{
+            'holdingForm.purchaseTotal' | translate
+          }}</label>
+          <p-inputnumber
+            [fluid]="true"
+            inputId="purchaseTotal"
+            data-testid="holding-form-purchase-total"
+            formControlName="purchaseTotal"
+            mode="decimal"
+            [locale]="i18n.language()"
+            [minFractionDigits]="2"
+            [maxFractionDigits]="2"
+            [placeholder]="'holdingForm.purchaseTotalPlaceholder' | translate"
+          />
         </div>
       }
       @if (has('currentValue')) {
@@ -297,6 +294,7 @@ function fromIsoDateOnly(value: string): Date {
             {{ 'holdingForm.currentValue' | translate }}
           </label>
           <p-inputnumber
+            [fluid]="true"
             inputId="currentValue"
             data-testid="holding-form-current-value"
             formControlName="currentValue"
@@ -313,7 +311,7 @@ function fromIsoDateOnly(value: string): Date {
         </div>
       }
       @if (true) {
-        <div class="field">
+        <div class="field field--full">
           <label for="management" [class.field-label--required]="isRequired('management')">
             {{ 'holdingForm.management' | translate }}
           </label>
@@ -333,7 +331,7 @@ function fromIsoDateOnly(value: string): Date {
         </div>
       }
       @if (has('note')) {
-        <div class="field">
+        <div class="field field--full">
           <label for="note" [class.field-label--required]="isRequired('note')">
             {{ 'holdingForm.note' | translate }}
           </label>
@@ -357,12 +355,12 @@ function fromIsoDateOnly(value: string): Date {
       }
 
       @if (submitError()) {
-        <p-message severity="error" data-testid="holding-form-error">{{
+        <p-message class="field--full" severity="error" data-testid="holding-form-error">{{
           'holdingForm.saveFailed' | translate
         }}</p-message>
       }
 
-      <div class="form-actions">
+      <div class="form-actions field--full">
         <button
           pButton
           data-testid="holding-form-cancel"
@@ -380,11 +378,40 @@ function fromIsoDateOnly(value: string): Date {
   `,
   styles: `
     .holding-form {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
+      display: grid;
+      grid-template-columns: repeat(30, minmax(0, 1fr));
+      gap: 1rem 0.75rem;
       min-width: 20rem;
-      max-width: 30rem;
+      max-width: 36rem;
+    }
+
+    .holding-form > .field {
+      grid-column: span 15;
+    }
+
+    .holding-form > .field--third {
+      grid-column: span 10;
+    }
+
+    .holding-form > .field--wide {
+      grid-column: span 18;
+    }
+
+    .holding-form > .field--narrow {
+      grid-column: span 12;
+    }
+
+    .holding-form > .field--full {
+      grid-column: 1 / -1;
+    }
+
+    @media (max-width: 30rem) {
+      .holding-form > .field,
+      .holding-form > .field--third,
+      .holding-form > .field--wide,
+      .holding-form > .field--narrow {
+        grid-column: 1 / -1;
+      }
     }
 
     .field {
@@ -408,22 +435,6 @@ function fromIsoDateOnly(value: string): Date {
       color: var(--p-red-500);
     }
 
-    .field-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.75rem;
-    }
-
-    .field-row > .field:only-child {
-      grid-column: 1 / -1;
-    }
-
-    @media (max-width: 26rem) {
-      .field-row {
-        grid-template-columns: 1fr;
-      }
-    }
-
     .field--fieldset {
       margin: 0;
       padding: 0;
@@ -436,50 +447,33 @@ function fromIsoDateOnly(value: string): Date {
       margin-bottom: 0.35rem;
     }
 
-    /* FR-012: button/card asset-type selector (design.md's approved mockup). */
+    /* FR-012: asset-type selector, same chip look as the holdings table's filter. */
     .type-select {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
+      display: flex;
+      flex-wrap: wrap;
       gap: 0.4rem;
     }
 
-    @media (max-width: 26rem) {
-      .type-select {
-        grid-template-columns: repeat(3, 1fr);
-      }
-    }
-
     .type-option {
-      display: flex;
-      flex-direction: column;
+      display: inline-flex;
       align-items: center;
-      justify-content: center;
-      gap: 0.3rem;
-      padding: 0.5rem 0.25rem;
-      border: 1.5px solid transparent;
-      border-radius: 10px;
-      font-size: 0.72rem;
-      font-weight: 600;
-      color: var(--p-text-muted-color);
+      gap: 0.4rem;
+      padding: 0.25rem 0.75rem;
+      border: 1px solid var(--p-content-border-color);
+      border-radius: 999px;
+      background: var(--p-content-background);
+      color: inherit;
+      font-size: 0.85rem;
       cursor: pointer;
-      background: transparent;
-      text-align: center;
-      line-height: 1.15;
     }
 
     .type-option--active {
       border-color: var(--p-primary-color);
-      color: var(--p-primary-color);
       background: var(--p-highlight-background);
-    }
-
-    .type-select--locked {
-      grid-template-columns: 1fr;
+      color: var(--p-primary-color);
     }
 
     .type-option--locked {
-      flex-direction: row;
-      justify-content: center;
       cursor: default;
     }
 
@@ -514,17 +508,9 @@ export class HoldingFormComponent implements OnChanges {
   /** Drives p-inputnumber's [locale] so decimal parsing follows the app language, not the OS. */
   protected readonly i18n = inject(I18nService);
 
-  private static readonly ASSET_TYPE_ICONS: Readonly<Record<AssetType, string>> = {
-    ETF: 'chart-line',
-    SHARE: 'building',
-    PRECIOUS_METAL: 'diamond',
-    CRYPTO: 'currency-bitcoin',
-    DEPOSIT_MONEY: 'wallet',
-  };
-
   protected readonly assetTypeOptions = ASSET_TYPES.map((value) => ({
     value,
-    icon: HoldingFormComponent.ASSET_TYPE_ICONS[value],
+    icon: ASSET_TYPE_ICONS[value],
   }));
   protected readonly noteMax = NOTE_MAX_LENGTH;
   protected readonly coinOptions = CRYPTO_CATALOG.map((coin) => ({
@@ -565,7 +551,8 @@ export class HoldingFormComponent implements OnChanges {
     quantity: this.fb.control<number | null>(null),
     unit: this.fb.control<HoldingUnit | null>('G'),
     purchasePrice: this.fb.control<number | null>(null),
-    purchaseDate: this.fb.control<Date | null>(null),
+    /** UI helper only: kept in sync with quantity × purchasePrice, never submitted. */
+    purchaseTotal: this.fb.control<number | null>(null),
     currentValue: this.fb.control<number | null>(null),
   });
 
@@ -579,6 +566,7 @@ export class HoldingFormComponent implements OnChanges {
       this.assetType.set(type);
       this.fieldErrors.set({});
     });
+    this.linkPurchaseAmounts();
     for (const [field, control] of Object.entries(this.form.controls) as [
       string,
       AbstractControl,
@@ -604,14 +592,15 @@ export class HoldingFormComponent implements OnChanges {
         quantity: holding.quantity != null ? Number(holding.quantity) : null,
         unit: holding.unit ?? 'G',
         purchasePrice: holding.purchasePrice != null ? Number(holding.purchasePrice) : null,
-        purchaseDate: holding.purchaseDate ? fromIsoDateOnly(holding.purchaseDate) : null,
         currentValue: holding.currentValue != null ? Number(holding.currentValue) : null,
       });
+      this.syncTotalFromPrice();
       this.form.controls.assetType.disable();
     } else {
       this.form.reset({ assetType: 'ETF', management: '', unit: 'G' });
       this.form.controls.assetType.enable();
     }
+    this.lastEdited = 'price';
     this.assetType.set(this.form.controls.assetType.value);
   }
 
@@ -699,7 +688,6 @@ export class HoldingFormComponent implements OnChanges {
       unit: raw.unit,
       quantity: raw.quantity == null ? null : toDecimalString(raw.quantity),
       purchasePrice: raw.purchasePrice == null ? null : toDecimalString(raw.purchasePrice),
-      purchaseDate: raw.purchaseDate ? toIsoDateOnly(raw.purchaseDate) : null,
       currentValue: raw.currentValue == null ? null : toDecimalString(raw.currentValue),
     };
     for (const field of this.fields()) {
@@ -721,16 +709,59 @@ export class HoldingFormComponent implements OnChanges {
     return this.translate.transform(ASSET_TYPE_LABEL_KEYS[assetType]);
   }
 
+  /** Grid-span class: three-up rows for ETF/share (amounts) and metal (type, quantity, unit); crypto is 60/40. */
+  protected span(field: string): string {
+    const type = this.assetType();
+    if (type === 'CRYPTO') {
+      if (field === 'coinId') return 'field--wide';
+      return field === 'quantity' ? 'field--narrow' : '';
+    }
+    const thirds: Record<string, string[]> = {
+      PRECIOUS_METAL: ['metal', 'quantity', 'unit'],
+      ETF: ['quantity', 'purchasePrice', 'purchaseTotal'],
+      SHARE: ['quantity', 'purchasePrice', 'purchaseTotal'],
+    };
+    return thirds[type]?.includes(field) ? 'field--third' : '';
+  }
+
+  /** Price per unit and total purchase value derive each other via the quantity; the one edited last wins. */
+  private lastEdited: 'price' | 'total' = 'price';
+
+  private linkPurchaseAmounts(): void {
+    const { quantity, purchasePrice, purchaseTotal } = this.form.controls;
+    purchasePrice.valueChanges.subscribe(() => {
+      this.lastEdited = 'price';
+      this.syncTotalFromPrice();
+    });
+    purchaseTotal.valueChanges.subscribe((total) => {
+      if (total == null) return;
+      this.lastEdited = 'total';
+      const qty = quantity.value;
+      if (total != null && qty) {
+        purchasePrice.setValue(round(total / qty, 8), { emitEvent: false });
+      }
+    });
+    quantity.valueChanges.subscribe((qty) => {
+      if (!qty) return;
+      if (this.lastEdited === 'price') this.syncTotalFromPrice();
+      else if (purchaseTotal.value != null) {
+        purchasePrice.setValue(round(purchaseTotal.value / qty, 8), { emitEvent: false });
+      }
+    });
+  }
+
+  private syncTotalFromPrice(): void {
+    const { quantity, purchasePrice, purchaseTotal } = this.form.controls;
+    if (purchasePrice.value != null && quantity.value) {
+      purchaseTotal.setValue(round(purchasePrice.value * quantity.value, 2), { emitEvent: false });
+    }
+  }
+
   protected namePlaceholderKey(): string {
     return ASSET_TYPE_NAME_PLACEHOLDER_KEYS[this.assetType()];
   }
 
   protected iconFor(assetType: AssetType): string {
-    return HoldingFormComponent.ASSET_TYPE_ICONS[assetType];
-  }
-
-  /** PrimeNG date tokens, matching the table's `localeDate` pipe (de dd.mm.yyyy, en mm/dd/yyyy). */
-  protected dateFormat(): string {
-    return this.i18n.language() === 'de' ? 'dd.mm.yy' : 'mm/dd/yy';
+    return ASSET_TYPE_ICONS[assetType];
   }
 }

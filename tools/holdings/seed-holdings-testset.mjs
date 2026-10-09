@@ -66,6 +66,7 @@ const metal = (management, code, quantity, unit, over = {}) => ({
   metal: code,
   quantity,
   unit,
+  purchasePrice: '75.00',
   ...over,
 });
 const crypto = (management, coinId, quantity, purchasePrice, over = {}) => ({
@@ -96,29 +97,25 @@ const comprehensive = [
     note: LONG_NOTE,
   }),
   // Shares (purchase lots, never merged)
-  share('Trade Republic', 'DE0007164600', 'SAP SE', '12', '120.50', { purchaseDate: '2021-03-15' }),
+  share('Trade Republic', 'DE0007164600', 'SAP SE', '12', '120.50'),
   share('Trade Republic', 'DE0007164600', 'SAP SE', '8', '155.00'),
-  share('Scalable Capital', 'US0378331005', 'Apple Inc.', '3.25', '142.37', {
-    purchaseDate: '2020-11-02',
-  }),
+  share('Scalable Capital', 'US0378331005', 'Apple Inc.', '3.25', '142.37'),
   share('ING', 'DE0007236101', 'Siemens AG', '1', '0.01'),
   // Precious metals (the second post of each pair merges into the first)
-  metal('Degussa', 'XAU', '31.1035', 'G', { currentValue: '2900.00' }),
+  metal('Degussa', 'XAU', '31.1035', 'G', { purchasePrice: '93.24' }),
   metal('Degussa', 'XAU', '2', 'G'),
-  metal('Degussa', 'XAG', '10', 'OZT', { currentValue: '280.00', note: 'Maple Leaf Münzen' }),
+  metal('Degussa', 'XAG', '10', 'OZT', { purchasePrice: '28.00', note: 'Maple Leaf Münzen' }),
   metal('Tresor zuhause', 'XPT', '0.00000001', 'OZT'),
   metal('Philoro', 'XPD', '999999999.99999999', 'G', {
-    currentValue: '999999999.99',
+    purchasePrice: '1.00',
     note: LONG_NOTE,
   }),
   metal('Philoro', 'XAG', '1000', 'G'),
   // Crypto (purchase lots, never merged)
   crypto('Bitvavo', 'bitcoin', '0.00000001', '0.01', { note: 'Ein Satoshi' }),
-  crypto('Bitvavo', 'bitcoin', '0.5', '28500.00', { purchaseDate: '2021-05-10' }),
+  crypto('Bitvavo', 'bitcoin', '0.5', '28500.00'),
   crypto('Bitvavo', 'bitcoin', '0.25', '61000.00'),
-  crypto('Kraken', 'ethereum', '12.34567891', '1750.00', {
-    purchaseDate: '2022-01-20',
-  }),
+  crypto('Kraken', 'ethereum', '12.34567891', '1750.00'),
   crypto('Ledger Wallet', 'solana', '999999999.99999999', '999999999.99', { note: LONG_NOTE }),
   crypto('Kraken', 'monero', '3', '150.00'),
   // Deposit money (the second post merges despite different case and spacing)
@@ -129,20 +126,21 @@ const comprehensive = [
   deposit('ING', 'Kinder-Sparbuch', '0.00'),
 ];
 
+// Purchase values ≈ 100k: ETF 40 %, shares 20 %, metals 20 %, crypto 10 %, deposit money <10 %.
 const realistic = [
-  etf('Trade Republic', 'IE00B4L5Y983', 'iShares Core MSCI World', '48', '77.40'),
-  etf('Trade Republic', 'IE00BKM4GZ66', 'iShares Core MSCI EM IMI', '60', '28.90'),
-  etf('Scalable Capital', 'IE00BK5BQT80', 'Vanguard FTSE All-World Acc', '35', '104.20'),
-  share('Trade Republic', 'DE0007164600', 'SAP SE', '10', '118.00', { purchaseDate: '2021-06-01' }),
-  share('Trade Republic', 'NL0010273215', 'ASML Holding', '2', '640.00', {
-    purchaseDate: '2022-02-14',
-  }),
-  metal('Degussa', 'XAU', '25', 'G', { currentValue: '2100.00' }),
-  metal('Degussa', 'XAG', '5', 'OZT'),
-  crypto('Bitvavo', 'bitcoin', '0.05', '31000.00', { purchaseDate: '2021-09-10' }),
-  crypto('Bitvavo', 'ethereum', '0.8', '1900.00'),
-  deposit('Sparkasse', 'Tagesgeld', '8500.00'),
-  deposit('DKB', 'Festgeld', '15000.00'),
+  etf('Trade Republic', 'IE00B4L5Y983', 'iShares Core MSCI World', '220', '77.40'),
+  etf('Trade Republic', 'IE00BKM4GZ66', 'iShares Core MSCI EM IMI', '250', '28.90'),
+  etf('Scalable Capital', 'IE00BK5BQT80', 'Vanguard FTSE All-World Acc', '155', '104.20'),
+  share('Trade Republic', 'DE0007164600', 'SAP SE', '40', '118.00'),
+  share('Trade Republic', 'NL0010273215', 'ASML Holding', '8', '640.00'),
+  share('Scalable Capital', 'DE0007236101', 'Siemens AG', '30', '140.00'),
+  share('Scalable Capital', 'US0378331005', 'Apple Inc.', '40', '140.00'),
+  metal('Degussa', 'XAU', '200', 'G', { purchasePrice: '84.00' }),
+  metal('Degussa', 'XAG', '100', 'OZT', { purchasePrice: '28.00' }),
+  crypto('Bitvavo', 'bitcoin', '0.2', '31000.00'),
+  crypto('Bitvavo', 'ethereum', '2', '1900.00'),
+  deposit('Sparkasse', 'Tagesgeld', '4500.00'),
+  deposit('DKB', 'Festgeld', '5000.00'),
 ];
 
 const holdings = profile === 'realistic' ? realistic : comprehensive;

@@ -46,9 +46,9 @@ Use this table to decide whether an element needs a `data-testid`, and what patt
 
 ### Holdings dashboard tiles
 
-- `holdings-total-value-empty`, `holdings-distribution-empty`: empty tile, the CTA link to `/app/holdings`.
-- `holdings-total-value-amount`, `-label`, `-hint`: purchase value, its label, and the excluded-count hint.
-- `holdings-total-value-error`, `holdings-distribution-error`: load failed (or unavailable on 503), distinct from empty.
+- `holdings-distribution-empty`: empty tile, the CTA link to `/app/holdings`.
+- `holdings-distribution-caption`: the "purchase value incl. deposit money" caption under the total.
+- `holdings-distribution-error`: load failed (or unavailable on 503), distinct from empty.
 - `holdings-distribution-excluded`: excluded-holdings note in the details.
 
 ## 3. PrimeNG-wrapped interactive elements

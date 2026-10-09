@@ -10,7 +10,6 @@ function holding(overrides: Partial<HoldingResponse>): HoldingResponse {
     management: 'Broker',
     quantity: null,
     purchasePrice: null,
-    purchaseDate: null,
     isin: null,
     name: null,
     note: null,
@@ -44,14 +43,18 @@ describe('metal weights', () => {
 });
 
 describe('computeHoldingValue', () => {
-  it('computes PRECIOUS_METAL value from currentValue', () => {
-    const value = computeHoldingValue(holding({ assetType: 'PRECIOUS_METAL', currentValue: '25' }));
+  it('computes PRECIOUS_METAL value from quantity x purchasePrice', () => {
+    const value = computeHoldingValue(
+      holding({ assetType: 'PRECIOUS_METAL', quantity: '1', purchasePrice: '25' }),
+    );
     expect(value?.toString()).toBe('25');
   });
 
-  it('returns null for PRECIOUS_METAL with no currentValue', () => {
+  it('returns null for PRECIOUS_METAL with no purchasePrice', () => {
     expect(
-      computeHoldingValue(holding({ assetType: 'PRECIOUS_METAL', currentValue: null })),
+      computeHoldingValue(
+        holding({ assetType: 'PRECIOUS_METAL', quantity: '1', purchasePrice: null }),
+      ),
     ).toBeNull();
   });
 
@@ -106,8 +109,20 @@ describe('groupHoldingsByKey', () => {
   it('sums two holdings sharing the same key into one entry', () => {
     const result = groupHoldingsByKey(
       [
-        holding({ id: '1', assetType: 'PRECIOUS_METAL', name: 'Gold', currentValue: '25' }),
-        holding({ id: '2', assetType: 'PRECIOUS_METAL', name: 'Gold', currentValue: '17.5' }),
+        holding({
+          id: '1',
+          assetType: 'PRECIOUS_METAL',
+          name: 'Gold',
+          quantity: '1',
+          purchasePrice: '25',
+        }),
+        holding({
+          id: '2',
+          assetType: 'PRECIOUS_METAL',
+          name: 'Gold',
+          quantity: '1',
+          purchasePrice: '17.5',
+        }),
       ],
       (h) => h.name,
     );

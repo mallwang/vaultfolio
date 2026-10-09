@@ -13,7 +13,7 @@ export const encryptionEn: TranslationDictionary = {
     earnings: 'Earnings',
     retirement: 'Retirement',
     wealth: 'Wealth',
-    holdings: 'Holdings',
+    holdings: 'Portfolio',
     insurances: 'Insurances',
     'account-overview': 'Account overview',
     feedback: 'Feedback',

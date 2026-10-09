@@ -43,7 +43,6 @@ export interface HoldingSubmission {
   coinId?: string | null;
   quantity?: string | null;
   purchasePrice?: string | null;
-  purchaseDate?: string | null;
   currentValue?: string | null;
 }
 
@@ -64,7 +63,6 @@ export interface ValidatedHolding {
   coinId: string | null;
   quantity: Decimal | null;
   purchasePrice: Decimal | null;
-  purchaseDate: Date | null;
   currentValue: Decimal | null;
 }
 
@@ -145,18 +143,6 @@ function parseDecimal(
   return decimal;
 }
 
-function parsePurchaseDate(raw: string | null | undefined, errors: FieldError[]): Date | null {
-  if (isBlank(raw)) return null;
-  const candidate = new Date(raw as string);
-  const today = new Date();
-  today.setHours(23, 59, 59, 999);
-  if (Number.isNaN(candidate.getTime()) || candidate.getTime() > today.getTime()) {
-    errors.push({ field: 'purchaseDate', code: 'DECIMAL_INVALID' });
-    return null;
-  }
-  return candidate;
-}
-
 function has(submission: HoldingSubmission, field: HoldingField): boolean {
   return isApplicable(submission.assetType, field) && !isBlank(submission[field]);
 }
@@ -207,10 +193,7 @@ function validateIdentity(submission: HoldingSubmission, errors: FieldError[]): 
   return result;
 }
 
-type Amounts = Pick<
-  ValidatedHolding,
-  'quantity' | 'purchasePrice' | 'currentValue' | 'purchaseDate'
->;
+type Amounts = Pick<ValidatedHolding, 'quantity' | 'purchasePrice' | 'currentValue'>;
 
 function validateAmounts(submission: HoldingSubmission, errors: FieldError[]): Amounts {
   const { assetType } = submission;
@@ -228,9 +211,6 @@ function validateAmounts(submission: HoldingSubmission, errors: FieldError[]): A
     quantity,
     purchasePrice: decimal('purchasePrice'),
     currentValue: decimal('currentValue'),
-    purchaseDate: isApplicable(assetType, 'purchaseDate')
-      ? parsePurchaseDate(submission.purchaseDate, errors)
-      : null,
   };
 }
 

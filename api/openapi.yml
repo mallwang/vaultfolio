@@ -3271,10 +3271,6 @@ components:
           nullable: true
           example: '123.45'
           description: Decimal string.
-        purchaseDate:
-          type: object
-          nullable: true
-          format: date
         note:
           type: object
           nullable: true
@@ -3371,10 +3367,6 @@ components:
         purchasePrice:
           type: string
           example: '123.45'
-        purchaseDate:
-          type: string
-          format: date
-          description: Omit entirely, not "".
       required:
         - assetType
         - management
@@ -3435,10 +3427,6 @@ components:
         purchasePrice:
           type: string
           example: '30000.00'
-        purchaseDate:
-          type: string
-          format: date
-          description: Omit entirely, not "".
       required:
         - assetType
         - management
@@ -3487,8 +3475,8 @@ components:
                 description: >-
                   REQUIRED, ISIN_INVALID, ISIN_NOT_ALLOWED, METAL_UNKNOWN,
                   COIN_UNKNOWN, UNIT_INVALID, QUANTITY_NOT_POSITIVE,
-                  QUANTITY_DECIMALS, NOTE_TOO_LONG, DECIMAL_INVALID (also an
-                  invalid or future purchaseDate), FIELD_NOT_ALLOWED
+                  QUANTITY_DECIMALS, NOTE_TOO_LONG, DECIMAL_INVALID,
+                  FIELD_NOT_ALLOWED
       required:
         - message
         - errors
@@ -3541,10 +3529,6 @@ components:
         purchasePrice:
           type: string
           example: '123.45'
-        purchaseDate:
-          type: string
-          format: date
-          description: Omit entirely, not "".
       required:
         - assetType
         - management
@@ -3603,10 +3587,6 @@ components:
         purchasePrice:
           type: string
           example: '30000.00'
-        purchaseDate:
-          type: string
-          format: date
-          description: Omit entirely, not "".
       required:
         - assetType
         - management

@@ -14,7 +14,6 @@ const baseProps: HoldingProps = {
   quantity: null,
   unit: null,
   purchasePrice: null,
-  purchaseDate: null,
   currentValue: new Decimal('1250.00'),
   createdAt: new Date('2026-01-01'),
   updatedAt: new Date('2026-01-01'),
@@ -25,7 +24,7 @@ describe('Holding.computeValue', () => {
     expect(new Holding(baseProps).computeValue()?.toFixed(2)).toBe('1250.00');
   });
 
-  it('returns currentValue for PRECIOUS_METAL', () => {
+  it('returns quantity x purchasePrice for PRECIOUS_METAL', () => {
     const holding = new Holding({
       ...baseProps,
       assetType: 'PRECIOUS_METAL',
@@ -33,11 +32,12 @@ describe('Holding.computeValue', () => {
       metal: 'XAU',
       quantity: new Decimal('2'),
       unit: 'OZT',
+      purchasePrice: new Decimal('625'),
     });
     expect(holding.computeValue()?.toFixed(2)).toBe('1250.00');
   });
 
-  it('returns null for PRECIOUS_METAL without currentValue', () => {
+  it('returns null for PRECIOUS_METAL without purchasePrice', () => {
     const holding = new Holding({
       ...baseProps,
       assetType: 'PRECIOUS_METAL',

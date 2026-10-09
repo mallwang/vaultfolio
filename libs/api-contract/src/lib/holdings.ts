@@ -29,7 +29,6 @@ export interface HoldingResponse {
   quantity: string | null;
   unit: HoldingQuantityUnit | null;
   purchasePrice: string | null;
-  purchaseDate: string | null;
   currentValue: string | null;
   createdAt: string;
   updatedAt: string;
@@ -54,8 +53,6 @@ interface CreateShareHoldingRequest {
   name: string;
   quantity: string;
   purchasePrice: string;
-  /** Optional, omit entirely, not "". */
-  purchaseDate?: string;
 }
 
 interface CreatePreciousMetalHoldingRequest {
@@ -65,8 +62,8 @@ interface CreatePreciousMetalHoldingRequest {
   metal: HoldingMetal;
   quantity: string;
   unit: HoldingQuantityUnit;
-  /** Optional, used only by the distribution view. */
-  currentValue?: string;
+  /** Purchase price per unit. */
+  purchasePrice: string;
 }
 
 interface CreateCryptoHoldingRequest {
@@ -78,7 +75,6 @@ interface CreateCryptoHoldingRequest {
   /** At most 8 decimals. */
   quantity: string;
   purchasePrice: string;
-  purchaseDate?: string;
 }
 
 interface CreateDepositMoneyHoldingRequest {

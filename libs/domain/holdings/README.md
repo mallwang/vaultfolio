@@ -11,7 +11,7 @@ mirrors Principle I (Library-First). No NestJS/Angular/SQLite dependency.
   the combined required+optional list.
 - **`Holding`** / `HoldingProps` — the core domain entity. Quantity/money fields are `Decimal`;
   fields not applicable to the type are `null`. `computeValue()` returns `quantity × purchasePrice`
-  (ETF/Share/Crypto) or `currentValue` (Metal/Deposit); `null` when not computable.
+  (all but deposit money) or `currentValue` (Deposit); `null` when not computable.
 - **`validateHoldingSubmission(submission)`** — one validator for server and form. Returns
   `{ valid: true, value }` or `{ valid: false, fieldErrors: { field, code }[] }` (all failing
   fields at once). `HoldingErrorCode`: `REQUIRED`, `ISIN_INVALID`, `ISIN_NOT_ALLOWED`,

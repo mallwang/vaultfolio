@@ -19,7 +19,6 @@ function existing(overrides: Partial<HoldingProps>): Holding {
     quantity: new Decimal('10'),
     unit: null,
     purchasePrice: new Decimal('50'),
-    purchaseDate: null,
     currentValue: null,
     createdAt: now,
     updatedAt: now,
@@ -39,7 +38,6 @@ function submission(overrides: Partial<ValidatedHolding>): ValidatedHolding {
     coinId: null,
     quantity: new Decimal('20'),
     purchasePrice: new Decimal('55'),
-    purchaseDate: null,
     currentValue: null,
     ...overrides,
   };

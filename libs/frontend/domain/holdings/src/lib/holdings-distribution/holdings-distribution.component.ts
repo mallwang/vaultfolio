@@ -1,14 +1,15 @@
+import { NgTemplateOutlet } from '@angular/common';
 import { Component, Input, OnChanges, OnInit, computed, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import type { EChartsOption } from 'echarts';
 import type { HoldingResponse } from '@vaultfolio/api-contract';
 import { ASSET_TYPE_LABEL_KEYS } from '../holding-display';
+import { HoldingsRankBarsComponent } from '../holdings-rank-bars/holdings-rank-bars.component';
 import { HoldingsService } from '../holdings.service';
 import { groupHoldingsByKey } from '../holdings-valuation';
 import {
   ASSET_TYPE_COLORS,
   DashboardTileComponent,
-  EchartComponent,
   EmptyTileComponent,
   I18nService,
   TileDetailsDirective,
@@ -48,7 +49,8 @@ export type { HoldingsDistributionEntry } from './distribution-chart-option';
 @Component({
   selector: 'app-holdings-distribution',
   imports: [
-    EchartComponent,
+    HoldingsRankBarsComponent,
+    NgTemplateOutlet,
     EmptyTileComponent,
     TranslatePipe,
     DashboardTileComponent,
@@ -71,6 +73,9 @@ export type { HoldingsDistributionEntry } from './distribution-chart-option';
         tileId="holdings-distribution"
         testIdPrefix="holdings-distribution-widget"
         [title]="'dashboard.allocation' | translate"
+        [link]="area"
+        linkTestId="holdings-distribution-link"
+        [linkLabel]="'holdingsTile.open' | translate"
       >
         @if (loadError(); as err) {
           <p class="distribution__empty" data-testid="holdings-distribution-error">
@@ -84,6 +89,9 @@ export type { HoldingsDistributionEntry } from './distribution-chart-option';
             centerLabel()
           }}</app-tile-value>
           <span class="distribution__note">{{ 'holdingsDistribution.title' | translate }}</span>
+          <span class="distribution__note" data-testid="holdings-distribution-caption">{{
+            'holdingsTile.caption' | translate
+          }}</span>
         } @else if (loaded()) {
           <app-empty-tile
             link="/app/holdings"
@@ -94,40 +102,46 @@ export type { HoldingsDistributionEntry } from './distribution-chart-option';
           />
         }
         @if (hasData()) {
-          <div tileChart class="distribution__bar" data-testid="holdings-distribution-bar">
-            @for (slice of slices(); track slice.assetType) {
-              <span
-                class="distribution__bar-part"
-                [style.flex-grow]="slice.value"
-                [style.background]="slice.color"
-              ></span>
-            }
+          <div tileChart class="distribution__chart-zone">
+            <div class="distribution__bar" data-testid="holdings-distribution-bar">
+              @for (slice of slices(); track slice.assetType) {
+                <span
+                  class="distribution__bar-part"
+                  [style.flex-grow]="slice.value"
+                  [style.background]="slice.color"
+                  [title]="slice.label + ': ' + slice.amount + ' (' + slice.share + ')'"
+                ></span>
+              }
+            </div>
+            <ul class="distribution__legend" data-testid="holdings-distribution-top">
+              @for (slice of topSlices(); track slice.assetType) {
+                <ng-container *ngTemplateOutlet="legendRow; context: { $implicit: slice }" />
+              }
+            </ul>
           </div>
         }
         @if (hasData()) {
           <div tileDetails class="distribution">
-            <div class="distribution__chart">
-              <app-echart [option]="chartOption()" [loading]="false" />
-            </div>
-            @if (excludedCount() > 0) {
-              <p class="distribution__note" data-testid="holdings-distribution-excluded">
-                {{ 'holdingsTile.excludedNote' | translate: { n: excludedCount() } }}
-              </p>
+            @if (restSlices().length > 0) {
+              <ul class="distribution__legend" data-testid="holdings-distribution-legend">
+                @for (slice of restSlices(); track slice.assetType) {
+                  <ng-container *ngTemplateOutlet="legendRow; context: { $implicit: slice }" />
+                }
+              </ul>
             }
           </div>
         }
       </app-dashboard-tile>
+      <ng-template #legendRow let-slice>
+        <li>
+          <span class="distribution__swatch" [style.background]="slice.color"></span>
+          <span class="distribution__name">{{ slice.label }}</span>
+          <span class="distribution__share">{{ slice.amount }} ({{ slice.share }})</span>
+        </li>
+      </ng-template>
     } @else if (hasData()) {
       <div class="distribution">
-        <div class="distribution__chart">
-          <app-echart [option]="chartOption()" [loading]="false" />
-          <span class="distribution__center-label">{{ centerLabel() }}</span>
-        </div>
-        @if (excludedCount() > 0) {
-          <p class="distribution__note">
-            {{ 'holdingsTile.excludedNote' | translate: { n: excludedCount() } }}
-          </p>
-        }
+        <app-holdings-rank-bars [rows]="slices()" />
       </div>
     } @else {
       <p class="distribution__empty">{{ 'holdingsDistribution.emptyState' | translate }}</p>
@@ -141,10 +155,17 @@ export type { HoldingsDistributionEntry } from './distribution-chart-option';
       flex-direction: column;
     }
 
+    .distribution__chart-zone {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      width: 100%;
+    }
+
     .distribution__bar {
       display: flex;
       width: 100%;
-      height: 0.75rem;
+      height: 1rem;
       border-radius: 0.375rem;
       overflow: hidden;
     }
@@ -153,51 +174,47 @@ export type { HoldingsDistributionEntry } from './distribution-chart-option';
       flex-basis: 0;
     }
 
+    .distribution__legend {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      font-size: 0.85rem;
+    }
+
+    .distribution__legend li {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .distribution__swatch {
+      flex: none;
+      width: 0.65rem;
+      height: 0.65rem;
+      border-radius: 0.15rem;
+    }
+
+    .distribution__name {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .distribution__share {
+      flex: none;
+      font-variant-numeric: tabular-nums;
+      color: var(--p-text-muted-color);
+    }
+
     .distribution {
       display: flex;
       flex-direction: column;
-      align-items: center;
       gap: 0.5rem;
-      max-width: 24rem;
-      margin: 0 auto;
-    }
-
-    .distribution__chart {
-      position: relative;
-      width: 100%;
-    }
-
-    /* app-echart fills its parent (shared css); give it a concrete height here
-       since .distribution itself only sizes to its content. The custom
-       property (inherited, so it crosses this component's style
-       encapsulation boundary) lets HoldingsComponent's denser 6-tile row
-       shrink this tile along with the others without affecting this
-       component's other consumer, the Dashboard widget, which keeps the
-       18rem default — see HoldingsTypeBreakdownComponent's identical rule. */
-    .distribution__chart app-echart {
-      display: block;
-      width: 100%;
-      height: var(--holdings-chart-height, 18rem);
-    }
-
-    /* Matches the pie series' own \`center\` (chartOption's \`pieCenter\`) — an
-       HTML overlay rather than an ECharts \`graphic\` element, since echarts'
-       graphic-component positioning ignores text align when placed via
-       left/top (see the component's \`centerLabel\` doc comment). */
-    .distribution__center-label {
-      position: absolute;
-      left: 50%;
-      top: 42%;
-      transform: translate(-50%, -50%);
-      font-weight: bold;
-      /* Matches HoldingsTypeBreakdownComponent's own \`__center-label\` size:
-         every tile in the holdings-page grid shares the same width and
-         height (var(--holdings-chart-height)), so this chart's donut hole
-         is no bigger than theirs — the default (ambient) font size used to
-         overflow it. */
-      font-size: 0.75rem;
-      color: var(--p-text-color);
-      pointer-events: none;
     }
 
     .distribution__note,
@@ -208,6 +225,7 @@ export type { HoldingsDistributionEntry } from './distribution-chart-option';
   `,
 })
 export class HoldingsDistributionComponent implements OnChanges, OnInit {
+  protected readonly area = '/app/holdings';
   @Input() holdings: HoldingResponse[] = [];
 
   private readonly holdingsService = inject(HoldingsService);
@@ -223,13 +241,30 @@ export class HoldingsDistributionComponent implements OnChanges, OnInit {
   protected readonly framed = signal(false);
   protected readonly loaded = signal(false);
   protected readonly loadError = signal<'error' | 'unavailable' | null>(null);
-  protected readonly slices = computed(() =>
-    (this.entries() ?? []).map((entry) => ({
-      ...entry,
-      color: ASSET_TYPE_COLORS[entry.assetType],
-    })),
-  );
-  protected readonly excludedCount = signal(0);
+  protected readonly slices = computed(() => {
+    const entries = this.entries() ?? [];
+    const total = entries.reduce((sum, e) => sum + e.value, 0);
+    const locale = this.i18n.language();
+    const money = new Intl.NumberFormat(locale, {
+      style: 'currency',
+      currency: 'EUR',
+      maximumFractionDigits: 0,
+    });
+    const pct = new Intl.NumberFormat(locale, { style: 'percent', maximumFractionDigits: 1 });
+    return entries
+      .map((entry) => ({
+        ...entry,
+        key: entry.assetType,
+        label: this.translate.transform(ASSET_TYPE_LABEL_KEYS[entry.assetType]),
+        color: ASSET_TYPE_COLORS[entry.assetType],
+        amount: money.format(entry.value),
+        share: pct.format(total > 0 ? entry.value / total : 0),
+      }))
+      .sort((a, b) => b.value - a.value);
+  });
+  /** Like the net-worth tile: the three largest types always, the rest under "details". */
+  protected readonly topSlices = computed(() => this.slices().slice(0, 3));
+  protected readonly restSlices = computed(() => this.slices().slice(3));
   protected readonly hasData = computed(() => this.entries() != null);
 
   protected readonly chartOption = computed<EChartsOption>(() =>
@@ -299,8 +334,6 @@ export class HoldingsDistributionComponent implements OnChanges, OnInit {
 
   private recompute(): void {
     const result = groupHoldingsByKey(this.holdings, (h) => h.assetType);
-
-    this.excludedCount.set(result.excludedCount);
 
     if (result.entries.length === 0) {
       this.entries.set(null);

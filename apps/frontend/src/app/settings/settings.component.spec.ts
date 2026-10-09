@@ -91,7 +91,7 @@ describe('SettingsComponent', () => {
     fixture.detectChanges();
 
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
-    expect(text).toContain('Holdings');
+    expect(text).toContain('Portfolio');
   });
 
   it('hides a contributed tab when the current user is not entitled to its domain (Acceptance Scenario 3)', () => {
@@ -100,7 +100,7 @@ describe('SettingsComponent', () => {
     fixture.detectChanges();
 
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
-    expect(text).not.toContain('Holdings');
+    expect(text).not.toContain('Portfolio');
   });
 
   it('adds no extra tab when no domain contributes one, e.g. holdings per this spec (Acceptance Scenario 5)', () => {

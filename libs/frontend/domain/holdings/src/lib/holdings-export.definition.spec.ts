@@ -11,8 +11,7 @@ const TABLE_FIELDS = [
   'management',
   'quantity',
   'purchasePrice',
-  'currentValue',
-  'purchaseDate',
+  'purchaseSum',
 ];
 
 const holding: HoldingResponse = {
@@ -23,7 +22,6 @@ const holding: HoldingResponse = {
   name: 'iShares Core MSCI World',
   quantity: '12.5',
   purchasePrice: '78.42',
-  purchaseDate: null,
   note: null,
   metal: null,
   coinId: null,
@@ -52,8 +50,7 @@ describe('createHoldingsExportDefinition', () => {
       'quantity',
       'unit',
       'purchasePrice',
-      'purchaseDate',
-      'currentValue',
+      'purchaseSum',
       'management',
       'note',
     ]);
@@ -86,8 +83,7 @@ describe('createHoldingsExportDefinition', () => {
         quantity: '12.5',
         unit: null,
         purchasePrice: '78.42',
-        purchaseDate: null,
-        currentValue: null,
+        purchaseSum: '980.25',
         management: 'Roboadvisor',
         note: null,
       },
@@ -121,7 +117,6 @@ describe('createHoldingsExportDefinition', () => {
         name: null,
         coinId: 'bitcoin',
         quantity: '0.12345678',
-        purchaseDate: '2026-01-02',
       },
     ]);
     const rows = await rowsPromise;
@@ -131,14 +126,13 @@ describe('createHoldingsExportDefinition', () => {
       coin: null,
       unit: 'OZT',
       quantity: '1.5',
-      currentValue: '3000.50',
+      purchaseSum: null,
       note: 'Coin bars',
     });
     expect(rows[1]).toMatchObject({
       metal: null,
       coin: 'BTC',
       quantity: '0.12345678',
-      purchaseDate: '2026-01-02',
     });
   });
 
@@ -166,5 +160,49 @@ describe('createHoldingsExportDefinition', () => {
     expect(sideTable?.sectionTitle).toBeTruthy();
     expect(sideTable?.rows).toHaveLength(1);
     expect(sideTable?.rows[0].percentage).toBeCloseTo(100, 1);
+  });
+
+  it('getExportTables returns "all" plus one table per asset type', async () => {
+    const definition = TestBed.runInInjectionContext(createHoldingsExportDefinition);
+    const httpMock = TestBed.inject(HttpTestingController);
+
+    const promise = definition.getExportTables?.();
+    httpMock.expectOne('/api/holdings').flush([holding]);
+    const tables = await promise;
+
+    expect(tables?.map((t) => t.id)).toEqual([
+      'all',
+      'ETF',
+      'SHARE',
+      'PRECIOUS_METAL',
+      'CRYPTO',
+      'DEPOSIT_MONEY',
+    ]);
+    // data row + total row; empty types get neither
+    expect(tables?.[0].rows).toHaveLength(2);
+    expect(tables?.[1].rows).toHaveLength(2);
+    expect(tables?.[2].rows).toHaveLength(0);
+    expect(tables?.[0].rows[1]).toMatchObject({
+      emphasis: 'total',
+      cells: { purchaseSum: '980.25' },
+    });
+    expect(tables?.[0].totalKey).toBe('allTotal');
+    expect(tables?.[0].columns.map((c) => c.key)).toContain('note');
+  });
+
+  it('getPdfSections returns 6 cards and a full table without the note column', async () => {
+    const definition = TestBed.runInInjectionContext(createHoldingsExportDefinition);
+    const httpMock = TestBed.inject(HttpTestingController);
+
+    const promise = definition.getPdfSections?.();
+    httpMock.expectOne('/api/holdings').flush([holding]);
+    const [cards, table] = (await promise) ?? [];
+
+    expect(cards.kind === 'cards' && cards.cards).toHaveLength(6);
+    const etfRows = cards.kind === 'cards' ? cards.cards[1].rows : [];
+    expect(etfRows.at(-1)).toMatchObject({ emphasis: 'total', cells: { share: 1 } });
+    expect(table.kind === 'table' && table.columns.map((c) => c.key)).not.toContain('note');
+    expect(table.kind === 'table' && table.rows).toHaveLength(2);
+    expect(table.kind === 'table' && table.rows[1].emphasis).toBe('total');
   });
 });

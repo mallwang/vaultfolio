@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import Decimal from 'decimal.js';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import type { AssetType, HoldingResponse } from '@vaultfolio/api-contract';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
@@ -8,7 +9,6 @@ import { DialogModule } from 'primeng/dialog';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
-import { TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import {
@@ -16,14 +16,14 @@ import {
   IconComponent,
   TranslatePipe,
   LocaleNumberPipe,
-  LocaleDatePipe,
 } from '@vaultfolio/frontend-shared-ui';
 import { ASSET_TYPES } from '@vaultfolio/domain-holdings';
-import { ASSET_TYPE_LABEL_KEYS, holdingAssetName } from './holding-display';
+import { ASSET_TYPE_ICONS, ASSET_TYPE_LABEL_KEYS, holdingAssetName } from './holding-display';
 import { HoldingFormComponent } from './holding-form/holding-form.component';
 import { HoldingsDistributionComponent } from './holdings-distribution/holdings-distribution.component';
 import { HoldingsTypeBreakdownComponent } from './holdings-type-breakdown/holdings-type-breakdown.component';
 import { HoldingsService } from './holdings.service';
+import { computeHoldingValue } from './holdings-valuation';
 
 /**
  * Holdings area (FR-001–FR-016, User Stories 1–4): the holdings list and the
@@ -41,10 +41,13 @@ import { HoldingsService } from './holdings.service';
  * otherwise fail with "Did you run and wait for resolveComponentResources()?"
  * — see `IconComponent`'s identical note in `@vaultfolio/frontend-shared-ui`.
  */
+type SortKey = 'assetType' | 'name' | 'management' | 'quantity' | 'purchasePrice' | 'total';
+
+const CHARTS_OPEN_KEY = 'vaultfolio.holdings.chartsOpen';
+
 @Component({
   selector: 'app-holdings',
   imports: [
-    TableModule,
     ButtonModule,
     CardModule,
     DialogModule,
@@ -59,7 +62,6 @@ import { HoldingsService } from './holdings.service';
     HoldingsTypeBreakdownComponent,
     TranslatePipe,
     LocaleNumberPipe,
-    LocaleDatePipe,
     IconComponent,
     ExportControlComponent,
   ],
@@ -75,16 +77,30 @@ import { HoldingsService } from './holdings.service';
       <ng-template #icon><app-icon name="warning" /></ng-template>
     </p-confirmdialog>
 
-    <div class="holdings-charts-grid">
-      <p-card [header]="'holdingsDistribution.title' | translate" class="distribution-card">
-        <app-holdings-distribution [holdings]="holdings()" />
-      </p-card>
-      @for (assetType of assetTypes; track assetType) {
-        <p-card [header]="labelFor(assetType)" class="distribution-card">
-          <app-holdings-type-breakdown [assetType]="assetType" [holdings]="holdings()" />
-        </p-card>
-      }
+    <div class="holdings-charts-bar">
+      <button
+        type="button"
+        class="holdings-charts-toggle"
+        data-testid="holdings-charts-toggle"
+        [attr.aria-expanded]="chartsOpen()"
+        (click)="toggleCharts()"
+      >
+        <app-icon name="chevron-down" [class.holdings-charts-toggle--closed]="!chartsOpen()" />
+        {{ (chartsOpen() ? 'holdings.chartsHide' : 'holdings.chartsShow') | translate }}
+      </button>
     </div>
+    @if (chartsOpen()) {
+      <div class="holdings-charts-grid" data-testid="holdings-charts">
+        <p-card [header]="'holdingsDistribution.title' | translate" class="distribution-card">
+          <app-holdings-distribution [holdings]="holdings()" />
+        </p-card>
+        @for (assetType of assetTypes; track assetType) {
+          <p-card [header]="labelFor(assetType)" class="distribution-card">
+            <app-holdings-type-breakdown [assetType]="assetType" [holdings]="holdings()" />
+          </p-card>
+        }
+      </div>
+    }
 
     <section class="holdings-panel">
       <div class="holdings-panel__header">
@@ -112,6 +128,39 @@ import { HoldingsService } from './holdings.service';
         <p class="error-state">{{ loadError() }}</p>
       } @else {
         <div class="holdings-panel__filter">
+          @if (typeCounts().length > 1) {
+            <div
+              class="filter-chips"
+              role="group"
+              [attr.aria-label]="'holdings.columnType' | translate"
+            >
+              <button
+                type="button"
+                class="filter-chip"
+                [class.filter-chip--active]="typeFilter() === 'ALL'"
+                [attr.aria-pressed]="typeFilter() === 'ALL'"
+                data-testid="holdings-filter-type-ALL"
+                (click)="typeFilter.set('ALL')"
+              >
+                {{ 'accountOverview.filterAll' | translate }}
+                <span class="filter-chip__count">{{ holdings().length }}</span>
+              </button>
+              @for (entry of typeCounts(); track entry.assetType) {
+                <button
+                  type="button"
+                  class="filter-chip"
+                  [class.filter-chip--active]="typeFilter() === entry.assetType"
+                  [attr.aria-pressed]="typeFilter() === entry.assetType"
+                  [attr.data-testid]="'holdings-filter-type-' + entry.assetType"
+                  (click)="typeFilter.set(entry.assetType)"
+                >
+                  <app-icon size="1rem" [name]="iconFor(entry.assetType)" />
+                  {{ labelFor(entry.assetType) }}
+                  <span class="filter-chip__count">{{ entry.count }}</span>
+                </button>
+              }
+            </div>
+          }
           <p-iconfield iconPosition="left">
             <p-inputicon>
               <app-icon name="search" />
@@ -122,131 +171,184 @@ import { HoldingsService } from './holdings.service';
               data-testid="holdings-filter"
               [attr.aria-label]="'holdings.filterPlaceholder' | translate"
               [placeholder]="'holdings.filterPlaceholder' | translate"
-              (input)="dt.filterGlobal($any($event.target).value, 'contains')"
+              (input)="filter.set($any($event.target).value)"
             />
           </p-iconfield>
         </div>
-        <p-table
-          #dt
-          [value]="holdings()"
-          [loading]="loading()"
-          [tableStyle]="{ 'min-width': '50rem' }"
-          [globalFilterFields]="['assetType', 'name', 'management', 'purchaseDate']"
-          sortMode="single"
-          removableSort
-        >
-          <ng-template #header>
-            <tr>
-              <th scope="col" pSortableColumn="assetType" data-testid="holdings-column-assetType">
-                {{ 'holdings.columnType' | translate }}
-                <p-sort-icon field="assetType" />
-              </th>
-              <th scope="col" pSortableColumn="name" data-testid="holdings-column-name">
-                {{ 'holdings.columnAsset' | translate }}
-                <p-sort-icon field="name" />
-              </th>
-              <th scope="col" pSortableColumn="management" data-testid="holdings-column-management">
-                {{ 'holdings.columnManagement' | translate }}
-                <p-sort-icon field="management" />
-              </th>
-              <th scope="col" pSortableColumn="quantity" data-testid="holdings-column-quantity">
-                {{ 'holdings.columnQuantity' | translate }}
-                <p-sort-icon field="quantity" />
-              </th>
-              <th
-                scope="col"
-                pSortableColumn="purchasePrice"
-                data-testid="holdings-column-purchasePrice"
-              >
-                {{ 'holdings.columnPrice' | translate }}
-                <p-sort-icon field="purchasePrice" />
-              </th>
-              <th
-                scope="col"
-                pSortableColumn="purchaseDate"
-                data-testid="holdings-column-purchaseDate"
-              >
-                {{ 'holdings.columnPurchaseDate' | translate }}
-                <p-sort-icon field="purchaseDate" />
-              </th>
-              <th scope="col"></th>
-            </tr>
-          </ng-template>
-          <ng-template #body let-holding>
-            <tr>
-              <td>{{ labelFor(holding.assetType) }}</td>
-              <td>
-                {{ assetName(holding) }}
-                @if (holding.note) {
-                  <details [attr.data-testid]="'holdings-row-' + holding.id + '-note'">
-                    <summary>{{ 'holdings.showNote' | translate }}</summary>
-                    {{ holding.note }}
-                  </details>
-                }
-              </td>
-              <td>{{ holding.management }}</td>
-              <td [attr.data-testid]="'holdings-row-' + holding.id + '-quantity'">
-                {{ holding.quantity ?? '—' }}{{ holding.unit ? ' ' + unitLabel(holding.unit) : '' }}
-              </td>
-              <td>
-                {{
-                  holding.purchasePrice ?? holding.currentValue
-                    | localeNumber: { style: 'currency', currency: 'EUR' }
-                }}
-              </td>
-              <td>{{ holding.purchaseDate | localeDate }}</td>
-              <td class="row-actions">
-                <button
-                  pButton
-                  type="button"
-                  iconOnly
-                  severity="secondary"
-                  [text]="true"
-                  [attr.data-testid]="'holdings-row-' + holding.id + '-edit'"
-                  [attr.aria-label]="'holdings.editHolding' | translate"
-                  [pTooltip]="'holdings.editHolding' | translate"
-                  tooltipPosition="top"
-                  (click)="openEditDialog(holding)"
-                >
-                  <app-icon name="pencil" />
-                </button>
-                <button
-                  pButton
-                  type="button"
-                  iconOnly
-                  severity="danger"
-                  [text]="true"
-                  [attr.data-testid]="'holdings-row-' + holding.id + '-delete'"
-                  [attr.aria-label]="'holdings.deleteHolding' | translate"
-                  [pTooltip]="'holdings.deleteHolding' | translate"
-                  tooltipPosition="top"
-                  (click)="confirmDelete(holding, $event)"
-                >
-                  <app-icon name="contract-delete" />
-                </button>
-              </td>
-            </tr>
-          </ng-template>
-          <ng-template #emptymessage>
-            <tr>
-              <td colspan="7">
-                <div class="empty-state">
-                  <app-icon name="briefcase" class="empty-state__icon" />
-                  <h2>{{ 'holdings.emptyStateTitle' | translate }}</h2>
-                  <p>{{ 'holdings.emptyStateBody' | translate }}</p>
+        <div class="scroll">
+          <table data-testid="holdings-table">
+            <thead>
+              <tr>
+                <th scope="col" [attr.aria-sort]="ariaSort('assetType')">
                   <button
-                    pButton
-                    data-testid="holdings-add-first-holding"
                     type="button"
-                    (click)="openAddDialog()"
+                    class="sort"
+                    (click)="sortBy('assetType')"
+                    data-testid="holdings-column-assetType"
                   >
-                    {{ 'holdings.addFirstHolding' | translate }}
+                    {{ 'holdings.columnType' | translate }} {{ arrow('assetType') }}
                   </button>
-                </div>
-              </td>
-            </tr>
-          </ng-template>
-        </p-table>
+                </th>
+                <th scope="col" [attr.aria-sort]="ariaSort('name')">
+                  <button
+                    type="button"
+                    class="sort"
+                    (click)="sortBy('name')"
+                    data-testid="holdings-column-name"
+                  >
+                    {{ 'holdings.columnAsset' | translate }} {{ arrow('name') }}
+                  </button>
+                </th>
+                <th scope="col" [attr.aria-sort]="ariaSort('management')">
+                  <button
+                    type="button"
+                    class="sort"
+                    (click)="sortBy('management')"
+                    data-testid="holdings-column-management"
+                  >
+                    {{ 'holdings.columnManagement' | translate }} {{ arrow('management') }}
+                  </button>
+                </th>
+                <th scope="col" class="num" [attr.aria-sort]="ariaSort('quantity')">
+                  <button
+                    type="button"
+                    class="sort"
+                    (click)="sortBy('quantity')"
+                    data-testid="holdings-column-quantity"
+                  >
+                    {{ 'holdings.columnQuantity' | translate }} {{ arrow('quantity') }}
+                  </button>
+                </th>
+                <th scope="col" class="num" [attr.aria-sort]="ariaSort('purchasePrice')">
+                  <button
+                    type="button"
+                    class="sort"
+                    (click)="sortBy('purchasePrice')"
+                    data-testid="holdings-column-purchasePrice"
+                  >
+                    {{ 'holdings.columnPrice' | translate }} {{ arrow('purchasePrice') }}
+                  </button>
+                </th>
+                <th scope="col" class="num" [attr.aria-sort]="ariaSort('total')">
+                  <button
+                    type="button"
+                    class="sort"
+                    (click)="sortBy('total')"
+                    data-testid="holdings-column-total"
+                  >
+                    {{ 'holdings.columnTotal' | translate }} {{ arrow('total') }}
+                  </button>
+                </th>
+                <th scope="col"></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (holding of rows(); track holding.id) {
+                <tr>
+                  <td [attr.data-testid]="'holdings-row-' + holding.id + '-type'">
+                    {{ labelFor(holding.assetType) }}
+                  </td>
+                  <td>
+                    {{ assetName(holding) }}
+                    @if (holding.note) {
+                      <button
+                        type="button"
+                        class="note-btn"
+                        [attr.data-testid]="'holdings-row-' + holding.id + '-note'"
+                        [attr.aria-label]="'holdings.showNote' | translate"
+                        [pTooltip]="holding.note"
+                        tooltipPosition="top"
+                      >
+                        <app-icon name="sticky-note" size="1rem" />
+                      </button>
+                    }
+                  </td>
+                  <td>{{ holding.management }}</td>
+                  <td class="num" [attr.data-testid]="'holdings-row-' + holding.id + '-quantity'">
+                    {{ holding.quantity ?? '—'
+                    }}{{ holding.unit ? ' ' + unitLabel(holding.unit) : '' }}
+                  </td>
+                  <td class="num">
+                    {{
+                      holding.purchasePrice ?? holding.currentValue
+                        | localeNumber: { style: 'currency', currency: 'EUR' }
+                    }}
+                  </td>
+                  <td class="num" [attr.data-testid]="'holdings-row-' + holding.id + '-total'">
+                    {{ rowTotal(holding) | localeNumber: { style: 'currency', currency: 'EUR' } }}
+                  </td>
+                  <td class="row-actions">
+                    <button
+                      pButton
+                      type="button"
+                      iconOnly
+                      severity="secondary"
+                      [text]="true"
+                      [attr.data-testid]="'holdings-row-' + holding.id + '-edit'"
+                      [attr.aria-label]="'holdings.editHolding' | translate"
+                      [pTooltip]="'holdings.editHolding' | translate"
+                      tooltipPosition="top"
+                      (click)="openEditDialog(holding)"
+                    >
+                      <app-icon name="pencil" />
+                    </button>
+                    <button
+                      pButton
+                      type="button"
+                      iconOnly
+                      severity="danger"
+                      [text]="true"
+                      [attr.data-testid]="'holdings-row-' + holding.id + '-delete'"
+                      [attr.aria-label]="'holdings.deleteHolding' | translate"
+                      [pTooltip]="'holdings.deleteHolding' | translate"
+                      tooltipPosition="top"
+                      (click)="confirmDelete(holding, $event)"
+                    >
+                      <app-icon name="contract-delete" />
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+            @if (rows().length > 0) {
+              <tfoot>
+                <tr data-testid="holdings-footer-total">
+                  <td colspan="5">
+                    {{
+                      (isFiltered() ? 'holdings.footerTotalFiltered' : 'holdings.footerTotal')
+                        | translate
+                    }}
+                  </td>
+                  <td class="num">
+                    {{ visibleTotal() | localeNumber: { style: 'currency', currency: 'EUR' } }}
+                    @if (isFiltered()) {
+                      <div class="footer-of" data-testid="holdings-footer-of-total">
+                        {{ 'holdings.footerOfTotal' | translate }}
+                        {{ grandTotal() | localeNumber: { style: 'currency', currency: 'EUR' } }}
+                      </div>
+                    }
+                  </td>
+                  <td></td>
+                </tr>
+              </tfoot>
+            }
+          </table>
+        </div>
+        @if (!loading() && holdings().length === 0) {
+          <div class="empty-state">
+            <app-icon name="briefcase" class="empty-state__icon" />
+            <h2>{{ 'holdings.emptyStateTitle' | translate }}</h2>
+            <p>{{ 'holdings.emptyStateBody' | translate }}</p>
+            <button
+              pButton
+              data-testid="holdings-add-first-holding"
+              type="button"
+              (click)="openAddDialog()"
+            >
+              {{ 'holdings.addFirstHolding' | translate }}
+            </button>
+          </div>
+        }
       }
     </section>
 
@@ -268,35 +370,54 @@ import { HoldingsService } from './holdings.service';
     </p-dialog>
   `,
   styles: `
-    /* FR-009/FR-010: 6 tiles (main chart + 5 per-type) all in one row so the
-       datatable below never needs an extra scroll to reach — reflowing to
-       3-per-row, then 1-per-row, as the viewport narrows (same breakpoint
-       pattern as apps/frontend/src/app/dashboard/dashboard.component.css's
-       .card-row, just with an extra step for the wider 6-tile row). */
+    /* 2 rows x 3 columns (main chart + 5 per-type tiles), 1 column on narrow screens. */
     .holdings-charts-grid {
       display: grid;
-      grid-template-columns: repeat(6, 1fr);
-      gap: 0.5rem;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.85rem;
       margin-bottom: 1.5rem;
-      /* Shrinks every tile's chart at once (both chart components read this
-         inherited custom property) — see their own .*__chart app-echart
-         rules for why this crosses the style-encapsulation boundary safely. */
-      --holdings-chart-height: 11rem;
-    }
-
-    @media (max-width: 1200px) {
-      .holdings-charts-grid {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 0.85rem;
-        --holdings-chart-height: 15rem;
-      }
+      /* Height cap of the ranked-bar lists in every tile. */
+      --holdings-chart-height: 12rem;
     }
 
     @media (max-width: 768px) {
       .holdings-charts-grid {
         grid-template-columns: 1fr;
-        --holdings-chart-height: 18rem;
       }
+    }
+
+    .holdings-charts-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0;
+      border: 0;
+      background: none;
+      color: var(--p-primary-color);
+      font: inherit;
+      font-size: 0.875rem;
+      cursor: pointer;
+    }
+
+    .holdings-charts-bar {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 0.5rem;
+    }
+
+    .holdings-charts-toggle--closed {
+      transform: rotate(-90deg);
+    }
+
+    .note-btn {
+      all: unset;
+      cursor: help;
+      margin-left: 0.4rem;
+      vertical-align: middle;
+      color: var(--p-text-muted-color);
+    }
+    .note-btn:focus-visible {
+      outline: 2px solid var(--p-primary-color);
     }
 
     .distribution-card {
@@ -332,7 +453,10 @@ import { HoldingsService } from './holdings.service';
 
     .holdings-panel__filter {
       display: flex;
-      justify-content: flex-end;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
       margin-bottom: 0.75rem;
     }
 
@@ -351,10 +475,87 @@ import { HoldingsService } from './holdings.service';
       align-items: center;
     }
 
-    .row-actions {
+    .filter-chips {
       display: flex;
-      gap: 0.25rem;
-      justify-content: flex-end;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+
+    .filter-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.25rem 0.75rem;
+      border: 1px solid var(--p-content-border-color);
+      border-radius: 999px;
+      background: var(--p-content-background);
+      color: inherit;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+
+    .filter-chip--active {
+      border-color: var(--p-primary-color);
+      background: var(--p-highlight-background);
+      color: var(--p-primary-color);
+    }
+
+    .filter-chip__count {
+      font-variant-numeric: tabular-nums;
+      opacity: 0.75;
+    }
+
+    .scroll {
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    td {
+      font-size: 0.85rem;
+    }
+    th,
+    td {
+      padding: 0.45rem 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid var(--p-content-border-color);
+      vertical-align: middle;
+    }
+    th {
+      font-size: 0.8rem;
+      color: var(--p-text-muted-color);
+      font-weight: 600;
+    }
+    tbody tr:hover {
+      background: color-mix(in srgb, var(--p-primary-color) 8%, transparent);
+    }
+    .footer-of {
+      font-size: 0.75rem;
+      font-weight: 400;
+      color: var(--p-text-muted-color);
+    }
+    tfoot td {
+      font-weight: 600;
+    }
+    .num {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+    .sort {
+      all: unset;
+      cursor: pointer;
+      font: inherit;
+      white-space: nowrap;
+    }
+    .sort:focus-visible {
+      outline: 2px solid var(--p-primary-color);
+    }
+
+    /* Not display:flex — that would pull the cell out of the table row's alignment. */
+    .row-actions {
+      white-space: nowrap;
+      text-align: right;
     }
 
     .error-state {
@@ -387,8 +588,104 @@ export class HoldingsComponent implements OnInit {
   protected readonly loadError = signal<string | null>(null);
   protected readonly assetTypes = ASSET_TYPES;
 
+  protected readonly chartsOpen = signal(localStorage.getItem(CHARTS_OPEN_KEY) !== 'false');
+
+  protected toggleCharts(): void {
+    this.chartsOpen.update((open) => !open);
+    localStorage.setItem(CHARTS_OPEN_KEY, String(this.chartsOpen()));
+  }
+
+  protected readonly filter = signal('');
+  protected readonly typeFilter = signal<AssetType | 'ALL'>('ALL');
+  protected readonly typeCounts = computed(() =>
+    this.assetTypes
+      .map((assetType) => ({
+        assetType,
+        count: this.holdings().filter((h) => h.assetType === assetType).length,
+      }))
+      .filter((entry) => entry.count > 0),
+  );
+  protected readonly sort = signal<SortKey | null>(null);
+  protected readonly dir = signal<'asc' | 'desc'>('asc');
+
+  protected readonly rows = computed(() => {
+    const q = this.filter().trim().toLowerCase();
+    const type = this.typeFilter();
+    const byType =
+      type === 'ALL' ? this.holdings() : this.holdings().filter((h) => h.assetType === type);
+    const filtered = q
+      ? byType.filter((h) =>
+          [h.assetType, h.name, h.management].some((v) => (v ?? '').toLowerCase().includes(q)),
+        )
+      : byType;
+    const key = this.sort();
+    if (!key) return filtered;
+    const sign = this.dir() === 'asc' ? 1 : -1;
+    const value = (h: HoldingResponse): string | number | null => {
+      if (key === 'total') return computeHoldingValue(h)?.toNumber() ?? null;
+      const raw = h[key];
+      return raw !== null && (key === 'quantity' || key === 'purchasePrice') ? Number(raw) : raw;
+    };
+    return [...filtered].sort((a, b) => {
+      const x = value(a);
+      const y = value(b);
+      // Empty values stay last in both directions.
+      if (x === null || y === null) {
+        if (x === y) return 0;
+        return x === null ? 1 : -1;
+      }
+      if (typeof x === 'number' && typeof y === 'number') return sign * (x - y);
+      return sign * String(x).localeCompare(String(y));
+    });
+  });
+
+  protected sortBy(key: SortKey): void {
+    if (this.sort() === key) {
+      this.dir.update((d) => (d === 'asc' ? 'desc' : 'asc'));
+      return;
+    }
+    this.sort.set(key);
+    this.dir.set('asc');
+  }
+
+  protected arrow(key: SortKey): string {
+    if (this.sort() !== key) return '';
+    return this.dir() === 'asc' ? '▲' : '▼';
+  }
+
+  protected ariaSort(key: SortKey): 'ascending' | 'descending' | 'none' {
+    if (this.sort() !== key) return 'none';
+    return this.dir() === 'asc' ? 'ascending' : 'descending';
+  }
+
   protected readonly dialogVisible = signal(false);
   protected readonly editingHolding = signal<HoldingResponse | null>(null);
+
+  /** Sum of every computable row total (rows without one are skipped, as in the charts). */
+  protected readonly grandTotal = computed(() =>
+    this.holdings()
+      .reduce((sum, h) => sum.plus(computeHoldingValue(h) ?? 0), new Decimal(0))
+      .toNumber(),
+  );
+
+  protected readonly isFiltered = computed(
+    () => this.typeFilter() !== 'ALL' || this.filter().trim() !== '',
+  );
+
+  /** Sum of the rows currently shown (follows the type chip and the search text). */
+  protected readonly visibleTotal = computed(() =>
+    this.rows()
+      .reduce((sum, h) => sum.plus(computeHoldingValue(h) ?? 0), new Decimal(0))
+      .toNumber(),
+  );
+
+  protected rowTotal(holding: HoldingResponse): number | null {
+    return computeHoldingValue(holding)?.toNumber() ?? null;
+  }
+
+  protected iconFor(assetType: AssetType): string {
+    return ASSET_TYPE_ICONS[assetType];
+  }
 
   protected unitLabel(unit: string): string {
     return unit === 'OZT' ? 'oz t' : 'g';
